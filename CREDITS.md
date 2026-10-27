@@ -3,6 +3,7 @@
 | Component | Version | License | Where |
 |---|---|---|---|
 | Natural Earth (Admin 0, 1:110m, default de facto worldview) | via world-atlas 2.0.2 | Public domain | vendor/world-atlas/countries-110m.js |
+| NASA Blue Marble: Next Generation, July 2004 topo+bathy (Reto Stöckli, NASA Earth Observatory), graded | earthobservatory.nasa.gov | Public domain | assets/earth-2048.jpg, assets/earth-4096.jpg |
 | world-atlas (TopoJSON packaging) | 2.0.2 | ISC | vendor/world-atlas/LICENSE |
 | d3-geo (includes Charles Karney code, MIT) | 3.1.1 | ISC + MIT | vendor/d3-geo/LICENSE |
 | topojson-client | 3.1.0 | ISC | vendor/topojson-client/LICENSE |

@@ -390,6 +390,7 @@ function globeMap(el, onPick) {
     h("button", { type: "button", "aria-label": "Zoom in", onclick: () => zoomBy(1.4) }, "+"),
     h("button", { type: "button", "aria-label": "Zoom out", onclick: () => zoomBy(1 / 1.4) }, "−")));
   const ctx = cv.getContext("2d");
+  const gl = window.BCGlobeGL ? window.BCGlobeGL(el, cv, () => req()) : null; // realistic WebGL layer (globe-gl.js); null → flat fallback
   const proj = d3.geoOrthographic().clipAngle(90).precision(0.6).rotate([-20, -20, 0]);
   const path = d3.geoPath(proj, ctx);
   let W = 0, H = 0, dpr = 1, base = 1, k = 1, K_MIN = 0.9, K_MAX = 8;
@@ -403,6 +404,7 @@ function globeMap(el, onPick) {
     dpr = Math.min(2, window.devicePixelRatio || 1);
     W = Math.max(1, el.clientWidth); H = Math.max(1, el.clientHeight);
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + "px"; cv.style.height = H + "px";
+    if (gl) gl.size(W, H, dpr);
     base = Math.max(20, Math.min(W, H) / 2 - 8); proj.translate([W / 2, H / 2]).scale(base * k); draw();
   }
   const visible = p => d3.geoDistance([p.lon, p.lat], [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - 1e-3;
@@ -415,11 +417,16 @@ function globeMap(el, onPick) {
   function draw() {
     raf = 0; if (W < 2 || H < 2) return; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const [cx, cy] = proj.translate(), R = proj.scale();
+    if (gl && gl.ready) { gl.draw(proj); // atmosphere glow + optional crisp white borders over the imagery
+      const g = ctx.createRadialGradient(cx, cy, R * 0.98, cx, cy, R * 1.09); g.addColorStop(0, "rgba(90,160,255,0.55)"); g.addColorStop(1, "rgba(90,160,255,0)");
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.09, 0, 7); ctx.arc(cx, cy, R * 0.995, 0, 7, true); ctx.fillStyle = g; ctx.fill();
+      if (window.MAP_BORDERS) { ctx.beginPath(); path(borders); ctx.lineWidth = 0.8; ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.stroke(); }
+    } else { if (gl) gl.draw(proj);
     ctx.beginPath(); path(sphere); ctx.fillStyle = C.sea; ctx.fill();
     ctx.beginPath(); path(grat); ctx.lineWidth = 0.7; ctx.strokeStyle = C.grat; ctx.stroke();
     ctx.beginPath(); path(land); ctx.fillStyle = C.land; ctx.fill(); ctx.lineWidth = 0.8; ctx.strokeStyle = C.coast; ctx.stroke();
     ctx.beginPath(); path(borders); ctx.lineWidth = 0.7; ctx.strokeStyle = C.border; ctx.stroke();
-    ctx.beginPath(); path(sphere); ctx.lineWidth = 2; ctx.strokeStyle = C.rim; ctx.stroke();
+    ctx.beginPath(); path(sphere); ctx.lineWidth = 2; ctx.strokeStyle = C.rim; ctx.stroke(); }
     if (guess && target) { ctx.beginPath(); path({ type: "LineString", coordinates: [[guess.lon, guess.lat], [target.lon, target.lat]] });
       ctx.setLineDash([7, 6]); ctx.lineWidth = 3; ctx.strokeStyle = C.arc; ctx.stroke(); ctx.setLineDash([]); }
     if (target) dot(target, C.target, 7);
@@ -431,7 +438,7 @@ function globeMap(el, onPick) {
     const f = 90 / proj.scale(), r = proj.rotate();
     proj.rotate([r[0] + dx * f, Math.max(-89, Math.min(89, r[1] - dy * f)), 0]); req();
   }
-  function zoomBy(f) { k = Math.max(K_MIN, Math.min(K_MAX, k * f)); proj.scale(base * k); req(); }
+  function zoomBy(f) { k = Math.max(K_MIN, Math.min(K_MAX, k * f)); proj.scale(base * k); if (gl) gl.zoom(k); req(); }
   // Pointer handling: one pointer spins (tap = drop pin), two pointers pinch.
   const pts = new Map(); let start = null, last = null, pinch0 = 0, k0 = 1, moved = false, lastT = 0;
   const TAP_PX = 7;
@@ -445,7 +452,7 @@ function globeMap(el, onPick) {
   cv.addEventListener("pointermove", e => {
     if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
     if (pts.size >= 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
-      if (pinch0 > 0) { k = Math.max(K_MIN, Math.min(K_MAX, k0 * d / pinch0)); proj.scale(base * k); req(); } return; }
+      if (pinch0 > 0) { k = Math.max(K_MIN, Math.min(K_MAX, k0 * d / pinch0)); proj.scale(base * k); if (gl) gl.zoom(k); req(); } return; }
     if (!start) return;
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
@@ -502,7 +509,7 @@ function globeMap(el, onPick) {
     flyTo([-c[0], -c[1]], kk);
   },
     // test hooks
-    _proj: proj, _draw: draw, _state: () => ({ k, rotate: proj.rotate(), guess, target }) };
+    _proj: proj, _draw: draw, _gl: () => !!(gl && gl.ready), _state: () => ({ k, rotate: proj.rotate(), guess, target }) };
   el._globe = api;
   return api;
 }
@@ -555,7 +562,7 @@ function worldRush() {
     const mapEl = h("div", { class: "lmap" });
     const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, "Drag to spin, pinch to zoom");
     const wrap = h("div", { class: "map-wrap" }, mapEl, zhint,
-      h("a", { class: "map-credit", href: "credits.html", target: "_blank", rel: "noopener" }, "Map data: Natural Earth · Made with Natural Earth"));
+      h("a", { class: "map-credit", href: "credits.html", target: "_blank", rel: "noopener" }, "Map data: Natural Earth · Imagery: NASA Blue Marble"));
     body.append(wrap);
     const hideHint = () => zhint.classList.add("gone");
     ["pointerdown", "wheel", "touchstart", "keydown"].forEach(ev => wrap.addEventListener(ev, hideHint, { once: true, passive: true }));

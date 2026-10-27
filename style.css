@@ -779,3 +779,7 @@ body.in-game .cat-score{margin-bottom:14px}
 body.in-game .prompt{font-size:clamp(19px,calc(2.4vh + 6px),28px)}
 @media (max-height:700px){body.in-game .prompt{font-size:clamp(18px,calc(2.4vh + 6px),24px)}}
 .timer.stopped{opacity:.55}
+
+/* realistic globe: WebGL imagery layer under the 2D overlay (pins, borders, arc) */
+.lmap canvas.globe-gl { position: absolute; left: 0; top: 0; pointer-events: none; }
+.lmap canvas.globe { position: relative; z-index: 1; }
