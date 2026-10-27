@@ -4,6 +4,7 @@
 |---|---|---|---|
 | Natural Earth (Admin 0, 1:110m, default de facto worldview) | via world-atlas 2.0.2 | Public domain | vendor/world-atlas/countries-110m.js |
 | NASA Blue Marble: Next Generation, July 2004 topo+bathy (Reto Stöckli, NASA Earth Observatory), graded | earthobservatory.nasa.gov | Public domain | assets/earth-2048.jpg, assets/earth-4096.jpg |
+| NASA GIBS BlueMarble_NextGeneration 500 m WMTS tiles (streamed at deep zoom, graded in shader). We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). | earthdata.nasa.gov/gibs | Public domain | streamed, not in repo |
 | world-atlas (TopoJSON packaging) | 2.0.2 | ISC | vendor/world-atlas/LICENSE |
 | d3-geo (includes Charles Karney code, MIT) | 3.1.1 | ISC + MIT | vendor/d3-geo/LICENSE |
 | topojson-client | 3.1.0 | ISC | vendor/topojson-client/LICENSE |
