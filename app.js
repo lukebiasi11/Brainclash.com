@@ -136,25 +136,61 @@ function loadToday() {
 }
 // THE single place that turns a day key into that day's content. To move to a
 // backend later, replace the body with a fetch (and make callers await it).
+// Launch-anchored rotation. Lists used to be indexed by (epoch day % length), so launch
+// landed mid-list (e.g. Brain Teaser started at its Day 4) and the first entries would
+// only appear when the list wrapped. Now: the days already shipped (launch .. LIVE_LOCK)
+// keep exactly what they showed, then the rest of the list follows in content order,
+// so every entry is used once before anything repeats.
+const LIVE_LOCK = 5; // Oct 23–27 2026 already went out
+function rotPick(arr, d) {
+  if (!Array.isArray(arr) || !arr.length) return pick(arr, d);
+  const L = dayOfKey(LAUNCH_DATE), n = d - L, len = arr.length;
+  if (n < 0) return pick(arr, d);
+  const s0 = L % len, lock = Math.min(LIVE_LOCK, len), shown = [];
+  for (let k = 0; k < lock; k++) shown.push((s0 + k) % len);
+  const cycle = shown.concat([...Array(len).keys()].filter(i => !shown.includes(i)));
+  return arr[cycle[n % len]];
+}
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
-  return { day: d, worldRush: pick(C.worldRush, d), history: pick(C.history, d), sports: pick(C.sports, d),
+  return { day: d, worldRush: rotPick(C.worldRush, d), history: rotPick(C.history, d), sports: rotPick(C.sports, d),
     // Formats rotate daily (period 5), so each format indexes its own list by how
   // many times it has come up: floor(day / 5). Avoids getting stuck on multiples of 5.
   wordGame: pick(WORD_GAMES, d), wordFlip: pick(C.wordFlip, w), wordBridge: pick(C.wordBridge, w), connections: pick(C.connections, w),
-    oddOneOut: pick(C.oddOneOut, w), anagram: pick(window.ANAGRAM_SETS, w), thinkFast: pick(C.thinkFast, d) };
+    oddOneOut: pick(C.oddOneOut, w), anagram: pick(window.ANAGRAM_SETS, w), thinkFast: rotPick(C.thinkFast, d) };
+}
+// Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
+// or a future day. Before there are past days it falls back to a pre-launch day.
+function practiceKey() {
+  const L = dayOfKey(LAUNCH_DATE), t = dayOfKey(todayKey());
+  const d = t > L ? L + Math.floor(Math.random() * (t - L)) : L - 1 - Math.floor(Math.random() * 30);
+  return keyOf(d);
 }
 function newSession(practice) {
   let s;
   if (!practice) s = loadToday();
   if (s) s.practice = false;
-  else s = { key: practice ? keyOf(Math.floor(Math.random() * 1000)) : todayKey(), practice, scores: [], details: [] };
+  else s = { key: practice ? practiceKey() : todayKey(), practice, scores: [], details: [] };
   s.day = dayOfKey(s.key);
   Object.defineProperty(s, "set", { value: getDailySet(s.key), enumerable: false, writable: true }); // not saved
   return s;
 }
 // Records points earned so far in the current category (used if the page reloads).
-function track(pts) { if (session && session.inProgress != null) { session.partial = pts; save(); liveTotal(); } }
+function track(pts) {
+  if (!session || session.inProgress == null) return;
+  const gain = Math.round(pts - (session.partial || 0));
+  session.partial = pts; save(); liveTotal();
+  if (gain > 0) scorePop(gain);
+}
+// Celebration: "+N" floats up from the header score and the number bumps (CSS, ~600 ms, no layout shift).
+function scorePop(gain) {
+  const b = document.querySelector(".runtotal b"); if (!b) return;
+  b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+  const r = b.getBoundingClientRect(), p = h("span", { class: "pts-pop", "aria-hidden": "true" }, "+" + fmt(gain));
+  p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.bottom) + "px";
+  document.body.append(p); setTimeout(() => p.remove(), 900);
+}
+const flashBody = cls => { document.body.classList.remove("flash-good", "flash-bad"); void document.body.offsetWidth; document.body.classList.add(cls); setTimeout(() => document.body.classList.remove(cls), 600); };
 // Header "Total" follows points as they are earned (committed categories + the current one so far).
 function liveTotal() {
   const b = document.querySelector(".runtotal b");
@@ -205,8 +241,8 @@ function screen(title, sub) {
 function feedback(parent, ok, text) {
   const f = h("div", { class: "fb " + (ok === true ? "good" : ok === false ? "bad" : "neutral") }, text);
   parent.append(f);
-  if (ok === true) { const r = f.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2); }
-  else if (ok === false) { document.body.classList.remove("flash-bad"); void document.body.offsetWidth; document.body.classList.add("flash-bad"); }
+  if (ok === true) { const r = f.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2); flashBody("flash-good"); }
+  else if (ok === false) flashBody("flash-bad");
   return f;
 }
 // One-shot button: ignores double-clicks and key-repeat.
@@ -246,7 +282,7 @@ function home() {
       return h("li", { class: "step " + state },
         h("span", { class: "num" }, sc != null ? "✓" : i + 1),
         h("span", { class: "ic" }, ic(c.icon, c.img)),
-        h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.sub)),
+        h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.id === "word" ? c.sub + " · Today: " + wg.name : c.sub)),
         h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : "1,000"));
     })),
     done
@@ -255,11 +291,6 @@ function home() {
           h("p", { class: "muted", id: "countdown" }))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big", onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? "Continue the Clash" : "Start the Clash"),
           h("p", { class: "muted", id: "countdown" })),
-    h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 Practice mode (doesn't count)"),
-    h("div", { class: "stats" },
-      h("div", {}, h("b", {}, stats.played), h("small", {}, "Played")),
-      h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, "Best")),
-      h("div", {}, h("b", {}, stats.streak), h("small", {}, "Streak"))),
     h("details", { class: "rules" }, h("summary", {}, "How it works"),
       h("ul", {},
         h("li", {}, "Same challenge for everyone, new every day at midnight US Eastern (New York) time."),
@@ -267,6 +298,11 @@ function home() {
         h("li", {}, "Each category is worth up to 1,000 points. No speed bonuses — accuracy wins."),
         h("li", {}, "Finish a category to unlock the next. No skipping or replays."),
         h("li", {}, "Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush."))),
+    h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 Practice mode (doesn't count)"),
+    h("div", { class: "stats" },
+      h("div", {}, h("b", {}, stats.played), h("small", {}, "Played")),
+      h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, "Best")),
+      h("div", {}, h("b", {}, stats.streak), h("small", {}, "Streak"))),
     h("p", { class: "fine" }, "Beta prototype · scores saved on this device only. Leaderboards, friends and prize pools coming later. ", h("a", { href: "credits.html" }, "Credits & licenses")));
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
@@ -351,9 +387,9 @@ function globeMap(el, onPick) {
   let W = 0, H = 0, dpr = 1, base = 1, k = 1, K_MIN = 0.9, K_MAX = 8;
   let guess = null, target = null, locked = false, focusX = false, raf = 0, vel = [0, 0], anim = null;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  // Flat vector style (no relief/shading): near-black deep ocean, bright solid land, crisp thin dark borders.
-  const C = { sea: "#020617", land: "#7f8bff", border: "rgba(2,6,23,.85)", coast: "#c9ceff", grat: "rgba(120,140,255,.08)",
-    guess: css("--yellow") || "#ffe600", target: "#39ff88", arc: "#ff2fd6" };
+  // Flat vector style (no relief/shading/gradients): blue ocean, green land, darker-green borders (Luke's palette, Oct 27).
+  const C = { sea: "#2F7DE1", land: "#5DBB63", border: "#3E8E46", coast: "#3E8E46", grat: "rgba(255,255,255,0.12)",
+    guess: "#F2C230", target: "#E8582A", arc: "#FFFFFF", rim: "#1F2C7A", ring: "#1F2C7A" };
   function size() {
     // inner box (excludes the border) so the canvas fills the map exactly — no dark strips at the edges
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -364,25 +400,23 @@ function globeMap(el, onPick) {
   const visible = p => d3.geoDistance([p.lon, p.lat], [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - 1e-3;
   function dot(p, col, r) {
     if (!visible(p)) return; const [x, y] = proj([p.lon, p.lat]);
-    ctx.beginPath(); ctx.arc(x, y, r + 3, 0, 7); ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fill();
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
-    ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, r + 3, 0, 7); ctx.fillStyle = "#FFF6E8"; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = col; ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = C.ring; ctx.stroke();
   }
   function draw() {
     raf = 0; if (W < 2 || H < 2) return; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const [cx, cy] = proj.translate(), R = proj.scale();
-    const glow = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.08); glow.addColorStop(0, "rgba(0,240,255,.18)"); glow.addColorStop(1, "rgba(0,240,255,0)");
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(cx, cy, R * 1.08, 0, 7); ctx.fill();
     ctx.beginPath(); path(sphere); ctx.fillStyle = C.sea; ctx.fill();
     ctx.beginPath(); path(grat); ctx.lineWidth = 0.7; ctx.strokeStyle = C.grat; ctx.stroke();
     ctx.beginPath(); path(land); ctx.fillStyle = C.land; ctx.fill(); ctx.lineWidth = 0.8; ctx.strokeStyle = C.coast; ctx.stroke();
     ctx.beginPath(); path(borders); ctx.lineWidth = 0.7; ctx.strokeStyle = C.border; ctx.stroke();
-    ctx.beginPath(); path(sphere); ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(0,240,255,.6)"; ctx.stroke();
+    ctx.beginPath(); path(sphere); ctx.lineWidth = 2; ctx.strokeStyle = C.rim; ctx.stroke();
     if (guess && target) { ctx.beginPath(); path({ type: "LineString", coordinates: [[guess.lon, guess.lat], [target.lon, target.lat]] });
       ctx.setLineDash([7, 6]); ctx.lineWidth = 3; ctx.strokeStyle = C.arc; ctx.stroke(); ctx.setLineDash([]); }
     if (target) dot(target, C.target, 7);
     if (guess) dot(guess, C.guess, 6.5);
-    if (focusX && !locked) { ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10); ctx.stroke(); }
+    if (focusX && !locked) { ctx.strokeStyle = "#E8582A"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10); ctx.stroke(); }
   }
   const req = () => { if (!raf) raf = requestAnimationFrame(draw); };
   function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
@@ -670,14 +704,17 @@ const SPORTS_SECONDS = 20;
 // When true, team-path scores by correctly ordered pairs (like History Timeline). Default false = all-or-nothing 400.
 const PARTIAL_ORDER = false;
 // Stat-chart / sports SVG: assets/<img>.svg (same pattern as Think Fast illusions); placeholder if missing.
-function sportsArt(id, alt) {
-  const box = h("div", { class: "tf-svg sports-chart" });
-  const ph = () => { box.innerHTML = ""; box.classList.add("tf-svg--missing"); box.append(h("span", {}, "🖼️ Chart coming soon")); };
-  if (!id || !/^[a-z0-9-]+$/i.test(id)) { ph(); return box; }
-  const img = h("img", { src: "assets/" + id + ".svg", alt: alt || "Stat chart", decoding: "async" });
-  img.addEventListener("error", ph); img.addEventListener("load", scheduleFit);
+// Art lookup goes through the icon map first (assets/icons.js maps sports-dN-qM → a shared
+// sport-*.svg). Missing/broken art is removed cleanly — never a "coming soon" placeholder.
+const artSrc = id => (id && window.ICONS && window.ICONS[id]) || (id && /^[a-z0-9-]+$/i.test(id) ? "assets/" + id + ".svg" : null);
+function artBox(cls, id, alt) {
+  const box = h("div", { class: cls }), src = artSrc(id);
+  if (!src) { box.hidden = true; return box; }
+  const img = h("img", { src, alt, decoding: "async" });
+  img.addEventListener("error", () => { box.remove(); scheduleFit(); }); img.addEventListener("load", scheduleFit);
   box.append(img); return box;
 }
+function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
 // Q3 team-path: order nicknames first→last. Vertical chips, drag / ▲▼ / tap-to-swap / arrow keys.
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
@@ -1169,6 +1206,7 @@ function oddOneOut() {
   const oddBar = actionBar(body); oddBar.append(skipBtn(() => pickIt(-1)));
   const draw = () => {
     prog.textContent = `Puzzle ${i + 1}/8 · ${i < 4 ? "Medium" : "Hard"} · ${val(i)} pts · Score ${total}/1,000 pts`;
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };
   const pickIt = k => { if (over) return; if (k < 0) { res.push(false); i++; if (i >= 8) end(); else draw(); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } i++; if (i >= 8) end(); else draw(); };
@@ -1241,14 +1279,7 @@ function normPuzzle(q) {
 }
 const TF_KIND = { math: "Math trap", sequence: "Sequence", logic: "Logic", guesstimate: "Guesstimate", illusion: "Optical illusion", riddle: "Lateral riddle" };
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
-function puzzleArt(id) {
-  const box = h("div", { class: "tf-svg" });
-  const ph = () => { box.innerHTML = ""; box.classList.add("tf-svg--missing"); box.append(h("span", {}, "🖼️ Image coming soon")); };
-  if (!id || !/^[a-z0-9-]+$/i.test(id)) { ph(); return box; }
-  const img = h("img", { src: "assets/" + id + ".svg", alt: "Optical illusion — look closely, then answer", decoding: "async" });
-  img.addEventListener("error", ph); img.addEventListener("load", scheduleFit);
-  box.append(img); return box;
-}
+function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer"); }
 function guessQuestion(body, q, value, seconds, done) {
   body.append(h("p", { class: "prompt" }, q.q));
   let over = false;
@@ -1307,7 +1338,8 @@ function thinkFast() {
 
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
-const shareText = () => `Brain Clash ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000`;
+const SITE_URL = "https://lukebiasi11.github.io/Brainclash.com/";
+const shareText = () => `Brain Clash ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
 async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = "Copied!"; } } catch {} }
 // Lightweight confetti on a single canvas (~2 s, no library).
 // Fix (Oct 26): the canvas used to sit at z-index 1 INSIDE the modal, under the card (z-index 2), which covers
@@ -1354,6 +1386,18 @@ function countStats() {
   store.set("dg-stats", st);
 }
 // Pop-up shown the moment the 5th category finishes. Styling: .result-modal* / .confetti-canvas in style.css.
+// Snarky one-liners by score band; picked by day so the line is stable on reload.
+const SNARK = {
+  perfect: ["Flawless. Are you cheating, or just insufferable?", "5,000. Go outside, you've earned it.", "Perfect score. We're calling your mom to brag."],
+  great: ["Big brain energy. Mildly annoying, honestly.", "Strong showing. Don't let it go to your head.", "Impressive. The other brains are taking notes."],
+  mid: ["Solidly… fine. Like a beige couch.", "Not bad, not great. Peak Tuesday energy.", "Your brain showed up. Mostly."],
+  rough: ["Rough one. Your brain called in sick?", "Well, at least you finished.", "Bold strategy: guess everything."],
+  zero: ["Zero. Impressive in its own way.", "A perfect zero. Was the phone upside down?", "Nothing! Tomorrow can only go up."]
+};
+function snarkLine(tot) {
+  const band = tot >= 5000 ? "perfect" : tot >= 3750 ? "great" : tot >= 2000 ? "mid" : tot > 0 ? "rough" : "zero";
+  const l = SNARK[band]; return l[((session ? session.day : 0) % l.length + l.length) % l.length];
+}
 function resultsPopup() {
   if ($(".result-modal")) return;
   countStats();
@@ -1366,6 +1410,7 @@ function resultsPopup() {
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? "Practice complete" : "Clash complete!"),
       num, h("small", { class: "result-modal__of" }, "/ 5,000"),
+      h("p", { class: "snark" }, snarkLine(tot)),
       h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
       shareBtn,
       h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, "See full results")));
@@ -1379,10 +1424,10 @@ function results() {
   countStats();
   document.body.classList.remove("in-game");
   app.innerHTML = ""; window.scrollTo(0, 0);
-  const share = `Brain Clash ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${tot.toLocaleString()} / 5,000`;
+  const share = shareText(); // ends with SITE_URL
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? "Practice run complete" : "Today's Clash complete")),
-    h("div", { class: "final" }, h("small", {}, "Final score"), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000")),
+    h("div", { class: "final" }, h("small", {}, "Final score"), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "snark" }, snarkLine(tot))),
     h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
@@ -1444,12 +1489,13 @@ else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
 if (/[?&]dgtest\b/.test(location.search)) window.DGTest = Object.freeze({
   jump(cat, wg) {
     let d = 0; if (wg) while (d < 2000 && getDailySet(keyOf(d)).wordGame.id !== wg) d++;
-    const r = Math.random; Math.random = () => (d + 0.5) / 1000; session = newSession(true); Math.random = r;
+    session = newSession(true); session.key = keyOf(d); session.day = d; session.set = getDailySet(session.key);
     session.scores = Array.from({ length: cat }, () => 0); runNext();
   },
   thinkFast(day) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; runNext(); },
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
   sportsSet(day) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; runNext(); },
+  state() { return session; },
   popup() { session = newSession(true); session.scores = [400, 300, 250, 500, 600]; results(); resultsPopup(); },
   wordGames: () => [...new Set(Array.from({ length: 60 }, (_, d) => getDailySet(keyOf(d)).wordGame.id))]
 });
