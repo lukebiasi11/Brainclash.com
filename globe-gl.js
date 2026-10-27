@@ -2,6 +2,26 @@
 // that app.js uses for borders, pins and the arc. Same d3 orthographic projection, so taps map 1:1.
 // Imagery: NASA Earth Observatory / Blue Marble: Next Generation (Reto Stöckli), public domain.
 window.MAP_BORDERS = true; // ← set false for the no-borders look (v4 option 2)
+// Light coastline outline over ALL land, same style everywhere (no answer-specific marks). 110m at the global view;
+// Natural Earth 1:50m (vendor/coast-50m.js, lazy-loaded on first zoom) once zoomed so small islands stay visible.
+window.BCCoast = (function () {
+  let rings = null, loading = false, m110 = null;
+  function decode() { const D = Math.PI / 180; rings = window.COAST_50M.map(d => { const c = []; let x = d[0], y = d[1]; c.push([x / 100, y / 100]);
+    for (let i = 2; i < d.length; i += 2) { x += d[i]; y += d[i + 1]; c.push([x / 100, y / 100]); }
+    let sx = 0, sy = 0, sz = 0; c.forEach(([lo, la]) => { sx += Math.cos(la * D) * Math.cos(lo * D); sy += Math.cos(la * D) * Math.sin(lo * D); sz += Math.sin(la * D); });
+    const ctr = [Math.atan2(sy, sx) / D, Math.atan2(sz, Math.hypot(sx, sy)) / D]; let rad = 0; c.forEach(p => { rad = Math.max(rad, d3.geoDistance(ctr, p)); });
+    return { c, ctr, rad }; }); }
+  return function draw(ctx, path, proj, k, land110, W, H, redraw) {
+    if (k >= 1.6 && !rings) { if (window.COAST_50M) decode(); else if (!loading) { loading = true; const sc = document.createElement("script"); sc.src = "vendor/coast-50m.js"; sc.onload = () => { decode(); redraw(); }; document.head.appendChild(sc); } }
+    const a = Math.min(0.8, 0.22 + 0.12 * k), w = Math.min(1.2, 0.55 + 0.08 * k);
+    ctx.beginPath();
+    if (rings && k >= 1.6) { const r = proj.rotate(), ctr = [-r[0], -r[1]], vr = Math.asin(Math.min(1, Math.hypot(W, H) / 2 / proj.scale()));
+      const vis = []; for (const g of rings) if (d3.geoDistance(ctr, g.ctr) < vr + g.rad) vis.push(g.c);
+      path({ type: "MultiLineString", coordinates: vis }); }
+    else { if (!m110) { const t = window.WORLD_ATLAS_110M; m110 = window.topojson.mesh(t, t.objects.land); } path(m110); } // lines, not polygons: no horizon artifacts
+    ctx.lineWidth = w; ctx.strokeStyle = "rgba(255,248,232," + a + ")"; ctx.stroke();
+  };
+})();
 window.BCGlobeGL = function (el, overlay, onReady) {
   const cv = document.createElement("canvas"); cv.className = "globe-gl"; cv.setAttribute("aria-hidden", "true");
   let gl = null; try { gl = cv.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false }); } catch (e) {}

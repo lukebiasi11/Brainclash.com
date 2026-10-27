@@ -410,7 +410,7 @@ function globeMap(el, onPick) {
   const gl = window.BCGlobeGL ? window.BCGlobeGL(el, cv, () => req()) : null; // realistic WebGL layer (globe-gl.js); null → flat fallback
   const proj = d3.geoOrthographic().clipAngle(90).precision(0.6).rotate([-20, -20, 0]);
   const path = d3.geoPath(proj, ctx);
-  let W = 0, H = 0, dpr = 1, base = 1, k = 1, K_MIN = 0.9, K_MAX = 8;
+  let W = 0, H = 0, dpr = 1, base = 1, k = 1, K_MIN = 0.9, K_MAX = 24; // 24× lets small island groups (e.g. Hawaii) fill the screen
   let guess = null, target = null, locked = false, focusX = false, raf = 0, vel = [0, 0], anim = null;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   // Flat vector style (no relief/shading/gradients): blue ocean, green land, darker-green borders (Luke's palette, Oct 27).
@@ -436,7 +436,8 @@ function globeMap(el, onPick) {
     const [cx, cy] = proj.translate(), R = proj.scale();
     if (gl && gl.ready) { gl.draw(proj); // atmosphere glow + optional crisp white borders over the imagery
       const g = ctx.createRadialGradient(cx, cy, R * 0.98, cx, cy, R * 1.09); g.addColorStop(0, "rgba(90,160,255,0.55)"); g.addColorStop(1, "rgba(90,160,255,0)");
-      ctx.beginPath(); ctx.arc(cx, cy, R * 1.09, 0, 7); ctx.arc(cx, cy, R * 0.995, 0, 7, true); ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.09, 0, 2 * Math.PI); ctx.moveTo(cx + R * 0.995, cy); ctx.arc(cx, cy, R * 0.995, 0, 2 * Math.PI); ctx.fillStyle = g; ctx.fill("evenodd");
+      if (window.BCCoast) window.BCCoast(ctx, path, proj, k, land, W, H, req);
       if (window.MAP_BORDERS) { ctx.beginPath(); path(borders); ctx.lineWidth = 0.8; ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.stroke(); }
     } else { if (gl) gl.draw(proj);
     ctx.beginPath(); path(sphere); ctx.fillStyle = C.sea; ctx.fill();
@@ -455,7 +456,12 @@ function globeMap(el, onPick) {
     const f = 90 / proj.scale(), r = proj.rotate();
     proj.rotate([r[0] + dx * f, Math.max(-89, Math.min(89, r[1] - dy * f)), 0]); req();
   }
-  function zoomBy(f) { k = Math.max(K_MIN, Math.min(K_MAX, k * f)); proj.scale(base * k); if (gl) gl.zoom(k); req(); }
+  function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
+    const a = ax != null && Math.hypot(ax - proj.translate()[0], ay - proj.translate()[1]) < proj.scale() ? proj.invert([ax, ay]) : null;
+    k = Math.max(K_MIN, Math.min(K_MAX, k * f)); proj.scale(base * k);
+    for (let i = 0; a && i < 3; i++) { const b = proj.invert([ax, ay]); if (!b || !isFinite(b[0])) break; const r = proj.rotate();
+      proj.rotate([r[0] + (((b[0] - a[0]) + 540) % 360 - 180), Math.max(-89, Math.min(89, r[1] + b[1] - a[1])), 0]); }
+    if (gl) gl.zoom(k); req(); }
   // Pointer handling: one pointer spins (tap = drop pin), two pointers pinch.
   const pts = new Map(); let start = null, last = null, pinch0 = 0, k0 = 1, moved = false, lastT = 0;
   const TAP_PX = 7;
@@ -469,7 +475,7 @@ function globeMap(el, onPick) {
   cv.addEventListener("pointermove", e => {
     if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
     if (pts.size >= 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
-      if (pinch0 > 0) { k = Math.max(K_MIN, Math.min(K_MAX, k0 * d / pinch0)); proj.scale(base * k); if (gl) gl.zoom(k); req(); } return; }
+      if (pinch0 > 0) { const rc = cv.getBoundingClientRect(); zoomBy(k0 * d / pinch0 / k, (a[0] + b[0]) / 2 - rc.left, (a[1] + b[1]) / 2 - rc.top); } return; }
     if (!start) return;
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
@@ -491,13 +497,16 @@ function globeMap(el, onPick) {
     anim = requestAnimationFrame(step);
   }
   function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
-  cv.addEventListener("wheel", e => { e.preventDefault(); zoomBy(Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+  cv.addEventListener("wheel", e => { e.preventDefault(); const rc = cv.getBoundingClientRect(); zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - rc.left, e.clientY - rc.top); }, { passive: false });
   function pickAt(x, y) { // canvas-local px → exact lat/lng; ignores clicks off the disc
     const [cx, cy] = proj.translate(); if (Math.hypot(x - cx, y - cy) > proj.scale()) return;
     const ll = proj.invert([x, y]); if (!ll || !isFinite(ll[0]) || !isFinite(ll[1])) return;
     guess = { lat: ll[1], lon: ((ll[0] + 540) % 360) - 180 }; req(); onPick(guess);
   }
-  function tapAt(clientX, clientY) { if (locked) return; const r = cv.getBoundingClientRect(); pickAt(clientX - r.left, clientY - r.top); }
+  let tap0 = null; // double-tap = zoom 2.5× at that point (the first tap's pin stays; still needs Lock in)
+  function tapAt(clientX, clientY) { const r = cv.getBoundingClientRect(), x = clientX - r.left, y = clientY - r.top, now = performance.now();
+    if (tap0 && now - tap0[2] < 320 && Math.hypot(x - tap0[0], y - tap0[1]) < 30) { tap0 = null; zoomBy(2.5, x, y); return; }
+    tap0 = [x, y, now]; if (locked) return; pickAt(x, y); }
   cv.addEventListener("keydown", e => {
     const s = 12, m = { ArrowLeft: [s, 0], ArrowRight: [-s, 0], ArrowUp: [0, s], ArrowDown: [0, -s] }[e.key];
     if (m) { e.preventDefault(); rotateBy(m[0] * proj.scale() / 90 * 0.25, m[1] * proj.scale() / 90 * 0.25); }
