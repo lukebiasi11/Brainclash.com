@@ -405,20 +405,29 @@ window.CONTENT = {
     // ---- legacy typed days (unchanged) ----
     [ { q: "What comes next? 2, 6, 12, 20, 30, ___", answers: ["42"], explain: "Differences +4,+6,+8,+10,+12" },
       { q: "A bat and a ball cost $1.10 total. The bat costs $1.00 more than the ball. How many cents does the ball cost?", answers: ["5", "5 cents", "0.05", "$0.05", "five"], explain: "Ball 5¢, bat $1.05" } ],
-    [ { q: "What has to be broken before you can use it?", answers: ["egg", "an egg", "eggs"], explain: "An egg" },
-      { q: "If 5 machines take 5 minutes to make 5 widgets, how many minutes do 100 machines take to make 100 widgets?", answers: ["5", "five", "5 minutes"], explain: "Each machine makes 1 widget per 5 minutes" } ],
-    [ { q: "What comes next? 1, 1, 2, 3, 5, 8, 13, ___", answers: ["21"], explain: "Fibonacci: add the previous two" },
-      { q: "Anna is older than Ben. Cara is younger than Ben. Dev is older than Anna. Who is the second-youngest?", answers: ["ben"], explain: "Order: Cara < Ben < Anna < Dev" } ],
-    [ { q: "A lily pad patch doubles every day and covers the whole pond on day 48. On what day did it cover half the pond?", answers: ["47", "day 47"], explain: "One doubling before day 48" },
-      { q: "How many times does the digit 7 appear when writing all whole numbers from 1 to 100?", answers: ["20", "twenty"], explain: "10 in the ones place + 10 in the tens place" } ],
-    [ { q: "What comes next? 3, 5, 9, 17, 33, ___", answers: ["65"], explain: "Double and subtract 1" },
-      { q: "A clock shows 3:15. What is the smaller angle between the hour and minute hands, in degrees?", answers: ["7.5", "7.5 degrees"], aliases: ["7 1/2", "seven and a half"], explain: "Hour hand is at 97.5°, minute hand at 90°" } ],
-    [ { q: "What comes next? 2, 3, 5, 7, 11, 13, ___", answers: ["17"], explain: "Prime numbers" },
-      { q: "A farmer has 17 sheep. All but 9 run away. How many are left?", answers: ["9", "nine"], explain: "\"All but 9\" means 9 stay" } ],
-    [ { q: "What comes next? 1, 2, 6, 24, 120, ___", answers: ["720"], explain: "Multiply by 2, 3, 4, 5, 6" },
-      { q: "How many squares of any size are on a standard 8×8 chessboard?", answers: ["204"], explain: "1² + 2² + … + 8² = 204" } ],
-    [ { q: "What comes next? 1, 8, 27, 64, ___", answers: ["125"], explain: "Cubes: 1³, 2³, 3³, 4³, 5³" },
-      { q: "In a race, you overtake the person in 2nd place. What place are you in now?", answers: ["2", "2nd", "second", "second place"], noSurname: true, explain: "You take their spot: 2nd" } ],
+    // ---- Month 1 Week 1 (from trivia-drafts/month1/week1.js), idx 8-14 = Oct 28-Nov 3 ----
+  // [8] Day 1: sequence + illusion
+  [ { cat: "thinking", kind: "sequence", q: "What comes next? 2, 6, 7, 21, 22, 66, ___", answers: ["67"], aliases: ["sixty seven", "sixty-seven"], wrong: ["198", "68"], explain: "The steps alternate: ×3, then +1. 66 + 1 = 67" },
+    { cat: "fun", type: "mc", kind: "illusion", img: "illusion-05", q: "Which line is longer, A or B?", options: ["Line A", "Line B", "They are exactly the same length"], a: 2, explain: "Both lines are exactly the same length. Upright lines look longer than flat ones (vertical-horizontal illusion)" } ],
+  // [9] Day 2: logic + guesstimate
+  [ { cat: "thinking", kind: "logic", q: "A man points at a portrait and says: \"Brothers and sisters I have none, but that man's father is my father's son.\" Who is in the portrait?", answers: ["his son", "son", "the mans son", "my son"], aliases: ["the son", "his own son", "a son"], wrong: ["himself", "him", "the man", "his father", "father", "brother"], noSurname: true, explain: "With no brothers, \"my father's son\" is the man himself. So the portrait shows someone whose father is the man: his son" },
+    { cat: "fun", type: "guess", kind: "guesstimate", q: "Guesstimate: how many cards are in a standard deck of playing cards, not counting jokers?", answer: 52, unit: "cards", explain: "4 suits × 13 ranks = 52 cards (Britannica, \"playing card\")" } ],
+  // [10] Day 3: math trap + riddle
+  [ { cat: "thinking", kind: "math", q: "A book's pages are numbered 1 to 100. How many digits are printed in total?", answers: ["192"], aliases: ["192 digits", "one hundred ninety two", "one hundred and ninety two"], wrong: ["100", "200", "190"], explain: "Pages 1–9: 9 digits. Pages 10–99: 90 × 2 = 180. Page 100: 3. Total 9 + 180 + 3 = 192" },
+    { cat: "fun", kind: "riddle", q: "What gets wetter the more it dries?", answers: ["towel", "a towel", "towels"], aliases: ["bath towel", "a bath towel", "dish towel", "tea towel", "hand towel", "beach towel"], explain: "A towel" } ],
+  // [11] Day 4: sequence + illusion (NEW art)
+  [ { cat: "thinking", kind: "sequence", q: "What letter comes next? A, C, F, J, O, ___", answers: ["u"], aliases: ["letter u", "the letter u"], textOnly: true, wrong: ["t", "v", "p"], explain: "The gaps grow by one each time: +2, +3, +4, +5, then +6. O + 6 = U" },
+    { cat: "fun", type: "mc", kind: "illusion", img: "tf-w1-d4-fun", q: "Which orange bar is longer?", options: ["The top bar", "The bottom bar", "They are exactly the same length"], a: 1, explain: "The bottom bar really is about 9% longer (98 vs 90 units). The slanted lines make the top bar look longer (Ponzo illusion)" } ],
+  // [12] Day 5: logic + guesstimate
+  [ { cat: "thinking", kind: "logic", q: "A drawer holds 10 black socks and 10 white socks, all mixed up. In the dark, what is the fewest socks you must take out to be sure of a matching pair?", answers: ["3", "three", "3 socks"], aliases: ["three socks"], wrong: ["2", "11", "21"], explain: "Two socks could be one of each colour, but the third must match one of them" },
+    { cat: "fun", type: "guess", kind: "guesstimate", q: "Guesstimate: how many feet are in one mile?", answer: 5280, unit: "feet", explain: "1 mile = 5,280 feet (NIST)" } ],
+  // [13] Day 6: math trap + riddle
+  [ { cat: "thinking", kind: "math", q: "A hen and a half lays an egg and a half in a day and a half. At that rate, how many eggs does ONE hen lay in 3 days?", answers: ["2", "two", "2 eggs"], aliases: ["two eggs"], wrong: ["3", "1.5", "4"], explain: "1.5 hens make 1.5 eggs in 1.5 days, so 1 hen makes 1 egg in 1.5 days. In 3 days: 2 eggs" },
+    { cat: "fun", kind: "riddle", q: "I run but never walk, I have a mouth but never talk, and I have a bed but never sleep. What am I?", answers: ["river", "a river"], aliases: ["rivers", "the river", "stream", "a stream", "creek", "a creek"], explain: "A river" } ],
+  // [14] Day 7: sequence + guesstimate
+  [ { cat: "thinking", kind: "sequence", q: "What comes next? 10, 8, 11, 7, 12, 6, ___", answers: ["13"], aliases: ["thirteen"], wrong: ["5"], explain: "Two lists take turns: 10, 11, 12, 13 going up and 8, 7, 6 going down. Next is the up list: 13" },
+    { cat: "fun", type: "guess", kind: "guesstimate", q: "Guesstimate: add up all the dots on every face of a standard six-sided die. What is the total?", answer: 21, unit: "dots", explain: "1 + 2 + 3 + 4 + 5 + 6 = 21" } ],
+    // ---- legacy typed days resume ----
     [ { q: "What comes next? 2, 5, 11, 23, 47, ___", answers: ["95"], explain: "Double and add 1" },
       { q: "A father is 4 times as old as his son. In 20 years he'll be twice as old as his son. How old is the son now?", answers: ["10", "ten"], explain: "4s + 20 = 2(s + 20) → s = 10" } ],
     [ { q: "How many minutes are in one week?", answers: ["10080", "10,080"], explain: "7 × 24 × 60" },
