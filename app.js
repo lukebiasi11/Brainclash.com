@@ -688,9 +688,14 @@ function history() {
         try { card.setPointerCapture(e.pointerId); } catch {}
         let lastY = e.clientY, lastX = e.clientX, raf = 0;
         const place = () => {
-          const others = [...line.children].filter(c => c !== card && c !== slot);
-          let before = null;
-          for (const o of others) { const r = o.getBoundingClientRect(); if (vertical ? lastY < r.top + r.height / 2 : lastX < r.left + r.width / 2) { before = o; break; } }
+          // Drop into the SLOT nearest the dragged card's centre (where the user sees it), not "before the
+          // first card whose midpoint is below the finger": that rule tied exactly on the top slot, and a card
+          // grabbed near its bottom edge and lined up with the top slot landed in slot 2.
+          const vis = [...line.children].filter(c => c !== card), others = vis.filter(c => c !== slot);
+          const gy = lastY - dy + r0.height / 2, gx = lastX - dx + r0.width / 2;
+          let best = 0, bd = Infinity;
+          vis.forEach((o, k) => { const r = o.getBoundingClientRect(), dd = vertical ? Math.abs(gy - (r.top + r.height / 2)) : Math.abs(gx - (r.left + r.width / 2)); if (dd < bd) { bd = dd; best = k; } });
+          const before = others[best] || null;
           let nx = slot.nextSibling; if (nx === card) nx = card.nextSibling;
           if (nx !== before) line.insertBefore(slot, before);
         };
@@ -798,7 +803,8 @@ function orderQuestion(body, q, value, seconds, done) {
       const place = () => {
         const others = [...list.children].filter(c => c !== chip);
         let before = null;
-        for (const o of others) { const r = o.getBoundingClientRect(); if (lastY < r.top + r.height / 2) { before = o; break; } }
+        const gy = lastY - dy + r0.height / 2; // dragged chip's centre, not the finger
+        for (const o of others) { const r = o.getBoundingClientRect(); if (gy < r.top + r.height / 2) { before = o; break; } }
         if (before ? chip.nextSibling !== before : list.lastChild !== chip) { list.insertBefore(chip, before); moved = true; }
       };
       const scroller = () => {
@@ -1076,6 +1082,12 @@ function sports() {
     else if (t === "match") matchQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, "Sports") : q.visual);
+    else if (q.kind === "common-teammate") {
+      // Five player clues, one shared teammate. Typed answer, lenient checker with person-name (surname) matching.
+      const ans = q.answers || [q.answer], src = Object.assign({}, q, { answers: ans, person: q.person !== false });
+      const clues = h("ol", { class: "ct-clues", "aria-label": "Clues" }, ...(q.clues || []).map(c => h("li", {}, c)));
+      textQuestion(body, q.q, ans, vals[i], SPORTS_SECONDS, after, clues, ans[0], q.explain, src, { timeoutZero: true });
+    }
     else {
       const visKinds = { "stat-chart": "Stat chart", moment: "Memorable moment", "color-swatch": "Team colours", "jersey-number": "Jersey number" };
       const art = q.img ? sportsArt(q.img, visKinds[q.kind] || "Sports art") : q.visual;
@@ -1085,7 +1097,7 @@ function sports() {
   ask();
 }
 function textQuestion(body, q, answers, value, seconds, done, visual, display, explain, src, tq) {
-  if (visual) body.append(h("div", { class: "visual" }, visual));
+  if (visual) body.append(visual instanceof Node && visual.classList && (visual.classList.contains("tf-svg") || visual.classList.contains("ct-clues")) ? visual : h("div", { class: "visual" }, visual));
   body.append(h("p", { class: "prompt" }, q));
   let over = false;
   const input = h("input", { class: "txt", placeholder: "Type your answer", autocomplete: "off", autocapitalize: "off", spellcheck: "false" });
@@ -1550,7 +1562,7 @@ if (/[?&]dgtest\b/.test(location.search)) window.DGTest = Object.freeze({
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
   sportsSet(day) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; runNext(); },
   state() { return session; },
-  popup() { session = newSession(true); session.scores = [400, 300, 250, 500, 600]; results(); resultsPopup(); },
+  popup(sc) { session = newSession(true); session.scores = sc || [400, 300, 250, 500, 600]; results(); resultsPopup(); },
   wordGames: () => [...new Set(Array.from({ length: 60 }, (_, d) => getDailySet(keyOf(d)).wordGame.id))]
 });
 })();

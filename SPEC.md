@@ -23,6 +23,7 @@ Mixed in from Luke's "Start Invention Development" conversation (share 6adbdbc8�
 - 3 questions of rising difficulty: Easy 250, Medium 350, Hard 400.
 - Formats: multiple choice, athlete silhouette, team logo, fill-in-the-blank. No partial credit.
 - **Timed:** 20 seconds per question (`SPORTS_SECONDS` in app.js), shown with the same timer bar as the other sections. When time runs out the question scores 0 ("Time's up") and the game moves on, the same as the World Rush multiple-choice timeout.
+- **Common teammate** (`kind:"common-teammate"`): `{type:"text", kind:"common-teammate", q, clues:[5 player names], answer, aliases?, explain?}`. The 5 clues appear as a compact numbered 2-column list (no image needed) above the prompt, and the answer is typed. It's checked with the lenient checker (answers.js) using person-name rules (surname alone, nicknames, typos; `person:false` opts out). Same 20 s timer, Skip and Time's up as other Sports questions. `tools/validate.js` requires exactly 5 non-empty clues and an `answer` (or `answers[]`). Tested by `tools/commonteammate.test.js`, which fits with no scroll at 375x548.
 
 ## 4. Word Challenge — 1,000 (one game per day, rotating among 5)
 - **Word Flip:** 60 s, 6 medium/hard scrambled words, tap letters, hint style varies (definition/synonym/antonym/riddle); undo/skip; 4×150 + 2×200.

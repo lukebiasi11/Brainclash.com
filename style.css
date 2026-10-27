@@ -794,3 +794,14 @@ body.in-game .prompt{font-size:clamp(19px,calc(2.4vh + 6px),28px)}
 body.in-game .cat-score .quip{flex-basis:100%;margin:4px auto 0;font-size:15px}
 @media (max-height:700px){body.in-game .cat-score .quip{font-size:14px;margin-top:2px}}
 .result-modal__card .result-modal__quip{margin:4px auto 10px}
+/* MVP picture questions (Tester, 393x852): the art frame crowded the heading. Cap the frame and give the heading room. */
+body.in-game .game-body>.tf-svg.sports-chart{flex:0 1 auto;max-height:min(220px,27svh);margin:2px 0 16px}
+body.in-game .game-body>.tf-svg.sports-chart img{max-height:min(212px,26svh)}
+body.in-game .game-body>.tf-svg.sports-chart + .prompt{margin-top:0}
+@media (max-height:700px){body.in-game .game-body>.tf-svg.sports-chart{margin-bottom:10px}}
+/* Sports "common-teammate": 5 player clues as a compact 2-column list (fits 375x548 without scroll). */
+.ct-clues{list-style:none;margin:6px 0 4px;padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);counter-reset:ct;font-weight:700;font-size:15px;line-height:1.2}
+.ct-clues li{counter-increment:ct;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-clues li::before{content:counter(ct) ". ";opacity:.6}
+.ct-clues li:last-child:nth-child(odd){grid-column:1/-1}
+@media (max-height:600px){.ct-clues{font-size:14px;padding:6px 8px;gap:2px 8px}}
