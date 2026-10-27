@@ -1571,7 +1571,7 @@ const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) 
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
 else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
   session = newSession(true); session.key = PREVIEW_KEY; session.day = dayOfKey(PREVIEW_KEY); session.set = getDailySet(PREVIEW_KEY);
-  document.title = "Preview " + PREVIEW_KEY + " — Brain Clash"; runNext();
+  document.title = "Preview " + PREVIEW_KEY + " — Brain Clash"; window.BCPreview = Object.freeze({ key: PREVIEW_KEY, cat: () => session.scores.length }); runNext();
 } else home();
 // Dev/test only (inert unless the URL has ?dgtest): jump straight to a category / word-game format for layout tests.
 if (/[?&]dgtest\b/.test(location.search)) window.DGTest = Object.freeze({

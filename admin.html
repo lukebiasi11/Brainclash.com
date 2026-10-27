@@ -34,13 +34,21 @@ ul{margin:0;padding-left:18px}li{margin:2px 0}
 .tag{display:inline-block;font-size:11px;font-weight:800;background:var(--n);color:var(--c);border-radius:6px;padding:1px 6px;margin-right:5px;vertical-align:1px}
 details{margin-top:6px;background:var(--c);border-radius:10px;padding:6px 10px}summary{cursor:pointer;font-weight:800}
 .ans{color:#1d8a4a;font-weight:800}.dup{color:#c0262d;font-weight:800;font-size:12px}
+.rv{padding:0 14px 14px}.rv h3{margin:6px 0;font-size:14px;text-transform:uppercase;letter-spacing:.6px}
+.it{border:2px solid #e4d6bf;border-radius:12px;padding:9px 10px;margin:8px 0;background:#fffdf8}
+.it.up{border-color:#1d8a4a;background:#effaf2}.it.down{border-color:#c0262d;background:#fdf0f0}
+.it .m{font-size:12px;opacity:.75;margin-bottom:2px}.it .m code{font-size:11px}.it .p{font-weight:700}.it .a{color:#1d8a4a;font-weight:800;font-size:13px;margin-top:2px}
+.it textarea{width:100%;min-height:44px;margin-top:6px;font:inherit;font-size:14px;border:2px solid var(--y);border-radius:10px;padding:6px 8px;background:#fff;color:var(--n);resize:vertical}
+.it .b{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.it .b button{padding:7px 12px;font-size:13px}
+button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0262d;box-shadow:0 3px 0 #7d1419}button.sec{background:var(--y);color:var(--n);box-shadow:0 3px 0 #b48d14}
+.it.up button.ok,.it.down button.no{outline:3px solid var(--n)}
 @media(max-width:520px){h1{font-size:22px}.dh h2{font-size:19px}body{font-size:14px}}
 </style>
 </head>
 <body>
 <header><h1>BRAIN<b>CLASH</b><small>ADMIN PREVIEW</small></h1>
-<div class="pick"><input type="date" id="dp" aria-label="Pick a date"><button id="go">Show day</button></div></header>
-<main><p class="note">Days use New York time. “Play this day” runs the real game for that date as a practice run in a new tab — no saved progress, stats or streaks. “Approved” is only stored in this browser.</p>
+<div class="pick"><input type="date" id="dp" aria-label="Pick a date"><button id="go">Show day</button><button id="week" class="ok">✅ Approve week</button></div></header>
+<main><p class="note">Days use New York time. “Play this day” runs the real game for that date as a practice run in a new tab — no saved progress, stats or streaks. Approve/Disapprove marks and notes are stored in this browser; 👎 Disapprove opens a prefilled GitHub issue — just hit Submit.</p>
 <div id="days"></div></main>
 <main id="app" hidden></main>
 <script>window.BC_NO_BOOT = true;</script>
@@ -54,6 +62,7 @@ details{margin-top:6px;background:var(--c);border-radius:10px;padding:6px 10px}s
 <script src="assets/icons.js"></script>
 <script src="answers.js"></script>
 <script src="app.js"></script>
+<script src="feedback.js"></script>
 <script>
 (() => {
 const B = window.BCDaily, C = window.CONTENT;
@@ -77,6 +86,40 @@ function wordHtml(set) {
   else if (g.id === "anag") { const a = set.anagram || {}; items = `<li>Letters: <b>${esc(a.letters || JSON.stringify(a).slice(0, 80))}</b></li>`; ans = esc((a.valid || []).length + " valid words, e.g. " + (a.valid || []).slice(0, 12).join(", ")); }
   return { title: g.name, items, ans };
 }
+const F = window.BCFeedback, RVK = "bc-admin-review";
+const rv = () => { try { return JSON.parse(localStorage.getItem(RVK)) || {}; } catch { return {}; } };
+const setRv = (k, id, patch) => { const r = rv(); r[k] = r[k] || {}; r[k][id] = { ...(r[k][id] || {}), ...patch }; localStorage.setItem(RVK, JSON.stringify(r)); };
+function review(k, d) {
+  const box = document.createElement("div"); box.className = "rv"; box.innerHTML = "<h3>Review each question</h3>";
+  F.items(B.getDailySet(k)).forEach(it => {
+    const st = (rv()[k] || {})[it.id] || {}, el = document.createElement("div");
+    el.className = "it" + (st.v ? " " + st.v : ""); el.dataset.id = it.id;
+    el.innerHTML = `<div class="m"><code>${esc(k + "/" + it.id)}</code> · ${esc(it.cat)}</div><div class="p">${esc(it.prompt)}</div><div class="a">→ ${esc(it.answer)}</div>
+     <textarea placeholder="Notes (why it's wrong / what to change)">${esc(st.note || "")}</textarea>
+     <div class="b"><button type="button" class="ok">👍 Approve</button><button type="button" class="no">👎 Disapprove</button><button type="button" class="sec fb">Send feedback ↗</button></div>`;
+    const ta = el.querySelector("textarea"), mark = v => { setRv(k, it.id, { v }); el.classList.remove("up", "down"); if (v) el.classList.add(v); };
+    ta.oninput = () => setRv(k, it.id, { note: ta.value });
+    const send = v => window.open(F.itemUrl(k, it, ta.value, v), "_blank", "noopener");
+    el.querySelector(".ok").onclick = () => mark(((rv()[k] || {})[it.id] || {}).v === "up" ? null : "up");
+    el.querySelector(".no").onclick = () => { mark("down"); send("Disapproved"); };
+    el.querySelector(".fb").onclick = () => send(((rv()[k] || {})[it.id] || {}).v === "up" ? "Approved" : "Feedback");
+    box.append(el);
+  });
+  d.append(box);
+}
+function weekUrl(keys) {
+  const r = rv(); let body = "**Admin week review** " + keys[0] + " → " + keys[keys.length - 1] + "\n";
+  let nu = 0, nd = 0;
+  keys.forEach(k => { const its = F.items(B.getDailySet(k)), m = r[k] || {};
+    const up = its.filter(i => (m[i.id] || {}).v === "up"), dn = its.filter(i => (m[i.id] || {}).v === "down"); nu += up.length; nd += dn.length;
+    body += `\n### ${k}${appr()[k] ? " (day approved ✅)" : ""}\n`;
+    if (dn.length) body += "**Disapproved:**\n" + dn.map(i => `- ❌ \`${i.id}\` ${F.cut(i.prompt, 120)} → ${F.cut(i.answer, 80)}${m[i.id].note ? "\n  - Note: " + F.cut(m[i.id].note, 400) : ""}`).join("\n") + "\n";
+    if (up.length) body += "**Approved:** " + up.map(i => "`" + i.id + "`" + (m[i.id].note ? " (" + F.cut(m[i.id].note, 120) + ")" : "")).join(", ") + "\n";
+    const nn = its.filter(i => !(m[i.id] || {}).v && (m[i.id] || {}).note); if (nn.length) body += "**Notes:**\n" + nn.map(i => `- \`${i.id}\`: ${F.cut(m[i.id].note, 300)}`).join("\n") + "\n";
+    if (!dn.length && !up.length && !nn.length) body += "_No per-question marks._\n"; });
+  return F.issueUrl(`[Week review] ${keys[0]} → ${keys[keys.length - 1]}: ${nu} approved, ${nd} disapproved`, body, nd ? "admin-feedback" : "admin-feedback,approved");
+}
+window.BCAdmin = { weekUrl: () => weekUrl(keys), review };
 function card(k, dup, isToday) {
   const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
   const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
@@ -101,6 +144,7 @@ function card(k, dup, isToday) {
     <p><b>Brain Teaser:</b><br>${s.thinkFast.map((q, i) => `${i + 1}. <span class="ans">${esc(ansOf(q))}</span>${q.explain ? " — " + esc(q.explain) : ""}`).join("<br>")}</p>
    </details></div>`;
   d.querySelector("input").onchange = e => { setAppr(k, e.target.checked); d.classList.toggle("ok", e.target.checked); };
+  review(k, d);
   return d;
 }
 const box = document.getElementById("days"), dp = document.getElementById("dp");
@@ -111,6 +155,7 @@ const seen = {}; const keys = Array.from({ length: 7 }, (_, i) => B.keyOf(t0 + i
 keys.forEach(k => { const ix = idx(B.getDailySet(k)), dup = {};
   for (const c in ix) { const prev = (seen[c + ix[c]]); if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
   box.append(card(k, dup, k === today)); });
+document.getElementById("week").onclick = () => window.open(weekUrl(keys), "_blank", "noopener");
 document.getElementById("go").onclick = () => { const k = dp.value; if (!k) return;
   const el = card(k, null, k === today); el.style.outline = "4px solid var(--o)"; box.prepend(el); el.scrollIntoView({ behavior: "smooth" }); };
 })();
