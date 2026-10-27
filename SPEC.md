@@ -111,3 +111,23 @@ Draft pools live in `/workspace/trivia-drafts/sports-rework/` (fixtures only —
 - **Year-guess scoring:** relative `closenessScore` is wrong for years. With `exactYear: true`, score via `Answers.yearScore` — full points only for the exact year, else 0. Optional `yearBand: N` (default omit / unused) gives full points when `|guess − answer| ≤ N`, else 0. Without either flag, Think Fast keeps relative closeness.
 - Timer: `SPORTS_SECONDS` (20) per question; Skip + Lock; timeout → 0. Fit: no-scroll at 7 VPs; interactive targets ≥44px.
 - Live `content.js` is unchanged until Luke merges the draft samples.
+
+## Rotation & how to add content (append-safe, Oct 27 2026)
+
+**How a date picks its content.** Every list has an explicit, frozen schedule for Oct 23 – Nov 10 2026
+(`FROZEN` in `app.js`): those dates show exactly what was live on Oct 27 and can never change.
+After Nov 10, each list plays the entries that have **not been scheduled yet, in content order**, one per
+unit, and only wraps (repeats, in content order) once every entry has been used.
+- Daily lists (one new entry per day): `worldRush`, `history`, `sports`, `thinkFast`.
+- Word-game lists (one new entry per 5-day format cycle, `w = floor(day / 5)`): `wordFlip`, `wordBridge`,
+  `connections`, `oddOneOut`, `ANAGRAM_SETS`. The word *format* of a day is `WORD_GAMES[day % 5]`.
+
+**For Game maker — adding content**
+1. **Append** new sets to the **end** of a list. That schedules them for the next unused future dates
+   (or, if the list already wrapped, makes the list longer from then on). No earlier date moves.
+2. **Never delete, insert in the middle, or reorder** entries. That shifts every later date.
+3. To fix an entry (typo, wrong answer), edit it **in place**. Its dates stay the same; only its content changes.
+4. To retire an entry, replace it in place with its successor. Don't remove it.
+5. To see which date shows what, open `admin.html` and set the date, or run `node tools/rotation.test.js`.
+   That test freezes the Oct 23 – Nov 10 date→index map and fails if any of it changes.
+6. Content shortage: when a list runs out of unused entries it repeats. Keep each list ahead of the calendar.

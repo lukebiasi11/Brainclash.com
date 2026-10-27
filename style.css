@@ -783,3 +783,14 @@ body.in-game .prompt{font-size:clamp(19px,calc(2.4vh + 6px),28px)}
 /* realistic globe: WebGL imagery layer under the 2D overlay (pins, borders, arc) */
 .lmap canvas.globe-gl { position: absolute; left: 0; top: 0; pointer-events: none; }
 .lmap canvas.globe { position: relative; z-index: 1; }
+/* results readability (Oct 27): cream text with ink shadow on orange */
+.hero.small .tag{display:block;text-decoration:none;font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;color:var(--cream);text-shadow:2px 2px 0 var(--ink-bc);margin-top:14px}
+.hero.small .tag::before{display:none}
+.fine,footer,footer *{color:var(--cream)!important;font-size:13px;font-weight:600;text-shadow:1px 1px 0 var(--ink-bc)}
+.fine a,footer a{color:var(--cream)!important}
+/* score-box quip (builder adds <p class="quip"> inside .final / .cat-score / .result-modal__card) */
+.final .quip,.cat-score .quip,.result-modal__quip{display:block;margin:10px auto 0;max-width:30ch;color:var(--bolt);font-family:var(--body);font-weight:800;font-size:17px;line-height:1.3;text-transform:none;letter-spacing:0;text-shadow:1px 1px 0 var(--ink-bc)}
+/* quip inside the in-game (row layout) category score box: own line, compact */
+body.in-game .cat-score .quip{flex-basis:100%;margin:4px auto 0;font-size:15px}
+@media (max-height:700px){body.in-game .cat-score .quip{font-size:14px;margin-top:2px}}
+.result-modal__card .result-modal__quip{margin:4px auto 10px}

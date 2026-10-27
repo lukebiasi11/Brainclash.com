@@ -136,28 +136,45 @@ function loadToday() {
 }
 // THE single place that turns a day key into that day's content. To move to a
 // backend later, replace the body with a fetch (and make callers await it).
-// Launch-anchored rotation. Lists used to be indexed by (epoch day % length), so launch
-// landed mid-list (e.g. Brain Teaser started at its Day 4) and the first entries would
-// only appear when the list wrapped. Now: the days already shipped (launch .. LIVE_LOCK)
-// keep exactly what they showed, then the rest of the list follows in content order,
-// so every entry is used once before anything repeats.
-const LIVE_LOCK = 5; // Oct 23–27 2026 already went out
-function rotPick(arr, d) {
-  if (!Array.isArray(arr) || !arr.length) return pick(arr, d);
-  const L = dayOfKey(LAUNCH_DATE), n = d - L, len = arr.length;
-  if (n < 0) return pick(arr, d);
-  const s0 = L % len, lock = Math.min(LIVE_LOCK, len), shown = [];
-  for (let k = 0; k < lock; k++) shown.push((s0 + k) % len);
-  const cycle = shown.concat([...Array(len).keys()].filter(i => !shown.includes(i)));
-  return arr[cycle[n % len]];
+// ===== Append-safe rotation (see SPEC.md "Rotation & how to add content") =====
+// FROZEN is the exact schedule that was live for Oct 23 – Nov 10 2026, as content-list indexes.
+// Daily lists (worldRush/history/sports/thinkFast) use one unit per day (u = epoch day);
+// word-game lists use one unit per 5-day format cycle (u = floor(day / 5)), because each
+// word format comes up once every 5 days. idx[k] is the entry shown for unit u0 + k.
+// After the frozen window, each list plays its NOT-yet-scheduled entries in content order,
+// so appending entries to the end of a list never moves any already-scheduled date.
+// Only once every entry has been used does it wrap (and then it repeats in content order).
+// Rule for content: never delete or reorder entries; fix one in place or append new ones.
+const FROZEN = {
+  worldRush: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
+  history: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
+  sports: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
+  thinkFast: { u0: 20749, idx: [3,4,5,6,7,0,1,2,8,9,10,11,12,13,14,15,16,17,18] },
+  wordFlip: { u0: 4149, idx: [0,1,2,3,4] },
+  wordBridge: { u0: 4149, idx: [0,1,2,3,4] },
+  connections: { u0: 4149, idx: [0,1,2,3,4] },
+  oddOneOut: { u0: 4149, idx: [0,1,2,3,4] },
+  anagram: { u0: 4149, idx: [2,3,4,5,6] }
+};
+function schedIdx(name, len, u) {
+  const f = FROZEN[name];
+  if (!f || !len) return null;
+  if (u < f.u0) return ((u % len) + len) % len;            // pre-launch (practice fallback): legacy
+  const k = u - f.u0;
+  if (k < f.idx.length) return f.idx[k] < len ? f.idx[k] : k % len;
+  const used = new Set(f.idx), fresh = [];
+  for (let i = 0; i < len; i++) if (!used.has(i)) fresh.push(i);
+  const j = k - f.idx.length;
+  return j < fresh.length ? fresh[j] : (j - fresh.length) % len;
 }
+const sched = (name, arr, u) => { if (!Array.isArray(arr) || !arr.length) return pick(arr, u); return arr[schedIdx(name, arr.length, u)]; };
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
-  return { day: d, worldRush: rotPick(C.worldRush, d), history: rotPick(C.history, d), sports: rotPick(C.sports, d),
-    // Formats rotate daily (period 5), so each format indexes its own list by how
-  // many times it has come up: floor(day / 5). Avoids getting stuck on multiples of 5.
-  wordGame: pick(WORD_GAMES, d), wordFlip: pick(C.wordFlip, w), wordBridge: pick(C.wordBridge, w), connections: pick(C.connections, w),
-    oddOneOut: pick(C.oddOneOut, w), anagram: pick(window.ANAGRAM_SETS, w), thinkFast: rotPick(C.thinkFast, d) };
+  return { day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
+    // Word formats rotate daily (period 5); each format's list advances once per 5-day cycle: w = floor(day / 5).
+    wordGame: pick(WORD_GAMES, d), wordFlip: sched("wordFlip", C.wordFlip, w), wordBridge: sched("wordBridge", C.wordBridge, w),
+    connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w),
+    anagram: sched("anagram", window.ANAGRAM_SETS, w), thinkFast: sched("thinkFast", C.thinkFast, d) };
 }
 // Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
 // or a future day. Before there are past days it falls back to a pre-launch day.
@@ -371,7 +388,7 @@ function runNext() {
 function catDone(body, score, detail) {
   commitCat(score, detail);
   const b = h("b", {}, "0");
-  body.append(h("div", { class: "cat-score" }, h("small", {}, "Category score"), b, h("small", {}, "/ 1,000")));
+  body.append(h("div", { class: "cat-score" }, h("small", {}, "Category score"), b, h("small", {}, "/ 1,000"), h("p", { class: "quip" }, catQuip(score, session.scores.length - 1))));
   countUp(b, score);
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   nextBtn(body, session.scores.length >= 5 ? "See final results" : "Next: " + CATS[session.scores.length].name + " →", runNext);
@@ -1276,7 +1293,7 @@ function anagramRush() {
     body.append(h("p", { class: "muted" }, "Missed words: " + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : "none — wow!")));
     const conv = Math.min(1000, Math.round(raw / target * 1000));
     commitCat(conv, "anag raw " + raw);
-    body.append(h("div", { class: "cat-score" }, h("small", {}, "Your Anagram Rush score"), h("b", {}, fmt(raw)), h("small", {}, "points")));
+    body.append(h("div", { class: "cat-score" }, h("small", {}, "Your Anagram Rush score"), h("b", {}, fmt(raw)), h("small", {}, "points"), h("p", { class: "quip" }, catQuip(conv, session.scores.length - 1))));
     nextBtn(body, "Next: Brain Teaser →", runNext);
   };
   onKey = e => {
@@ -1422,6 +1439,19 @@ function snarkLine(tot) {
   const band = tot >= 5000 ? "perfect" : tot >= 3750 ? "great" : tot >= 2000 ? "mid" : tot > 0 ? "rough" : "zero";
   const l = SNARK[band]; return l[((session ? session.day : 0) % l.length + l.length) % l.length];
 }
+// Category-level quips (per 1,000-point category): roast low, praise high. Stable per day + category.
+const CAT_QUIP = {
+  top: ["Showing off now, are we?", "Clean sweep. Rude, honestly.", "That category never stood a chance."],
+  good: ["Nicely done. Keep that energy.", "Solid. Your brain is warmed up.", "Respectable work. Carry on."],
+  mid: ["Middle of the pack. Very… balanced.", "Half right, half vibes.", "Could be worse. Could be better."],
+  low: ["Oof. Shake it off.", "That one bit back.", "Let's pretend that didn't happen."],
+  zero: ["A goose egg. Bold.", "Zero. Next category, quickly.", "Nothing? The next one's yours."]
+};
+function catQuip(score, cat) {
+  const band = score >= 900 ? "top" : score >= 650 ? "good" : score >= 350 ? "mid" : score > 0 ? "low" : "zero";
+  const l = CAT_QUIP[band], k = (session ? session.day : 0) * 7 + (cat || 0);
+  return l[((k % l.length) + l.length) % l.length];
+}
 function resultsPopup() {
   if ($(".result-modal")) return;
   countStats();
@@ -1434,7 +1464,7 @@ function resultsPopup() {
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? "Practice complete" : "Clash complete!"),
       num, h("small", { class: "result-modal__of" }, "/ 5,000"),
-      h("p", { class: "snark" }, snarkLine(tot)),
+      h("p", { class: "result-modal__quip" }, snarkLine(tot)),
       h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
       shareBtn,
       h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, "See full results")));
@@ -1451,7 +1481,7 @@ function results() {
   const share = shareText(); // ends with SITE_URL
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? "Practice run complete" : "Today's Clash complete")),
-    h("div", { class: "final" }, h("small", {}, "Final score"), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "snark" }, snarkLine(tot))),
+    h("div", { class: "final" }, h("small", {}, "Final score"), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
     h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
