@@ -50,9 +50,9 @@ Example day:
 ```js
 [ { cat: "thinking", kind: "math", q: "It takes 6 minutes to saw a log into 3 pieces…", answers: ["15", "15 minutes"], wrong: ["12"], explain: "…" },
   { cat: "fun", kind: "guesstimate", type: "guess", q: "How many hours are in a (non-leap) year?", answer: 8760, unit: "hours", explain: "365 × 24" } ]
-[ …, { cat: "fun", kind: "illusion", type: "mc", img: "illusion-muller-lyer", q: "Which line is longer?", options: ["Top", "Bottom", "They're equal"], a: 2 } ]
+[ …, { cat: "fun", kind: "illusion", type: "mc", img: "illusion-01", q: "Which line is longer?", options: ["Top", "Bottom", "They're equal"], a: 2 } ]
 ```
-Illusion assets (Designer, verified by `trivia-illusions/verify.py`): illusion-muller-lyer (a=2), illusion-muller-lyer-b-longer (a=1), illusion-ebbinghaus (a=2), illusion-ebbinghaus-a-bigger (a=0), illusion-vertical-horizontal (a=2), illusion-vertical-horizontal-a-longer (a=0).
+Illusion assets (Designer, verified by `trivia-illusions/verify.py`): illusion-01 (a=2), illusion-02 (a=1), illusion-03 (a=2), illusion-04 (a=0), illusion-05 (a=2), illusion-06 (a=0).
 
 ### Typed-answer units (answers.js, Luke's rules)
 - The same value in another unit counts: time (s/sec, m/min/mins/minute(s), h/hr/hour(s), days, weeks, years, "quarter of an hour", "1/4 hour") and length (mm, cm, m, km, in, ft, yd, mi). "m" means minutes when the expected answer is a time, and metres otherwise. Money keeps its $/cents rules.

@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Inverted T: horizontal line A and vertical line B" data-answer="A" style="color:currentColor">
-<!-- GEOMETRY: horizontal A from (70,250) to (290,250) = 220 units; vertical B from (180,250) to (180,50) = 200 units. A = 1.10 x B. Answer: A. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Inverted T: horizontal line A and vertical line B" style="color:currentColor">
 <g stroke="currentColor" stroke-width="5" stroke-linecap="butt">
 <line data-item="A" x1="70" y1="250" x2="290" y2="250"/>
 <line data-item="B" x1="180" y1="250" x2="180" y2="50"/>

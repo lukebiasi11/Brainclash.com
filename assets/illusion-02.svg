@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Müller-Lyer illusion: two horizontal lines, top and bottom" data-answer="B">
-<!-- GEOMETRY: Top shaft A (100,100)-(300,100)=200px with outward tails (>-<, looks longer); bottom shaft B (85,200)-(315,200)=230px with inward arrowheads (<->, looks shorter). B = 1.15 x A. Answer: B (bottom). Fins: 30px at ±35° (dx 24.6, dy 17.2), stroke 4, butt caps; fins are not part of the measured shaft. A=top, B=bottom. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Müller-Lyer illusion: two horizontal lines, top and bottom">
 <rect width="400" height="300" fill="#FFFFFF"/>
 <g stroke="#222" stroke-width="4" stroke-linecap="butt" fill="none">
 <line data-item="A" x1="100" y1="100" x2="300" y2="100"/><path d="M75.4 82.8L100 100L75.4 117.2M324.6 82.8L300 100L324.6 117.2"/>

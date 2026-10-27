@@ -768,3 +768,14 @@ body.flash-bad::after{box-shadow:inset 0 0 110px rgba(179,18,46,.7)}
 .result-modal__card .snark{margin:4px auto 10px}
 @media (prefers-reduced-motion:reduce){.pts-pop,.runtotal b.bump{animation:none}.pts-pop{display:none}}
 pre.share{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+/* Timeline drag: source card stays in the DOM (hidden) while a placeholder marks the drop slot */
+.timeline .card.drag-src{display:none}
+/* Batch 2 (Oct 27) */
+body.in-game .cat-score{margin-bottom:14px}
+.cat-score + .btn.big,.cat-score + .muted + .btn.big{margin-top:14px}
+/* "Continue the Clash" is longer than "Start the Clash": scale it to the width so it never clips */
+.cta .btn.primary.big.long{font-size:clamp(26px,10.2vw,46px);white-space:nowrap}
+.cta .btn.primary.big.long::before{flex-basis:30px;width:30px;height:30px}
+body.in-game .prompt{font-size:clamp(19px,calc(2.4vh + 6px),28px)}
+@media (max-height:700px){body.in-game .prompt{font-size:clamp(18px,calc(2.4vh + 6px),24px)}}
+.timer.stopped{opacity:.55}

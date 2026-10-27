@@ -129,8 +129,8 @@ function burst(x, y, n = 18) {
 function loadToday() {
   const s = store.get("dg-" + todayKey());
   if (s && s.inProgress != null) {
-    if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partial || 0)))); s.details.push("left mid-category"); }
-    delete s.inProgress; delete s.partial; store.set("dg-" + s.key, s);
+    if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category"); }
+    delete s.inProgress; delete s.partial; delete s.partialCat; store.set("dg-" + s.key, s);
   }
   return s;
 }
@@ -179,7 +179,7 @@ function newSession(practice) {
 function track(pts) {
   if (!session || session.inProgress == null) return;
   const gain = Math.round(pts - (session.partial || 0));
-  session.partial = pts; save(); liveTotal();
+  session.partial = pts; session.partialCat = session.inProgress; save(); liveTotal();
   if (gain > 0) scorePop(gain);
 }
 // Celebration: "+N" floats up from the header score and the number bumps (CSS, ~600 ms, no layout shift).
@@ -196,10 +196,11 @@ function liveTotal() {
   const b = document.querySelector(".runtotal b");
   if (!b || !session) return;
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
-  b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : 0);
+  b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
 function catScoreChip() {
-  return h("div", { class: "runtotal", "aria-label": "Category score" }, "Score ", h("b", {}, "0"), "/1,000 pts");
+  const v = session && session.inProgress != null ? Math.round(session.partial || 0) : 0;
+  return h("div", { class: "runtotal", "aria-label": "Category score" }, "Score ", h("b", {}, fmt(v)), "/1,000 pts");
 }
 function save() { if (session && !session.practice) store.set("dg-" + session.key, session); }
 const wordGameFor = day => getDailySet(keyOf(day)).wordGame;
@@ -246,7 +247,14 @@ function feedback(parent, ok, text) {
   return f;
 }
 // One-shot button: ignores double-clicks and key-repeat.
-function nextBtn(parent, label, fn) { let used = false; const b = h("button", { class: "btn primary big", onclick: () => { if (used) return; used = true; b.disabled = true; b.blur(); fn(); } }, label); parent.append(b); if (matchMedia("(hover: hover) and (pointer: fine)").matches) b.focus({ preventScroll: true }); return b; }
+// Once an answer is locked, the Next/Continue button appears: freeze every running timer on the
+// screen and remove Skip (applies to every mode, since they all advance through nextBtn/catDone).
+function answerLocked() {
+  timers.forEach(t => t.stop());
+  document.querySelectorAll("#app .timer").forEach(t => t.classList.add("stopped"));
+  document.querySelectorAll("#app .skip-btn").forEach(b => b.remove());
+}
+function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-game") && session && parent.closest && parent.closest(".game-body")) answerLocked(); let used = false; const b = h("button", { class: "btn primary big", onclick: () => { if (used) return; used = true; b.disabled = true; b.blur(); fn(); } }, label); parent.append(b); if (matchMedia("(hover: hover) and (pointer: fine)").matches) b.focus({ preventScroll: true }); return b; }
 // Sticky bottom bar for the main action on game screens (always reachable on phones).
 const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.append(bar); return bar; };
 // Visible Skip control for every play screen — lives in the action bar so it stays above the browser chrome.
@@ -289,7 +297,7 @@ function home() {
       ? h("div", { class: "cta" }, h("p", {}, "You've finished today's Clash: ", h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
           h("button", { class: "btn primary big", onclick: () => { session = newSession(false); results(); } }, "View results"),
           h("p", { class: "muted", id: "countdown" }))
-      : h("div", { class: "cta" }, h("button", { class: "btn primary big", onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? "Continue the Clash" : "Start the Clash"),
+      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? "Continue the Clash" : "Start the Clash"),
           h("p", { class: "muted", id: "countdown" })),
     h("details", { class: "rules" }, h("summary", {}, "How it works"),
       h("ul", {},
@@ -318,8 +326,8 @@ function commitCat(score, detail) {
   if (session.inProgress == null) return;
   session.scores.push(Math.round(Math.max(0, Math.min(1000, score))));
   session.details.push(detail || "");
-  delete session.inProgress; delete session.partial;
-  save(); liveTotal();
+  delete session.inProgress; delete session.partial; delete session.partialCat;
+  save(); session.lastCat = session.scores[session.scores.length - 1]; liveTotal(); session.lastCat = null;
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
 function catIntro(i, start) {
@@ -333,12 +341,12 @@ function catIntro(i, start) {
       h("p", { class: "wg-intro__sub" }, wg.sub),
       h("div", { class: "wg-intro__chips" }, h("span", { class: "wg-chip" }, "⏱ " + WG_SECS[wg.id] + " seconds"), h("span", { class: "wg-chip" }, "Up to 1,000 pts")),
       h("div", { class: "wg-intro__how" }, h("b", {}, "How it works"), introText("word"))));
-    nextBtn(actionBar(body), "Start " + wg.name, () => { session.inProgress = i; session.partial = 0; save(); start(); });
+    nextBtn(actionBar(body), "Start " + wg.name, () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
     return;
   }
   const body = screen(c.icon + " " + c.name, i === 3 ? "Today's word game: " + wordGameFor(session.day).name + " — " + wordGameFor(session.day).sub : c.desc);
   body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, "Worth up to ", h("b", {}, "1,000 points"), "."), introText(c.id)));
-  nextBtn(body, "Start " + (i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; save(); start(); });
+  nextBtn(body, "Start " + (i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
 function introText(id) {
   const t = {
@@ -647,14 +655,20 @@ function history() {
         const ghost = card.cloneNode(true); ghost.classList.add("drag-ghost"); ghost.removeAttribute("tabindex");
         const gz = parseFloat(line.style.zoom) || 1; // the fit pass may have zoomed the timeline; keep the ghost the same visual size
         Object.assign(ghost.style, { zoom: gz === 1 ? "" : String(gz), width: r0.width / gz + "px", height: r0.height / gz + "px", left: r0.left / gz + "px", top: r0.top / gz + "px" });
-        document.body.append(ghost); card.classList.add("drag-placeholder"); document.body.classList.add("is-dragging");
+        // The touched card itself is never moved in the DOM while dragging (iOS Safari cancels the touch stream
+        // when its target is re-inserted, which made drags stop after one slot). A placeholder moves instead.
+        const slot = card.cloneNode(true); slot.removeAttribute("tabindex"); slot.removeAttribute("data-ev"); slot.classList.add("drag-placeholder");
+        line.insertBefore(slot, card); card.classList.add("drag-src");
+        document.body.append(ghost); document.body.classList.add("is-dragging");
+        const noScroll = ev => ev.preventDefault(); window.addEventListener("touchmove", noScroll, { passive: false });
         try { card.setPointerCapture(e.pointerId); } catch {}
         let lastY = e.clientY, lastX = e.clientX, raf = 0;
         const place = () => {
-          const others = [...line.children].filter(c => c !== card);
+          const others = [...line.children].filter(c => c !== card && c !== slot);
           let before = null;
           for (const o of others) { const r = o.getBoundingClientRect(); if (vertical ? lastY < r.top + r.height / 2 : lastX < r.left + r.width / 2) { before = o; break; } }
-          if (before ? card.nextSibling !== before : line.lastChild !== card) line.insertBefore(card, before);
+          let nx = slot.nextSibling; if (nx === card) nx = card.nextSibling;
+          if (nx !== before) line.insertBefore(slot, before);
         };
         const scroller = () => {
           const edge = 70, H = window.innerHeight; let v = 0;
@@ -668,7 +682,9 @@ function history() {
           if (ev && ev.pointerId !== e.pointerId) return;
           cancelAnimationFrame(raf);
           window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
-          ghost.remove(); card.classList.remove("drag-placeholder"); document.body.classList.remove("is-dragging");
+          window.removeEventListener("touchmove", noScroll);
+          line.insertBefore(card, slot); slot.remove(); card.classList.remove("drag-src");
+          ghost.remove(); document.body.classList.remove("is-dragging");
           syncOrder();
         };
         // listen on window: re-inserting the card in the DOM drops pointer capture
@@ -1102,7 +1118,7 @@ function wordFlip() {
     if (built.length < w.length) return;
     const guess = built.map(k => letters[k].c).join("");
     busy = true; // block input during the win/shake animation
-    if (guess === w || (sorted(guess) === sorted(w) && dict.has(guess))) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { slots.classList.remove("win"); busy = false; advance(); }, 350); }
+    if (guess === w || (sorted(guess) === sorted(w) && dict.has(guess))) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
     else { slots.classList.add("shake"); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
   };
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
@@ -1138,7 +1154,7 @@ function wordBridge() {
   const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${total}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     const v = norm(input.value).toUpperCase().replace(/ /g, ""); if (!v) return;
-    if (v === list[i][2]) { total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { puzzle.classList.remove("win"); adv(); }, 300); }
+    if (v === list[i][2]) { total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
     else { form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
   };
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
