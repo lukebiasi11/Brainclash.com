@@ -731,10 +731,11 @@ const PARTIAL_ORDER = false;
 // sport-*.svg). Missing/broken art is removed cleanly — never a "coming soon" placeholder.
 const artSrc = id => (id && window.ICONS && window.ICONS[id]) || (id && /^[a-z0-9-]+$/i.test(id) ? "assets/" + id + ".svg" : null);
 function artBox(cls, id, alt) {
-  const box = h("div", { class: cls }), src = artSrc(id);
+  const box = h("div", { class: cls }), own = id && /^[a-z0-9-]+$/i.test(id) ? "assets/" + id + ".svg" : null, src = own || artSrc(id);
   if (!src) { box.hidden = true; return box; }
   const img = h("img", { src, alt, decoding: "async" });
-  img.addEventListener("error", () => { box.remove(); scheduleFit(); }); img.addEventListener("load", scheduleFit);
+  // Prefer the question's own art file; fall back to the generic icons.js mapping only if it 404s.
+  img.addEventListener("error", () => { const fb = artSrc(id); if (fb && img.getAttribute("src") !== fb) { img.src = fb; return; } box.remove(); scheduleFit(); }); img.addEventListener("load", scheduleFit);
   box.append(img); return box;
 }
 function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
