@@ -1293,13 +1293,25 @@ function anagramRush() {
   const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, "🔀 Shuffle"), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, "Clear"), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, "Submit word"));
   body.append(scoreEl, cur, tiles, ctrls, form, list);
   const anBar = actionBar(body); anBar.append(skipBtn(() => end()));
+  // Update in place (no innerHTML rebuild on each key/submit) so Enter never re-creates the screen or moves focus.
+  const slotEls = Array.from({ length: 6 }, () => h("span", { class: "slot" }));
+  cur.append(...slotEls);
+  let tileEls = [];
+  const buildTiles = () => { tiles.replaceChildren(...(tileEls = letters.map((l, k) => h("button", { class: "tile", onclick: () => { if (!built.includes(k)) { built.push(k); draw(); } } }, l)))); };
+  const scoreB = h("b", {}, "0"), scoreRest = h("small", { class: "raw-sub" });
+  scoreEl.append("Score ", scoreB, "/1,000 pts", scoreRest);
+  let shownFound = 0;
   const draw = () => {
-    scoreEl.innerHTML = ""; scoreEl.append("Score ", h("b", {}, Math.min(1000, Math.round(raw / target * 1000))), "/1,000 pts · ", found.length, " words · ", raw, " raw");
-    cur.innerHTML = ""; for (let k = 0; k < 6; k++) cur.append(h("span", { class: "slot" + (built[k] != null ? " on" : "") }, built[k] != null ? letters[built[k]] : ""));
-    tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { built.push(k); draw(); } }, l)));
-    list.innerHTML = ""; found.forEach(w => list.append(h("span", { class: "chip" }, w.toUpperCase() + " +" + PTS[w.length])));
+    scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = `${found.length} words · ${raw} raw`;
+    slotEls.forEach((el, k) => { const on = built[k] != null; el.className = "slot" + (on ? " on" : ""); el.textContent = on ? letters[built[k]] : ""; });
+    if (tileEls.length !== letters.length || tileEls.some((b, k) => b.textContent !== letters[k])) buildTiles();
+    tileEls.forEach((b, k) => { b.disabled = built.includes(k); });
+    while (shownFound < found.length) { const w = found[found.length - 1 - shownFound]; list.prepend(h("span", { class: "chip" }, w.toUpperCase() + " +" + PTS[w.length])); shownFound++; }
   };
-  const flash = (t, ok) => { const f = feedback(body, ok, t); setTimeout(() => f.remove(), 900); };
+  // Fixed-height feedback line: text changes in place, no element insert/remove, no full-screen flash (layout never shifts).
+  const fbSlot = h("div", { class: "an-fb", "aria-live": "polite" });
+  let fbT = 0;
+  const flash = (t, ok) => { fbSlot.textContent = t; fbSlot.className = "an-fb show " + (ok === true ? "good" : ok === false ? "bad" : "neutral"); clearTimeout(fbT); fbT = setTimeout(() => { fbSlot.className = "an-fb"; }, 900); };
   const tryWord = w => {
     if (over) return; w = w.toLowerCase().trim(); built = [];
     if (w.length < 3) { draw(); return; }
@@ -1309,7 +1321,7 @@ function anagramRush() {
     draw();
   };
   const end = () => {
-    if (over) return; over = true; timer.stop(); tiles.remove(); ctrls.remove(); anBar.remove(); form.remove(); cur.remove();
+    if (over) return; over = true; timer.stop(); clearTimeout(fbT); fbSlot.remove(); tiles.remove(); ctrls.remove(); anBar.remove(); form.remove(); cur.remove();
     const missed = set.common.filter(w => !found.includes(w));
     body.append(h("p", { class: "muted" }, "Missed words: " + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : "none — wow!")));
     const conv = Math.min(1000, Math.round(raw / target * 1000));
@@ -1325,6 +1337,7 @@ function anagramRush() {
     if (/^[a-z]$/i.test(e.key)) { const k = letters.findIndex((l, idx) => l === e.key.toUpperCase() && !built.includes(idx)); if (k >= 0) { built.push(k); draw(); } else { cur.classList.add("shake"); setTimeout(() => cur.classList.remove("shake"), 300); } return; }
     return false;
   };
+  ctrls.after(fbSlot);
   const timer = Timer(60, end, body.parentNode.querySelector(".game-head"));
   draw();
 }
