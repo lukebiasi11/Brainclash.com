@@ -805,3 +805,8 @@ body.in-game .game-body>.tf-svg.sports-chart + .prompt{margin-top:0}
 .ct-clues li::before{content:counter(ct) ". ";opacity:.6}
 .ct-clues li:last-child:nth-child(odd){grid-column:1/-1}
 @media (max-height:600px){.ct-clues{font-size:14px;padding:6px 8px;gap:2px 8px}}
+
+/* Time Warp photos */
+.card .pic{position:relative}
+.card .pic img.photo{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
+.card .pic .pcr{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:50%;background:rgba(7,5,26,.85);color:#fff;font:italic 700 11px/16px Georgia,serif;text-align:center;text-decoration:none;border:1px solid rgba(255,255,255,.5)}

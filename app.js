@@ -664,7 +664,7 @@ function history() {
       order.forEach((ev, pos) => {
         const e = rd.events[ev];
         const card = h("div", { class: "card", "data-ev": ev, tabindex: locked ? -1 : 0, "aria-label": e[1] + (locked ? "" : " — drag to reorder, or use arrow keys") },
-          h("div", { class: "pic" }, ic(e[0], e[3])), h("div", { class: "cap" }, e[1]),
+          h("div", { class: "pic" }, ic(e[0], e[3]), locked && window.histCredit && window.histCredit(e[3]) ? h("a", { class: "pcr", href: window.histCredit(e[3]), target: "_blank", rel: "noopener", "aria-label": "Photo credit", title: "Photo credit" }, "i") : null), h("div", { class: "cap" }, e[1]),
           locked ? h("div", { class: "yr" }, e[2] < 0 ? -e[2] + " BC" : e[2]) : h("div", { class: "grip", "aria-hidden": "true" }, "⠿"));
         if (!locked) enableDrag(card);
         line.append(card);
