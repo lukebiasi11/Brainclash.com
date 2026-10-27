@@ -1,0 +1,743 @@
+/* ===== Daily Gauntlet — neon arcade game-show theme =====
+   Change the colors below to re-skin the whole site. */
+:root{
+  /* colors */
+  --bg:#07031a; --panel:#120a2e; --panel2:#1d1147; --line:#3a2580;
+  --txt:#f4f1ff; --mut:#a99fd6;
+  --cyan:#00f0ff; --pink:#ff2fd6; --yellow:#ffe600; --green:#39ff88; --red:#ff3b6b;
+  --ink:#1a0b00; --amber:#ffb300; --shadow-amber:#b35c00; --ok-bg:#0c3b26; --bad-bg:#3d0b1d; --bad-txt:#ff9ab3;
+  --map-bg:#0a0e1f; --well:#0009;
+  /* fonts */
+  --display:"Bungee",Impact,system-ui,sans-serif; --shade:"Bungee Shade",var(--display); --body:"Outfit",system-ui,sans-serif;
+  /* radii */
+  --r:18px; --r-md:14px; --r-sm:10px; --r-xs:6px; --r-pill:99px;
+  /* spacing */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --gap:10px;
+  /* layout */
+  --maxw:780px; --tap:44px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font:17px/1.45 var(--body);-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(900px 500px at 15% -10%,#3b0a6b 0,transparent 60%),radial-gradient(800px 500px at 100% 0,#04306b 0,transparent 55%),var(--bg);background-attachment:fixed}
+.bg-grid{position:fixed;inset:auto -50% -10% -50%;height:55vh;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(var(--pink) 1px,transparent 1px),linear-gradient(90deg,var(--pink) 1px,transparent 1px);background-size:60px 60px;
+  transform:perspective(400px) rotateX(62deg);opacity:.13;mask-image:linear-gradient(transparent,#000 70%);animation:grid 3s linear infinite}
+@keyframes grid{to{background-position:0 60px}}
+button,input{font:inherit;color:inherit}
+.top{display:flex;align-items:center;justify-content:space-between;max-width:var(--maxw);margin:0 auto;padding:14px 16px}
+.brand{font-family:var(--display);color:var(--txt);text-decoration:none;font-size:18px;letter-spacing:1px}
+.brand b{color:var(--yellow);margin-left:6px;font-weight:400;text-shadow:0 0 12px #ffe60088}.bolt{margin-right:6px}
+.beta{font-family:var(--display);font-size:11px;letter-spacing:2px;color:var(--pink);border:2px solid var(--pink);padding:2px 8px;border-radius:var(--r-xs);box-shadow:0 0 12px #ff2fd655,inset 0 0 8px #ff2fd633}
+main{max-width:var(--maxw);margin:0 auto;padding:0 16px 70px}
+main.enter{animation:enter .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes enter{from{opacity:0;transform:translateY(18px) scale(.98)}}
+
+/* hero */
+.hero{text-align:center;padding:16px 0 6px}
+.logo{font-family:var(--shade);font-size:clamp(40px,12vw,76px);line-height:.95;color:var(--cyan);text-shadow:0 0 18px #00f0ff88}
+.logo span{display:block;font-family:var(--display);color:var(--yellow);text-shadow:3px 3px 0 var(--pink),0 0 26px #ffe60088;animation:flicker 4s infinite}
+@keyframes flicker{0%,92%,100%{opacity:1}93%{opacity:.4}95%{opacity:1}97%{opacity:.6}}
+.hero.small .logo{font-size:clamp(28px,8vw,44px)}
+.tag{color:var(--mut);margin:12px 0 2px;font-weight:600}
+.date{font-family:var(--display);color:var(--pink);margin:4px 0 0;letter-spacing:1px;font-size:14px}
+
+/* category cards */
+.path{list-style:none;padding:0;margin:20px 0;display:grid;gap:var(--gap);counter-reset:s}
+.step{display:grid;grid-template-columns:40px 46px 1fr auto;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--panel2),var(--panel));border:2px solid var(--line);position:relative;overflow:hidden;
+  animation:enter .5s backwards}
+.step:nth-child(2){animation-delay:.06s}.step:nth-child(3){animation-delay:.12s}.step:nth-child(4){animation-delay:.18s}.step:nth-child(5){animation-delay:.24s}
+.step .num{font-family:var(--display);width:36px;height:36px;border-radius:var(--r-sm);display:grid;place-items:center;background:#0008;border:2px solid var(--line);font-size:15px}
+.step .ic{font-size:30px;filter:drop-shadow(0 0 8px #fff4)}
+.step .nm{display:flex;flex-direction:column}.step .nm b{font-family:var(--display);font-weight:400;letter-spacing:.5px;font-size:16px}
+.step small{color:var(--mut);font-size:13px}
+.step .pts{font-family:var(--display);font-size:16px;color:var(--yellow)}
+.step.next{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 26px #00f0ff44}
+.step.next .num{background:var(--cyan);color:#000;border-color:var(--cyan)}
+.step.next::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,#ffffff18 50%,transparent 60%);animation:shine 2.4s infinite}
+@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.step.locked{opacity:.45;filter:saturate(.4)}
+.step.done{border-color:#39ff8866}.step.done .num{background:var(--green);color:#002;border-color:var(--green)}
+
+/* buttons */
+.cta{text-align:center;margin:8px 0}
+.btn{font-family:var(--body);font-weight:800;border:2px solid var(--line);background:var(--panel2);padding:11px 16px;border-radius:var(--r-md);cursor:pointer;min-height:46px;transition:transform .1s,box-shadow .2s,border-color .2s}
+.btn:hover:not(:disabled){border-color:var(--cyan)}
+.btn:active{transform:translateY(2px) scale(.98)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:linear-gradient(180deg,#fff34d,var(--yellow) 40%,#ffb300);color:var(--ink);border:0;box-shadow:0 5px 0 var(--shadow-amber),0 0 24px #ffe60055;text-transform:uppercase;letter-spacing:.5px}
+.btn.primary:active:not(:disabled){box-shadow:0 2px 0 var(--shadow-amber);transform:translateY(3px)}
+.btn.big{display:block;width:100%;padding:16px;font-family:var(--display);font-weight:400;font-size:20px;margin:16px 0}
+.btn.ghost{display:block;margin:6px auto;background:transparent;border-color:transparent;color:var(--cyan)}
+.muted{color:var(--mut)}.fine{color:var(--mut);font-size:12px;text-align:center;margin-top:22px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin:18px 0}
+.stats div{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);text-align:center;padding:10px}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:26px;color:var(--cyan);text-shadow:0 0 10px #00f0ff77}.stats small{color:var(--mut)}
+.rules{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:12px 16px}.rules summary{cursor:pointer;font-family:var(--display);font-size:14px;letter-spacing:1px}.rules li{margin:6px 0;color:var(--mut)}
+
+/* game header */
+.game-head{position:sticky;top:0;z-index:500;background:linear-gradient(#07031af2 75%,#07031a00);padding:6px 0 14px}
+.game-head h2{font-family:var(--display);font-weight:400;margin:2px 0;font-size:clamp(22px,6vw,30px);letter-spacing:1px;text-shadow:0 0 16px #00f0ff66}
+.game-head p{margin:0;font-size:14px;color:var(--mut)}
+.crumb{font-family:var(--display);font-size:12px;color:var(--pink);letter-spacing:2px}
+.runtotal{position:absolute;right:0;top:6px;font-size:13px;color:var(--mut);background:var(--panel);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px 10px}.runtotal b{color:var(--yellow);font-family:var(--display);font-weight:400}
+.timer{position:relative;height:26px;background:#0009;border:2px solid var(--line);border-radius:var(--r-pill);overflow:hidden;margin-top:10px}
+.timer-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--cyan),var(--pink));box-shadow:0 0 16px var(--cyan)}
+.timer.low .timer-fill{background:linear-gradient(90deg,var(--red),#ff8a00);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.5)}}
+.timer-text{position:relative;display:block;text-align:center;font-family:var(--display);font-size:13px;line-height:22px;text-shadow:0 1px 2px #000}
+
+.intro{text-align:center;background:linear-gradient(160deg,var(--panel2),var(--panel));border:2px solid var(--line);border-radius:var(--r);padding:22px}
+.big-ic{font-size:72px;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 0 18px #00f0ff88)}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+.prompt{font-size:21px;font-weight:600;margin:14px 0}.hl{color:var(--yellow)}
+.hint-sm,.kbd-tip{color:var(--mut);font-size:13px;margin:-6px 0 10px;text-align:center}
+.kbd-tip{margin:10px 0}
+@media (pointer:coarse){.kbd-tip{display:none}}
+.visual{font-size:64px;text-align:center;background:radial-gradient(circle,#2a1670,var(--panel));border:2px solid var(--line);border-radius:var(--r);padding:14px;margin-top:8px}
+.options{display:grid;gap:var(--gap)}.options.two{grid-template-columns:1fr 1fr}
+.opt{background:var(--panel);border:2px solid var(--line);border-radius:var(--r-md);padding:14px 16px;text-align:left;font-size:17px;font-weight:600;cursor:pointer;min-height:56px;transition:transform .12s,border-color .15s,box-shadow .15s}
+.options.two .opt{text-align:center}
+.opt:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 16px #00f0ff44;transform:translateY(-2px)}
+.opt.right{background:var(--ok-bg);border-color:var(--green);box-shadow:0 0 20px #39ff8866;animation:pop .4s}
+.opt.wrong{background:var(--bad-bg);border-color:var(--red);animation:shake .4s}
+.fb{margin:14px 0;padding:14px 16px;border-radius:var(--r-md);font-weight:800;font-size:18px;text-align:center;animation:slam .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes slam{from{transform:scale(1.6);opacity:0}}
+.fb.good{background:var(--ok-bg);color:var(--green);border:2px solid var(--green);box-shadow:0 0 22px #39ff8855}
+.fb.bad{background:var(--bad-bg);color:var(--bad-txt);border:2px solid var(--red)}
+.fb.neutral{background:var(--panel2);border:2px solid var(--line)}
+body.flash-bad::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 120px #ff3b6b;animation:fade .5s forwards;z-index:999}
+@keyframes fade{to{opacity:0}}
+.spark{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:1000;animation:spark .7s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
+.cat-score,.final{text-align:center;background:radial-gradient(circle at 50% 0,#3a1785,var(--panel));border:2px solid var(--yellow);border-radius:var(--r);padding:16px;margin-top:16px;box-shadow:0 0 30px #ffe60033;animation:slam .5s cubic-bezier(.2,1.6,.4,1)}
+.cat-score b,.final b{display:block;font-family:var(--display);font-weight:400;font-size:56px;color:var(--yellow);text-shadow:4px 4px 0 var(--pink),0 0 30px #ffe60088;font-variant-numeric:tabular-nums}
+.final b{font-size:clamp(64px,20vw,96px)}
+.cat-score small,.final small{color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:2px;font-size:12px}
+
+/* map */
+.map-wrap{position:relative;border-radius:var(--r);overflow:hidden;border:2px solid var(--cyan);box-shadow:0 0 24px #00f0ff44}
+.lmap{height:min(58vh,460px);background:var(--map-bg)}
+.lpin{width:22px;height:22px;border-radius:50%;border:3px solid #fff;animation:drop .35s cubic-bezier(.2,1.6,.4,1)}
+.lpin.guess{background:var(--pink);box-shadow:0 0 0 6px #ff2fd644,0 0 20px var(--pink)}
+.lpin.target{background:var(--green);box-shadow:0 0 0 6px #39ff8844,0 0 20px var(--green)}
+@keyframes drop{from{transform:translateY(-30px) scale(.4);opacity:0}}
+.ltip{background:var(--panel2);color:var(--txt);border:1px solid var(--green);font-weight:800}
+.map{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:none;cursor:crosshair}
+.sea{fill:#070b1d}.land{fill:#16123a;stroke:var(--cyan);stroke-width:.7;filter:drop-shadow(0 0 3px #00f0ff)}
+.spin.guess{fill:var(--pink)}.spin.target{fill:var(--green)}.dist{stroke:var(--pink);stroke-width:1.5;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+.zbtns{position:absolute;right:8px;top:8px;display:grid;gap:6px}.zbtns button{width:40px;height:40px;border-radius:var(--r-sm);background:var(--panel2);border:2px solid var(--line);color:var(--cyan);font-size:22px;cursor:pointer}
+
+/* timeline */
+.axis{display:flex;justify-content:space-between;color:var(--cyan);font-family:var(--display);font-size:12px;letter-spacing:1px;border-bottom:3px solid var(--cyan);box-shadow:0 6px 12px -8px var(--cyan);padding-bottom:4px}
+.timeline{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:var(--gap);margin:14px 0}
+.card{background:linear-gradient(170deg,var(--panel2),var(--panel));border:2px solid var(--line);border-radius:var(--r-md);padding:10px 6px;text-align:center;cursor:grab;user-select:none;touch-action:none;position:relative;transition:box-shadow .2s,border-color .2s}
+.card:hover{border-color:var(--pink)}
+.card.dragging{z-index:3;box-shadow:0 14px 34px #000c,0 0 24px var(--pink);border-color:var(--pink);cursor:grabbing;transition:none;scale:1.05}
+.pic{font-size:42px;line-height:1.2;background:radial-gradient(circle,#3a1785,#0006);border-radius:var(--r-sm);padding:8px 0}
+.cap{font-size:13px;font-weight:600;margin:6px 0;min-height:36px}.yr{font-family:var(--display);color:var(--yellow)}
+.arrows{display:flex;justify-content:center;gap:6px}.mini{background:#0007;border:2px solid var(--line);border-radius:8px;width:36px;height:32px;cursor:pointer;color:var(--cyan)}
+.mini:disabled{opacity:.25}
+
+/* text entry & letter tiles */
+.answer{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}.answer .btn{flex:0 0 auto}
+.txt{flex:1;min-width:0;background:#0009;border:2px solid var(--line);border-radius:var(--r-md);padding:13px 16px;font-size:18px;font-weight:600;outline:none;text-transform:none}
+.txt:focus{border-color:var(--cyan);box-shadow:0 0 18px #00f0ff44}
+.prog{color:var(--mut);font-size:14px;font-weight:600;margin:8px 0}
+.hint{background:linear-gradient(135deg,var(--panel2),var(--panel));border:2px solid var(--line);border-radius:var(--r-md);padding:14px 16px;font-size:18px;font-weight:600}
+.badge{display:inline-block;background:var(--pink);color:#fff;font-family:var(--display);font-size:11px;letter-spacing:1px;padding:3px 9px;border-radius:var(--r-xs);vertical-align:middle;box-shadow:0 0 12px #ff2fd688}
+.slots{display:flex;justify-content:center;gap:6px;margin:18px 0;flex-wrap:wrap}
+.slot{width:44px;height:54px;border-radius:var(--r-sm);border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-size:26px;background:#0006}
+.slot.on{border:2px solid var(--cyan);color:var(--cyan);text-shadow:0 0 10px var(--cyan);animation:pop .2s}
+.tiles{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tile{width:54px;height:58px;border-radius:12px;border:0;font-family:var(--display);font-size:26px;cursor:pointer;color:var(--ink);
+  background:linear-gradient(180deg,#fff,#ffe9a8);box-shadow:0 5px 0 var(--shadow-amber);transition:transform .08s}
+.tile:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 var(--shadow-amber)}
+.tile:disabled{opacity:.15;transform:translateY(4px);box-shadow:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}.row .btn{flex:1}
+.row.center .btn{flex:0 1 190px}
+.win{animation:pop .35s}.shake{animation:shake .35s}
+@keyframes pop{50%{transform:scale(1.1)}}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.bridge{display:flex;justify-content:center;align-items:center;gap:var(--gap);font-family:var(--display);font-size:clamp(22px,7vw,32px);margin:22px 0;flex-wrap:wrap}
+.bridge .gap{background:var(--pink);color:#fff;border-radius:var(--r-sm);padding:2px 20px;box-shadow:0 0 20px var(--pink);animation:pulse 1s infinite alternate}
+.review{list-style:none;padding:0}.review li{padding:10px 14px;border-radius:12px;margin:6px 0;background:var(--panel);font-weight:600}
+.review .ok{border-left:5px solid var(--green)}.review .no{border-left:5px solid var(--red)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wtile{background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--txt);border:2px solid var(--line);border-radius:var(--r-md);min-height:72px;font-family:var(--display);font-size:clamp(11px,3.4vw,15px);cursor:pointer;padding:6px;word-break:break-word;transition:transform .1s}
+.wtile.sel{background:var(--cyan);color:#001;border-color:var(--cyan);box-shadow:0 0 20px var(--cyan);transform:scale(.96)}
+.solved{display:grid;gap:8px;margin-bottom:8px}.group{border-radius:var(--r-md);padding:10px;text-align:center;color:#120024;display:flex;flex-direction:column;animation:slam .4s cubic-bezier(.2,1.6,.4,1)}
+.group b{font-family:var(--display);font-weight:400}
+.group.g0{background:var(--yellow)}.group.g1{background:var(--green)}.group.g2{background:var(--cyan)}
+.raw{text-align:center;font-size:18px;font-weight:600}.raw b{font-family:var(--display);font-weight:400;font-size:40px;color:var(--yellow);text-shadow:0 0 16px #ffe60088}
+.found{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.chip{background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);border-radius:var(--r-pill);padding:4px 10px;font-size:13px;font-weight:800;animation:pop .3s}
+.share{background:#0009;border:2px dashed var(--line);border-radius:var(--r);padding:14px;white-space:pre-wrap;font-size:15px}
+@media (max-width:560px){
+  .timeline{grid-auto-flow:row;grid-auto-columns:auto}
+  .card{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:var(--gap);text-align:left;padding:8px}
+  .pic{font-size:30px}.cap{min-height:0;margin:0}.card .yr{grid-column:3}
+  .axis{display:none}
+  .runtotal{position:static;display:inline-block;margin-top:4px}
+  .step{grid-template-columns:34px 36px 1fr auto;gap:8px;padding:10px 12px}.step .ic{font-size:24px}.step .nm b{font-size:14px}
+  .tile{width:46px;height:52px;font-size:22px}
+  .lmap{height:52vh}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* ===== design pass: responsive + tap-target fixes (design-owned) ===== */
+html{overflow-x:clip}
+.brand{display:inline-flex;align-items:center;min-height:var(--tap)}
+.mini{width:var(--tap);height:var(--tap);font-size:16px}
+.zbtns button{width:var(--tap);height:var(--tap)}
+.card{touch-action:none;-webkit-user-select:none}
+.card .pic img.ico,.card .pic .ico{width:52px;height:52px}
+/* swappable icon system (assets/icons.js) */
+img.ico{display:inline-block;width:1em;height:1em;vertical-align:-.15em;object-fit:contain;filter:drop-shadow(0 0 6px #00f0ff88);pointer-events:none;-webkit-user-drag:none}
+.ico-fb{display:inline-block}
+.visual img.ico{width:96px;height:96px}
+.big-ic img.ico{width:88px;height:88px}
+.step .ic img.ico{width:34px;height:34px}
+.inline-flag{width:1.6em;height:1.6em;vertical-align:-.45em;filter:none;margin:0 .15em}
+.opt img.ico.flag{width:64px;height:64px;filter:none}
+@media (max-width:560px){
+  .lmap{height:clamp(280px,46vh,420px)}
+  .card .pic img.ico{width:36px;height:36px}
+  .step .ic img.ico{width:28px;height:28px}
+  .visual img.ico{width:76px;height:76px}
+  .card .arrows{flex-direction:row}
+}
+
+/* ===== Playtest fixes (Oct 26) — class names are safe for the Designer to restyle ===== */
+/* Bug 1: no hover/focus look on touch devices; never pre-highlight an option */
+@media (hover: none), (pointer: coarse) {
+  .opt:hover:not(:disabled), .btn:hover:not(:disabled), .card:hover { border-color: var(--line); box-shadow: none; transform: none; }
+}
+.opt:focus { outline: none; }
+.opt:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+
+/* UX 3: compact World Rush + sticky bottom action bar (safe-area aware) */
+.wr-prompt { margin: 6px 0 8px; }
+.lmap { height: clamp(220px, calc(100vh - 330px), 460px); height: clamp(220px, calc(100svh - 330px), 460px); }
+.action-bar { position: sticky; bottom: 0; z-index: 20; margin: 10px -16px 0; padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.action-bar .btn.big { margin: 6px 0; }
+.action-bar .fb { margin: 6px 0; padding: 10px 12px; font-size: 16px; }
+@media (max-width: 600px) {
+  main { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .game-head h2 { font-size: 22px; margin: 2px 0; } .game-head .muted { margin: 2px 0; font-size: 14px; }
+  .lmap { height: clamp(200px, calc(100dvh - 300px), 420px); }
+}
+
+/* UX 5: map zoom hint */
+.map-hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 500; pointer-events: none;
+  background: #000c; color: #fff; border: 1px solid var(--cyan); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity .4s; }
+.map-hint.gone { opacity: 0; }
+
+/* UX 6: Word Challenge intro card */
+.wg-intro { background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 2px solid var(--pink); border-radius: var(--r); padding: 18px; text-align: center; box-shadow: 0 0 24px #ff2fd633; }
+.wg-intro__label { text-transform: uppercase; letter-spacing: .12em; color: var(--cyan); font-weight: 800; }
+.wg-intro__name { font-family: var(--display); font-size: clamp(28px, 8vw, 40px); margin: 4px 0; color: var(--yellow, #ffe600); }
+.wg-intro__sub { margin: 0 0 10px; font-weight: 600; }
+.wg-intro__chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+.wg-chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-weight: 800; background: #0006; }
+.wg-intro__how { text-align: left; } .wg-intro__how .muted { margin: 4px 0 0; }
+
+/* UX 7 */
+.skip-note { text-align: center; font-size: 14px; opacity: .75; margin: 6px 0; }
+
+/* UX 8: timeline drag */
+.drag-hint { text-align: center; font-weight: 700; color: var(--cyan); margin: 4px 0; }
+.timeline .card { touch-action: none; }
+.timeline.locked .card { touch-action: auto; cursor: default; }
+.card .grip { opacity: .5; font-size: 20px; line-height: 1; }
+.card.drag-placeholder { opacity: .25; border-style: dashed; }
+.drag-ghost { position: fixed; z-index: 1000; margin: 0; pointer-events: none; cursor: grabbing; box-shadow: 0 14px 34px #000c, 0 0 24px var(--pink); border-color: var(--pink); scale: 1.04; }
+body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+
+/* Bug 2: solved Connections groups animate once; missed groups look muted */
+.group.missed { opacity: .6; }
+
+/* UX 9: results pop-up + confetti */
+.result-modal { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 16px; background: #07031acc; backdrop-filter: blur(4px); animation: fade-in .25s; }
+@keyframes fade-in { from { opacity: 0 } }
+.result-modal__card { position: relative; z-index: 2; width: min(420px, 100%); text-align: center; background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 2px solid var(--cyan); border-radius: var(--r); padding: 22px 18px; box-shadow: 0 0 40px #00f0ff55; }
+.result-modal__kicker { display: block; text-transform: uppercase; letter-spacing: .14em; color: var(--pink); font-weight: 800; }
+.result-modal__score { display: block; font-family: var(--display); font-size: 64px; line-height: 1.1; }
+.result-modal__of { display: block; opacity: .7; }
+.result-modal__blocks { font-size: 28px; letter-spacing: 4px; margin: 10px 0; }
+.result-modal__share { margin: 12px 0 8px; }
+.result-modal__full { width: 100%; }
+.confetti-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; pointer-events: none; z-index: 3; } /* above .result-modal__card (z 2) */
+.map-wrap .map-hint { bottom: 40px; }  /* sit above the map credit */
+
+/* ===== World Rush globe (Oct 26) — d3-geo orthographic on canvas ===== */
+.lmap { position: relative; background: #050816; overflow: hidden; }
+.lmap canvas.globe { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline: none; -webkit-tap-highlight-color: transparent; }
+.lmap canvas.globe:active { cursor: grabbing; }
+.lmap canvas.globe:focus-visible { box-shadow: inset 0 0 0 2px var(--yellow, #ffe600); }
+.lmap .zbtns { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+.lmap .zbtns button { width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(0,240,255,.5); background: rgba(20,12,50,.85); color: #00f0ff; font-size: 20px; font-weight: 800; cursor: pointer; }
+.map-wrap { position: relative; }
+.map-wrap .map-hint { bottom: 30px; }
+.map-credit { position: absolute; right: 8px; bottom: 6px; z-index: 6; font-size: 10px; color: rgba(220,230,255,.6); text-decoration: none; background: rgba(5,8,22,.6); padding: 1px 6px; border-radius: 6px; }
+.map-credit:hover { color: #fff; }
+.fine a { color: inherit; text-decoration: underline; }
+
+/* ===== Fit-one-screen game layout (phones: no page scroll, action button always above the toolbar) ===== */
+.bg-wrap{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
+:root{--app-h:100vh}
+@supports (height:100dvh){:root{--app-h:100dvh}}
+@supports (height:100svh){:root{--app-h:100svh}}
+html.vh-js{--app-h:calc(var(--vh,1vh)*100)}
+body.in-game{height:var(--app-h);min-height:0;overflow:hidden;display:flex;flex-direction:column}
+body.in-game .top{flex:none;padding:max(6px,env(safe-area-inset-top)) 16px 4px}
+body.in-game main{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;overflow:hidden;padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right))}
+body.in-game .game-head{position:relative;flex:none;padding:0 0 6px;background:none}
+body.in-game .game-head .timer{margin-top:6px;height:22px}body.in-game .timer-text{line-height:18px}
+body.in-game .game-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+body.in-game .game-body>*{flex:none}
+body.in-game .game-body>.lmap{flex:1 1 0;min-height:120px;height:auto!important}
+body.in-game .action-bar{position:relative;flex:none;margin:auto -12px 0;padding:6px 12px max(12px,env(safe-area-inset-bottom));background:none}
+body.in-game .game-body>.btn.big{margin-top:auto;margin-bottom:max(12px,env(safe-area-inset-bottom))}
+body.in-game .game-body>.btn.big~.btn.big{margin-top:6px}
+body.in-game .btn.big{padding:12px;font-size:18px;margin:6px 0}
+body.in-game .action-bar .btn.big{margin:4px 0 0}
+body.in-game .prompt{margin:4px 0 8px}
+body.in-game .fb{margin:6px 0;padding:8px 12px;font-size:16px}
+body.in-game .cat-score{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:4px 10px;padding:8px 12px;margin-top:8px}
+body.in-game .cat-score b{font-size:40px;line-height:1}
+body.in-game .options{gap:8px}body.in-game .opt{min-height:48px;padding:10px 14px}
+body.in-game .intro{padding:14px}body.in-game .wg-intro{padding:12px}
+body.in-game .found{flex:0 1 auto;min-height:28px;overflow-y:auto;align-content:flex-start}
+body.in-game .timeline{margin:6px 0}
+/* short phones (≤ 700px tall): tighter type & spacing */
+@media (max-height:700px){
+  body.in-game .top{padding-bottom:0}body.in-game .top .brand{font-size:15px}
+  body.in-game .game-head .crumb,body.in-game .game-head .runtotal{font-size:11px}
+  body.in-game .game-head h2{font-size:20px;margin:0}body.in-game .game-head .muted{font-size:13px}
+  body.in-game .prompt{font-size:16px;margin:2px 0 6px}
+  body.in-game .opt{min-height:42px;padding:8px 12px;font-size:15px}
+  body.in-game .btn.big{padding:10px;font-size:17px;min-height:44px}
+  body.in-game .wtile{min-height:54px}
+  body.in-game .intro .big-ic{font-size:40px}body.in-game .intro p{margin:6px 0}
+}
+/* results pop-up must fit too */
+.result-modal{padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.result-modal__card{max-height:calc(var(--app-h) - 24px);overflow:hidden}
+@media (max-height:700px){.result-modal__card{padding:14px 14px}.result-modal__score{font-size:48px}.result-modal__blocks{font-size:22px;margin:6px 0}}
+body.in-game .runtotal{position:absolute;right:0;top:0;margin:0;padding:1px 8px}
+body.in-game .brand{min-height:32px}
+body.in-game .game-body>[data-fitz]{transform-origin:top center}
+/* Connections: secondary controls as small outline pills, clearly unlike the word tiles */
+.pill-row{display:flex;justify-content:center;gap:10px;margin:8px 0 2px}
+.pill-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--cyan);border:1.5px solid var(--cyan);border-radius:var(--r-pill);padding:4px 14px;min-height:34px;font:800 14px/1 var(--body);letter-spacing:.3px;cursor:pointer;transition:background .15s,box-shadow .15s}
+.pill-btn span{font-size:16px}
+.pill-btn:hover{background:#00f0ff1a;box-shadow:0 0 12px #00f0ff44}
+.pill-btn:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+/* History: icons centred both ways on every card */
+.card .pic{display:flex;align-items:center;justify-content:center}
+/* History: direction cue matches the layout (row on desktop, stacked ≤560px — same breakpoint as the card layout) */
+.tl-dir--v,.vaxis{display:none}
+@media (max-width:560px){
+  .tl-dir--h{display:none}.tl-dir--v{display:inline}
+  .tl-wrap{display:grid;grid-template-columns:18px 1fr;gap:6px;align-items:stretch}
+  .vaxis{display:flex;flex-direction:column;align-items:center;margin:6px 0;color:var(--cyan);font-family:var(--display);font-size:9px;letter-spacing:1px}
+  .vaxis span{writing-mode:vertical-rl;transform:rotate(180deg)}
+  .vaxis i{flex:1;width:3px;margin:4px 0;background:linear-gradient(var(--cyan),var(--pink));border-radius:3px;position:relative;box-shadow:0 0 8px var(--cyan)}
+  .vaxis i::after{content:"";position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top:8px solid var(--pink);border-bottom:0}
+  .card .pic{align-self:stretch;padding:4px 0}
+}
+/* Think Fast: inline illusion art (currentColor = theme text). Uniform scale only (meet) so "equal" stays equal;
+   on game screens it flexes into the space left over and is capped by max-height, never stretched on one axis. */
+.tf-svg{display:flex;justify-content:center;align-items:center;color:var(--txt);margin:4px 0;max-height:300px}
+.tf-svg svg{display:block;width:auto;height:100%;max-width:100%;max-height:300px;aspect-ratio:360/300}
+body.in-game .game-body>.tf-svg{flex:1 1 0;min-height:96px;max-height:min(300px,40svh)}
+body.in-game .game-body>.tf-svg svg{max-height:100%}
+.tf-svg--missing{min-height:96px;border:2px dashed var(--line);border-radius:var(--r-md);color:var(--mut);font-weight:700}
+.guess-field{flex:1 1 160px;display:flex;align-items:center;gap:8px;min-width:0}.guess-field .txt{flex:1;min-width:0}
+.guess-unit{color:var(--cyan);font-weight:800;white-space:nowrap}
+.guess-note{margin:2px 0;font-size:13px}.tf-explain{margin:4px 0;font-size:14px}
+.txt.shake{animation:shake .4s;border-color:var(--red)}
+
+/* ===== CSS fixes (Oct 26 playtest) — additive only ===== */
+/* (1) Connections controls: 44px touch target, set apart from the grid */
+.pill-row{margin:14px 0 4px;padding-top:12px;border-top:1px dashed #00f0ff33;gap:12px}
+.pill-btn{min-height:var(--tap);padding:6px 18px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;background:#00f0ff0d}
+.pill-btn span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid currentColor;font-size:12px;line-height:1;letter-spacing:0}
+.pill-btn:active{transform:scale(.96)}
+/* (2) Timeline art: centred both ways, fixed square box, no line-height offset */
+.card .pic{display:flex;align-items:center;justify-content:center;line-height:1;aspect-ratio:1/1;padding:0;width:min(100%,72px);margin:0 auto;box-sizing:border-box}
+.card .pic>img.ico,.card .pic>.ico,.card .pic>.ico-fb{display:block;margin:0;vertical-align:0;flex:none}
+@media (max-width:560px){.card .pic{width:56px;align-self:center;padding:0}}
+/* (3) Vertical cue: rail/labels are their own grid column, so they never overlap the cards */
+@media (max-width:600px){.tl-wrap .vaxis{min-width:18px}.tl-wrap>.timeline{min-width:0}}
+/* Fit reconciliation (after Designer's block): on short game screens keep Designer's 44px pills but trim the separator spacing */
+@media (max-height:700px){body.in-game .pill-row{margin:8px 0 2px;padding-top:8px}}
+/* Illusions are delivered as fixed-colour SVGs (white backgrounds) → <img>, uniform scale, capped for the no-scroll fit.
+   The vertical–horizontal pair is transparent/currentColor (black in an <img>), so every illusion sits on a white card. */
+.tf-svg img{display:block;width:100%;height:auto;max-width:100%;max-height:min(38vh,300px);object-fit:contain;background:#fff;border-radius:var(--r-md)}
+body.in-game .game-body>.tf-svg img{width:auto;height:100%;max-height:100%}
+/* Playtest fixes (Oct 26) */
+/* globe: the .map-wrap (map + attribution) is the flexible middle, so the globe takes all spare height (bigger on desktop, no dead gap) */
+body.in-game .game-body>.map-wrap{flex:1 1 0;min-height:120px;display:flex;flex-direction:column}
+body.in-game .game-body>.map-wrap>.lmap{flex:1 1 0;min-height:120px;height:auto!important}
+/* no text selection when tapping/dragging controls */
+.btn,button,.opt,.tile,.wtile,.pill-btn,.card{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+/* Skip control: always in the action bar, visually secondary to the primary action */
+.action-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.action-bar .btn.primary.big{flex:1 1 auto}
+.action-bar .skip-btn{flex:0 0 auto;min-height:44px;padding:10px 16px;font-size:15px;opacity:.92}
+.action-bar .skip-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+.timer-text{letter-spacing:.5px}
+.runtotal{font-variant-numeric:tabular-nums}
+.runtotal b{margin:0 2px}
+
+/* Site disclaimer: home & results only (hidden in-game so fit-one-screen stays intact) */
+.site-footer{max-width:560px;margin:18px auto 28px;padding:0 16px;text-align:center;font-size:11px;line-height:1.45;color:var(--mut);opacity:.85}
+body.in-game .site-footer{display:none}
+
+/* Sports IQ team-path (order chips) */
+.order-wrap{display:flex;gap:6px;align-items:stretch;margin:4px 0;min-height:0;flex:1 1 auto;overflow:hidden}
+.order-ends{display:flex;flex-direction:column;justify-content:space-between;padding:4px 0;flex:none}
+.order-end{font-family:var(--display);font-size:10px;letter-spacing:1px;color:var(--pink)}
+.order-list{flex:1 1 auto;display:flex;flex-direction:column;gap:4px;min-height:0;overflow:hidden}
+.order-chip{display:flex;align-items:center;gap:6px;background:var(--panel);border:2px solid var(--line);border-radius:var(--r-md);padding:2px 8px 2px 2px;flex:1 1 0;min-height:44px;max-height:56px;touch-action:none;cursor:grab;user-select:none}
+.order-chip.order-sel{border-color:var(--yellow);box-shadow:0 0 12px #ffe66b55}
+.order-chip.order-right{border-color:var(--green,#22c55e);background:#14532d44}
+.order-chip.order-wrong{border-color:var(--red);background:#7f1d1d44}
+.order-chip.drag-placeholder{opacity:.35}
+.order-moves{display:flex;flex-direction:row;gap:2px;flex:none}
+.order-move{min-width:44px;min-height:44px;width:44px;height:44px;padding:0;font-size:14px;line-height:1;border-radius:var(--r-md);border:1.5px solid var(--line);background:#0006;color:var(--cyan);cursor:pointer;flex:none;box-sizing:border-box}
+.order-move:disabled{opacity:.35;cursor:default}
+.order-move:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 10px #00f0ff44}
+.order-label{font-weight:800;font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-reveal{margin:4px 0;font-size:13px}
+.drag-hint{font-size:12px;color:var(--mut);margin:2px 0 4px}
+.sports-chart{background:#fff;border-radius:var(--r);padding:4px;margin:2px 0}
+.sports-chart img{max-height:min(28vh,180px);width:100%;object-fit:contain;display:block}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-height:700px){
+  .order-chip{min-height:44px;max-height:48px}
+  .order-label{font-size:14px}
+  .drag-hint{font-size:11px;margin:0 0 2px}
+  .sports-chart img{max-height:min(22vh,140px)}
+}
+@media (max-height:600px){
+  /* Stack ▲/▼ as a single column still 44×44 each; chips share leftover height */
+  .order-list{gap:3px}
+  .order-chip{gap:4px;padding:1px 6px 1px 1px}
+}
+
+body.in-game .order-wrap{flex:1 1 auto;min-height:0}
+body.in-game .drag-hint{flex:0 0 auto}
+
+/* Sports IQ bracket (who-beat-who) */
+.bracket-round{font-family:var(--display);font-size:12px;letter-spacing:1px;color:var(--cyan);margin:0 0 2px;text-transform:uppercase}
+.bracket-fork{display:flex;flex-direction:column;align-items:center;gap:0;margin:2px 0 4px;opacity:.55}
+.bracket-arm{display:block;width:min(70%,220px);height:10px;border:2px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0}
+.bracket-stem{width:2px;height:10px;background:var(--line)}
+.bracket-cup{width:12px;height:8px;border:2px solid var(--line);border-top:none;border-radius:0 0 6px 6px}
+.bracket-opts{display:flex;flex-direction:column;gap:8px;margin:4px 0;flex:1 1 auto;min-height:0}
+.bracket-chip{min-height:56px;padding:12px 16px;font-size:20px;font-weight:800;border-radius:var(--r-md);border:2px solid var(--line);background:var(--panel);color:var(--txt);cursor:pointer;text-align:center}
+.bracket-chip.bracket-sel{border-color:var(--yellow);box-shadow:0 0 14px #ffe66b55}
+.bracket-chip.right{border-color:var(--green,#22c55e);background:#14532d44}
+.bracket-chip.wrong{border-color:var(--red);background:#7f1d1d44}
+@media (max-height:600px){.bracket-chip{min-height:48px;font-size:17px;padding:10px 12px}.bracket-fork{margin:0}}
+
+/* Sports IQ match-records (4×4) */
+.match-board{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0;flex:1 1 auto;min-height:0;overflow:hidden}
+.match-col{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:hidden}
+.match-chip{display:flex;align-items:center;gap:6px;min-height:44px;padding:6px 8px;text-align:left;font-size:13px;font-weight:700;border-radius:var(--r-md);border:2px solid var(--line);background:var(--panel);color:var(--txt);cursor:pointer;touch-action:none;user-select:none;flex:1 1 0}
+.match-chip.match-sel{border-color:var(--yellow);box-shadow:0 0 10px #ffe66b55}
+.match-chip.match-paired{border-color:var(--match-c,var(--cyan));box-shadow:0 0 8px color-mix(in srgb, var(--match-c,var(--cyan)) 40%, transparent)}
+.match-num{flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--match-c,var(--cyan));color:#07031a}
+.match-label{flex:1;min-width:0;line-height:1.25}
+@media (max-height:700px){.match-chip{min-height:44px;font-size:12px;padding:4px 6px}.match-board{gap:6px}.match-col{gap:4px}}
+body.in-game .bracket-opts,body.in-game .match-board{flex:1 1 auto;min-height:0}
+body.in-game .match-board,.body.in-game .bracket-opts{ /* keep */ }
+
+/* ===================================================================
+   BRAIN CLASH — Billboard theme (ported from R11b-original mockup)
+   Override layer: all original class/ID hooks kept intact.
+   =================================================================== */
+:root{
+  --orange:#E8582A; --navy:#1F2C7A; --ink-bc:#120B2E; --cream:#FFF6E8; --bolt:#F2C230;
+  --bg:var(--orange); --panel:var(--cream); --panel2:#FFE8D0; --line:var(--ink-bc);
+  --txt:var(--ink-bc); --mut:#3B1A0C;
+  --cyan:var(--navy); --pink:var(--ink-bc); --yellow:var(--bolt); --green:#0E7A3E; --red:#B3122E;
+  --ink:var(--ink-bc); --shadow-amber:var(--navy); --ok-bg:#D7F5E1; --bad-bg:#FFD9DE; --bad-txt:#8A0E22;
+  --display:"Anton",Impact,"Arial Narrow",sans-serif; --shade:var(--display);
+  --body:"Bricolage Grotesque",system-ui,sans-serif;
+}
+html,body{background:var(--orange);color:var(--ink-bc)}
+body{background:var(--orange)}
+/* navy corner panel (no figure) + halftone */
+.bg-wrap{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(#120B2E 1.3px,transparent 1.8px) 0 0/10px 10px;opacity:.12;-webkit-mask:linear-gradient(160deg,#000,transparent 45%);mask:linear-gradient(160deg,#000,transparent 45%)}
+.bg-wrap::after{content:"";position:absolute;right:-30%;top:-10%;width:120%;height:70%;
+  background:repeating-linear-gradient(115deg,#ffffff10 0 2px,transparent 2px 14px),radial-gradient(#ffffff22 1.4px,transparent 1.9px) 0 0/12px 12px,var(--navy);
+  clip-path:polygon(38% 0,100% 0,100% 100%,58% 72%,66% 60%,46% 54%,55% 40%)}
+@media(min-width:900px){.bg-wrap::after{right:-10%;width:75%;height:100%}}
+.bg-grid{display:none}
+body.in-game .bg-wrap::after{opacity:.0}
+/* top bar */
+.brand{font-family:var(--display);font-size:22px;letter-spacing:.02em;color:var(--ink-bc)}
+.brand b{color:var(--cream);text-shadow:2px 2px 0 var(--ink-bc);-webkit-text-stroke:1px var(--ink-bc)}
+.beta{color:var(--cream);background:var(--ink-bc);border-color:var(--ink-bc);box-shadow:none;font-family:var(--body);font-weight:800}
+/* yellow bolt: SVG asset, emoji kept as text fallback (hidden only when SVG paints) */
+.bolt{display:inline-block;width:20px;height:30px;color:transparent;overflow:hidden;
+  background:url(assets/brain-clash-bolt.svg) center/contain no-repeat;animation:flicker 4s infinite}
+/* hero wordmark */
+.hero{text-align:left;padding:18px 6px 4px;position:relative}
+.logo{font-family:var(--display);font-size:clamp(84px,27vw,150px);line-height:.84;color:var(--ink-bc);text-shadow:none;letter-spacing:-.01em;position:relative}
+.logo span{font-family:var(--display);color:var(--cream);margin-left:.45em;-webkit-text-stroke:2px var(--ink-bc);text-shadow:4px 4px 0 var(--ink-bc);animation:none}
+.logo::after{content:"";position:absolute;left:1.3em;top:.82em;width:.68em;height:1em;background:url(assets/brain-clash-bolt.svg) center/contain no-repeat;animation:flicker 4s infinite}
+.hero.small .logo{font-size:clamp(56px,16vw,90px)}
+.tag{color:var(--ink-bc);font-weight:700}
+.date{display:inline-block;font-family:var(--body);font-weight:800;color:var(--cream);background:var(--ink-bc);padding:3px 8px;transform:rotate(-2deg);letter-spacing:0}
+/* category strips */
+.path{gap:6px}
+.step{grid-template-columns:34px 1fr auto;gap:12px;padding:10px 14px 10px 18px;border:0;border-radius:0;background:var(--cream);color:var(--ink-bc);
+  clip-path:polygon(0 8%,3% 0,30% 6%,60% 0,100% 5%,99% 92%,70% 100%,40% 94%,2% 100%);min-height:48px}
+.step:nth-child(odd){transform:rotate(-.8deg)}.step:nth-child(even){transform:rotate(.8deg)}
+.path .step .num{display:none}
+.path .step .ic img.ico{display:none}                    /* no thumbnails on rows */
+.path .step .ic::before{font-size:26px;line-height:1}
+.path .step:nth-child(1) .ic::before{content:"🌎"}.path .step:nth-child(2) .ic::before{content:"📜"}
+.path .step:nth-child(3) .ic::before{content:"🏆"}.path .step:nth-child(4) .ic::before{content:"📝"}
+.path .step:nth-child(5) .ic::before{content:"🧠"}
+.path .step .ic .ico-fb{font-size:26px}.path .step .ic:has(.ico-fb)::before{content:none}
+.step .ic{filter:none}
+.step .nm small{display:none}
+.step .nm b{font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+.path{counter-reset:s}.step{counter-increment:s}.step .nm b::before{content:counter(s) ". "}
+.step .pts{font-family:var(--body);font-weight:800;font-size:13px;color:var(--ink-bc)}
+.step.next{background:#3DD6FF;box-shadow:inset 0 0 0 3px var(--ink-bc);border:0}
+.step.next::after{display:none}
+.step.locked{opacity:1;filter:none;background:#FFE8D0}.step.locked .nm b{color:#4A3A4F}.step.locked .ic{opacity:.6}
+.step.done{background:#4BE38A}
+/* buttons */
+.btn{background:var(--cream);color:var(--ink-bc);border:2px solid var(--ink-bc);border-radius:12px;min-height:44px}
+.btn:hover:not(:disabled){border-color:var(--navy)}
+.btn.primary{background:var(--ink-bc);color:var(--cream);border:0;border-radius:0;box-shadow:5px 5px 0 var(--navy);font-family:var(--display);font-weight:400;letter-spacing:.04em}
+.btn.primary:active:not(:disabled){box-shadow:2px 2px 0 var(--navy);transform:translate(3px,3px)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-bc);text-decoration:underline}
+/* START THE CLASH play button */
+.cta .btn.primary.big,.result-modal__share{position:relative;overflow:hidden;height:100px;min-height:100px;padding:0 16px;font-size:clamp(30px,9vw,44px);
+  display:flex;align-items:center;justify-content:center;gap:14px;white-space:nowrap;text-transform:uppercase}
+.cta .btn.primary.big::before{content:"";width:30px;height:30px;flex:none;background:url(assets/brain-clash-play.svg) center/contain no-repeat}
+.cta .btn.primary.big::after,.result-modal__share::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:28%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:bc-shine 2.8s ease-in-out infinite;pointer-events:none}
+@keyframes bc-shine{0%,55%{left:-40%}85%,100%{left:120%}}
+.muted{color:var(--mut)}
+#countdown{font-weight:700}
+/* home order: streak to the bottom */
+#app:has(> .path){display:flex;flex-direction:column}
+#app > .stats{order:10}#app > .fine{order:11}
+.stats div{background:var(--ink-bc);border:0;border-radius:0;color:var(--cream)}
+.stats b{color:var(--bolt);text-shadow:none}.stats small{color:var(--cream)}
+.stats div:nth-child(3) b::before{content:"🔥 "}
+.rules{background:var(--cream);border:2px solid var(--ink-bc);border-radius:0}.rules li{color:var(--ink-bc)}
+.fine{color:var(--ink-bc)}.fine a{color:var(--ink-bc);font-weight:800}
+.site-footer{color:var(--ink-bc)}
+/* game screen */
+.game-head{background:linear-gradient(var(--orange) 75%,#E8582A00)}
+.crumb{font-family:var(--body);font-weight:800;color:var(--ink-bc);letter-spacing:.2em;text-transform:uppercase}
+.game-head h2{font-family:var(--display);color:var(--ink-bc);text-shadow:none;text-transform:uppercase}
+.runtotal{background:transparent;border:0;color:var(--ink-bc);font-weight:800}.runtotal b{color:var(--navy);font-size:1.6em}
+.timer{background:#120B2E33;border:0;border-radius:0;height:22px}
+.timer-fill{background:var(--navy);box-shadow:none}
+.timer.low .timer-fill{background:var(--red)}
+.timer-text{color:var(--cream);text-shadow:0 1px 2px #000}
+.prompt{font-family:var(--display);font-weight:400;font-size:30px;line-height:1.05;text-transform:uppercase;color:var(--ink-bc)}
+.visual,.intro,.hint,.wg-intro{background:var(--cream);border:0;border-radius:0;box-shadow:5px 5px 0 var(--ink-bc)}
+.opt{background:#D9501F;color:var(--ink-bc);border:1px solid #B8401A;border-radius:12px;font-weight:700;text-align:center;min-height:48px}
+.opt:hover:not(:disabled){background:var(--navy);color:var(--cream);border-color:var(--navy);box-shadow:none}
+.opt.right{background:var(--ok-bg);color:#0B4D27;border:2px solid var(--green);box-shadow:none}
+.opt.wrong{background:var(--bad-bg);color:var(--bad-txt);border:2px solid var(--red)}
+.fb.good{color:#0B4D27;box-shadow:none}.fb.neutral{background:var(--cream)}
+.cat-score,.final{background:var(--navy);color:var(--cream);border:0;border-radius:0;box-shadow:6px 6px 0 var(--ink-bc)}
+.cat-score b,.final b{color:var(--orange);-webkit-text-stroke:2px var(--ink-bc);text-shadow:5px 5px 0 var(--ink-bc)}
+.cat-score small,.final small{color:var(--cream)}
+.card,.wtile,.order-chip,.bracket-chip,.match-chip{background:var(--cream);color:var(--ink-bc)}
+.txt{background:var(--cream);color:var(--ink-bc)}
+.share{background:var(--cream);border-color:var(--ink-bc)}
+.yr,.raw b,.wg-intro__name{color:var(--navy);text-shadow:none}
+.badge,.bridge .gap{background:var(--ink-bc);color:var(--cream);box-shadow:none}
+.chip{background:var(--cream);color:var(--navy)}
+.slot,.tile{background:var(--cream)}
+.map-wrap{border:2px solid var(--ink-bc);box-shadow:5px 5px 0 var(--ink-bc)}
+.map-credit{color:#fff;background:rgba(5,8,22,.8);font-size:11px}  /* attribution stays visible */
+.map-hint{border-color:var(--bolt)}
+img.ico{filter:none}
+/* results modal */
+.result-modal{background:#120B2Ecc}
+.result-modal__card{background:var(--navy);color:var(--cream);border:0;border-radius:0;box-shadow:8px 8px 0 var(--ink-bc)}
+.result-modal__kicker{color:var(--bolt)}
+.result-modal__score{color:var(--orange);-webkit-text-stroke:2px var(--ink-bc);text-shadow:6px 6px 0 var(--ink-bc);font-size:80px}
+.result-modal__of{opacity:1;color:var(--cream)}
+.result-modal__share{background:var(--orange);color:var(--ink-bc);box-shadow:5px 5px 0 var(--ink-bc)}
+.result-modal__full{background:var(--cream)}
+body.in-game .btn.big{font-size:22px}
+@media (prefers-reduced-motion:reduce){
+  .bolt,.logo::after,.cta .btn.primary.big::after,.result-modal__share::after{animation:none!important}
+  .cta .btn.primary.big::after,.result-modal__share::after{display:none}
+}
+/* fit fixes: long "GAUNTLET" wordmark + long CTA labels */
+.logo{font-size:clamp(64px,19vw,150px)}.logo span{margin-left:.12em}
+.hero.small .logo{font-size:clamp(44px,13vw,90px)}
+.cta .btn.primary.big{font-size:clamp(22px,6.2vw,44px)}
+.btn.primary.result-modal__share{background:var(--orange);color:var(--ink-bc);box-shadow:5px 5px 0 var(--ink-bc)}
+:root{--mut:#120B2E}.runtotal b{font-weight:400;font-size:22px}
+/* START button: solid orange + shine sweep + soft glow + gentle bounce (Luke, Oct 27) */
+.cta .btn.primary.big{background:var(--orange);color:var(--ink-bc);border:3px solid var(--ink-bc);
+  box-shadow:5px 5px 0 var(--ink-bc),0 0 18px 2px rgba(242,194,48,.45);
+  animation:bc-bounce 2.8s ease-in-out infinite,bc-glow 2.8s ease-in-out infinite}
+.cta .btn.primary.big::before{filter:drop-shadow(1px 1px 0 var(--ink-bc))}
+@keyframes bc-bounce{0%,60%,100%{transform:translateY(0)}70%{transform:translateY(-5px)}80%{transform:translateY(0)}87%{transform:translateY(-2px)}}
+@keyframes bc-glow{0%,100%{box-shadow:5px 5px 0 var(--ink-bc),0 0 12px 0 rgba(242,194,48,.3)}50%{box-shadow:5px 5px 0 var(--ink-bc),0 0 26px 6px rgba(242,194,48,.55)}}
+.cta .btn.primary.big:active:not(:disabled){animation:none;transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink-bc)}
+@media (prefers-reduced-motion:reduce){.cta .btn.primary.big{animation:none!important;transform:none}}
+body{background:transparent}
+.hero .tag{display:inline;background:var(--cream);padding:1px 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone;line-height:1.7}.hero .tag+.date{margin-top:10px}
+/* dramatic tagline (.tag is one text node in app.js; per-number spans need builder markup, see .tag b rules) */
+.hero .tag{display:inline;font-family:var(--display);font-weight:400;font-size:clamp(20px,5.6vw,30px);text-transform:uppercase;letter-spacing:.02em;
+  color:var(--ink-bc);background:var(--cream);padding:2px 8px;line-height:1.5;transform-origin:left;animation:bc-tag .6s cubic-bezier(.2,1.6,.4,1) both .15s}
+.hero .tag b,.hero .tag .n{font-weight:400;color:var(--cream);background:var(--ink-bc);padding:0 5px;margin:0 1px;display:inline-block;transform:rotate(-3deg);animation:bc-tag .5s cubic-bezier(.2,1.6,.4,1) both}
+.hero .tag b:nth-of-type(1){animation-delay:.25s}.hero .tag b:nth-of-type(2){animation-delay:.4s;transform:rotate(2deg)}.hero .tag b:nth-of-type(3){animation-delay:.55s;color:var(--bolt)}
+@keyframes bc-tag{from{opacity:0;transform:translateY(8px) scale(1.15) rotate(-2deg)}}
+@media (prefers-reduced-motion:reduce){.hero .tag,.hero .tag b{animation:none!important}}
+.hero .logo{margin-bottom:16px}
+/* tagline: subtle version (Luke, Oct 27 1:25pm) — overrides the dramatic block above */
+.hero .tag{display:block;font-family:var(--body);font-weight:400;font-size:15px;line-height:1.4;text-transform:none;letter-spacing:0;
+  background:none;padding:0;margin:4px 0 10px;max-width:62%;animation:none;transform:none}
+.hero .tag b,.hero .tag .n{font-weight:700;color:inherit;background:none;padding:0;margin:0;display:inline;transform:none!important;animation:none}
+.hero .tag b:nth-of-type(3){color:inherit}
+@media(min-width:900px){.hero .tag{max-width:none}}
+/* tagline pop (Luke, 1:30pm): navy number tags w/ yellow text; plain-string fallback = bolt + yellow underline */
+.hero .tag::before{content:"";display:inline-block;width:10px;height:15px;margin-right:6px;vertical-align:-2px;background:url(assets/brain-clash-bolt.svg) center/contain no-repeat}
+.hero .tag:not(:has(b)){text-decoration:underline 2px #F2C230;text-underline-offset:4px;text-decoration-skip-ink:auto}
+.hero .tag b,.hero .tag .n{font-weight:700;color:#F2C230;background:#1F2C7A;border-radius:4px;padding:1px 6px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hero .tag b:nth-of-type(3){color:#F2C230}
+.hero .tag .sep{color:#F2C230;margin:0 4px}
+.hero .tag{max-width:66%}.hero .tag .sep{margin:0 2px}@media(min-width:900px){.hero .tag{max-width:none}}
+/* tagline numbers: yellow marker highlight behind bold ink, flickering in sync with the bolt (Luke, 1:33pm)
+   Same 4s cycle and stops as @keyframes flicker (dips at 93% and 97%), but only the highlight dims. */
+@keyframes bc-hl-flicker{0%,92%,100%{background-color:#F2C230}93%{background-color:rgba(242,194,48,.4)}95%{background-color:#F2C230}97%{background-color:rgba(242,194,48,.6)}}
+@keyframes bc-ul-flicker{0%,92%,100%{text-decoration-color:#F2C230}93%{text-decoration-color:rgba(242,194,48,.4)}95%{text-decoration-color:#F2C230}97%{text-decoration-color:rgba(242,194,48,.6)}}
+.hero .tag b,.hero .tag .n{color:var(--ink-bc);font-weight:800;background:#F2C230;border-radius:3px;padding:0 4px;margin:0 1px;
+  box-shadow:none;animation:bc-hl-flicker 4s infinite}
+.hero .tag b:nth-of-type(3){color:var(--ink-bc)}
+.hero .tag .sep{color:var(--ink-bc)}
+/* plain-string fallback: thick yellow marker underline that flickers on the same beat */
+.hero .tag:not(:has(b)){text-decoration:underline 5px #F2C230;text-underline-offset:1px;text-decoration-skip-ink:none;animation:bc-ul-flicker 4s infinite}
+/* bolt + tagline both restart with the hero; keep the hero bolt on the same timeline */
+.hero .tag::before,.logo::after{animation:flicker 4s infinite}
+@media (prefers-reduced-motion:reduce){.hero .tag,.hero .tag b,.hero .tag .n,.hero .tag::before,.logo::after,.bolt{animation:none!important}}
+/* ===== 1:38pm: tagline numbers = yellow text w/ thin ink outline, flicker in sync with bolt ===== */
+@keyframes bc-num-flicker{0%,92%,100%{color:#F2C230}93%{color:rgba(242,194,48,.4)}95%{color:#F2C230}97%{color:rgba(242,194,48,.6)}}
+.hero .tag b,.hero .tag .n{background:none!important;border-radius:0;padding:0;margin:0;color:#F2C230;font-weight:800;
+  -webkit-text-stroke:2px var(--ink-bc);paint-order:stroke fill;
+  text-shadow:1px 0 0 var(--ink-bc),-1px 0 0 var(--ink-bc),0 1px 0 var(--ink-bc),0 -1px 0 var(--ink-bc);
+  animation:bc-num-flicker 4s infinite}
+.hero .tag b:nth-of-type(3){color:#F2C230}
+/* plain-string fallback: yellow underline with an ink keyline under it */
+.hero .tag:not(:has(b)){text-decoration:underline 3px #F2C230;text-underline-offset:3px;text-decoration-skip-ink:none;animation:bc-ul-flicker 4s infinite;
+  -webkit-text-stroke:0}
+@media (prefers-reduced-motion:reduce){.hero .tag b,.hero .tag .n{animation:none!important}}
+
+/* ===== Brain Clash fighters (locked toon art, R13d-4) =====
+   CSS-only slot now: painted as .hero::after (no markup needed).
+   If the builder adds <div class="clash-art">…</div>, the ::after turns off and the real <img>s are used. */
+.hero::after{content:"";display:block;width:min(310px,82%);aspect-ratio:340/122;margin:14px auto 4px;
+  background:url(assets/brain-clash-fighter-left.webp) left center/44% auto no-repeat,
+             url(assets/brain-clash-vs.svg) center/40% auto no-repeat,
+             url(assets/brain-clash-fighter-right.webp) right center/44% auto no-repeat;
+  filter:drop-shadow(1px 0 0 #120B2E) drop-shadow(-1px 0 0 #120B2E) drop-shadow(0 1px 0 #120B2E) drop-shadow(0 -1px 0 #120B2E) drop-shadow(3px 4px 0 rgba(18,11,46,.35));
+  animation:bc-wob 2s ease-in-out infinite}
+.hero.small::after,.hero:has(.clash-art)::after{display:none}
+@keyframes bc-wob{50%{transform:scale(1.04) rotate(-1deg)}}
+.clash-art{position:relative;display:flex;align-items:center;justify-content:center;width:min(340px,88%);margin:14px auto 4px;animation:bc-wob 2s ease-in-out infinite}
+.clash-art img{display:block;height:auto}
+.clash-art .fighter{width:44%;filter:drop-shadow(1px 0 0 #120B2E) drop-shadow(-1px 0 0 #120B2E) drop-shadow(0 1px 0 #120B2E) drop-shadow(0 -1px 0 #120B2E) drop-shadow(3px 4px 0 rgba(18,11,46,.35))}
+.clash-art .vs{width:34%;margin:0 -11%;position:relative;z-index:1}
+@media(min-width:900px){.hero::after,.clash-art{width:420px;margin-left:0}}
+@media (prefers-reduced-motion:reduce){.hero::after,.clash-art{animation:none!important}}
+.hero .tag b,.hero .tag .n{-webkit-text-stroke:1.5px var(--ink-bc);text-shadow:none}
+@supports not (paint-order:stroke){.hero .tag b,.hero .tag .n{-webkit-text-stroke:0;text-shadow:1px 0 0 var(--ink-bc),-1px 0 0 var(--ink-bc),0 1px 0 var(--ink-bc),0 -1px 0 var(--ink-bc)}}
+/* 1:44pm: no fallback underline: plain-string tagline is plain ink text */
+.hero .tag,.hero .tag:not(:has(b)){text-decoration:none!important;animation:none}
+/* 1:47pm: tagline 16.5px; numbers inherit (em) so they scale with it */
+.hero .tag{font-size:16.5px}
+.hero .tag b,.hero .tag .n{font-size:1em}
+/* 1:50pm: no small bolt before tagline; forced 2-line tagline (break at 2nd .sep) */
+.hero .tag::before{content:none!important;display:none!important}
+.hero .tag{max-width:none}
+.hero .tag .sep:nth-of-type(2){display:block;height:0;overflow:hidden;font-size:0;line-height:0}
+/* 1:54pm: brain placement B (left brain 18px further left, same size as A); no dots in tagline */
+.hero{--fw:min(310px,82%);--fshift:18px}
+.hero::after{aspect-ratio:auto;width:calc(var(--fw) + var(--fshift));height:calc(var(--fw) * 122 / 340);
+  margin:14px auto 4px calc((100% - var(--fw)) / 2 - var(--fshift));
+  background:url(assets/brain-clash-fighter-left.webp) 0 center/calc(var(--fw) * .44) auto no-repeat,
+             url(assets/brain-clash-vs.svg) calc(var(--fw) * .30 + var(--fshift)) center/calc(var(--fw) * .40) auto no-repeat,
+             url(assets/brain-clash-fighter-right.webp) right center/calc(var(--fw) * .44) auto no-repeat}
+@media(min-width:900px){.hero{--fw:420px;--fshift:24px}.hero::after{margin-left:0}}
+.hero .tag .sep{display:none}
+.hero .tag .sep:nth-of-type(2){display:block;height:0;overflow:hidden;font-size:0;line-height:0}
+.hero .tag b:nth-of-type(2){margin-left:.25em}
+.hero{--fw:min(310px,calc((100vw - 44px) * .82))}
+@media(min-width:900px){.hero{--fw:420px}}
+/* 1:55pm: bigger BRAIN CLASH wordmark */
+.hero:not(.small) .logo{font-size:clamp(64px,26vw,190px)}
+/* bolt beside BRAIN (Anton has no gap between A and S) */
+.hero:not(.small) .logo::after{left:2.2em;top:-.1em;width:.48em;height:.72em}
+/* 2:02pm: hero bolt placed like R11b: straddles the two lines over the A/S of CLASH */
+.hero:not(.small) .logo::after{left:1.1em;top:-.02em;width:.69em;height:1.04em;z-index:2}
+/* ===== 2:08pm: wordmark copied from R11b-original (.wm .a/.b/.bolt), mobile 104px / desktop 180px ===== */
+.hero:not(.small) .logo{font-family:Anton,var(--display);font-size:104px;line-height:.84;letter-spacing:-.01em;color:#120B2E;position:relative;margin-bottom:16px}
+.hero:not(.small) .logo span{display:block;color:#FFF6E8;margin-left:.4615em;-webkit-text-stroke:2px #120B2E;text-shadow:4px 4px 0 #120B2E}
+/* bolt: R11b left:140px top:88px width:72px inside .wm padding 40px 22px -> relative to text: 118px, 48px */
+.hero:not(.small) .logo::after{left:1.1346em;top:.4615em;width:.6923em;height:1.0385em;z-index:2;background:url(assets/brain-clash-bolt.svg) center/100% 100% no-repeat}
+@media(max-width:359px){.hero:not(.small) .logo{font-size:28.9vw}}
+@media(min-width:900px){
+  .hero:not(.small) .logo{font-size:180px}
+  .hero:not(.small) .logo span{margin-left:.6111em}               /* 110px */
+  .hero:not(.small) .logo::after{left:1.1111em;top:.5em;width:.6667em;height:1em} /* 270-70, 150-60, 120 */
+}
+/* ===== subcategory label, variant A (permanent; shows when c.sub is supplied) ===== */
+.path .step .nm{display:flex;flex-direction:column;justify-content:center;align-self:center;line-height:1.05;padding-top:3px}
+.path .step .nm small{display:block;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(18,11,46,.75);opacity:1;line-height:1.1;margin:5px 0 0}
+.path .step .nm small:empty{display:none}
+.path .step .ic,.path .step .pts{align-self:center}
+/* 2:09pm: hide the duplicate nav brand on home (big wordmark present); BETA stays, so the bar keeps its height */
+body:has(.hero:not(.small)) nav.top .brand{visibility:hidden;pointer-events:none}
+body:has(.hero:not(.small)) nav.top{justify-content:flex-end}
+/* ===== 2:12pm: START button copied from R11b .play (ink fill, yellow play, cream Anton, navy offset, sweep) ===== */
+.cta .btn.primary.big{position:relative;overflow:hidden;width:100%;height:100px;min-height:100px;padding:0 12px;border:0;border-radius:0;
+  background:#120B2E!important;color:#FFF6E8!important;font-family:Anton,var(--display);font-weight:400;font-size:44px;letter-spacing:.03em;line-height:1;text-transform:uppercase;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:14px;box-shadow:5px 5px 0 #1F2C7A!important;text-shadow:none;transform:none;
+  animation:none!important}
+.cta .btn.primary.big::before{content:"";flex:0 0 34px;width:34px;height:34px;margin:0;background:url(assets/brain-clash-play.svg) center/contain no-repeat;position:static;transform:none}
+.cta .btn.primary.big::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:bc-r11-shine 2.8s ease-in-out infinite!important;opacity:1}
+@keyframes bc-r11-shine{0%,55%{left:-40%}85%,100%{left:120%}}
+@media(max-width:380px){.cta .btn.primary.big{font-size:38px}}
+@media (prefers-reduced-motion:reduce){.cta .btn.primary.big::after{animation:none!important;display:none}}
+/* 2:14pm: glow + double bounce on the R11b button, timed into the sweep's idle window (sweep runs 55-85%) */
+@keyframes bc-r11-glow{0%,100%{box-shadow:5px 5px 0 #1F2C7A,0 0 0 rgba(242,194,48,0)}45%{box-shadow:5px 5px 0 #1F2C7A,0 0 22px 4px rgba(242,194,48,.55)}}
+@keyframes bc-r11-bounce{0%,8%,30%,100%{transform:translateY(0)}13%{transform:translateY(-5px)}18%{transform:translateY(0)}22%{transform:translateY(-2.5px)}26%{transform:translateY(0)}}
+.cta .btn.primary.big{animation:bc-r11-glow 2.8s ease-in-out infinite,bc-r11-bounce 2.8s ease-in-out infinite!important}
+.cta{overflow:visible}
+@media (prefers-reduced-motion:reduce){.cta .btn.primary.big{animation:none!important;box-shadow:5px 5px 0 #1F2C7A!important}}
+/* 2:18pm: bigger START button */
+.cta .btn.primary.big{height:112px;min-height:112px;font-size:50px;gap:16px}
+.cta .btn.primary.big::before{flex-basis:38px;width:38px;height:38px}
+@media(max-width:380px){.cta .btn.primary.big{font-size:40px}}
+.cta .btn.primary.big{padding:0 8px;gap:12px;letter-spacing:.01em}
+@media(max-width:380px){.cta .btn.primary.big{font-size:38px}}
+/* tighter row-to-button gap (~14px, was 42px) */
+.path{margin-bottom:0}
+.cta{margin-top:0}
+/* 50px doesn't fit 390px on one line; 46px is the largest that does */
+.cta .btn.primary.big{font-size:46px;padding:0 4px;gap:12px}
+.cta .btn.primary.big::before{flex-basis:36px;width:36px;height:36px}
+@media(min-width:420px){.cta .btn.primary.big{font-size:50px}.cta .btn.primary.big::before{flex-basis:38px;width:38px;height:38px}}
+@media(max-width:380px){.cta .btn.primary.big{font-size:38px}.cta .btn.primary.big::before{flex-basis:30px;width:30px;height:30px}}
