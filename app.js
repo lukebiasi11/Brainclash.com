@@ -369,7 +369,7 @@ function introText(id) {
   const t = {
     world: "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Tap the map to place your pin; tap again to move it.",
     history: "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 30s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.",
-    sports: "Three questions of rising difficulty: 250, 350, then 400 points. All or nothing.",
+    sports: "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.",
     word: { flip: "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.",
       bridge: "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.",
       conn: "Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds.",
@@ -755,8 +755,8 @@ function history() {
 // Sports IQ is timed like every other section: SPORTS_SECONDS per question, same Timer bar component.
 // Time out = 0 points and the question ends, exactly like the World Rush multiple-choice timeout.
 const SPORTS_SECONDS = 20;
-// When true, team-path scores by correctly ordered pairs (like History Timeline). Default false = all-or-nothing 400.
-const PARTIAL_ORDER = false;
+// Partial credit: order questions score round(value × items in the correct position / n).
+const PARTIAL_ORDER = true;
 // Stat-chart / sports SVG: assets/<img>.svg (same pattern as Think Fast illusions); placeholder if missing.
 // Art lookup goes through the icon map first (assets/icons.js maps sports-dN-qM → a shared
 // sport-*.svg). Missing/broken art is removed cleanly — never a "coming soon" placeholder.
@@ -877,8 +877,8 @@ function orderQuestion(body, q, value, seconds, done) {
     if (locked) return; locked = true; timer && timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove();
     body.querySelector(".drag-hint")?.remove();
     sel = null;
-    let good = 0, pairs = 0;
-    for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) { pairs++; if (order[a] < order[b]) good++; }
+    let good = 0; const pairs = n;
+    for (let i = 0; i < n; i++) if (order[i] === i) good++;
     const exact = order.every((v, i) => v === i);
     let pts = 0;
     if (!skipped && !timedOut) pts = PARTIAL_ORDER && pairs ? Math.round(value * good / pairs) : (exact ? value : 0);
@@ -891,15 +891,15 @@ function orderQuestion(body, q, value, seconds, done) {
     });
     body.append(h("p", { class: "muted order-reveal" }, "Correct order: " + items.join(" → ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
-    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_ORDER ? `${good}/${pairs} pairs in order → +${pts}` : `Not quite. +0`;
+    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_ORDER ? `${good}/${pairs} in the right spot → +${pts}` : `Not quite. +0`;
     feedback(body, exact && !skipped && !timedOut ? true : pts > 0 ? null : false, msg);
     done(pts);
   }
   render();
 }
 
-// When true, match-records scores round(value × correct/n). Default false = all-or-nothing.
-const PARTIAL_MATCH = false;
+// Partial credit: match-records scores round(value × correct/n), e.g. 1/4 of 400 = 100.
+const PARTIAL_MATCH = true;
 // Q3 bracket: who-beat-who — single matchup (two nicknames). Spec allows a "small bracket"; samples are one fork.
 function bracketQuestion(body, q, value, seconds, done) {
   const teams = (q.matchup || q.options || []).slice(0, 2);
@@ -1073,7 +1073,7 @@ function matchQuestion(body, q, value, seconds, done) {
     const lines = left.map((name, i) => name + " → " + right[pairs[i]]);
     body.append(h("p", { class: "muted order-reveal" }, "Correct: " + lines.join("; ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
-    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_MATCH ? `${good}/${n} pairs → +${pts}` : `Not quite. +0`;
+    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_MATCH ? `${good}/${n} correct → +${pts}` : `Not quite. +0`;
     feedback(body, exact && !skipped && !timedOut ? true : pts > 0 ? null : false, msg);
     done(pts);
   }

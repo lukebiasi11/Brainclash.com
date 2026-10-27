@@ -105,9 +105,9 @@ Draft pools live in `/workspace/trivia-drafts/sports-rework/` (fixtures only —
 - **Q1 history:** `text`/`fill`, `guess`/`year-guess`, `mc`/`true-false`, `mc`/`which-first`.
 - **Q2 visual:** `text` + `img` for `stat-chart` | `moment` | `color-swatch` | `jersey-number` → `sportsArt()` SVG above prompt.
 - **Q3 interactive:**
-  - `order`/`team-path` — `orderQuestion()` (FIRST/LAST chips, drag / ▲▼ / tap-swap / keys). `PARTIAL_ORDER=false` → all-or-nothing.
+  - `order`/`team-path` — `orderQuestion()` (FIRST/LAST chips, drag / ▲▼ / tap-swap / keys). `PARTIAL_ORDER=true` → partial credit: round(value × items in correct position / n).
   - `bracket`/`bracket` — `bracketQuestion()`: two tappable team chips under a simple fork; fields `matchup:[nickA,nickB]`, `a` (winner), optional `round`. All-or-nothing. (Spec also allows a multi-round tree; samples are single matchups — engine implements the single-fork card.)
-  - `match`/`match-records` — `matchQuestion()`: 4×4 tap-to-pair (primary) + drag; unpair supported; right column seed-shuffled; `aria-pressed` + `aria-live`. Fields `left[]`, `right[]`, `pairs[]` (right index per left). `PARTIAL_MATCH=false` → all-or-nothing.
+  - `match`/`match-records` — `matchQuestion()`: 4×4 tap-to-pair (primary) + drag; unpair supported; right column seed-shuffled; `aria-pressed` + `aria-live`. Fields `left[]`, `right[]`, `pairs[]` (right index per left). `PARTIAL_MATCH=true` → partial credit: round(value × correct pairs / n) (1/4 of 400 = 100).
   - `mc`/`higher-lower` — reuse MC.
 - **Year-guess scoring:** relative `closenessScore` is wrong for years. With `exactYear: true`, score via `Answers.yearScore` — full points only for the exact year, else 0. Optional `yearBand: N` (default omit / unused) gives full points when `|guess − answer| ≤ N`, else 0. Without either flag, Think Fast keeps relative closeness.
 - Timer: `SPORTS_SECONDS` (20) per question; Skip + Lock; timeout → 0. Fit: no-scroll at 7 VPs; interactive targets ≥44px.
