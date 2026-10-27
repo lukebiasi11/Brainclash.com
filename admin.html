@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Brain Clash — Admin preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--o:#E8582A;--y:#F2C230;--c:#FFF6E8;--n:#1F2C7A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--c);color:var(--n);font:15px/1.4 "Bricolage Grotesque",system-ui,sans-serif}
+header{background:var(--n);color:var(--c);padding:16px;position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font:400 26px Anton,Impact,sans-serif;letter-spacing:.5px;margin:0}h1 b{color:var(--o);font-weight:400}h1 small{font:700 12px "Bricolage Grotesque";color:var(--y);margin-left:6px;vertical-align:middle}
+.pick{display:flex;gap:6px;align-items:center}
+input[type=date]{font:inherit;padding:7px 8px;border-radius:10px;border:2px solid var(--y);background:var(--c);color:var(--n)}
+button,.btn{font:800 14px "Bricolage Grotesque";border:0;border-radius:12px;padding:9px 14px;background:var(--o);color:#fff;cursor:pointer;text-decoration:none;display:inline-block;box-shadow:0 3px 0 #a33b17}
+.btn.sec{background:var(--y);color:var(--n);box-shadow:0 3px 0 #b48d14}
+main{max-width:900px;margin:0 auto;padding:14px}
+.note{font-size:13px;opacity:.8;margin:4px 2px 14px}
+.day{background:#fff;border:3px solid var(--n);border-radius:18px;margin:0 0 16px;overflow:hidden;box-shadow:0 5px 0 var(--n)}
+.day.ok{border-color:#1d8a4a;box-shadow:0 5px 0 #1d8a4a}
+.dh{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--y)}
+.day.today .dh{background:var(--o);color:#fff}
+.dh h2{font:400 22px Anton,sans-serif;margin:0;letter-spacing:.3px}.dh h2 small{font:700 13px "Bricolage Grotesque";margin-left:6px;opacity:.85}
+.acts{display:flex;gap:10px;align-items:center}
+label.ap{font-weight:800;display:flex;gap:6px;align-items:center;cursor:pointer;background:#fff;color:var(--n);padding:6px 10px;border-radius:10px}
+label.ap input{width:18px;height:18px;accent-color:#1d8a4a}
+.cats{padding:4px 14px 12px}
+.cat{border-top:2px dashed #e4d6bf;padding:9px 0}.cat:first-child{border-top:0}
+.cat h3{margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--o)}
+ul{margin:0;padding-left:18px}li{margin:2px 0}
+.tag{display:inline-block;font-size:11px;font-weight:800;background:var(--n);color:var(--c);border-radius:6px;padding:1px 6px;margin-right:5px;vertical-align:1px}
+details{margin-top:6px;background:var(--c);border-radius:10px;padding:6px 10px}summary{cursor:pointer;font-weight:800}
+.ans{color:#1d8a4a;font-weight:800}.dup{color:#c0262d;font-weight:800;font-size:12px}
+@media(max-width:520px){h1{font-size:22px}.dh h2{font-size:19px}body{font-size:14px}}
+</style>
+</head>
+<body>
+<header><h1>BRAIN<b>CLASH</b><small>ADMIN PREVIEW</small></h1>
+<div class="pick"><input type="date" id="dp" aria-label="Pick a date"><button id="go">Show day</button></div></header>
+<main><p class="note">Days use New York time. “Play this day” runs the real game for that date as a practice run in a new tab — no saved progress, stats or streaks. “Approved” is only stored in this browser.</p>
+<div id="days"></div></main>
+<main id="app" hidden></main>
+<script>window.BC_NO_BOOT = true;</script>
+<script src="vendor/d3-array-shim.js"></script>
+<script src="vendor/d3-geo/d3-geo.min.js"></script>
+<script src="vendor/topojson-client/topojson-client.min.js"></script>
+<script src="vendor/world-atlas/countries-110m.js"></script>
+<script src="map.js"></script>
+<script src="anagrams.js"></script>
+<script src="content.js"></script>
+<script src="assets/icons.js"></script>
+<script src="answers.js"></script>
+<script src="app.js"></script>
+<script>
+(() => {
+const B = window.BCDaily, C = window.CONTENT;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const APK = "bc-admin-approved";
+const appr = () => { try { return JSON.parse(localStorage.getItem(APK)) || {}; } catch { return {}; } };
+const setAppr = (k, v) => { const a = appr(); if (v) a[k] = true; else delete a[k]; localStorage.setItem(APK, JSON.stringify(a)); };
+const ansOf = q => q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") : q.answer != null ? q.answer + (q.unit ? " " + q.unit : "") : "";
+const nice = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+// Which raw list index each category uses that day (to flag repeats inside the window).
+function idx(set) { const f = (list, v) => list.indexOf(v); const wg = set.wordGame.id;
+  const wkey = { flip: ["wordFlip", set.wordFlip], bridge: ["wordBridge", set.wordBridge], conn: ["connections", set.connections], odd: ["oddOneOut", set.oddOneOut], anag: ["anagram", set.anagram] }[wg];
+  return { world: f(C.worldRush, set.worldRush), history: f(C.history, set.history), sports: f(C.sports, set.sports), think: f(C.thinkFast, set.thinkFast), word: wg + ":" + (wkey[0] === "anagram" ? window.ANAGRAM_SETS.indexOf(wkey[1]) : f(C[wkey[0]], wkey[1])) };
+}
+function wordHtml(set) {
+  const g = set.wordGame; let items = "", ans = "";
+  if (g.id === "flip") { items = set.wordFlip.map(w => `<li><span class="tag">${esc(w[1])}</span>${esc(w[2])}</li>`).join(""); ans = set.wordFlip.map(w => esc(w[0])).join(", "); }
+  else if (g.id === "bridge") { items = set.wordBridge.map(w => `<li>${esc(w[0])} ___ ${esc(w[2])}</li>`).join(""); ans = set.wordBridge.map(w => esc(w[0] + w[1] + " / " + w[1] + w[2])).join(", "); }
+  else if (g.id === "conn") { items = `<li>${esc(set.connections.groups.flatMap(x => x.words).sort().join(", "))}</li>`; ans = set.connections.groups.map(x => `<b>${esc(x.name)}</b>: ${esc(x.words.join(", "))}`).join("<br>"); }
+  else if (g.id === "odd") { items = set.oddOneOut.map(o => `<li>${esc(o.words.join(", "))}</li>`).join(""); ans = set.oddOneOut.map(o => `${esc(o.words[o.odd])} — ${esc(o.why)}`).join("<br>"); }
+  else if (g.id === "anag") { const a = set.anagram || {}; items = `<li>Letters: <b>${esc(a.letters || JSON.stringify(a).slice(0, 80))}</b></li>`; ans = esc((a.valid || []).length + " valid words, e.g. " + (a.valid || []).slice(0, 12).join(", ")); }
+  return { title: g.name, items, ans };
+}
+function card(k, dup, isToday) {
+  const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
+  const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
+  const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
+  const sp = s.sports.map(q => `<li><span class="tag">${q.type === "mc" ? "multiple choice" : "type answer"}</span>${esc(q.q)}</li>`).join("");
+  const tf = s.thinkFast.map(q => `<li><span class="tag">${esc(q.kind || q.type || "text")}</span>${esc(q.q)}</li>`).join("");
+  const hist = ["r1", "r2"].map(r => s.history[r]).filter(Boolean);
+  d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>
+   <div class="acts"><label class="ap"><input type="checkbox" ${ok ? "checked" : ""}> Approved</label>
+   <a class="btn" href="index.html?preview=${k}" target="_blank" rel="noopener">▶ Play this day</a></div></div>
+  <div class="cats">
+   <div class="cat"><h3>🌎 World Rush${dupT("world")}</h3><ul>${s.worldRush.pins.map(p => `<li><span class="tag">pin</span>${esc(p.name)}</li>`).join("")}<li><span class="tag">MC</span>${esc(s.worldRush.mc.q)}</li></ul></div>
+   <div class="cat"><h3>📜 Time Warp${dupT("history")}</h3><ul>${hist.map(r => `<li><b>${esc(r.theme)}</b> — ${esc(r.events.map(e => e[1]).join(" · "))}</li>`).join("")}</ul></div>
+   <div class="cat"><h3>🏆 MVP (sports)${dupT("sports")}</h3><ul>${sp}</ul></div>
+   <div class="cat"><h3>📝 Word Nerd: ${esc(w.title)}${dupT("word")}</h3><ul>${w.items}</ul></div>
+   <div class="cat"><h3>🧠 Brain Teaser${dupT("think")}</h3><ul>${tf}</ul></div>
+   <details><summary>Show answers</summary>
+    <p><b>World:</b> ${esc(ansOf(s.worldRush.mc))}</p>
+    <p><b>History order:</b><br>${hist.map(r => esc(r.theme) + ": " + r.events.slice().sort((a, b) => a[2] - b[2]).map(e => esc(e[1]) + " (" + e[2] + ")").join(" → ")).join("<br>")}</p>
+    <p><b>Sports:</b><br>${s.sports.map((q, i) => `${i + 1}. <span class="ans">${esc(ansOf(q))}</span>`).join("<br>")}</p>
+    <p><b>${esc(w.title)}:</b><br><span class="ans">${w.ans}</span></p>
+    <p><b>Brain Teaser:</b><br>${s.thinkFast.map((q, i) => `${i + 1}. <span class="ans">${esc(ansOf(q))}</span>${q.explain ? " — " + esc(q.explain) : ""}`).join("<br>")}</p>
+   </details></div>`;
+  d.querySelector("input").onchange = e => { setAppr(k, e.target.checked); d.classList.toggle("ok", e.target.checked); };
+  return d;
+}
+const box = document.getElementById("days"), dp = document.getElementById("dp");
+const today = B.todayKey(), t0 = B.dayOfKey(today);
+dp.value = today;
+// Next 7 days, with repeat detection (each category vs. earlier days in the window).
+const seen = {}; const keys = Array.from({ length: 7 }, (_, i) => B.keyOf(t0 + i));
+keys.forEach(k => { const ix = idx(B.getDailySet(k)), dup = {};
+  for (const c in ix) { const prev = (seen[c + ix[c]]); if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
+  box.append(card(k, dup, k === today)); });
+document.getElementById("go").onclick = () => { const k = dp.value; if (!k) return;
+  const el = card(k, null, k === today); el.style.outline = "4px solid var(--o)"; box.prepend(el); el.scrollIntoView({ behavior: "smooth" }); };
+})();
+</script>
+</body>
+</html>

@@ -1430,7 +1430,16 @@ function fitScreen() {
 new MutationObserver(m => { if (m.some(r => !(r.target.closest && r.target.closest(".timer, .runtotal, .cat-score b")))) scheduleFit(); }).observe(document.getElementById("app"), { childList: true, subtree: true });
 (vv || window).addEventListener("resize", scheduleFit);
 syncClock();
-home();
+// ---- Admin preview hooks (admin.html). Inert on normal visits. ----
+// ?preview=YYYY-MM-DD plays that day's real set as a practice run: save() and countStats()
+// skip practice sessions, so daily progress, stats and streaks are never touched.
+window.BCDaily = Object.freeze({ getDailySet, keyOf, dayOfKey, todayKey: () => keyOf(zoneDay(now())), gameNumber, wordGames: WORD_GAMES.map(w => ({ ...w })) });
+const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) || [])[1];
+if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
+else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
+  session = newSession(true); session.key = PREVIEW_KEY; session.day = dayOfKey(PREVIEW_KEY); session.set = getDailySet(PREVIEW_KEY);
+  document.title = "Preview " + PREVIEW_KEY + " — Brain Clash"; runNext();
+} else home();
 // Dev/test only (inert unless the URL has ?dgtest): jump straight to a category / word-game format for layout tests.
 if (/[?&]dgtest\b/.test(location.search)) window.DGTest = Object.freeze({
   jump(cat, wg) {
