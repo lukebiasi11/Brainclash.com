@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" role="img" aria-label="Stat chart placeholder">
+<rect width="400" height="280" fill="#fff"/>
+<text x="20" y="36" font-family="system-ui,sans-serif" font-size="16" fill="#0F172A">PTS</text>
+<rect x="20" y="48" width="360" height="36" rx="6" fill="#3B82F6"/>
+<text x="32" y="72" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#fff">100</text>
+<text x="20" y="260" font-family="system-ui,sans-serif" font-size="12" fill="#64748B">sports-rework-d2-q2 (fixture)</text>
+</svg>
