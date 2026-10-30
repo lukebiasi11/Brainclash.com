@@ -1476,6 +1476,22 @@ function confetti(host) {
     requestAnimationFrame(step);
   });
 }
+// End-of-run FX. TEMP bands, pending Luke: low <= 1999 soft rain (Designer asset), high >= 4000 full-viewport confetti, mid none. Never both.
+const FX_LOW_MAX = 1999, FX_HIGH_MIN = 4000; // pending Luke
+function softRain(hostCard) {
+  document.body.classList.add("fx-low-rain"); hostCard?.classList.add("fx-deflate");
+  const layer = h("div", { class: "rain-layer", "aria-hidden": "true" });
+  for (let i = 0; i < 40; i++) {
+    const d = h("div", { class: "rain-drop" });
+    d.style.left = (Math.random() * 100) + "%"; d.style.animationDelay = (Math.random() * 0.9) + "s"; d.style.animationDuration = (2.1 + Math.random() * 0.7) + "s";
+    layer.append(d);
+  }
+  document.body.append(layer);
+  setTimeout(() => { layer.remove(); document.body.classList.remove("fx-low-rain"); hostCard?.classList.remove("fx-deflate"); }, 2800);
+}
+function endFx(tot, host, card) {
+  if (tot >= FX_HIGH_MIN) confetti(host); else if (tot <= FX_LOW_MAX) softRain(card);
+}
 function countStats() {
   if (session.practice || session.counted) return;
   session.counted = true; save();
@@ -1529,7 +1545,7 @@ function resultsPopup() {
       shareBtn,
       h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, "See full results")));
   document.addEventListener("keydown", esc);
-  document.body.append(m); confetti(m); countUp(num, tot, 1200);
+  document.body.append(m); endFx(tot, m, m.querySelector(".result-modal__card")); countUp(num, tot, 1200);
 }
 function results() {
   const tot = session.scores.reduce((a, b) => a + b, 0);
@@ -1549,7 +1565,7 @@ function results() {
       h("button", { class: "btn", onclick: home }, "Home")),
     h("p", { class: "fine" }, "Global & friends leaderboards arrive with accounts in a future version."));
   countUp($("#finalnum"), tot, 1600);
-  setTimeout(() => { if ($("#finalnum")) confetti(); }, 1600); // full-viewport (was burst() around #finalnum); trigger unchanged
+  setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
 }
 
 document.addEventListener("click", e => { if (e.target.closest(".brand")) { if (!session || session.inProgress == null || confirm("Leave this game? Progress in the current category is lost.")) home(); } });

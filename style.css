@@ -851,3 +851,38 @@ body.in-game .action-bar .skip-btn{flex:0 0 auto;min-height:52px}
 body.in-game .game-body>.row:has(.skip-btn){flex-wrap:nowrap;gap:6px}
 body.in-game .game-body>.row:has(.skip-btn) .btn{flex:1 1 auto;min-width:0;padding-left:8px;padding-right:8px;white-space:nowrap}
 @media (min-width:601px){body.in-game .action-bar.after-result{margin:14px -12px 0 !important}}
+/* ---------- end-of-run FX (Oct 30): soft rain for low scores ----------
+   Temp bands (Luke locks later): low ≤1999 → body.fx-low-rain; high ≥4000 → existing confetti.
+   JS: on resultsPopup/results, if tot<=1999 add class to body (and .result-modal__card / .final),
+   spawn ~40 .rain-drop children into a fixed .rain-layer, remove after ~2.8s.
+   High confetti: full-viewport spawn (top + side edges), brand colors only.
+*/
+.rain-layer{
+  position:fixed;inset:0;z-index:2001;pointer-events:none;overflow:hidden;
+}
+.rain-drop{
+  position:absolute;top:-12%;width:2px;height:18px;border-radius:1px;
+  background:var(--cream);opacity:.55;
+  animation:bc-rain-fall 2.4s linear forwards;
+}
+.rain-drop:nth-child(3n){background:var(--navy);opacity:.7;width:2.5px;height:22px}
+.rain-drop:nth-child(5n){opacity:.4;height:14px}
+@keyframes bc-rain-fall{
+  0%{transform:translate3d(0,-10%,0) rotate(12deg);opacity:0}
+  8%{opacity:.6}
+  100%{transform:translate3d(8px,115vh,0) rotate(12deg);opacity:0}
+}
+.fx-deflate{
+  animation:bc-deflate .65s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes bc-deflate{
+  0%{transform:scale(1)}
+  40%{transform:scale(.97)}
+  100%{transform:scale(1)}
+}
+@media (prefers-reduced-motion:reduce){
+  .rain-drop{animation:none!important;opacity:.35;top:20%;bottom:20%;height:12px}
+  .rain-layer{animation:bc-rain-fade 1.2s ease both}
+  .fx-deflate{animation:none!important}
+  @keyframes bc-rain-fade{from{opacity:.5}to{opacity:0}}
+}
