@@ -265,7 +265,7 @@ body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
 .result-modal__blocks { font-size: 28px; letter-spacing: 4px; margin: 10px 0; }
 .result-modal__share { margin: 12px 0 8px; }
 .result-modal__full { width: 100%; }
-.confetti-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; pointer-events: none; z-index: 3; } /* above .result-modal__card (z 2) */
+.confetti-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; pointer-events: none; z-index: 2001; } /* direct child of body, full viewport, above .result-modal (2000) */
 .map-wrap .map-hint { bottom: 40px; }  /* sit above the map credit */
 
 /* ===== World Rush globe (Oct 26) — d3-geo orthographic on canvas ===== */

@@ -1442,24 +1442,31 @@ async function doShare(btn) { const t = shareText(); try { if (navigator.share) 
 // Reduced motion: one static scatter that fades out with no movement.
 function confetti(host) {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const c = h("canvas", { class: "confetti-canvas", "aria-hidden": "true" }); host.append(c);
+  // Oct 30 (Luke): full-viewport burst. The canvas is a direct child of <body> (NOT inside the modal: its backdrop-filter
+  // makes it the containing block for position:fixed, which clipped the burst), fixed inset 0, pointer-events none.
+  const c = h("canvas", { class: "confetti-canvas", "aria-hidden": "true" }); document.body.append(c);
+  if (host) new MutationObserver((_, o) => { if (!host.isConnected) { c.remove(); o.disconnect(); } }).observe(document.body, { childList: true });
   requestAnimationFrame(() => {
     if (!c.isConnected) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const cw = c.clientWidth || innerWidth || document.documentElement.clientWidth, ch = c.clientHeight || innerHeight || document.documentElement.clientHeight;
+    const cw = Math.max(c.clientWidth, innerWidth || 0, document.documentElement.clientWidth), ch = Math.max(c.clientHeight, innerHeight || 0);
     const W = c.width = Math.max(1, Math.round(cw * dpr)), H = c.height = Math.max(1, Math.round(ch * dpr)), ctx = c.getContext("2d");
     const cols = ["#E8582A", "#F2C230", "#FFF6E8", "#1F2C7A"];
-    const N = W < 900 * dpr ? 70 : 110;
-    const ps = Array.from({ length: N }, (_, n) => { const left = n % 2 === 0; return {
-      x: left ? W * .05 : W * .95, y: H * (.15 + Math.random() * .1),
-      vx: (left ? 1 : -1) * (3 + Math.random() * 9) * dpr, vy: (-4 - Math.random() * 9) * dpr,
+    const N = W < 900 * dpr ? 140 : 220;
+    // Half burst from both side edges, half rain from across the full top edge, so it fills the whole screen.
+    const ps = Array.from({ length: N }, (_, n) => { const side = n % 2 === 0, left = n % 4 === 0; return side ? {
+      x: left ? 0 : W, y: H * (.1 + Math.random() * .5),
+      vx: (left ? 1 : -1) * (4 + Math.random() * 12) * dpr, vy: (-4 - Math.random() * 10) * dpr,
+      r: (5 + Math.random() * 6) * dpr, a: Math.random() * 6, va: (Math.random() - .5) * .4, c: cols[Math.random() * 4 | 0] } : {
+      x: Math.random() * W, y: -Math.random() * H * .6,
+      vx: (Math.random() - .5) * 3 * dpr, vy: (2 + Math.random() * 4) * dpr,
       r: (5 + Math.random() * 6) * dpr, a: Math.random() * 6, va: (Math.random() - .5) * .4, c: cols[Math.random() * 4 | 0] }; });
     const paint = (alpha) => ps.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.globalAlpha = alpha; ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
     if (reduce) {
-      ps.forEach(p => { p.x = Math.random() * W; p.y = Math.random() * H * .45; });
+      ps.forEach(p => { p.x = Math.random() * W; p.y = Math.random() * H; });
       paint(.9); c.style.transition = "opacity .6s"; setTimeout(() => { c.style.opacity = 0; }, 1200); setTimeout(() => c.remove(), 1900); return;
     }
-    const t0 = performance.now(), LIFE = 2200;
+    const t0 = performance.now(), LIFE = 3000;
     const step = t => {
       if (!c.isConnected) return; const k = t - t0; ctx.clearRect(0, 0, W, H);
       ps.forEach(p => { p.vy += .28 * dpr; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; });
