@@ -830,3 +830,10 @@ body.in-game .game-body>.tf-svg.sports-chart + .prompt{margin-top:0}
 .game-body.tw-done>.muted{font-size:12px;line-height:1.35;margin:4px 0}
 .game-body.tw-done .fb{margin:4px 0}
 @media (max-height:700px){.game-body.tw-done .cat-score b{font-size:32px}.game-body.tw-done .cat-score{padding:6px 10px;margin-top:4px}}
+/* (9) No accidental double-tap zoom while tapping games; intentional pinch-zoom still works */
+html,body,button,.btn,.tile,.opt,.slot,input{touch-action:manipulation}
+/* (10) Typed-answer Lock in (Sports fill-in, Think Fast): big tap target, clear of the bottom browser chrome.
+   form.answer is excluded from the fit-zoom pass so the button never shrinks below this. */
+body.in-game form.answer{margin-bottom:calc(8px + env(safe-area-inset-bottom))}
+body.in-game form.answer .btn{min-height:56px;font-size:20px;border-width:3px}
+@media (max-height:600px){body.in-game form.answer .btn{min-height:52px}}
