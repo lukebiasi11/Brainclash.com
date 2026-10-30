@@ -1476,8 +1476,8 @@ function confetti(host) {
     requestAnimationFrame(step);
   });
 }
-// End-of-run FX. TEMP bands, pending Luke: low <= 1999 soft rain (Designer asset), high >= 4000 full-viewport confetti, mid none. Never both.
-const FX_LOW_MAX = 1999, FX_HIGH_MIN = 4000; // pending Luke
+// End-of-run FX. Bands LOCKED by Luke (Oct 30): low <= 2100 soft rain (Designer asset), high >= 3950 full-viewport confetti, mid none. Never both.
+const FX_LOW_MAX = 2100, FX_HIGH_MIN = 3950; // locked by Luke
 function softRain(hostCard) {
   document.body.classList.add("fx-low-rain"); hostCard?.classList.add("fx-deflate");
   const layer = h("div", { class: "rain-layer", "aria-hidden": "true" });
