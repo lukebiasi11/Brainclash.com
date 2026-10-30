@@ -1452,7 +1452,7 @@ function confetti(host) {
     const cw = Math.max(c.clientWidth, innerWidth || 0, document.documentElement.clientWidth), ch = Math.max(c.clientHeight, innerHeight || 0);
     const W = c.width = Math.max(1, Math.round(cw * dpr)), H = c.height = Math.max(1, Math.round(ch * dpr)), ctx = c.getContext("2d");
     const cols = ["#E8582A", "#F2C230", "#FFF6E8", "#1F2C7A"];
-    const N = W < 900 * dpr ? 140 : 220;
+    const N = W < 900 * dpr ? 160 : 220;
     // Half burst from both side edges, half rain from across the full top edge, so it fills the whole screen.
     const ps = Array.from({ length: N }, (_, n) => { const side = n % 2 === 0, left = n % 4 === 0; return side ? {
       x: left ? 0 : W, y: H * (.1 + Math.random() * .5),
@@ -1466,7 +1466,7 @@ function confetti(host) {
       ps.forEach(p => { p.x = Math.random() * W; p.y = Math.random() * H; });
       paint(.9); c.style.transition = "opacity .6s"; setTimeout(() => { c.style.opacity = 0; }, 1200); setTimeout(() => c.remove(), 1900); return;
     }
-    const t0 = performance.now(), LIFE = 3000;
+    const t0 = performance.now(), LIFE = 2800;
     const step = t => {
       if (!c.isConnected) return; const k = t - t0; ctx.clearRect(0, 0, W, H);
       ps.forEach(p => { p.vy += .28 * dpr; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; });
@@ -1549,7 +1549,7 @@ function results() {
       h("button", { class: "btn", onclick: home }, "Home")),
     h("p", { class: "fine" }, "Global & friends leaderboards arrive with accounts in a future version."));
   countUp($("#finalnum"), tot, 1600);
-  setTimeout(() => { const f = $("#finalnum"); if (!f) return; const r = f.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 40); }, 1600);
+  setTimeout(() => { if ($("#finalnum")) confetti(); }, 1600); // full-viewport (was burst() around #finalnum); trigger unchanged
 }
 
 document.addEventListener("click", e => { if (e.target.closest(".brand")) { if (!session || session.inProgress == null || confirm("Leave this game? Progress in the current category is lost.")) home(); } });
