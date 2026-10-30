@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const P = window.BCPreview; if (!P || !P.key) return;
   const st = document.createElement("style");
   st.textContent = `#bc-flag{position:fixed;right:12px;bottom:12px;z-index:9999;font:800 14px "Bricolage Grotesque",system-ui,sans-serif;border:0;border-radius:12px;padding:10px 14px;background:#c0262d;color:#fff;box-shadow:0 3px 0 #7d1419;cursor:pointer}
+@media (max-width:600px){#bc-flag{top:calc(6px + env(safe-area-inset-top));bottom:auto;left:6px;right:auto;padding:5px 9px;font-size:12px;border-radius:9px}#bc-flagbox{bottom:auto;top:44px;right:auto;left:6px}}
 #bc-flagbox{position:fixed;right:12px;bottom:62px;z-index:9999;width:min(340px,calc(100vw - 24px));background:#fff;border:3px solid #1F2C7A;border-radius:16px;padding:12px;box-shadow:0 5px 0 #1F2C7A;font:14px "Bricolage Grotesque",system-ui,sans-serif;color:#1F2C7A}
 #bc-flagbox textarea{width:100%;min-height:80px;font:inherit;border:2px solid #F2C230;border-radius:10px;padding:8px;box-sizing:border-box}
 #bc-flagbox p{margin:0 0 6px}#bc-flagbox .r{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}

@@ -283,7 +283,17 @@ const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.
 function skipBtn(onSkip, label) {
   return h("button", { class: "btn skip-btn", type: "button", "aria-label": "Skip", onclick: e => { e.preventDefault(); onSkip(); } }, label || "Skip");
 }
+// RULE (Luke): Skip always sits BESIDE the Lock in / Submit button on one row, mid-screen, never under the phone's bottom bar.
+// Typed-answer screens (form.answer): Skip joins the submit button in an .answer-row inside the form.
+// Everything else: Skip goes in the action bar next to the primary button (see .action-bar CSS).
 function ensureSkipBar(body, onSkip) {
+  const form = body.querySelector(":scope > form.answer"), sub = form && form.querySelector(":scope > .btn.primary, :scope > .answer-row > .btn.primary");
+  if (form && sub) {
+    let row = sub.parentNode.classList.contains("answer-row") ? sub.parentNode : null;
+    if (!row) { row = h("div", { class: "answer-row" }); sub.replaceWith(row); row.append(sub); }
+    if (!row.querySelector(".skip-btn")) row.append(skipBtn(onSkip));
+    return row;
+  }
   let bar = body.querySelector(":scope > .action-bar");
   if (!bar) bar = actionBar(body);
   if (!bar.querySelector(".skip-btn")) bar.append(skipBtn(onSkip));
@@ -750,7 +760,8 @@ function history() {
       feedback(body, skipped ? false : good === pairs ? true : good > pairs / 2 ? null : false, skipped ? "Skipped. +0" : `${good}/${pairs} pairs in order → ${pts} pts`);
       total += pts; log.push(pts); track(total); r++;
       body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
-      if (r < 2) nextBtn(bar, "Round 2 →", play); else catDone(body, total, log.join("/"));
+      // Results read top-down: reveal + feedback first, then the bar (its auto top margin no longer leaves a big gap on desktop).
+      if (r < 2) { body.append(bar); nextBtn(bar, "Round 2 →", play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
   play();
@@ -1144,12 +1155,11 @@ function wordFlip() {
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
   const sorted = x => x.split("").sort().join("");
   const hintEl = h("div", { class: "hint" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), prog = h("div", { class: "prog" });
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, "↩ Undo"), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, "Clear"));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, "↩ Undo"), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, "Clear"), skipBtn(() => { if (busy) return; skip(); }, "Skip →"));
   const results = [];
   // Skipped words go to the back of the queue and come back while time remains.
   let queue = list.slice(0, 6).map((_, k) => k), cur = 0;
   body.append(prog, hintEl, slots, tiles, ctrls, h("p", { class: "skip-note" }, "Skipped words come back at the end if time remains."));
-  const flipBar = actionBar(body); flipBar.append(skipBtn(() => { if (busy) return; skip(); }, "Skip →"));
   let letters = [];
   const val = k => k < 4 ? 150 : 200;
   const load = () => {
@@ -1175,7 +1185,7 @@ function wordFlip() {
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
   const skip = () => { if (over) return; results[i] = false; queue.push(queue.shift()); load(); };
   const end = () => {
-    if (over) return; over = true; timer.stop(); ctrls.remove(); flipBar.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
+    if (over) return; over = true; timer.stop(); ctrls.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
     body.append(h("ul", { class: "review" }, list.map(([w], k) => h("li", { class: results[k] ? "ok" : "no" }, (results[k] ? "✓ " : "✗ ") + w))));
     catDone(body, total, "flip");
   };
@@ -1198,10 +1208,10 @@ function wordBridge() {
   const val = k => k < 4 ? 150 : 200;
   const prog = h("div", { class: "prog" }), puzzle = h("div", { class: "bridge" });
   const input = h("input", { class: "txt", placeholder: "Missing word", autocomplete: "off", autocapitalize: "characters", spellcheck: "false" });
-  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); guess(); } }, input, h("button", { class: "btn primary", type: "submit" }, "Submit"));
+  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); guess(); } }, input, h("div", { class: "answer-row" }, h("button", { class: "btn primary", type: "submit" }, "Submit"), skipBtn(() => skipB(), "Skip →")));
   let queue = list.slice(0, 6).map((_, k) => k);
   body.append(prog, puzzle, form, h("p", { class: "skip-note" }, "Skipped puzzles come back at the end if time remains."));
-  const brBar = actionBar(body); brBar.append(skipBtn(() => skipB(), "Skip →"));
+  // Skip sits beside Submit (one row, mid-screen) so it is never under the phone's bottom browser bar.
   const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${total}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
@@ -1212,7 +1222,7 @@ function wordBridge() {
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
   const skipB = () => { if (over || busy) return; res[i] = false; queue.push(queue.shift()); draw(); };
   const end = () => {
-    if (over) return; over = true; timer.stop(); form.remove(); brBar.remove(); puzzle.remove(); prog.remove();
+    if (over) return; over = true; timer.stop(); form.remove(); puzzle.remove(); prog.remove();
     body.append(h("ul", { class: "review" }, list.map(([a, b, w], k) => h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : "✗"} ${a} ${w} · ${w} ${b}`))));
     catDone(body, total, "bridge");
   };
@@ -1298,9 +1308,8 @@ function anagramRush() {
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
   const form = h("p", { class: "kbd-tip" }, "⌨️ Type letters · Enter to submit · Backspace to delete · Space to shuffle");
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, "🔀 Shuffle"), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, "Clear"), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, "Submit word"));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, "🔀 Shuffle"), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, "Clear"), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, "Submit word"), skipBtn(() => end()));
   body.append(scoreEl, cur, tiles, ctrls, form, list);
-  const anBar = actionBar(body); anBar.append(skipBtn(() => end()));
   // Update in place (no innerHTML rebuild on each key/submit) so Enter never re-creates the screen or moves focus.
   const slotEls = Array.from({ length: 6 }, () => h("span", { class: "slot" }));
   cur.append(...slotEls);
@@ -1329,7 +1338,7 @@ function anagramRush() {
     draw();
   };
   const end = () => {
-    if (over) return; over = true; timer.stop(); clearTimeout(fbT); fbSlot.remove(); tiles.remove(); ctrls.remove(); anBar.remove(); form.remove(); cur.remove();
+    if (over) return; over = true; timer.stop(); clearTimeout(fbT); fbSlot.remove(); tiles.remove(); ctrls.remove(); form.remove(); cur.remove();
     const missed = set.common.filter(w => !found.includes(w));
     body.append(h("p", { class: "muted" }, "Missed words: " + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : "none — wow!")));
     // ONE number everywhere: the converted /1,000 score is what the header shows, what is banked and what the total sums.
