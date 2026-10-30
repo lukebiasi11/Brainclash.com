@@ -2,7 +2,8 @@
 const A = require("../answers.js");
 let bad = 0;
 const t = (name, got, exp) => { if (got !== exp) { bad++; console.log("FAIL", name, "->", got, "expected", exp); } };
-[["Austria", ["australia"], false], ["Iran", ["iraq"], false], ["Iraq", ["iran"], false], ["Home", ["rome"], false], ["Mal", ["mali"], false],
+[["Slovenia", ["slovakia"], false], ["Slovakia", ["slovenia"], false], ["Slovakai", ["slovakia"], true], ["Slovkia", ["slovakia"], true], ["Sweeden", ["sweden"], true], ["Austraila", ["australia"], true],
+ ["Austria", ["australia"], false], ["Iran", ["iraq"], false], ["Iraq", ["iran"], false], ["Home", ["rome"], false], ["Mal", ["mali"], false],
  ["Niger", ["nigeria"], false], ["Jokovic", ["novak djokovic", "djokovic"], true], ["Mail", ["mali"], true], ["Olso", ["oslo"], true],
  ["Wodds", ["tiger woods", "woods"], true], ["Djokovich", ["djokovic"], true], ["Cowboy", ["cowboys"], true], ["Gogle", ["google"], true],
  ["Tigr Woodz", ["tiger woods"], true], ["edison", ["thomas edison"], true, { person: true }], ["Bobby Bonds", ["barry bonds", "bonds"], false, { wrong: ["bobby bonds"] }]]

@@ -930,9 +930,12 @@ function bracketQuestion(body, q, value, seconds, done) {
     h("span", { class: "bracket-arm" }), h("span", { class: "bracket-stem" }), h("span", { class: "bracket-cup" }));
   const live = h("div", { class: "sr-only", "aria-live": "polite" });
   const opts = h("div", { class: "bracket-opts", role: "group", "aria-label": "Pick the winner" });
-  teams.forEach((name, i) => {
+  // Seeded display shuffle (same pattern as mcQuestion) so a content a:0 is not always the first chip.
+  // order[pos] = original index; picked/answer stay in ORIGINAL indices, so scoring is unchanged.
+  const order = seededOrder(teams.length, session.key + "|bracket|" + qText(q.q));
+  order.forEach((i, pos) => { const name = teams[i];
     const b = h("button", { class: "bracket-chip", type: "button", "aria-pressed": "false",
-      onclick: () => { if (over) return; picked = i; [...opts.children].forEach((c, j) => { c.classList.toggle("bracket-sel", j === i); c.setAttribute("aria-pressed", j === i ? "true" : "false"); }); live.textContent = name + " selected"; lockBtn.disabled = false; } }, name);
+      onclick: () => { if (over) return; picked = i; [...opts.children].forEach((c, j) => { c.classList.toggle("bracket-sel", j === pos); c.setAttribute("aria-pressed", j === pos ? "true" : "false"); }); live.textContent = name + " selected"; lockBtn.disabled = false; } }, name);
     opts.append(b);
   });
   body.append(fork, opts, live);
@@ -944,8 +947,8 @@ function bracketQuestion(body, q, value, seconds, done) {
     if (over) return; over = true; timer && timer.stop(); lockBtn.remove(); bar.querySelector(".skip-btn")?.remove();
     const choice = skipped || timedOut ? -1 : picked;
     const ok = choice === answer;
-    [...opts.children].forEach((b, i) => {
-      b.disabled = true;
+    [...opts.children].forEach((b, pos) => {
+      const i = order[pos]; b.disabled = true;
       if (i === answer) b.classList.add("right");
       else if (i === choice) b.classList.add("wrong");
     });

@@ -96,7 +96,15 @@
     let p = 0; while (p < a.length && p < b.length && a[p] === b[p]) p++;
     const ta = a.slice(p), tb = b.slice(p);
     if (Math.min(a.length, b.length) <= 5 && p >= a.length - 1 && p >= b.length - 1 && ta && tb && ta !== tb) return true; // last-letter swap on short words
-    return p >= 4 && Math.abs(a.length - b.length) >= 2;   // same stem, different 2+ letter ending
+    if (p >= 4 && Math.abs(a.length - b.length) >= 2) return true;   // same stem, different 2+ letter ending
+    // Same length, 2+ substituted letters in one adjacent block mid-word (slovakia/slovenia): a different word, not a typo.
+    // Adjacent swaps (olso/oslo) are excluded: they are transpositions, not two substitutions.
+    if (a.length === b.length) {
+      const d = []; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d.push(i);
+      const swap = d.length === 2 && d[1] === d[0] + 1 && a[d[0]] === b[d[1]] && a[d[1]] === b[d[0]];
+      if (d.length >= 2 && !swap && d[d.length - 1] - d[0] === d.length - 1) return true;
+    }
+    return false;
   }
   const canonName = s => { const w = s.split(" "); if (w.length > 1 && NICK[w[0]]) w[0] = NICK[w[0]]; return w.join(" "); };
   const isNumeric = s => parseNum(s) !== null || /\d/.test(s);
