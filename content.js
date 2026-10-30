@@ -262,7 +262,9 @@ window.CONTENT = {
     [ ["MAGNET", "definition", "Object that attracts iron"], ["CLUMSY", "synonym", "Awkward, bumbling"], ["ASCEND", "antonym", "Opposite of descend"], ["CARPET", "riddle", "I lie on the floor all day and get walked all over"], ["THUNDER", "definition", "Loud rumble that follows lightning"], ["PLENTY", "synonym", "Abundance, a lot"] ],
     [ ["ORCHARD", "definition", "Field of fruit trees"], ["HOSTILE", "antonym", "Opposite of friendly"], ["CUNNING", "synonym", "Sly, crafty"], ["BOTTLE", "riddle", "I have a neck but no head"], ["BARREN", "antonym", "Opposite of fertile"], ["SUMMIT", "definition", "Highest point of a mountain"] ],
     // ---- APPENDED Word Nerd week 2 (staged 2026-10-28) ----
-    [["GALAXY","definition","Huge system of stars, like the Milky Way"],["SIMPLE","antonym","Opposite of complicated"],["TEAPOT","riddle","I'm short and stout, with a handle and a spout"],["WEALTHY","synonym","Rich, affluent"],["BICYCLE","definition","Two-wheeled vehicle you pedal"],["OBVIOUS","synonym","Clear, plain to see"]]
+    [["GALAXY","definition","Huge system of stars, like the Milky Way"],["SIMPLE","antonym","Opposite of complicated"],["TEAPOT","riddle","I'm short and stout, with a handle and a spout"],["WEALTHY","synonym","Rich, affluent"],["BICYCLE","definition","Two-wheeled vehicle you pedal"],["OBVIOUS","synonym","Clear, plain to see"]],
+    // ---- APPENDED Word Nerd week 2 EXTRA (staged 2026-10-30, Fact Checker + Tester PASS — clear to merge (TG appending)) ----
+    [["PUMPKIN","definition","Orange squash carved at Halloween"],["RAINBOW","definition","Arc of colors after rain"],["GIRAFFE","definition","Tallest animal, with a very long neck"],["PICKLE","definition","Cucumber preserved in vinegar"],["CACTUS","definition","Spiny desert plant"],["WALRUS","definition","Tusked Arctic sea mammal"]]
   ],
   wordBridge: [
     [ ["HOT", "HOUSE", "DOG"], ["OVER", "PHONE", "HEAD"], ["SUN", "HOUSE", "LIGHT"], ["LAND", "DOWN", "MARK"], ["FOOT", "POINT", "BALL"], ["TOOTH", "POCKET", "PICK"] ],
@@ -366,7 +368,16 @@ window.CONTENT = {
       { words: ["Zeus", "Hermes", "Mercury", "Apollo"], odd: 2, why: "Mercury is a Roman god (others are Greek)" },
       { words: ["Quartz", "Feldspar", "Granite", "Mica"], odd: 2, why: "Granite is a rock (others are minerals)" } ],
     // ---- APPENDED Word Nerd week 2 (staged 2026-10-28) ----
-    [{"words":["Robin","Sparrow","Salmon","Finch"],"odd":2,"why":"Salmon is a fish (others are birds)"},{"words":["Mile","Kilogram","Gram","Ounce"],"odd":0,"why":"Mile measures distance (others measure weight)"},{"words":["Pine","Willow","Fir","Spruce"],"odd":1,"why":"Willow isn't a conifer (others are evergreen conifers)"},{"words":["Dollar","Shilling","Dinar","Gallon"],"odd":3,"why":"Gallon is a unit of volume (others are currencies)"},{"words":["Windows","Chrome","Firefox","Safari"],"odd":0,"why":"Windows is an operating system (others are web browsers)"},{"words":["Achilles","Hector","Anubis","Odysseus"],"odd":2,"why":"Anubis is an Egyptian god (others are heroes of the Trojan War)"},{"words":["Gobi","Serengeti","Kalahari","Mojave"],"odd":1,"why":"Serengeti is a grassland plain, not a desert"},{"words":["Cotton","Wool","Linen","Nylon"],"odd":3,"why":"Nylon is synthetic (others are natural fibers)"}]
+    [{"words":["Robin","Sparrow","Salmon","Finch"],"odd":2,"why":"Salmon is a fish (others are birds)"},{"words":["Mile","Kilogram","Gram","Ounce"],"odd":0,"why":"Mile measures distance (others measure weight)"},{"words":["Pine","Willow","Fir","Spruce"],"odd":1,"why":"Willow isn't a conifer (others are evergreen conifers)"},{"words":["Dollar","Shilling","Dinar","Gallon"],"odd":3,"why":"Gallon is a unit of volume (others are currencies)"},{"words":["Windows","Chrome","Firefox","Safari"],"odd":0,"why":"Windows is an operating system (others are web browsers)"},{"words":["Achilles","Hector","Anubis","Odysseus"],"odd":2,"why":"Anubis is an Egyptian god (others are heroes of the Trojan War)"},{"words":["Gobi","Serengeti","Kalahari","Mojave"],"odd":1,"why":"Serengeti is a grassland plain, not a desert"},{"words":["Cotton","Wool","Linen","Nylon"],"odd":3,"why":"Nylon is synthetic (others are natural fibers)"}],
+    // ---- APPENDED Word Nerd week 2 EXTRA (staged 2026-10-30, Fact Checker + Tester PASS — clear to merge (TG appending)) ----
+    [{"words":["Lettuce","Walnut","Spinach","Kale"],"odd":1,"why":"Walnut is a nut (others are leafy greens)"},
+      {"words":["Montreal","Seattle","Miami","Denver"],"odd":0,"why":"Montreal is in Canada (others are U.S. cities)"},
+      {"words":["Yangtze","Rockies","Mekong","Ganges"],"odd":1,"why":"The Rockies are mountains (others are rivers)"},
+      {"words":["Spring","Summer","Winter","Monday"],"odd":3,"why":"Monday is a day (others are seasons)"},
+      {"words":["Tolkien","Dickens","Mozart","Orwell"],"odd":2,"why":"Mozart was a composer (others are novelists)"},
+      {"words":["Brass","Zinc","Nickel","Tin"],"odd":0,"why":"Brass is an alloy (others are chemical elements)"},
+      {"words":["Lima","Havana","Quito","Bogotá"],"odd":1,"why":"Havana isn't in South America (others are South American capitals)"},
+      {"words":["Waltz","Foxtrot","Rumba","Sonnet"],"odd":3,"why":"Sonnet is a poem (others are dances)"}]
   ],
   // ---------- 5. THINK FAST ----------
   thinkFast: [
