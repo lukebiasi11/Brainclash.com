@@ -286,17 +286,20 @@ function skipBtn(onSkip, label) {
 // RULE (Luke): Skip always sits BESIDE the Lock in / Submit button on one row, mid-screen, never under the phone's bottom bar.
 // Typed-answer screens (form.answer): Skip joins the submit button in an .answer-row inside the form.
 // Everything else: Skip goes in the action bar next to the primary button (see .action-bar CSS).
+// RULE (Luke, 2026-10-30): no Skip on already-timed per-question modes (History/Time Warp, World Rush, Sports; shared helpers also serve Think Fast).
+// Shared timed helpers call this; it now only returns the bar/row and adds no Skip. Word Nerd games add Skip directly.
+const TIMED_SKIP = false;
 function ensureSkipBar(body, onSkip) {
   const form = body.querySelector(":scope > form.answer"), sub = form && form.querySelector(":scope > .btn.primary, :scope > .answer-row > .btn.primary");
   if (form && sub) {
     let row = sub.parentNode.classList.contains("answer-row") ? sub.parentNode : null;
     if (!row) { row = h("div", { class: "answer-row" }); sub.replaceWith(row); row.append(sub); }
-    if (!row.querySelector(".skip-btn")) row.append(skipBtn(onSkip));
+    if (TIMED_SKIP && !row.querySelector(".skip-btn")) row.append(skipBtn(onSkip));
     return row;
   }
   let bar = body.querySelector(":scope > .action-bar");
   if (!bar) bar = actionBar(body);
-  if (!bar.querySelector(".skip-btn")) bar.append(skipBtn(onSkip));
+  if (TIMED_SKIP && !bar.querySelector(".skip-btn")) bar.append(skipBtn(onSkip));
   return bar;
 }
 
@@ -610,7 +613,7 @@ function worldRush() {
     let guess = null, locked = false, api;
     const bar = actionBar(body);
     const btn = h("button", { class: "btn primary big", disabled: true, onclick: () => submit() }, "📍 Lock in pin");
-    bar.append(btn, skipBtn(() => { if (locked) return; guess = null; submit(); }));
+    bar.append(btn);
     const onPick = p => { if (locked) return; guess = p; btn.disabled = false; hideHint(); };
     api = window.d3 && window.d3.geoOrthographic && window.topojson && window.WORLD_ATLAS_110M ? globeMap(mapEl, onPick) : svgMap(mapEl, onPick);
     const timer = Timer(TBD.pin, () => submit(), body.parentNode.querySelector(".game-head"));
@@ -747,7 +750,7 @@ function history() {
     render();
     const bar = actionBar(body);
     const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, "Lock in order");
-    bar.append(btn, skipBtn(() => submit(true)));
+    bar.append(btn);
     const timer = Timer(rd.secs, () => submit(false), body.parentNode.querySelector(".game-head"));
     function submit(skipped) {
       if (locked) return; locked = true; timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove();
@@ -887,7 +890,7 @@ function orderQuestion(body, q, value, seconds, done) {
   };
   const bar = actionBar(body);
   const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, "Lock in order");
-  bar.append(btn, skipBtn(() => submit(true)));
+  bar.append(btn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
     if (locked) return; locked = true; timer && timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove();
@@ -935,7 +938,7 @@ function bracketQuestion(body, q, value, seconds, done) {
   body.append(fork, opts, live);
   const bar = actionBar(body);
   const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, "Lock in");
-  bar.append(lockBtn, skipBtn(() => submit(true)));
+  bar.append(lockBtn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
     if (over) return; over = true; timer && timer.stop(); lockBtn.remove(); bar.querySelector(".skip-btn")?.remove();
@@ -1057,7 +1060,7 @@ function matchQuestion(body, q, value, seconds, done) {
   }
   const bar = actionBar(body);
   const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, "Lock in pairs");
-  bar.append(lockBtn, skipBtn(() => submit(true)));
+  bar.append(lockBtn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
     if (locked) return; locked = true; timer && timer.stop(); lockBtn.remove(); bar.querySelector(".skip-btn")?.remove();
