@@ -129,10 +129,15 @@ function burst(x, y, n = 18) {
 function loadToday() {
   const s = store.get("dg-" + todayKey());
   if (s && s.inProgress != null) {
-    if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category"); }
+    if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category");
+      const c = CATS[s.scores.length - 1]; toast(`${c ? c.name : "That category"} was locked in at ${fmt(s.scores[s.scores.length - 1])} pts — you left mid-round, so it can't be replayed.`); }
     delete s.inProgress; delete s.partial; delete s.partialCat; store.set("dg-" + s.key, s);
   }
   return s;
+}
+function toast(text) {
+  const show = () => { const t = h("div", { class: "toast", role: "status" }, text); document.body.append(t); setTimeout(() => t.classList.add("out"), 4200); setTimeout(() => t.remove(), 4700); };
+  document.body ? setTimeout(show, 0) : addEventListener("DOMContentLoaded", show);
 }
 // THE single place that turns a day key into that day's content. To move to a
 // backend later, replace the body with a fetch (and make callers await it).
@@ -271,7 +276,7 @@ function answerLocked() {
   document.querySelectorAll("#app .timer").forEach(t => t.classList.add("stopped"));
   document.querySelectorAll("#app .skip-btn").forEach(b => b.remove());
 }
-function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-game") && session && parent.closest && parent.closest(".game-body")) answerLocked(); let used = false; const b = h("button", { class: "btn primary big", onclick: () => { if (used) return; used = true; b.disabled = true; b.blur(); fn(); } }, label); parent.append(b); if (matchMedia("(hover: hover) and (pointer: fine)").matches) b.focus({ preventScroll: true }); return b; }
+function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-game") && session && parent.closest && parent.closest(".game-body")) answerLocked(); let used = false; const born = performance.now(); const b = h("button", { class: "btn primary big", onclick: () => { if (used || performance.now() - born < 300) return; used = true; b.disabled = true; b.blur(); fn(); } }, label); parent.append(b); if (matchMedia("(hover: hover) and (pointer: fine)").matches) b.focus({ preventScroll: true }); return b; }
 // Sticky bottom bar for the main action on game screens (always reachable on phones).
 const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.append(bar); return bar; };
 // Visible Skip control for every play screen — lives in the action bar so it stays above the browser chrome.
@@ -744,7 +749,7 @@ function history() {
       body.append(h("p", { class: "muted" }, "Correct order: " + correct.map(i => rd.events[i][1] + " (" + (rd.events[i][2] < 0 ? -rd.events[i][2] + " BC" : rd.events[i][2]) + ")").join(" → ")));
       feedback(body, skipped ? false : good === pairs ? true : good > pairs / 2 ? null : false, skipped ? "Skipped. +0" : `${good}/${pairs} pairs in order → ${pts} pts`);
       total += pts; log.push(pts); track(total); r++;
-      body.querySelector(".drag-hint")?.remove();
+      body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
       if (r < 2) nextBtn(bar, "Round 2 →", play); else catDone(body, total, log.join("/"));
     }
   };
@@ -1089,7 +1094,7 @@ function sports() {
     if (t === "order") orderQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "bracket") bracketQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "match") matchQuestion(body, q, vals[i], SPORTS_SECONDS, after);
-    else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after);
+    else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after, { timeoutZero: true });
     else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, "Sports") : q.visual);
     else if (q.kind === "common-teammate") {
       // Five player clues, one shared teammate. Typed answer, lenient checker with person-name (surname) matching.
@@ -1189,7 +1194,7 @@ function wordFlip() {
 function wordBridge() {
   const list = session.set.wordBridge;
   const body = screen("📝 Word Bridge", "6 puzzles · 60 seconds");
-  let i = 0, total = 0, over = false; const res = [];
+  let i = 0, total = 0, over = false, busy = false; const res = [];
   const val = k => k < 4 ? 150 : 200;
   const prog = h("div", { class: "prog" }), puzzle = h("div", { class: "bridge" });
   const input = h("input", { class: "txt", placeholder: "Missing word", autocomplete: "off", autocapitalize: "characters", spellcheck: "false" });
@@ -1199,12 +1204,13 @@ function wordBridge() {
   const brBar = actionBar(body); brBar.append(skipBtn(() => skipB(), "Skip →"));
   const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${total}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
+    if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
     const v = norm(input.value).toUpperCase().replace(/ /g, ""); if (!v) return;
-    if (v === list[i][2]) { total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
+    if (v === list[i][2]) { busy = true; total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
     else { form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
   };
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
-  const skipB = () => { if (over) return; res[i] = false; queue.push(queue.shift()); draw(); };
+  const skipB = () => { if (over || busy) return; res[i] = false; queue.push(queue.shift()); draw(); };
   const end = () => {
     if (over) return; over = true; timer.stop(); form.remove(); brBar.remove(); puzzle.remove(); prog.remove();
     body.append(h("ul", { class: "review" }, list.map(([a, b, w], k) => h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : "✗"} ${a} ${w} · ${w} ${b}`))));
@@ -1266,12 +1272,14 @@ function oddOneOut() {
   const prog = h("div", { class: "prog" }), opts = h("div", { class: "options two" });
   body.append(prog, h("p", { class: "prompt" }, "Which one doesn't belong?"), opts);
   const oddBar = actionBar(body); oddBar.append(skipBtn(() => pickIt(-1)));
+  let drawnAt = 0;
   const draw = () => {
+    drawnAt = performance.now();
     prog.textContent = `Puzzle ${i + 1}/8 · ${i < 4 ? "Medium" : "Hard"} · ${val(i)} pts · Score ${total}/1,000 pts`;
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };
-  const pickIt = k => { if (over) return; if (k < 0) { res.push(false); i++; if (i >= 8) end(); else draw(); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } i++; if (i >= 8) end(); else draw(); };
+  const pickIt = k => { if (over || performance.now() - drawnAt < 300) return; if (k < 0) { res.push(false); i++; if (i >= 8) end(); else draw(); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } i++; if (i >= 8) end(); else draw(); };
   const end = () => {
     if (over) return; over = true; timer.stop(); opts.remove(); oddBar.remove(); prog.remove(); body.querySelector(".prompt").remove();
     body.append(h("ul", { class: "review" }, list.map((p, k) => h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : res[k] === false ? "✗" : "–"} ${p.words.join(" · ")} — ${p.why}`))));
@@ -1324,10 +1332,9 @@ function anagramRush() {
     if (over) return; over = true; timer.stop(); clearTimeout(fbT); fbSlot.remove(); tiles.remove(); ctrls.remove(); anBar.remove(); form.remove(); cur.remove();
     const missed = set.common.filter(w => !found.includes(w));
     body.append(h("p", { class: "muted" }, "Missed words: " + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : "none — wow!")));
-    const conv = Math.min(1000, Math.round(raw / target * 1000));
-    commitCat(conv, "anag raw " + raw);
-    body.append(h("div", { class: "cat-score" }, h("small", {}, "Your Anagram Rush score"), h("b", {}, fmt(raw)), h("small", {}, "points"), h("p", { class: "quip" }, catQuip(conv, session.scores.length - 1))));
-    nextBtn(body, "Next: Brain Teaser →", runNext);
+    // ONE number everywhere: the converted /1,000 score is what the header shows, what is banked and what the total sums.
+    body.append(h("p", { class: "muted" }, `${found.length} word${found.length === 1 ? "" : "s"} · ${fmt(raw)} raw points`));
+    catDone(body, Math.min(1000, Math.round(raw / target * 1000)), "anag raw " + raw);
   };
   onKey = e => {
     if (over) return false;
@@ -1355,7 +1362,7 @@ function normPuzzle(q) {
 const TF_KIND = { math: "Math trap", sequence: "Sequence", logic: "Logic", guesstimate: "Guesstimate", illusion: "Optical illusion", riddle: "Lateral riddle" };
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
 function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer"); }
-function guessQuestion(body, q, value, seconds, done) {
+function guessQuestion(body, q, value, seconds, done, gq) {
   body.append(h("p", { class: "prompt" }, q.q));
   let over = false;
   const yearMode = q.exactYear === true || typeof q.yearBand === "number";
@@ -1370,11 +1377,11 @@ function guessQuestion(body, q, value, seconds, done) {
   const note = h("p", { class: "muted guess-note" }, noteTxt);
   body.append(form, note); setTimeout(() => input.focus(), 50);
   const skipBar = ensureSkipBar(body, () => submit(null, true, true));
-  const timer = seconds ? Timer(seconds, () => submit(input.value, true), body.parentNode.querySelector(".game-head")) : null;
+  const timer = seconds ? Timer(seconds, () => gq && gq.timeoutZero ? submit(null, true) : submit(input.value, true), body.parentNode.querySelector(".game-head")) : null;
   const fmtN = n => yearMode ? String(Math.round(Number(n))) : Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
   function submit(v, timedOut, skipped) {
     if (over) return;
-    const n = skipped ? null : window.Answers.parseEstimate(v || "", q.unit === "cents" ? "cents" : null);
+    const n = skipped ? null : (v == null ? null : window.Answers.parseEstimate(v, q.unit || null));
     if (n === null && !timedOut && !skipped) { input.classList.remove("shake"); void input.offsetWidth; input.classList.add("shake"); note.textContent = yearMode ? "Enter a year, e.g. 1954" : "Enter a number, e.g. 1,200 or 1.2k"; return; }
     over = true; timer && timer.stop(); input.disabled = true; form.querySelector("button").remove(); note.remove();
     skipBar.querySelector(".skip-btn")?.remove();

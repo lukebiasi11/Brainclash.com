@@ -30,7 +30,7 @@ Mixed in from Luke's "Start Invention Development" conversation (share 6adbdbc8�
 - **Word Bridge:** 60 s, 6 puzzles (HOT ___ / ___ HOUSE → DOG); type or skip; 4×150 + 2×200.
 - **Connections 3×3:** 90 s, 9 words → 3 groups of 3; 3 wrong submissions end the round; shuffle/deselect; 300 + 300 + 400.
 - **Odd One Out:** 60 s, 8 puzzles (4 medium @100, 4 hard @150), pick the word that doesn't fit, one tap advances, connections revealed after.
-- **Anagram Rush:** 60 s, one set of 6 letters, unlimited guesses, 3–6 letter words: 10/25/50/100; no penalties/duplicates; shows missed words. Player sees only raw points; conversion to /1000 happens behind the scenes (**formula not finalized**).
+- **Anagram Rush:** 60 s, one set of 6 letters, unlimited guesses, 3–6 letter words: 10/25/50/100; no penalties/duplicates; shows missed words. Score shown everywhere (live header, category-end box, banked score, total) is the converted /1,000 score: min(1000, raw ÷ (60% of the common-word raw points) × 1000). Raw points appear only as a secondary "N words · X raw" note (**formula not finalized**).
 
 ## 5. Think Fast (logic/reasoning) — 1,000
 - 2 puzzles a day: **[thinking (400), fun (600)]**. One final submission each. Time limit per puzzle: **45 s** (`THINK_SECS` in app.js, all 6 types; Luke, Oct 26).

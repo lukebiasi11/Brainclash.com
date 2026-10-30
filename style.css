@@ -816,3 +816,17 @@ body.in-game .game-body>.tf-svg.sports-chart + .prompt{margin-top:0}
 .an-fb.show{opacity:1}.an-fb.good{color:var(--green)}.an-fb.bad{color:var(--red)}.an-fb.neutral{color:var(--mut)}
 .raw .raw-sub{display:block;font-size:13px;line-height:18px;white-space:nowrap}
 .raw{white-space:nowrap}
+
+/* ===== Oct 28 playtest fixes ===== */
+/* Toast (e.g. a mid-category reload locked the category in) */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:50;max-width:min(92vw,420px);background:var(--navy,#1b1446);color:var(--cream,#fff);border:2px solid var(--yellow,#ffe66b);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;line-height:1.35;text-align:center;box-shadow:4px 4px 0 #0008;animation:toast-in .25s ease-out;transition:opacity .4s}
+.toast.out{opacity:0}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+/* Time Warp results: compact cards so the reveal + score fit without the fit pass shrinking text (375x667) */
+.game-body.tw-done .timeline{margin:6px 0;gap:4px}
+.game-body.tw-done .card{padding:4px 6px}
+.game-body.tw-done .card .pic{width:36px}
+.game-body.tw-done .card .pic img.ico,.game-body.tw-done .card .pic .ico{width:32px;height:32px}
+.game-body.tw-done>.muted{font-size:12px;line-height:1.35;margin:4px 0}
+.game-body.tw-done .fb{margin:4px 0}
+@media (max-height:700px){.game-body.tw-done .cat-score b{font-size:32px}.game-body.tw-done .cat-score{padding:6px 10px;margin-top:4px}}

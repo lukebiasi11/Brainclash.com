@@ -90,6 +90,14 @@
     return d[a.length][b.length];
   }
   const allowed = len => len <= 3 ? 0 : len <= 7 ? 1 : 2;
+  // Different real words that differ only at the END of a short word (iran/iraq) or by a swapped-in suffix
+  // (austria/australia) are distinct answers, not typos.
+  function nearMiss(a, b) {
+    let p = 0; while (p < a.length && p < b.length && a[p] === b[p]) p++;
+    const ta = a.slice(p), tb = b.slice(p);
+    if (Math.min(a.length, b.length) <= 5 && p >= a.length - 1 && p >= b.length - 1 && ta && tb && ta !== tb) return true; // last-letter swap on short words
+    return p >= 4 && Math.abs(a.length - b.length) >= 2;   // same stem, different 2+ letter ending
+  }
   const canonName = s => { const w = s.split(" "); if (w.length > 1 && NICK[w[0]]) w[0] = NICK[w[0]]; return w.join(" "); };
   const isNumeric = s => parseNum(s) !== null || /\d/.test(s);
 
@@ -197,8 +205,13 @@
     let best = Infinity, ok = false;
     goodC.forEach(g => {
       if (!textOnly && isNumeric(g)) return;
+      // Allowance from the SHORTER string ("mal" vs "mali" gets 0), and on short words the first letter must match
+      // (blocks home/rome); also never accept a typo that is itself the start of a different, longer name
+      // pattern like iran/iraq or austria/australia: a substitution in the last two letters of a short word, or a 2+ letter tail change.
       const gs = g.replace(/ /g, ""), dist = dl(vs, gs);
-      if (dist <= allowed(gs.length)) { ok = true; best = Math.min(best, dist); }
+      if (!dist) { ok = true; best = 0; return; }
+      if (vs[0] !== gs[0] && Math.min(vs.length, gs.length) < 6) return;   // short words: first letter must match
+      if (dist <= allowed(Math.min(vs.length, gs.length)) && !nearMiss(vs, gs)) { ok = true; best = Math.min(best, dist); }
     });
     if (!ok) return false;
     const vr = v.replace(/ /g, "");   // compare the typed form too, so a typo of "mick schumacher" is not rescued by mick->michael
