@@ -761,7 +761,7 @@ function history() {
       total += pts; log.push(pts); track(total); r++;
       body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
       // Results read top-down: reveal + feedback first, then the bar (its auto top margin no longer leaves a big gap on desktop).
-      if (r < 2) { body.append(bar); nextBtn(bar, "Round 2 →", play); } else { bar.remove(); catDone(body, total, log.join("/")); }
+      if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, "Round 2 →", play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
   play();

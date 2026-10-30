@@ -850,3 +850,4 @@ body.in-game .action-bar .btn.primary.big{flex:1 1 0;min-width:0}
 body.in-game .action-bar .skip-btn{flex:0 0 auto;min-height:52px}
 body.in-game .game-body>.row:has(.skip-btn){flex-wrap:nowrap;gap:6px}
 body.in-game .game-body>.row:has(.skip-btn) .btn{flex:1 1 auto;min-width:0;padding-left:8px;padding-right:8px;white-space:nowrap}
+@media (min-width:601px){body.in-game .action-bar.after-result{margin-top:14px}}
