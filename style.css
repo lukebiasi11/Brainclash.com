@@ -890,3 +890,5 @@ body.in-game .game-body>.row:has(.skip-btn) .btn{flex:1 1 auto;min-width:0;paddi
 .group.g2{color:#FFF6E8}.group.g2.missed{color:#FFF6E8}
 /* Oct 31: on the home screen the reload toast sits at the top so it never covers "Continue the Clash" */
 body:not(.in-game) .toast{bottom:auto;top:calc(16px + env(safe-area-inset-top))}
+/* Oct 31 recheck: selected Clusters tiles are navy — cream text */
+.wtile.sel{color:#FFF6E8}
