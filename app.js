@@ -145,7 +145,7 @@ function toast(text) {
 // THE single place that turns a day key into that day's content. To move to a
 // backend later, replace the body with a fetch (and make callers await it).
 // ===== Append-safe rotation (see SPEC.md "Rotation & how to add content") =====
-// FROZEN is the exact schedule that was live for Oct 23 – Nov 10 2026, as content-list indexes.
+// FROZEN is the exact schedule for Oct 23 – Oct 31 2026 as played, then the week-2 pack Nov 1 – Nov 14, as content-list indexes.
 // Daily lists (worldRush/history/sports/thinkFast) use one unit per day (u = epoch day);
 // word-game lists use one unit per 5-day format cycle (u = floor(day / 5)), because each
 // word format comes up once every 5 days. idx[k] is the entry shown for unit u0 + k.
@@ -154,15 +154,17 @@ function toast(text) {
 // Only once every entry has been used does it wrap (and then it repeats in content order).
 // Rule for content: never delete or reorder entries; fix one in place or append new ones.
 const FROZEN = {
-  worldRush: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
-  history: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
-  sports: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3,4,5,6,7,8,9,10,11,12,18] },
-  thinkFast: { u0: 20749, idx: [3,4,5,6,7,0,1,2,8,9,10,11,12,13,14,15,16,17,18] },
-  wordFlip: { u0: 4149, idx: [0,1,2,3,4] },
-  wordBridge: { u0: 4149, idx: [0,1,2,3,4] },
-  connections: { u0: 4149, idx: [0,1,2,3,4] },
-  oddOneOut: { u0: 4149, idx: [0,1,2,3,4] },
-  anagram: { u0: 4149, idx: [2,3,4,5,6] }
+  // k 0-8 = Oct 23-31 (as played). k 9-22 = Nov 1-14 2026 (NY): week-2 / easier pack (Luke, Oct 31).
+  worldRush: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3, 32,33,34,35,36,37,38, 19,20,21,22,23,24,25] },
+  history: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3, 32,33,34,35,36,37,38,39,40,41,42,43,44,45] },
+  sports: { u0: 20749, idx: [13,14,15,16,17,0,1,2,3, 32,33,34,35,36,37,38,39,40,41,42,43,44,45] },
+  thinkFast: { u0: 20749, idx: [3,4,5,6,7,0,1,2,8, 41,42,43,44,45,46,47, 19,20,21,22,23,24,25] },
+  // Word units (u = floor(day/5)): k2 = Oct 29-Nov 2 (flip/bridge/conn already played Oct 29-31; odd Nov 1, anag Nov 2).
+  wordFlip: { u0: 4149, idx: [0,1,2,9,10,5] },
+  wordBridge: { u0: 4149, idx: [0,1,2,9,10,5] },
+  connections: { u0: 4149, idx: [0,1,2,9,10,5] },
+  oddOneOut: { u0: 4149, idx: [0,1,9,10,5] },
+  anagram: { u0: 4149, idx: [2,3,7,8,9] }
 };
 function schedIdx(name, len, u) {
   const f = FROZEN[name];
