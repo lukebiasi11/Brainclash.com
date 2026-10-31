@@ -125,7 +125,7 @@ float a=clamp((1.-sqrt(r2))*c.z+.5,0.,1.);gl_FragColor=vec4(col*a,a);}`;
       gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform2f(uRes, cv.width, cv.height); gl.uniform3f(uC, t[0] * dpr, t[1] * dpr, proj.scale() * dpr);
       gl.uniform2f(uLL, -r[0] * Math.PI / 180, -r[1] * Math.PI / 180);
-      region(proj, proj.scale() / Math.max(1, Math.min(W, H) / 2 - 8));
+      region(proj, proj.scale() / Math.max(1, window.globeBase ? globeBase(W, H) : Math.min(W, H) / 2 - 8));
       if (reg && dirty) { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, rtex); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
         try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, rc); } catch (e) { reg = null; } gl.activeTexture(gl.TEXTURE0); dirty = false; }
       const D = Math.PI / 180; gl.uniform1f(uRon, reg ? 1 : 0);

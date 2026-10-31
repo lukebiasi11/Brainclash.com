@@ -110,6 +110,9 @@ document.addEventListener("keydown", e => {
   if (e.target.matches && e.target.matches("input,textarea")) return;
   if (onKey(e) !== false) { if (/^[a-z]$/i.test(e.key) || ["Backspace", "Enter", " "].includes(e.key)) e.preventDefault(); }
 });
+// Tall portrait map cards (e.g. 390x844): let the globe slightly overfill the width instead of leaving dead space above/below.
+function globeBase(W, H) { return Math.max(20, H > W * 1.3 ? Math.min(W * 0.56, H / 2 - 8) : Math.min(W, H) / 2 - 8); }
+window.globeBase = globeBase;
 function countUp(el, to, ms = 900) {
   const t0 = performance.now();
   const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); };
@@ -440,7 +443,7 @@ function globeMap(el, onPick) {
     W = Math.max(1, el.clientWidth); H = Math.max(1, el.clientHeight);
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + "px"; cv.style.height = H + "px";
     if (gl) gl.size(W, H, dpr);
-    base = Math.max(20, Math.min(W, H) / 2 - 8); proj.translate([W / 2, H / 2]).scale(base * k); draw();
+    base = globeBase(W, H); proj.translate([W / 2, H / 2]).scale(base * k); draw();
   }
   const visible = p => d3.geoDistance([p.lon, p.lat], [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - 1e-3;
   function dot(p, col, r) {
@@ -1175,7 +1178,7 @@ function wordFlip() {
   };
   const draw = () => {
     const [w, style, hint] = list[i];
-    prog.textContent = `Word ${i + 1}/6 · ${val(i)} pts · Score ${total}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : "");
+    prog.textContent = `Word ${i + 1}/6 · ${val(i)} pts · Score ${fmt(total)}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : "");
     hintEl.innerHTML = ""; hintEl.append(h("span", { class: "badge" }, style), " ", hint);
     slots.innerHTML = ""; w.split("").forEach((_, k) => slots.append(h("span", { class: "slot" + (built[k] != null ? " on" : "") }, built[k] != null ? letters[built[k]].c : "")));
     tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { if (busy) return; built.push(k); draw(); check(); } }, l.c)));
@@ -1218,7 +1221,7 @@ function wordBridge() {
   let queue = list.slice(0, 6).map((_, k) => k);
   body.append(prog, puzzle, form, h("p", { class: "skip-note" }, "Skipped puzzles come back at the end if time remains."));
   // Skip sits beside Submit (one row, mid-screen) so it is never under the phone's bottom browser bar.
-  const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${total}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
+  const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${fmt(total)}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
     const v = norm(input.value).toUpperCase().replace(/ /g, ""); if (!v) return;
@@ -1253,7 +1256,7 @@ function connections() {
   // selecting a word only toggles that tile's class; the grid is rebuilt only when words change.
   const shown = new Set(); let gridKey = "";
   const draw = () => {
-    info.innerHTML = ""; info.append(`Score ${total}/1,000 pts · Mistakes left: `, h("b", {}, "●".repeat(3 - mistakes) + "○".repeat(mistakes)));
+    info.innerHTML = ""; info.append(`Score ${fmt(total)}/1,000 pts · Mistakes left: `, h("b", {}, "●".repeat(3 - mistakes) + "○".repeat(mistakes)));
     found.forEach(g => { if (shown.has(g.name)) return; shown.add(g.name); solved.append(h("div", { class: "group g" + set.groups.findIndex(x => x.name === g.name) + (g.pts === 0 ? " missed" : "") }, h("b", {}, g.name + " · " + g.pts), h("span", {}, g.words.join(", ")))); });
     const key = words.join("|");
     if (key !== gridKey) {
@@ -1291,7 +1294,7 @@ function oddOneOut() {
   let drawnAt = 0;
   const draw = () => {
     drawnAt = performance.now();
-    prog.textContent = `Puzzle ${i + 1}/8 · ${i < 4 ? "Medium" : "Hard"} · ${val(i)} pts · Score ${total}/1,000 pts`;
+    prog.textContent = `Puzzle ${i + 1}/8 · ${i < 4 ? "Medium" : "Hard"} · ${val(i)} pts · Score ${fmt(total)}/1,000 pts`;
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };

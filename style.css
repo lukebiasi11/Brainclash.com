@@ -886,3 +886,7 @@ body.in-game .game-body>.row:has(.skip-btn) .btn{flex:1 1 auto;min-width:0;paddi
   .fx-deflate{animation:none!important}
   @keyframes bc-rain-fade{from{opacity:.5}to{opacity:0}}
 }
+/* Oct 31: Clusters navy group (g2) needs light text on #1F2C7A */
+.group.g2{color:#FFF6E8}.group.g2.missed{color:#FFF6E8}
+/* Oct 31: on the home screen the reload toast sits at the top so it never covers "Continue the Clash" */
+body:not(.in-game) .toast{bottom:auto;top:calc(16px + env(safe-area-inset-top))}
