@@ -99,7 +99,14 @@ window.CONTENT = {
     {"pins":[{"name":"Sarajevo, Bosnia and Herzegovina","lat":43.86,"lon":18.41},{"name":"Vientiane, Laos","lat":17.98,"lon":102.63}],"mc":{"q":"Table Mountain overlooks which city?","options":["Cape Town","Nairobi","Johannesburg","Lagos"],"a":0}},
     {"pins":[{"name":"Yerevan, Armenia","lat":40.18,"lon":44.51},{"name":"Bamako, Mali","lat":12.64,"lon":-8}],"mc":{"q":"Serengeti National Park is in which country?","options":["Kenya","Uganda","Tanzania","Zambia"],"a":2}},
     {"pins":[{"name":"Skopje, North Macedonia","lat":42,"lon":21.43},{"name":"La Paz, Bolivia","lat":-16.5,"lon":-68.13}],"mc":{"q":"The Matterhorn straddles the border of Switzerland and which country?","options":["Austria","France","Italy","Germany"],"a":2}},
-    {"pins":[{"name":"Tirana, Albania","lat":41.33,"lon":19.82},{"name":"Thimphu, Bhutan","lat":27.47,"lon":89.64}],"mc":{"q":"The Buddhist temple Borobudur is in which country?","options":["Indonesia","Thailand","Cambodia","Myanmar"],"a":0}}
+    {"pins":[{"name":"Tirana, Albania","lat":41.33,"lon":19.82},{"name":"Thimphu, Bhutan","lat":27.47,"lon":89.64}],"mc":{"q":"The Buddhist temple Borobudur is in which country?","options":["Indonesia","Thailand","Cambodia","Myanmar"],"a":0}},
+    {"pins":[{"name":"Vienna, Austria","lat":48.21,"lon":16.37},{"name":"Melbourne, Australia","lat":-37.81,"lon":144.96}],"mc":{"q":"Which is the largest island in the world?","options":["Madagascar","Borneo","Greenland","New Guinea"],"a":2}},
+    {"pins":[{"name":"Lisbon, Portugal","lat":38.73,"lon":-9.15},{"name":"Hong Kong","lat":22.3,"lon":114.2}],"mc":{"q":"The prehistoric stone circle Stonehenge is in which country?","options":["Ireland","England","France","Scotland"],"a":1}},
+    {"pins":[{"name":"New York City, USA","lat":40.71,"lon":-74.01},{"name":"Kuala Lumpur, Malaysia","lat":3.15,"lon":101.7}],"mc":{"q":"Which is the largest country in South America by area?","options":["Argentina","Peru","Colombia","Brazil"],"a":3}},
+    {"pins":[{"name":"Budapest, Hungary","lat":47.49,"lon":19.05},{"name":"Shanghai, China","lat":31.23,"lon":121.47}],"mc":{"q":"Which country has the most people in the world?","options":["China","United States","India","Indonesia"],"a":2}},
+    {"pins":[{"name":"Copenhagen, Denmark","lat":55.68,"lon":12.57},{"name":"Miami, USA","lat":25.77,"lon":-80.19}],"mc":{"q":"The Great Barrier Reef lies off the coast of which country?","options":["Indonesia","Philippines","Australia","New Zealand"],"a":2}},
+    {"pins":[{"name":"Venice, Italy","lat":45.44,"lon":12.34},{"name":"Kyoto, Japan","lat":35.01,"lon":135.77}],"mc":{"q":"The Amazon River empties into which ocean?","options":["Pacific","Atlantic","Indian","Arctic"],"a":1}},
+    {"pins":[{"name":"Barcelona, Spain","lat":41.38,"lon":2.18},{"name":"Washington, D.C., USA","lat":38.9,"lon":-77.02}],"mc":{"q":"Which continent has the most countries?","options":["Asia","Europe","Africa","South America"],"a":2}}
   ],
   // ---------- 2. HISTORY TIMELINE ----------
   // Each event: ["emoji", "Event name", year, "image id"] (image id optional; emoji is the fallback)
