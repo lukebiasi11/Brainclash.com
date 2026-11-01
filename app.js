@@ -177,14 +177,19 @@ function schedIdx(name, len, u) {
   const j = k - f.idx.length;
   return j < fresh.length ? fresh[j] : (j - fresh.length) % len;
 }
-const sched = (name, arr, u) => { if (!Array.isArray(arr) || !arr.length) return pick(arr, u); return arr[schedIdx(name, arr.length, u)]; };
+// Past-date stability (SPEC): word unit 4151 spans Oct 29 – Nov 2. The Nov 1 remap changed that unit's
+// oddOneOut/anagram, so days before Nov 1 (20758) keep the as-played indexes (oo 2, an 4).
+const PAST_PIN = { oddOneOut: { u: 4151, before: 20758, idx: 2 }, anagram: { u: 4151, before: 20758, idx: 4 } };
+const sched = (name, arr, u, day) => { if (!Array.isArray(arr) || !arr.length) return pick(arr, u);
+  const p = PAST_PIN[name]; if (p && day != null && u === p.u && day < p.before && p.idx < arr.length) return arr[p.idx];
+  return arr[schedIdx(name, arr.length, u)]; };
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
   return { day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
     // Word formats rotate daily (period 5); each format's list advances once per 5-day cycle: w = floor(day / 5).
     wordGame: pick(WORD_GAMES, d), wordFlip: sched("wordFlip", C.wordFlip, w), wordBridge: sched("wordBridge", C.wordBridge, w),
-    connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w),
-    anagram: sched("anagram", window.ANAGRAM_SETS, w), thinkFast: sched("thinkFast", C.thinkFast, d) };
+    connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w, d),
+    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) };
 }
 // Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
 // or a future day. Before there are past days it falls back to a pre-launch day.
