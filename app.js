@@ -641,7 +641,7 @@ function worldRush() {
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? "Next pin →" : "Geography question →", step < 2 ? doPin : doMC);
+      nextBtn(bar, step < 2 ? "Next pin →" : "Geography Q →", step < 2 ? doPin : doMC);
     }
   };
   const doMC = () => {
@@ -1618,7 +1618,7 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
-  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
+  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   for (let i = 0; i < 4; i++) {
     const over = document.scrollingElement.scrollHeight - innerHeight, bodyOver = body.scrollHeight - body.clientHeight;
