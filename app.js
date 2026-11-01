@@ -476,8 +476,11 @@ function globeMap(el, onPick) {
   }
   const req = () => { if (!raf) raf = requestAnimationFrame(draw); };
   function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
-    const f = 90 / proj.scale(), r = proj.rotate();
-    proj.rotate([r[0] + dx * f, Math.max(-89, Math.min(89, r[1] - dy * f)), 0]); req();
+    // Nov 1: was 90/scale (~0.6°/px on phones + inertia → 100°+ per short drag / pole flips). Now ~0.25°/px,
+    // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
+    const f = 40 / proj.scale(), r = proj.rotate(), cap = 12;
+    const ddx = Math.max(-cap, Math.min(cap, dx * f)), ddy = Math.max(-cap, Math.min(cap, dy * f));
+    proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
   function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
     const a = ax != null && Math.hypot(ax - proj.translate()[0], ay - proj.translate()[1]) < proj.scale() ? proj.invert([ax, ay]) : null;
@@ -503,7 +506,7 @@ function globeMap(el, onPick) {
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
     const dx = e.clientX - last[0], dy = e.clientY - last[1], now = performance.now(), dt = Math.max(8, now - lastT);
-    rotateBy(dx, dy); vel = [dx / dt * 16, dy / dt * 16]; last = [e.clientX, e.clientY]; lastT = now;
+    rotateBy(dx, dy); vel = [Math.max(-6, Math.min(6, dx / dt * 16)), Math.max(-6, Math.min(6, dy / dt * 16))]; last = [e.clientX, e.clientY]; lastT = now;
   });
   const end = e => {
     if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId);
@@ -515,8 +518,8 @@ function globeMap(el, onPick) {
   };
   cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
   function inertia() {
-    const step = () => { vel = [vel[0] * 0.93, vel[1] * 0.93]; rotateBy(vel[0], vel[1]);
-      anim = Math.hypot(vel[0], vel[1]) > 0.08 ? requestAnimationFrame(step) : null; };
+    const step = () => { vel = [vel[0] * 0.85, vel[1] * 0.85]; rotateBy(vel[0], vel[1]);
+      anim = Math.hypot(vel[0], vel[1]) > 0.2 ? requestAnimationFrame(step) : null; };
     anim = requestAnimationFrame(step);
   }
   function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
@@ -785,12 +788,12 @@ const PARTIAL_ORDER = true;
 // Art lookup goes through the icon map first (assets/icons.js maps sports-dN-qM → a shared
 // sport-*.svg). Missing/broken art is removed cleanly — never a "coming soon" placeholder.
 const artSrc = id => (id && window.ICONS && window.ICONS[id]) || (id && /^[a-z0-9-]+$/i.test(id) ? "assets/" + id + ".svg" : null);
-function artBox(cls, id, alt) {
+function artBox(cls, id, alt, keepPlaceholder) {
   const box = h("div", { class: cls }), own = id && /^[a-z0-9-]+$/i.test(id) ? "assets/" + id + ".svg" : null, src = own || artSrc(id);
   if (!src) { box.hidden = true; return box; }
   const img = h("img", { src, alt, decoding: "async" });
   // Prefer the question's own art file; fall back to the generic icons.js mapping only if it 404s.
-  img.addEventListener("error", () => { const fb = artSrc(id); if (fb && img.getAttribute("src") !== fb) { img.src = fb; return; } box.remove(); scheduleFit(); }); img.addEventListener("load", scheduleFit);
+  img.addEventListener("error", () => { const fb = artSrc(id); if (fb && img.getAttribute("src") !== fb) { img.src = fb; return; } if (keepPlaceholder) { img.remove(); box.classList.add("art-missing"); box.append(h("p", { class: "art-missing-msg", role: "img", "aria-label": alt }, "Image unavailable — answer from the question text")); scheduleFit(); return; } box.remove(); scheduleFit(); }); img.addEventListener("load", scheduleFit);
   box.append(img); return box;
 }
 function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
@@ -1381,7 +1384,7 @@ function normPuzzle(q) {
 }
 const TF_KIND = { math: "Math trap", sequence: "Sequence", logic: "Logic", guesstimate: "Guesstimate", illusion: "Optical illusion", riddle: "Lateral riddle" };
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
-function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer"); }
+function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer", true); }
 function guessQuestion(body, q, value, seconds, done, gq) {
   body.append(h("p", { class: "prompt" }, q.q));
   let over = false;

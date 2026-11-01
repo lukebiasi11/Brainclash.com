@@ -892,3 +892,5 @@ body.in-game .game-body>.row:has(.skip-btn) .btn{flex:1 1 auto;min-width:0;paddi
 body:not(.in-game) .toast{bottom:auto;top:calc(16px + env(safe-area-inset-top))}
 /* Oct 31 recheck: selected Clusters tiles are navy — cream text */
 .wtile.sel{color:#FFF6E8}
+.tf-svg.art-missing{display:flex;align-items:center;justify-content:center;min-height:120px;border:2px dashed currentColor;border-radius:12px;opacity:.75}
+.art-missing-msg{margin:0;padding:12px;font-size:14px;text-align:center}
