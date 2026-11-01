@@ -439,7 +439,7 @@ function globeMap(el, onPick) {
   const proj = d3.geoOrthographic().clipAngle(90).precision(0.6).rotate([-20, -20, 0]);
   const path = d3.geoPath(proj, ctx);
   let W = 0, H = 0, dpr = 1, base = 1, k = 1, K_MIN = 0.9, K_MAX = 24; // 24× lets small island groups (e.g. Hawaii) fill the screen
-  let guess = null, target = null, locked = false, focusX = false, raf = 0, vel = [0, 0], anim = null;
+  let guess = null, target = null, locked = false, focusX = false, touched = false, raf = 0, vel = [0, 0], anim = null;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   // Flat vector style (no relief/shading/gradients): blue ocean, green land, darker-green borders (Luke's palette, Oct 27).
   const C = { sea: "#2F7DE1", land: "#5DBB63", border: "#3E8E46", coast: "#3E8E46", grat: "rgba(255,255,255,0.12)",
@@ -477,7 +477,10 @@ function globeMap(el, onPick) {
       ctx.setLineDash([7, 6]); ctx.lineWidth = 3; ctx.strokeStyle = C.arc; ctx.stroke(); ctx.setLineDash([]); }
     if (target) dot(target, C.target, 7);
     if (guess) dot(guess, C.guess, 6.5);
-    if (focusX && !locked) { ctx.strokeStyle = "#E8582A"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10); ctx.stroke(); }
+    if (!locked && (focusX || !guess)) { // aim crosshair: always visible until a pin is dropped (Lock in with no pin drops here)
+      const xh = (w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(cx - 14, cy); ctx.lineTo(cx - 4, cy); ctx.moveTo(cx + 4, cy); ctx.lineTo(cx + 14, cy);
+        ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy - 4); ctx.moveTo(cx, cy + 4); ctx.lineTo(cx, cy + 14); ctx.stroke(); };
+      xh(4.5, "rgba(255,255,255,.9)"); xh(2, "#E8582A"); }
   }
   const req = () => { if (!raf) raf = requestAnimationFrame(draw); };
   function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
@@ -511,7 +514,7 @@ function globeMap(el, onPick) {
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
     const dx = e.clientX - last[0], dy = e.clientY - last[1], now = performance.now(), dt = Math.max(8, now - lastT);
-    rotateBy(dx, dy); vel = [Math.max(-6, Math.min(6, dx / dt * 16)), Math.max(-6, Math.min(6, dy / dt * 16))]; last = [e.clientX, e.clientY]; lastT = now;
+    touched = true; rotateBy(dx, dy); vel = [Math.max(-6, Math.min(6, dx / dt * 16)), Math.max(-6, Math.min(6, dy / dt * 16))]; last = [e.clientX, e.clientY]; lastT = now;
   });
   const end = e => {
     if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId);
@@ -565,6 +568,7 @@ function globeMap(el, onPick) {
       kk = Math.max(K_MIN, Math.min(4, 0.7 / Math.max(Math.sin(Math.min(half, Math.PI / 2 - 0.05)), 0.12))); if (half > 1.2) kk = K_MIN; }
     flyTo([-c[0], -c[1]], kk);
   },
+    aim() { if (!locked && !guess) pickAt(W / 2, H / 2); return guess; }, touched: () => touched,
     // test hooks
     _proj: proj, _draw: draw, _gl: () => !!(gl && gl.ready), _state: () => ({ k, rotate: proj.rotate(), guess, target }) };
   el._globe = api;
@@ -617,7 +621,7 @@ function worldRush() {
     body.classList.add("wr-body");
     body.append(h("p", { class: "prompt wr-prompt" }, "Where is ", h("b", { class: "hl" }, target.name), "?"));
     const mapEl = h("div", { class: "lmap" });
-    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, "Drag to spin, pinch to zoom");
+    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, "Spin to aim at the ✛, then tap or Lock in");
     const wrap = h("div", { class: "map-wrap" }, mapEl, zhint,
       h("a", { class: "map-credit", href: "credits.html", target: "_blank", rel: "noopener" }, "Map data: Natural Earth · Imagery: NASA Blue Marble"));
     body.append(wrap);
@@ -629,9 +633,13 @@ function worldRush() {
     bar.append(btn);
     const onPick = p => { if (locked) return; guess = p; btn.disabled = false; hideHint(); };
     api = window.d3 && window.d3.geoOrthographic && window.topojson && window.WORLD_ATLAS_110M ? globeMap(mapEl, onPick) : svgMap(mapEl, onPick);
-    const timer = Timer(TBD.pin, () => submit(), body.parentNode.querySelector(".game-head"));
-    function submit() {
-      if (locked) return; locked = true; timer.stop(); btn.remove();
+    if (api.aim) btn.disabled = false; // globe: Lock in with no pin drops it at the aim crosshair
+    const timer = Timer(TBD.pin, () => submit(true), body.parentNode.querySelector(".game-head"));
+    function submit(timedOut) {
+      if (locked) return;
+      // Aim fallback: player spun the globe (or pressed Lock in) without tapping → pin at the crosshair.
+      if (!guess && api.aim && (!timedOut || api.touched())) api.aim();
+      locked = true; timer.stop(); btn.remove();
       let pts = 0, msg;
       if (guess) {
         const d = haversine(guess, target); pts = pinPoints(d);
