@@ -113,9 +113,9 @@ document.addEventListener("keydown", e => {
 // Tall portrait map cards (e.g. 390x844): let the globe slightly overfill the width instead of leaving dead space above/below.
 function globeBase(W, H) { return Math.max(20, H > W * 1.3 ? Math.min(W * 0.56, H / 2 - 8) : Math.min(W, H) / 2 - 8); }
 window.globeBase = globeBase;
-function countUp(el, to, ms = 900) {
+function countUp(el, to, ms = 900, onDone) {
   const t0 = performance.now();
-  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); };
+  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); else if (onDone) onDone(); };
   requestAnimationFrame(step);
 }
 function burst(x, y, n = 18) {
@@ -415,9 +415,9 @@ function runNext() {
 }
 function catDone(body, score, detail) {
   commitCat(score, detail);
-  const b = h("b", {}, "0");
-  body.append(h("div", { class: "cat-score" }, h("small", {}, "Category score"), b, h("small", {}, "/ 1,000"), h("p", { class: "quip" }, catQuip(score, session.scores.length - 1))));
-  countUp(b, score);
+  const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
+  body.append(h("div", { class: "cat-score" }, h("small", {}, "Category score"), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
+  countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   nextBtn(body, session.scores.length >= 5 ? "See final results" : "Next: " + CATS[session.scores.length].name + " →", runNext);
 }
