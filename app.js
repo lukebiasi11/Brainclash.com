@@ -395,7 +395,7 @@ function catIntro(i, start) {
 }
 function introText(id) {
   const t = {
-    world: "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Tap the map to place your pin; tap again to move it.",
+    world: "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to aim the ✛ at your guess, then tap or hit Lock in.",
     history: "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 30s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.",
     sports: "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.",
     word: { flip: "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.",

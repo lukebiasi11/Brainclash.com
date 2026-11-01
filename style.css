@@ -911,3 +911,17 @@ html,body{overflow-x:hidden;max-width:100%}
 /* bracket drop zone: clearly visible while dragging over it */
 .bracket-fork.bracket-drop-hot{outline:4px dashed var(--yellow,#F2C230);outline-offset:10px;background:rgba(242,194,48,.18);border-radius:14px;box-shadow:0 0 0 14px rgba(242,194,48,.12)}
 body.is-dragging .bracket-fork{outline:2px dashed rgba(255,255,255,.55);outline-offset:10px;border-radius:14px}
+/* nov1tf: action-bar's -12px side margins overflowed the scrollable .fit-scroll game-body (768 vs 756) -> h-scrollbar */
+body.in-game .game-body.fit-scroll{overflow-x:hidden}
+body.in-game .game-body.fit-scroll>.action-bar{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
+/* nov1tf bracket visual pass */
+.bracket-round{margin:0 0 10px}
+.bracket-fork{margin:10px 0 18px;opacity:.8;padding:8px 18px}
+.bracket-arm{height:18px;border-width:3px}
+.bracket-stem{width:3px;height:16px}
+.bracket-cup{width:56px;height:34px;border-width:3px;border-radius:0 0 22px 22px}
+.bracket-opts{margin-top:12px}
+body.is-dragging .bracket-fork{outline:3px dashed rgba(255,255,255,.7);outline-offset:8px;opacity:1}
+.bracket-fork.bracket-drop-hot{opacity:1;outline:6px solid var(--yellow,#F2C230)!important;outline-offset:8px;background:rgba(242,194,48,.35)!important;box-shadow:0 0 28px 8px rgba(242,194,48,.6)!important;transform:scale(1.06);transition:transform .12s}
+.bracket-fork.bracket-drop-hot .bracket-cup,.bracket-fork.bracket-drop-hot .bracket-arm{border-color:var(--yellow,#F2C230)}
+.bracket-fork.bracket-drop-hot .bracket-stem{background:var(--yellow,#F2C230)}
