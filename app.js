@@ -956,7 +956,9 @@ function bracketQuestion(body, q, value, seconds, done) {
       if (!dd.g && Math.hypot(e.clientX - dd.x, e.clientY - dd.y) > 8) { try { b.setPointerCapture(e.pointerId); } catch (_) {}
         dd.g = b.cloneNode(true); Object.assign(dd.g.style, { position: "fixed", pointerEvents: "none", zIndex: 999, opacity: ".9", width: b.offsetWidth + "px" }); document.body.append(dd.g); document.body.classList.add("is-dragging"); }
       if (dd.g) { e.preventDefault(); dd.g.style.left = (e.clientX - b.offsetWidth / 2) + "px"; dd.g.style.top = (e.clientY - b.offsetHeight / 2) + "px";
-        const r = fork.getBoundingClientRect(), hit = e.clientX >= r.left - 20 && e.clientX <= r.right + 20 && e.clientY >= r.top - 30 && e.clientY <= r.bottom + 30; fork.classList.toggle("bracket-drop-hot", hit); dd.hit = hit; } });
+        // Generous invisible drop zone: full option-row width, from 80px above the bracket down to just above the chips.
+        const r = fork.getBoundingClientRect(), o = opts.getBoundingClientRect(), L = Math.min(r.left, o.left) - 24, R = Math.max(r.right, o.right) + 24;
+        const hit = e.clientX >= L && e.clientX <= R && e.clientY >= r.top - 80 && e.clientY <= Math.max(r.bottom + 24, o.top - 6); fork.classList.toggle("bracket-drop-hot", hit); dd.hit = hit; } });
     const dEnd = e => { if (!dd || dd.id !== e.pointerId) return; const d = dd; dd = null;
       if (d.g) { d.g.remove(); document.body.classList.remove("is-dragging"); fork.classList.remove("bracket-drop-hot"); if (d.hit && e.type === "pointerup") b.click();
         b.dataset.dragged = "1"; setTimeout(() => delete b.dataset.dragged, 0); } };
@@ -1620,6 +1622,7 @@ function fitScreen() {
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
   const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
+  body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
   for (let i = 0; i < 4; i++) {
     const over = document.scrollingElement.scrollHeight - innerHeight, bodyOver = body.scrollHeight - body.clientHeight;
     // body is overflow:hidden, so also check that the last action button really ends inside the viewport (sub-pixel rounding)
@@ -1630,7 +1633,7 @@ function fitScreen() {
     const cur = parseFloat(kids[0]?.style.zoom || 1);
     const h = kids.reduce((a, k) => a + k.getBoundingClientRect().height, 0);
     if (!h) break;
-    const z = Math.max(0.45, cur * (h - excess - 2) / h);
+    const z = Math.max(innerWidth >= 1000 ? 0.85 : 0.45, cur * (h - excess - 2) / h); // wide desktop: never shrink text hard; page scrolls instead
     if (z >= cur - 0.005) break;
     kids.forEach(k => { k.style.zoom = z.toFixed(3); k.dataset.fitz = ""; });
   }
@@ -1649,15 +1652,21 @@ else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
   document.title = "Preview " + PREVIEW_KEY + " — Brain Clash"; window.BCPreview = Object.freeze({ key: PREVIEW_KEY, cat: () => session.scores.length }); runNext();
 } else home();
 // Dev/test only (inert unless the URL has ?dgtest): jump straight to a category / word-game format for layout tests.
-if (/[?&]dgtest\b/.test(location.search)) window.DGTest = Object.freeze({
-  jump(cat, wg) {
-    let d = 0; if (wg) while (d < 2000 && getDailySet(keyOf(d)).wordGame.id !== wg) d++;
-    session = newSession(true); session.key = keyOf(d); session.day = d; session.set = getDailySet(session.key);
-    session.scores = Array.from({ length: cat }, () => 0); runNext();
+if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.freeze({
+  // Day args accept a date key "2026-11-01", an epoch day number, or "today"; all resolve via getDailySet(key)
+  // (same path as live play). Numbers < 1000 are offsets from LAUNCH_DATE (jump(4, null, 9) = Nov 1).
+  _key(x) { if (x == null || x === "today") return todayKey(); if (typeof x === "string") return x; return keyOf(x < 1000 ? dayOfKey(LAUNCH_DATE) + x : x); },
+  at(key, cat) { const k = DGTest._key(key); session = newSession(true); session.key = k; session.day = dayOfKey(k); session.set = getDailySet(k);
+    session.scores = Array.from({ length: cat || 0 }, () => 0); runNext(); },
+  jump(cat, wg, day) {
+    let k = DGTest._key(day);
+    if (wg && typeof wg === "string" && !/^\d{4}-/.test(wg)) { let d = dayOfKey(k); const e = d + 400; while (d < e && getDailySet(keyOf(d)).wordGame.id !== wg) d++; k = keyOf(d); }
+    else if (wg != null) k = DGTest._key(wg);
+    DGTest.at(k, cat);
   },
-  thinkFast(day) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; runNext(); },
+  thinkFast(day) { if (Array.isArray(day)) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; return runNext(); } DGTest.at(day, 4); },
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
-  sportsSet(day) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; runNext(); },
+  sportsSet(day) { if (Array.isArray(day) || (day && typeof day === "object")) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; return runNext(); } DGTest.at(day, 2); },
   state() { return session; },
   popup(sc) { session = newSession(true); session.scores = sc || [400, 300, 250, 500, 600]; results(); resultsPopup(); },
   wordGames: () => [...new Set(Array.from({ length: 60 }, (_, d) => getDailySet(keyOf(d)).wordGame.id))]

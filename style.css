@@ -904,3 +904,4 @@ body.in-game .game-body>.review{flex:1 1 0;min-height:90px;overflow:auto;-webkit
 .game-body.tw-done .card{overflow:visible}
 .game-body.tw-done .card .pic{overflow:visible;line-height:1.25;padding-top:3px}
 .game-body.tw-done .card .pic img.ico,.game-body.tw-done .card .pic .ico{object-fit:contain;overflow:visible}
+body.in-game .game-body.fit-scroll{overflow-y:auto;min-height:0}
