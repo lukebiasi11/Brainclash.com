@@ -1132,7 +1132,9 @@ function sports() {
   let total = 0, i = 0; const log = [];
   const ask = () => {
     const q = qs[i], body = screen("🏆 MVP", `Question ${i + 1} of 3 · ${labels[i]} · ${vals[i]} pts`);
-    const after = pts => { total += pts; track(total); log.push(pts); i++; if (i < 3) nextBtn(actionBar(body), "Next question →", ask); else catDone(body, total, log.join("/")); };
+    const after = pts => { total += pts; track(total); log.push(pts); i++; if (i < 3) nextBtn(actionBar(body), "Next question →", ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
+        const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
     const t = q.type || "text";
     if (t === "order") orderQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "bracket") bracketQuestion(body, q, vals[i], SPORTS_SECONDS, after);
@@ -1448,7 +1450,9 @@ function thinkFast() {
   const ask = () => {
     const q = qs[i], kind = TF_KIND[q.kind] ? " · " + TF_KIND[q.kind] : "";
     const body = screen("🧠 Brain Teaser", `Puzzle ${i + 1} of 2${kind} · ${vals[i]} pts · one submission`);
-    const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), "Final puzzle →", ask); else catDone(body, total, log.join("/")); };
+    const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), "Final puzzle →", ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
+        const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
     if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
