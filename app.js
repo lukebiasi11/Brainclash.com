@@ -948,7 +948,20 @@ function bracketQuestion(body, q, value, seconds, done) {
   const order = seededOrder(teams.length, session.key + "|bracket|" + qText(q.q));
   order.forEach((i, pos) => { const name = teams[i];
     const b = h("button", { class: "bracket-chip", type: "button", "aria-pressed": "false",
-      onclick: () => { if (over) return; picked = i; [...opts.children].forEach((c, j) => { c.classList.toggle("bracket-sel", j === pos); c.setAttribute("aria-pressed", j === pos ? "true" : "false"); }); live.textContent = name + " selected"; lockBtn.disabled = false; } }, name);
+      onclick: () => { if (over || b.dataset.dragged) return; picked = i; [...opts.children].forEach((c, j) => { c.classList.toggle("bracket-sel", j === pos); c.setAttribute("aria-pressed", j === pos ? "true" : "false"); }); live.textContent = name + " selected"; lockBtn.disabled = false; } }, name);
+    // Drag-to-slot (Nov 1): dragging a chip onto the bracket/cup (drop slot) picks it exactly like a tap.
+    let dd = null;
+    b.addEventListener("pointerdown", e => { if (over || (e.pointerType === "mouse" && e.button !== 0)) return; dd = { x: e.clientX, y: e.clientY, g: null, id: e.pointerId }; });
+    b.addEventListener("pointermove", e => { if (!dd || dd.id !== e.pointerId) return;
+      if (!dd.g && Math.hypot(e.clientX - dd.x, e.clientY - dd.y) > 8) { try { b.setPointerCapture(e.pointerId); } catch (_) {}
+        dd.g = b.cloneNode(true); Object.assign(dd.g.style, { position: "fixed", pointerEvents: "none", zIndex: 999, opacity: ".9", width: b.offsetWidth + "px" }); document.body.append(dd.g); document.body.classList.add("is-dragging"); }
+      if (dd.g) { e.preventDefault(); dd.g.style.left = (e.clientX - b.offsetWidth / 2) + "px"; dd.g.style.top = (e.clientY - b.offsetHeight / 2) + "px";
+        const r = fork.getBoundingClientRect(), hit = e.clientX >= r.left - 20 && e.clientX <= r.right + 20 && e.clientY >= r.top - 30 && e.clientY <= r.bottom + 30; fork.classList.toggle("bracket-drop-hot", hit); dd.hit = hit; } });
+    const dEnd = e => { if (!dd || dd.id !== e.pointerId) return; const d = dd; dd = null;
+      if (d.g) { d.g.remove(); document.body.classList.remove("is-dragging"); fork.classList.remove("bracket-drop-hot"); if (d.hit && e.type === "pointerup") b.click();
+        b.dataset.dragged = "1"; setTimeout(() => delete b.dataset.dragged, 0); } };
+    b.addEventListener("pointerup", dEnd); b.addEventListener("pointercancel", dEnd);
+    b.style.touchAction = "none";
     opts.append(b);
   });
   body.append(fork, opts, live);
