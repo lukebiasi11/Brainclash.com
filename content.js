@@ -105,7 +105,7 @@ window.CONTENT = {
     {"pins":[{"name":"New York City, USA","lat":40.71,"lon":-74.01},{"name":"Kuala Lumpur, Malaysia","lat":3.15,"lon":101.7}],"mc":{"q":"Which is the largest country in South America by area?","options":["Argentina","Peru","Colombia","Brazil"],"a":3}},
     {"pins":[{"name":"Budapest, Hungary","lat":47.49,"lon":19.05},{"name":"Shanghai, China","lat":31.23,"lon":121.47}],"mc":{"q":"Which country has the most people in the world?","options":["China","United States","India","Indonesia"],"a":2}},
     {"pins":[{"name":"Copenhagen, Denmark","lat":55.68,"lon":12.57},{"name":"Miami, USA","lat":25.77,"lon":-80.19}],"mc":{"q":"The Great Barrier Reef lies off the coast of which country?","options":["Indonesia","Philippines","Australia","New Zealand"],"a":2}},
-    {"pins":[{"name":"Venice, Italy","lat":45.44,"lon":12.34},{"name":"Kyoto, Japan","lat":35.01,"lon":135.77}],"mc":{"q":"The Amazon River empties into which ocean?","options":["Pacific","Atlantic","Indian","Arctic"],"a":1}},
+    {"pins":[{"name":"Venice, Italy","lat":45.44,"lon":12.34},{"name":"Kyoto, Japan","lat":35.01,"lon":135.77}],"mc":{"q":"Mont Blanc, the highest peak in the Alps, sits on the border of Italy and which country?","options":["Switzerland","France","Austria","Germany"],"a":1}},
     {"pins":[{"name":"Barcelona, Spain","lat":41.38,"lon":2.18},{"name":"Washington, D.C., USA","lat":38.9,"lon":-77.02}],"mc":{"q":"Which continent has the most countries?","options":["Asia","Europe","Africa","South America"],"a":2}}
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -195,7 +195,7 @@ window.CONTENT = {
   // img = optional image id; visual (emoji) is the fallback
   sports: [
     [ { type: "mc", visual: "🏈", img: "sports-d1-q1", q: "Which team won Super Bowl LVIII (Feb 2024)?", options: ["San Francisco 49ers", "Kansas City Chiefs", "Philadelphia Eagles", "Buffalo Bills"], a: 1 },
-      { type: "text", visual: "🏀👤", img: "sports-d1-q2", q: "Silhouette clue: NBA, 6'9\", nicknamed \"King James\", 4 titles with 3 franchises. Who is it?", answers: ["lebron", "lebron james"] },
+      { type: "text", visual: "🏀👤", img: "sports-d1-q2", q: "Silhouette clue: NBA forward, 6'9\", taken No. 1 overall in the 2003 draft straight out of high school in Akron, Ohio. Who is it?", answers: ["lebron","lebron james","james"] },
       { type: "text", visual: "⚾", img: "sports-d1-q3", q: "Who holds MLB's career home run record (762)?", answers: ["barry bonds", "bonds"], wrong: ["bobby bonds"] } ],
     [ { type: "mc", visual: "⚽", img: "sports-d2-q1", q: "Which country won the 2022 FIFA World Cup?", options: ["France", "Brazil", "Argentina", "Croatia"], a: 2 },
       { type: "text", visual: "🛡️❓", img: "sports-d2-q2", q: "Logo clue: NFL team, star on the helmet, plays in Arlington, TX.", answers: ["dallas cowboys", "cowboys"] },
