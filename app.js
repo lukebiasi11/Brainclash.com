@@ -1708,6 +1708,10 @@ function fitScreen() {
 }
 new MutationObserver(m => { if (m.some(r => !(r.target.closest && r.target.closest(".timer, .runtotal, .cat-score b")))) scheduleFit(); }).observe(document.getElementById("app"), { childList: true, subtree: true });
 (vv || window).addEventListener("resize", scheduleFit);
+// nov2es2: real keyboards don't always fire window resize, and a page can load already short -> also refit (and scroll
+// Lock in into view) on visualViewport resize, window resize and focus of a typed input, plus once more after layout settles.
+if (vv) addEventListener("resize", scheduleFit);
+document.addEventListener("focusin", e => { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) && e.target.closest(".game-body")) { scheduleFit(); setTimeout(scheduleFit, 350); } });
 syncClock();
 // ---- Admin preview hooks (admin.html). Inert on normal visits. ----
 // ?preview=YYYY-MM-DD plays that day's real set as a practice run: save() and countStats()
