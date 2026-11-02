@@ -97,6 +97,6 @@
     "A goose egg. Bold.": "Un rosco. Valiente.", "Zero. Next category, quickly.": "Cero. A la siguiente categoría, rápido.", "Nothing? The next one's yours.": "¿Nada? La próxima es tuya."
   };
   function t(s) { let r = LANG === "es" && Object.prototype.hasOwnProperty.call(ES, s) ? ES[s] : s; for (let i = 1; i < arguments.length; i++) r = r.split("{" + (i - 1) + "}").join(arguments[i]); return r; }
-  const api = { LANG, t, ES, locale: LANG === "es" ? "es-419" : undefined, toggleVisible: () => store.get("bc-lang-unlocked") === "1", set(l) { store.set("bc-lang", l); } };
+  const api = { LANG, t, ES, locale: LANG === "es" ? "es-419" : undefined, toggleVisible: () => true, set(l) { store.set("bc-lang", l); } };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.BC_I18N = api;
 })(typeof window !== "undefined" ? window : globalThis);
