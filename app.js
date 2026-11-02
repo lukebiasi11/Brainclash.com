@@ -311,6 +311,8 @@ function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-g
 // Sticky bottom bar for the main action on game screens (always reachable on phones).
 const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.append(bar); return bar; };
 // Visible Skip control for every play screen — lives in the action bar so it stays above the browser chrome.
+// Unicode-safe \b\w title case: "maría" -> "María" (\b\w treated í as a word break -> "MaríA"). ASCII output unchanged.
+const titleCase = s => String(s).replace(/(?<![\p{L}\p{N}_])\p{L}/gu, c => c.toUpperCase());
 function skipBtn(onSkip, label) {
   return h("button", { class: "btn skip-btn", type: "button", "aria-label": tr("Skip"), onclick: e => { e.preventDefault(); onSkip(); } }, label || tr("Skip"));
 }
@@ -376,7 +378,7 @@ function home() {
       return h("li", { class: "step " + state },
         h("span", { class: "num" }, sc != null ? "✓" : i + 1),
         h("span", { class: "ic" }, ic(c.icon, c.img)),
-        h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.id === "word" ? c.sub + " · Today: " + wg.name : c.sub)),
+        h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.id === "word" ? c.sub + tr(" · Today: ") + wg.name : c.sub)),
         h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : "1,000"));
     })),
     done
@@ -992,7 +994,7 @@ function bracketQuestion(body, q, value, seconds, done) {
   const fork = h("div", { class: "bracket-fork", "aria-hidden": "true" },
     h("span", { class: "bracket-arm" }), h("span", { class: "bracket-stem" }), h("span", { class: "bracket-cup" }));
   const live = h("div", { class: "sr-only", "aria-live": "polite" });
-  const opts = h("div", { class: "bracket-opts", role: "group", "aria-label": "Pick the winner" });
+  const opts = h("div", { class: "bracket-opts", role: "group", "aria-label": tr("Pick the winner") });
   // Seeded display shuffle (same pattern as mcQuestion) so a content a:0 is not always the first chip.
   // order[pos] = original index; picked/answer stay in ORIGINAL indices, so scoring is unchanged.
   const order = seededOrder(teams.length, session.key + "|bracket|" + qText(q.q));
@@ -1221,11 +1223,11 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
   function submit(v, timedOut, skipped) {
     if (over) return; over = true; timer && timer.stop(); input.disabled = true; form.querySelector("button").remove();
     skipBar.querySelector(".skip-btn")?.remove();
-    if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))); done(0); return; }
-    if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))); done(0); return; }
+    if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
+    if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
     const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
-    feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))) + (explain ? " — " + explain : ""));
+    feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);
   }
 }
@@ -1390,7 +1392,7 @@ function anagramRush() {
   const valid = new Set(set.valid), PTS = { 3: 10, 4: 25, 5: 50, 6: 100 };
   // Behind-the-scenes conversion (NOT finalized in spec): 1,000 = 60% of the raw points available from common words.
   const target = 0.6 * set.common.reduce((a, w) => a + PTS[w.length], 0);
-  const body = screen("📝 Anagram Rush", "6 letters · 60 seconds");
+  const body = screen("📝 " + tr("Anagram Rush"), tr("6 letters · 60 seconds"));
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
   const form = h("p", { class: "kbd-tip" }, tr("⌨️ Type letters · Enter to submit · Backspace to delete · Space to shuffle"));
