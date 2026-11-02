@@ -1628,9 +1628,16 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
+  // nov2a: keyboard open (typed answer focused, or visual viewport much shorter than the layout viewport) -> never refit/shrink;
+  // keep the current zoom and let the card scroll instead, so the prompt stays readable.
+  const ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && body.contains(ae);
+  if (typing || (vv && vv.height < innerHeight * 0.8)) { body.classList.add("fit-scroll"); return; }
   const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
+  // nov2a: prompt text must stay >= 16px after zoom; if that still overflows, the card scrolls (fit-scroll) instead.
+  const pr = body.querySelector(".prompt"), pfs = pr ? parseFloat(getComputedStyle(pr).fontSize) || 16 : 16;
+  const zFloor = Math.max(innerWidth >= 1000 ? 0.85 : 0.45, Math.min(1, 16.2 / pfs));
   for (let i = 0; i < 4; i++) {
     const over = document.scrollingElement.scrollHeight - innerHeight, bodyOver = body.scrollHeight - body.clientHeight;
     // body is overflow:hidden, so also check that the last action button really ends inside the viewport (sub-pixel rounding)
@@ -1641,8 +1648,8 @@ function fitScreen() {
     const cur = parseFloat(kids[0]?.style.zoom || 1);
     const h = kids.reduce((a, k) => a + k.getBoundingClientRect().height, 0);
     if (!h) break;
-    const z = Math.max(innerWidth >= 1000 ? 0.85 : 0.45, cur * (h - excess - 2) / h); // wide desktop: never shrink text hard; page scrolls instead
-    if (z >= cur - 0.005) break;
+    const z = Math.max(zFloor, cur * (h - excess - 2) / h); // never shrink prompt below 16px; card scrolls instead
+    if (z >= cur - 0.005) { body.classList.add("fit-scroll"); break; }
     kids.forEach(k => { k.style.zoom = z.toFixed(3); k.dataset.fitz = ""; });
   }
 }

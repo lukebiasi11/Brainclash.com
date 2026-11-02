@@ -925,3 +925,10 @@ body.is-dragging .bracket-fork{outline:3px dashed rgba(255,255,255,.7);outline-o
 .bracket-fork.bracket-drop-hot{opacity:1;outline:6px solid var(--yellow,#F2C230)!important;outline-offset:8px;background:rgba(242,194,48,.35)!important;box-shadow:0 0 28px 8px rgba(242,194,48,.6)!important;transform:scale(1.06);transition:transform .12s}
 .bracket-fork.bracket-drop-hot .bracket-cup,.bracket-fork.bracket-drop-hot .bracket-arm{border-color:var(--yellow,#F2C230)}
 .bracket-fork.bracket-drop-hot .bracket-stem{background:var(--yellow,#F2C230)}
+
+/* nov2a: readable prompts on phones (320-430px) and no iOS focus-zoom on typed answers */
+body.in-game .prompt,body.in-game .wr-prompt{font-size:max(16px,clamp(18px,calc(2.4vh + 6px),28px))}
+@media (max-height:700px){body.in-game .prompt,body.in-game .wr-prompt{font-size:clamp(17px,calc(2.4vh + 4px),24px)}}
+@media (max-width:430px){body.in-game .wr-prompt{font-size:clamp(17px,4.6vw,21px);line-height:1.15}}
+body.in-game form.answer input,body.in-game .answer .txt{font-size:max(16px,1em)}
+body.in-game .game-body.fit-scroll{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
