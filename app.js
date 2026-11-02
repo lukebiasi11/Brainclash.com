@@ -27,7 +27,7 @@ const WORD_GAMES = [
 ];
 // Placeholder timers for categories whose time limits are not yet locked.
 const THINK_SECS = 45;   // Luke, Oct 26: every Think Fast puzzle (all 6 types) gets 45 s — the single source for timer + copy
-const TBD = { pin: 30, mc: 20, think: THINK_SECS };
+const TBD = { pin: 45, mc: 20, think: THINK_SECS };
 
 // Optional icon hook: uses assets/icons.js when loaded + key given, else the emoji text.
 const ic = (emoji, key, cls) => (key && window.icon) ? window.icon(key, emoji, cls) : emoji;
@@ -414,7 +414,7 @@ function catIntro(i, start) {
 function introText(id) {
   const t = {
     world: "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to aim the ✛ at your guess, then tap or hit Lock in.",
-    history: "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 30s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.",
+    history: "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.",
     sports: "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.",
     word: { flip: "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.",
       bridge: "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.",
@@ -700,7 +700,7 @@ function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinL
 // ---------- 2. History Timeline ----------
 function history() {
   const set = session.set.history;
-  const rounds = [{ ...set.r1, secs: 30, max: 400 }, { ...set.r2, secs: 45, max: 600 }];
+  const rounds = [{ ...set.r1, secs: 45, max: 400 }, { ...set.r2, secs: 45, max: 600 }];
   let total = 0, r = 0; const log = [];
   const R = rng(session.day * 7 + 3);
   const play = () => {
@@ -812,7 +812,7 @@ function history() {
 // ---------- 3. Sports IQ ----------
 // Sports IQ is timed like every other section: SPORTS_SECONDS per question, same Timer bar component.
 // Time out = 0 points and the question ends, exactly like the World Rush multiple-choice timeout.
-const SPORTS_SECONDS = 20;
+const SPORTS_SECONDS = 45;
 // Partial credit: order questions score round(value × items in the correct position / n).
 const PARTIAL_ORDER = true;
 // Stat-chart / sports SVG: assets/<img>.svg (same pattern as Think Fast illusions); placeholder if missing.
