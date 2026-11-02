@@ -1649,7 +1649,18 @@ function fitScreen() {
   // nov2a: keyboard open (typed answer focused, or visual viewport much shorter than the layout viewport) -> never refit/shrink;
   // keep the current zoom and let the card scroll instead, so the prompt stays readable.
   const ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && body.contains(ae);
-  if (typing || (vv && vv.height < innerHeight * 0.8)) { body.classList.add("fit-scroll"); return; }
+  if (typing || (vv && vv.height < innerHeight * 0.8)) {
+    body.classList.add("fit-scroll");
+    // shrink the diagram/art (never the prompt) so Lock in stays above the keyboard
+    const act = body.querySelector("form.answer .btn"), art = body.querySelector(":scope > .tf-svg, :scope > .sports-art, :scope > figure, :scope > img");
+    if (act && art) {
+      const ex = Math.ceil(act.getBoundingClientRect().bottom - (vv ? vv.height + vv.offsetTop : innerHeight) + 4);
+      if (ex > 0) { const ah = art.getBoundingClientRect().height; art.style.maxHeight = art.style.height = Math.max(40, ah - ex) + "px"; art.dataset.kbfit = ""; }
+    }
+    if (act && typing) requestAnimationFrame(() => { const r = act.getBoundingClientRect(); if (r.bottom > (vv ? vv.height : innerHeight)) { act.scrollIntoView({ block: "end" }); const pr = body.querySelector(".prompt"), bt = body.getBoundingClientRect().top; if (pr && pr.getBoundingClientRect().top < bt) body.scrollTop -= Math.min(bt - pr.getBoundingClientRect().top + 2, Math.max(0, (vv ? vv.height : innerHeight) - act.getBoundingClientRect().bottom)); } });
+    return;
+  }
+  body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
   const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable

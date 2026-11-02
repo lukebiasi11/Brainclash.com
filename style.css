@@ -952,3 +952,7 @@ body.in-game .game-body.fit-scroll{overflow-y:auto;overflow-x:hidden;-webkit-ove
 @media (min-width:700px){.sg-card{padding:26px 28px 22px}.sg-nm{font-size:15px}.sg-card li{grid-template-columns:10em 1fr 3.2em}.sg-track{height:34px}.sg-v{font-size:30px}.sg-total b{font-size:64px}}
 @media (prefers-reduced-motion:reduce){.score-graph .sg-bar{transition:none!important;width:var(--w)!important}}
 @media (max-width:360px){.sg-card{padding:16px 12px 14px}.sg-card li{grid-template-columns:auto 1fr 2.6em;gap:8px}.sg-nm{font-size:11px;max-width:6.5em}.sg-v{font-size:20px}}
+body.in-game .game-body>[data-kbfit]{width:auto;max-width:100%;margin-left:auto;margin-right:auto;object-fit:contain}
+body.in-game .game-body>[data-kbfit] svg,body.in-game .game-body>[data-kbfit] img{max-height:inherit;width:auto;max-width:100%}
+body.in-game .game-body>[data-kbfit]{overflow:hidden;padding-top:0;padding-bottom:0;flex:0 0 auto}
+body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
