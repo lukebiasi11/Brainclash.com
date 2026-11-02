@@ -956,3 +956,7 @@ body.in-game .game-body>[data-kbfit]{width:auto;max-width:100%;margin-left:auto;
 body.in-game .game-body>[data-kbfit] svg,body.in-game .game-body>[data-kbfit] img{max-height:inherit;width:auto;max-width:100%}
 body.in-game .game-body>[data-kbfit]{overflow:hidden;padding-top:0;padding-bottom:0;flex:0 0 auto}
 body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
+/* nov2es: language toggle (hidden until ?lang=es) */
+.lang-toggle{display:flex;justify-content:center;gap:0;margin:10px auto 4px;width:max-content;border:3px solid var(--ink-bc);box-shadow:4px 4px 0 var(--ink-bc)}
+.lang-btn{font:700 15px var(--body);padding:8px 16px;min-height:44px;background:var(--cream);color:var(--ink-bc);border:0;cursor:pointer}
+.lang-btn.on{background:var(--navy);color:#fff}

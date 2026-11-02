@@ -8,6 +8,8 @@ const RESET_TIMEZONE = "America/New_York";
 // LAUNCH_DATE: day #1 of the game, in the reset zone. Used for "Gauntlet #N" in share text.
 const LAUNCH_DATE = "2026-10-23";
 // ======================================================================
+const I18N = window.BC_I18N || { LANG: "en", t: s => s, toggleVisible: () => false }, tr = I18N.t, LANG = I18N.LANG;
+if (LANG === "es") document.documentElement.lang = "es";
 const C = window.CONTENT;
 const $ = (s, r = document) => r.querySelector(s);
 const app = $("#app");
@@ -18,6 +20,7 @@ const CATS = [
   { id: "word", img: "cat-word", name: "Word Nerd", icon: "📝", sub: "Word games", desc: "" },
   { id: "think", img: "cat-brain", name: "Brain Teaser", icon: "🧠", sub: "Logic", desc: "2 brain-benders · one shot each" }
 ];
+if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
 const WORD_GAMES = [
   { id: "flip", name: "Unscramble", sub: "Unscramble 6 words from hints · 60s" },
   { id: "bridge", name: "Word Bridge", sub: "Finish the first word, start the second · 60s" },
@@ -25,6 +28,7 @@ const WORD_GAMES = [
   { id: "odd", name: "Imposter", sub: "Spot the word that doesn't fit · 60s" },
   { id: "anag", name: "Anagram Rush", sub: "Make words from 6 letters · 60s" }
 ];
+if (LANG === "es") WORD_GAMES.forEach(w => { w.name = tr(w.name); w.sub = tr(w.sub); });
 // Placeholder timers for categories whose time limits are not yet locked.
 const THINK_SECS = 45;   // Luke, Oct 26: every Think Fast puzzle (all 6 types) gets 45 s — the single source for timer + copy
 const TBD = { pin: 45, mc: 20, think: THINK_SECS };
@@ -133,7 +137,7 @@ function loadToday() {
   const s = store.get("dg-" + todayKey());
   if (s && s.inProgress != null) {
     if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category");
-      const c = CATS[s.scores.length - 1]; toast(`${c ? c.name : "That category"} was locked in at ${fmt(s.scores[s.scores.length - 1])} pts — you left mid-round, so it can't be replayed.`); }
+      const c = CATS[s.scores.length - 1]; toast(tr("{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.", c ? c.name : tr("That category"), fmt(s.scores[s.scores.length - 1]))); }
     delete s.inProgress; delete s.partial; delete s.partialCat; store.set("dg-" + s.key, s);
   }
   return s;
@@ -183,13 +187,30 @@ const PAST_PIN = { oddOneOut: { u: 4151, before: 20758, idx: 2 }, anagram: { u: 
 const sched = (name, arr, u, day) => { if (!Array.isArray(arr) || !arr.length) return pick(arr, u);
   const p = PAST_PIN[name]; if (p && day != null && u === p.u && day < p.before && p.idx < arr.length) return arr[p.idx];
   return arr[schedIdx(name, arr.length, u)]; };
+// nov2es: Spanish content. Indexes are always chosen from the ENGLISH lists (rotation identical in both languages);
+// in es mode the item at that index is swapped for CONTENT_ES[name][idx], merged per question/field: null or missing -> English.
+// wordBridge and anagram always stay English.
+const ES_OK = new Set(["worldRush", "history", "sports", "wordFlip", "connections", "oddOneOut", "thinkFast"]);
+function esMerge(en, es) {
+  if (es == null) return en;
+  if (Array.isArray(en) && Array.isArray(es)) return en.map((x, i) => esMerge(x, es[i]));
+  if (en && typeof en === "object" && !Array.isArray(en) && typeof es === "object" && !Array.isArray(es)) {
+    const o = { ...en }; for (const k of Object.keys(es)) o[k] = esMerge(en[k], es[k]); return o; }
+  return es;
+}
+function esLocalize(set) {
+  const E = window.CONTENT_ES; if (typeof LANG === "undefined" || LANG !== "es" || !E) return set;
+  for (const name of ES_OK) { const en = set[name], list = C[name], i = Array.isArray(list) ? list.indexOf(en) : -1;
+    if (i >= 0 && Array.isArray(E[name]) && E[name][i] != null) set[name] = esMerge(en, E[name][i]); }
+  return set;
+}
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
-  return { day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
+  return esLocalize({ day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
     // Word formats rotate daily (period 5); each format's list advances once per 5-day cycle: w = floor(day / 5).
     wordGame: pick(WORD_GAMES, d), wordFlip: sched("wordFlip", C.wordFlip, w), wordBridge: sched("wordBridge", C.wordBridge, w),
     connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w, d),
-    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) };
+    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) });
 }
 // Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
 // or a future day. Before there are past days it falls back to a pre-launch day.
@@ -232,7 +253,7 @@ function liveTotal() {
 }
 function catScoreChip() {
   const v = session && session.inProgress != null ? Math.round(session.partial || 0) : 0;
-  return h("div", { class: "runtotal", "aria-label": "Category score" }, "Score ", h("b", {}, fmt(v)), "/1,000 pts");
+  return h("div", { class: "runtotal", "aria-label": "Category score" }, tr("Score "), h("b", {}, fmt(v)), tr("/1,000 pts"));
 }
 function save() { if (session && !session.practice) store.set("dg-" + session.key, session); }
 const wordGameFor = day => getDailySet(keyOf(day)).wordGame;
@@ -262,7 +283,7 @@ function screen(title, sub) {
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
   const cat = session && CATS[session.scores.length];
   const head = h("header", { class: "game-head" },
-    h("div", { class: "crumb" }, session.practice ? "Practice" : "Brain Clash", " · ", (session.scores.length + 1) + "/5"),
+    h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Brain Clash", " · ", (session.scores.length + 1) + "/5"),
     h("h2", {}, title), sub ? h("p", { class: "muted" }, sub) : null,
     catScoreChip());
   const body = h("section", { class: "game-body" });
@@ -291,7 +312,7 @@ function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-g
 const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.append(bar); return bar; };
 // Visible Skip control for every play screen — lives in the action bar so it stays above the browser chrome.
 function skipBtn(onSkip, label) {
-  return h("button", { class: "btn skip-btn", type: "button", "aria-label": "Skip", onclick: e => { e.preventDefault(); onSkip(); } }, label || "Skip");
+  return h("button", { class: "btn skip-btn", type: "button", "aria-label": tr("Skip"), onclick: e => { e.preventDefault(); onSkip(); } }, label || "Skip");
 }
 // RULE (Luke): Skip always sits BESIDE the Lock in / Submit button on one row, mid-screen, never under the phone's bottom bar.
 // Typed-answer screens (form.answer): Skip joins the submit button in an .answer-row inside the form.
@@ -318,16 +339,16 @@ function ensureSkipBar(body, onSkip) {
 function scoreGraph(scores, day) {
   const tot = scores.reduce((a, b) => a + b, 0);
   const anim = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dt = new Date(day * 864e5).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  const dt = new Date(day * 864e5).toLocaleDateString(I18N.locale, { month: "short", day: "numeric", timeZone: "UTC" });
   const card = h("section", { class: "score-graph" + (anim ? " anim" : ""), "aria-label": "Today's points by category" },
-    h("p", { class: "sg-date" }, "Today's scores · " + dt),
+    h("p", { class: "sg-date" }, tr("Today's scores · ") + dt),
     h("div", { class: "sg-card" },
-      h("h3", {}, "Points by category"),
+      h("h3", {}, tr("Points by category")),
       h("ul", {}, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
         return h("li", {}, h("span", { class: "sg-nm" }, c.name),
           h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--w:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
           h("b", { class: "sg-v" }, fmt(scores[i] || 0))); })),
-      h("div", { class: "sg-total" }, h("span", {}, "Total"), h("b", {}, fmt(tot)))));
+      h("div", { class: "sg-total" }, h("span", {}, tr("Total")), h("b", {}, fmt(tot)))));
   if (anim) requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("in")));
   return card;
 }
@@ -344,8 +365,11 @@ function home() {
   app.append(
     h("div", { class: "hero" },
       h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")),
-      h("p", { class: "tag" }, h("b", {}, "5"), " categories.", h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, "1"), " shot a day.", h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, "5,000"), " points on the line."),
-      h("p", { class: "date" }, new Date(day * 864e5).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) + " · Clash #" + gameNumber(day))),
+      h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("5,000")), tr(" points on the line.")),
+      h("p", { class: "date" }, new Date(day * 864e5).toLocaleDateString(I18N.locale, { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) + " · Clash #" + gameNumber(day))),
+    I18N.toggleVisible() ? h("div", { class: "lang-toggle", role: "group", "aria-label": tr("Language") }, ["en", "es"].map(l =>
+      h("button", { type: "button", class: "lang-btn" + (LANG === l ? " on" : ""), "aria-pressed": String(LANG === l), lang: l,
+        onclick: () => { if (LANG !== l) { I18N.set(l); location.reload(); } } }, l === "en" ? "English" : "Español"))) : null,
     h("ol", { class: "path" }, CATS.map((c, i) => {
       const sc = s && s.scores[i];
       const state = sc != null ? "done" : (s ? s.scores.length : 0) === i ? "next" : "locked";
@@ -356,30 +380,30 @@ function home() {
         h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : "1,000"));
     })),
     done
-      ? h("div", { class: "cta" }, h("p", {}, "You've finished today's Clash: ", h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
+      ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
           scoreGraph(s.scores, day),
-          h("button", { class: "btn primary big", onclick: () => { session = newSession(false); results(); } }, "View results"),
+          h("button", { class: "btn primary big", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }))
-      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? "Continue the Clash" : "Start the Clash"),
+      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
-    h("details", { class: "rules" }, h("summary", {}, "How it works"),
+    h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
-        h("li", {}, "Same challenge for everyone, new every day at midnight US Eastern (New York) time."),
-        h("li", {}, "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser."),
-        h("li", {}, "Each category is worth up to 1,000 points. No speed bonuses — accuracy wins."),
-        h("li", {}, "Finish a category to unlock the next. No skipping or replays."),
-        h("li", {}, "Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush."))),
-    h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 Practice mode (doesn't count)"),
+        h("li", {}, tr("Same challenge for everyone, new every day at midnight US Eastern (New York) time.")),
+        h("li", {}, tr("Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
+        h("li", {}, tr("Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.")),
+        h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
+        h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
+    h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 " + tr("Practice mode (doesn't count)")),
     h("div", { class: "stats" },
-      h("div", {}, h("b", {}, stats.played), h("small", {}, "Played")),
-      h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, "Best")),
-      h("div", {}, h("b", {}, stats.streak), h("small", {}, "Streak"))),
-    h("p", { class: "fine" }, "Beta prototype · scores saved on this device only. Leaderboards, friends and prize pools coming later. ", h("a", { href: "credits.html" }, "Credits & licenses")));
+      h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
+      h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
+      h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak")))),
+    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. Leaderboards, friends and prize pools coming later. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
     if (dayIndex() !== day) return home(); // new day: re-render
     const t = Math.floor(msToReset() / 1000);
-    el.textContent = (done ? "Next Clash in " : "Resets in ") + [t / 3600, t % 3600 / 60, t % 60].map(x => String(Math.floor(x)).padStart(2, "0")).join(":");
+    el.textContent = tr(done ? tr("Next Clash in ") : tr("Resets in ")) + [t / 3600, t % 3600 / 60, t % 60].map(x => String(Math.floor(x)).padStart(2, "0")).join(":");
   };
   cd(); cdInterval = setInterval(cd, 1000);
 }
@@ -397,31 +421,31 @@ function catIntro(i, start) {
   const c = CATS[i];
   if (i === 3) {
     const wg = wordGameFor(session.day);
-    const body = screen(c.icon + " " + c.name, "Rotates daily · today's format below");
+    const body = screen(c.icon + " " + c.name, tr("Rotates daily · today's format below"));
     body.append(h("div", { class: "wg-intro" },
-      h("small", { class: "wg-intro__label" }, "Today's word game"),
+      h("small", { class: "wg-intro__label" }, tr("Today's word game")),
       h("div", { class: "wg-intro__name" }, wg.name),
       h("p", { class: "wg-intro__sub" }, wg.sub),
-      h("div", { class: "wg-intro__chips" }, h("span", { class: "wg-chip" }, "⏱ " + WG_SECS[wg.id] + " seconds"), h("span", { class: "wg-chip" }, "Up to 1,000 pts")),
-      h("div", { class: "wg-intro__how" }, h("b", {}, "How it works"), introText("word"))));
-    nextBtn(actionBar(body), "Start " + wg.name, () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
+      h("div", { class: "wg-intro__chips" }, h("span", { class: "wg-chip" }, "⏱ " + tr("{0} seconds", WG_SECS[wg.id])), h("span", { class: "wg-chip" }, tr("Up to 1,000 pts"))),
+      h("div", { class: "wg-intro__how" }, h("b", {}, tr("How it works")), introText("word"))));
+    nextBtn(actionBar(body), tr("Start {0}", wg.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
     return;
   }
-  const body = screen(c.icon + " " + c.name, i === 3 ? "Today's word game: " + wordGameFor(session.day).name + " — " + wordGameFor(session.day).sub : c.desc);
-  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, "Worth up to ", h("b", {}, "1,000 points"), "."), introText(c.id)));
-  nextBtn(body, "Start " + (i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
+  const body = screen(c.icon + " " + c.name, i === 3 ? tr("Today's word game: {0} — {1}", wordGameFor(session.day).name, wordGameFor(session.day).sub) : c.desc);
+  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, tr("1,000 points")), "."), introText(c.id)));
+  nextBtn(body, tr("Start {0}", i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
 function introText(id) {
   const t = {
-    world: "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to aim the ✛ at your guess, then tap or hit Lock in.",
-    history: "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.",
-    sports: "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.",
-    word: { flip: "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.",
-      bridge: "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.",
-      conn: "Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds.",
-      odd: "8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds.",
+    world: tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to aim the ✛ at your guess, then tap or hit Lock in."),
+    history: tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
+    sports: tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
+    word: { flip: tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds."),
+      bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
+      conn: tr("Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds."),
+      odd: tr("8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds."),
       anag: "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses." },
-    think: `Two puzzles worth 400 and 600 points, ${THINK_SECS} seconds each. You get ONE submission each — think before you lock it in.`
+    think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
 }
@@ -434,10 +458,10 @@ function runNext() {
 function catDone(body, score, detail) {
   commitCat(score, detail);
   const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
-  body.append(h("div", { class: "cat-score" }, h("small", {}, "Category score"), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
+  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
   countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
-  nextBtn(body, session.scores.length >= 5 ? "See final results" : "Next: " + CATS[session.scores.length].name + " →", runNext);
+  nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", CATS[session.scores.length].name), runNext);
 }
 
 // ---------- maps ----------
@@ -635,11 +659,11 @@ function worldRush() {
   let total = 0, step = 0; const log = [];
   const doPin = () => {
     const target = set.pins[step];
-    const body = screen("🌎 World Rush", "Pin " + (step + 1) + " of 2 · up to 450 pts");
+    const body = screen("🌎 " + tr("World Rush"), tr("Pin {0} of 2 · up to 450 pts", step + 1));
     body.classList.add("wr-body");
-    body.append(h("p", { class: "prompt wr-prompt" }, "Where is ", h("b", { class: "hl" }, target.name), "?"));
+    body.append(h("p", { class: "prompt wr-prompt" }, tr("Where is "), h("b", { class: "hl" }, target.name), tr("?")));
     const mapEl = h("div", { class: "lmap" });
-    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, "Spin to aim at the ✛, then tap or Lock in");
+    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, tr("Spin to aim at the ✛, then tap or Lock in"));
     const wrap = h("div", { class: "map-wrap" }, mapEl, zhint,
       h("a", { class: "map-credit", href: "credits.html", target: "_blank", rel: "noopener" }, "Map data: Natural Earth · Imagery: NASA Blue Marble"));
     body.append(wrap);
@@ -647,7 +671,7 @@ function worldRush() {
     ["pointerdown", "wheel", "touchstart", "keydown"].forEach(ev => wrap.addEventListener(ev, hideHint, { once: true, passive: true }));
     let guess = null, locked = false, api;
     const bar = actionBar(body);
-    const btn = h("button", { class: "btn primary big", disabled: true, onclick: () => submit() }, "📍 Lock in pin");
+    const btn = h("button", { class: "btn primary big", disabled: true, onclick: () => submit() }, tr("📍 Lock in pin"));
     bar.append(btn);
     const onPick = p => { if (locked) return; guess = p; btn.disabled = false; hideHint(); };
     api = window.d3 && window.d3.geoOrthographic && window.topojson && window.WORLD_ATLAS_110M ? globeMap(mapEl, onPick) : svgMap(mapEl, onPick);
@@ -667,11 +691,11 @@ function worldRush() {
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? "Next pin →" : "Geography Q →", step < 2 ? doPin : doMC);
+      nextBtn(bar, step < 2 ? tr("Next pin →") : tr("Geography Q →"), step < 2 ? doPin : doMC);
     }
   };
   const doMC = () => {
-    const body = screen("🌎 World Rush", "Geography question · 100 pts");
+    const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
     mcQuestion(body, withFlag(set.mc.q, set.mc.img), set.mc.optionImgs ? set.mc.options.map((o, k) => ic(o, set.mc.optionImgs[k], "flag")) : set.mc.options, set.mc.a, 100, TBD.mc, pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
   };
   doPin();
@@ -692,7 +716,7 @@ function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinL
     skipBar.querySelector(".skip-btn")?.remove();
     [...opts.children].forEach((b, pos) => { const j = order[pos]; b.disabled = true; if (j === answer) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
     const ok = i === answer;
-    feedback(body, ok, ok ? `Correct! +${value}` : i === -2 ? "Skipped. +0" : i < 0 ? "Time's up. +0" : "Not quite. +0");
+    feedback(body, ok, ok ? tr("Correct! +{0}", value) : i === -2 ? "Skipped. +0" : i < 0 ? tr("Time's up. +0") : tr("Not quite. +0"));
     done(ok ? value : 0);
   }
 }
@@ -705,15 +729,15 @@ function history() {
   const R = rng(session.day * 7 + 3);
   const play = () => {
     const rd = rounds[r];
-    const body = screen("📜 Time Warp", `Round ${r + 1} of 2 · ${rd.theme} · up to ${rd.max} pts`);
+    const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, rd.theme, rd.max));
     // Instructions follow the layout: stacked cards (≤560px, same breakpoint as the CSS) read top → bottom, a row reads left → right.
-    body.append(h("p", { class: "prompt" }, "Drag the cards into order — ",
+    body.append(h("p", { class: "prompt" }, tr("Drag the cards into order — "),
       h("b", { class: "tl-dir tl-dir--v" }, "earliest at top, latest at bottom"), h("b", { class: "tl-dir tl-dir--h" }, "earliest on the left, latest on the right"), "."));
     let order = shuffle(rd.events.map((_, i) => i), R);
     if (order.every((v, i) => v === i)) order.reverse();
     const line = h("div", { class: "timeline" });
-    const axis = h("div", { class: "axis" }, h("span", {}, "Earliest ←"), h("span", {}, "→ Latest"));
-    const vaxis = h("div", { class: "vaxis", "aria-hidden": "true" }, h("span", {}, "Earliest"), h("i", {}), h("span", {}, "Latest"));
+    const axis = h("div", { class: "axis" }, h("span", {}, tr("Earliest ←")), h("span", {}, tr("→ Latest")));
+    const vaxis = h("div", { class: "vaxis", "aria-hidden": "true" }, h("span", {}, tr("Earliest")), h("i", {}), h("span", {}, tr("Latest")));
     body.append(h("p", { class: "drag-hint" }, "☝️ Touch and drag to reorder"), axis, h("div", { class: "tl-wrap" }, vaxis, line));
     let locked = false;
     const render = () => {
@@ -788,7 +812,7 @@ function history() {
     }
     render();
     const bar = actionBar(body);
-    const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, "Lock in order");
+    const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, tr("Lock in order"));
     bar.append(btn);
     const timer = Timer(rd.secs, () => submit(false), body.parentNode.querySelector(".game-head"));
     function submit(skipped) {
@@ -798,12 +822,12 @@ function history() {
       const pts = skipped ? 0 : Math.round(rd.max * good / pairs);
       render();
       const correct = rd.events.map((e, i) => i).sort((a, b) => rd.events[a][2] - rd.events[b][2]);
-      body.append(h("p", { class: "muted" }, "Correct order: " + correct.map(i => rd.events[i][1] + " (" + (rd.events[i][2] < 0 ? -rd.events[i][2] + " BC" : rd.events[i][2]) + ")").join(" → ")));
-      feedback(body, skipped ? false : good === pairs ? true : good > pairs / 2 ? null : false, skipped ? "Skipped. +0" : `${good}/${pairs} pairs in order → ${pts} pts`);
+      body.append(h("p", { class: "muted" }, tr("Correct order: ") + correct.map(i => rd.events[i][1] + " (" + (rd.events[i][2] < 0 ? -rd.events[i][2] + " BC" : rd.events[i][2]) + ")").join(" → ")));
+      feedback(body, skipped ? false : good === pairs ? true : good > pairs / 2 ? null : false, skipped ? tr("Skipped. +0") : tr("{0}/{1} pairs in order → {2} pts", good, pairs, pts));
       total += pts; log.push(pts); track(total); r++;
       body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
       // Results read top-down: reveal + feedback first, then the bar (its auto top margin no longer leaves a big gap on desktop).
-      if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, "Round 2 →", play); } else { bar.remove(); catDone(body, total, log.join("/")); }
+      if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, tr("Round 2 →"), play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
   play();
@@ -833,7 +857,7 @@ function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
   const n = items.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys."));
+  body.append(h("p", { class: "drag-hint" }, tr("Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.")));
   let order = seededOrder(n, session.key + "|order|" + q.q);
   if (order.every((v, i) => v === i)) order = seededOrder(n, session.key + "|order|" + q.q + "|reshuffle");
   if (order.every((v, i) => v === i) && n > 1) { const o = order.slice(); [o[0], o[n - 1]] = [o[n - 1], o[0]]; order = o; }
@@ -841,7 +865,7 @@ function orderQuestion(body, q, value, seconds, done) {
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   const list = h("div", { class: "order-list", role: "list", "aria-label": "Teams in career order, first at top" });
   const wrap = h("div", { class: "order-wrap" },
-    h("div", { class: "order-ends" }, h("span", { class: "order-end" }, "FIRST"), h("span", { class: "order-end" }, "LAST")),
+    h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
   body.append(wrap, live);
   const announce = t => { live.textContent = ""; void live.offsetWidth; live.textContent = t; };
@@ -928,7 +952,7 @@ function orderQuestion(body, q, value, seconds, done) {
     scheduleFit();
   };
   const bar = actionBar(body);
-  const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, "Lock in order");
+  const btn = h("button", { class: "btn primary big", onclick: () => submit(false) }, tr("Lock in order"));
   bar.append(btn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
@@ -947,9 +971,9 @@ function orderQuestion(body, q, value, seconds, done) {
       chip.querySelectorAll("button").forEach(b => { b.disabled = true; });
       chip.tabIndex = -1;
     });
-    body.append(h("p", { class: "muted order-reveal" }, "Correct order: " + items.join(" → ")));
+    body.append(h("p", { class: "muted order-reveal" }, tr("Correct order: ") + items.join(" → ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
-    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_ORDER ? `${good}/${pairs} in the right spot → +${pts}` : `Not quite. +0`;
+    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? tr("Correct! +{0}", pts) : PARTIAL_ORDER ? tr("{0}/{1} in the right spot → +{2}", good, pairs, pts) : tr("Not quite. +0");
     feedback(body, exact && !skipped && !timedOut ? true : pts > 0 ? null : false, msg);
     done(pts);
   }
@@ -994,7 +1018,7 @@ function bracketQuestion(body, q, value, seconds, done) {
   });
   body.append(fork, opts, live);
   const bar = actionBar(body);
-  const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, "Lock in");
+  const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, tr("Lock in"));
   bar.append(lockBtn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
@@ -1008,7 +1032,7 @@ function bracketQuestion(body, q, value, seconds, done) {
     });
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
     const pts = ok ? value : 0;
-    feedback(body, ok, skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : ok ? `Correct! +${value}` : "Not quite. +0");
+    feedback(body, ok, skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : ok ? tr("Correct! +{0}", value) : tr("Not quite. +0"));
     done(pts);
   }
   scheduleFit();
@@ -1020,7 +1044,7 @@ function matchQuestion(body, q, value, seconds, done) {
   const pairs = (q.pairs || []).slice(); // pairs[i] = right-index for left[i]
   const n = left.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works."));
+  body.append(h("p", { class: "drag-hint" }, tr("Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   // rightOrder[pos] = original right index at display position
   let rightOrder = seededOrder(n, session.key + "|match-r|" + q.q);
@@ -1116,7 +1140,7 @@ function matchQuestion(body, q, value, seconds, done) {
     });
   }
   const bar = actionBar(body);
-  const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, "Lock in pairs");
+  const lockBtn = h("button", { class: "btn primary big", type: "button", disabled: true, onclick: () => submit(false) }, tr("Lock in pairs"));
   bar.append(lockBtn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
@@ -1147,20 +1171,20 @@ function matchQuestion(body, q, value, seconds, done) {
     });
     // show correct mapping
     const lines = left.map((name, i) => name + " → " + right[pairs[i]]);
-    body.append(h("p", { class: "muted order-reveal" }, "Correct: " + lines.join("; ")));
+    body.append(h("p", { class: "muted order-reveal" }, tr("Correct: ") + lines.join("; ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
-    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? `Correct! +${pts}` : PARTIAL_MATCH ? `${good}/${n} correct → +${pts}` : `Not quite. +0`;
+    const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? tr("Correct! +{0}", pts) : PARTIAL_MATCH ? tr("{0}/{1} correct → +{2}", good, n, pts) : tr("Not quite. +0");
     feedback(body, exact && !skipped && !timedOut ? true : pts > 0 ? null : false, msg);
     done(pts);
   }
   render();
 }
 function sports() {
-  const qs = session.set.sports, vals = [250, 350, 400], labels = ["Easy", "Medium", "Hard"];
+  const qs = session.set.sports, vals = [250, 350, 400], labels = ["Easy", tr("Medium"), "Hard"];
   let total = 0, i = 0; const log = [];
   const ask = () => {
-    const q = qs[i], body = screen("🏆 MVP", `Question ${i + 1} of 3 · ${labels[i]} · ${vals[i]} pts`);
-    const after = pts => { total += pts; track(total); log.push(pts); i++; if (i < 3) nextBtn(actionBar(body), "Next question →", ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
+    const q = qs[i], body = screen("🏆 " + tr("MVP"), tr("Question {0} of 3 · {1} · {2} pts", i + 1, tr(labels[i]), vals[i]));
+    const after = pts => { total += pts; track(total); log.push(pts); i++; if (i < 3) nextBtn(actionBar(body), tr("Next question →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
     const t = q.type || "text";
@@ -1168,7 +1192,7 @@ function sports() {
     else if (t === "bracket") bracketQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "match") matchQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after, { timeoutZero: true });
-    else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, "Sports") : q.visual);
+    else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, tr("Sports")) : q.visual);
     else if (q.kind === "common-teammate") {
       // Five player clues, one shared teammate. Typed answer, lenient checker with person-name (surname) matching.
       const ans = q.answers || [q.answer], src = Object.assign({}, q, { answers: ans, person: q.person !== false });
@@ -1187,8 +1211,8 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
   if (visual) body.append(visual instanceof Node && visual.classList && (visual.classList.contains("tf-svg") || visual.classList.contains("ct-clues")) ? visual : h("div", { class: "visual" }, visual));
   body.append(h("p", { class: "prompt" }, q));
   let over = false;
-  const input = h("input", { class: "txt", placeholder: "Type your answer", autocomplete: "off", autocapitalize: "off", spellcheck: "false" });
-  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } }, input, h("button", { class: "btn primary", type: "submit" }, "Lock in"));
+  const input = h("input", { class: "txt", placeholder: tr("Type your answer"), autocomplete: "off", autocapitalize: "off", spellcheck: "false" });
+  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } }, input, h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
   body.append(form); setTimeout(() => input.focus(), 50);
   const skipBar = ensureSkipBar(body, () => submit(null, false, true));
   // tq.timeoutZero (Sports IQ): running out of time scores 0 with "Time's up", like mcQuestion's choose(-1).
@@ -1197,11 +1221,11 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
   function submit(v, timedOut, skipped) {
     if (over) return; over = true; timer && timer.stop(); input.disabled = true; form.querySelector("button").remove();
     skipBar.querySelector(".skip-btn")?.remove();
-    if (skipped) { feedback(body, false, `Skipped. Answer: ${display.replace(/\b\w/g, c => c.toUpperCase())}. +0`); done(0); return; }
-    if (timedOut) { feedback(body, false, `Time's up. Answer: ${display.replace(/\b\w/g, c => c.toUpperCase())}. +0`); done(0); return; }
+    if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))); done(0); return; }
+    if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))); done(0); return; }
     const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
-    feedback(body, ok, (ok ? `Correct! +${value}` : `Answer: ${display.replace(/\b\w/g, c => c.toUpperCase())}. +0`) + (explain ? " — " + explain : ""));
+    feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", display.replace(/\b\w/g, c => c.toUpperCase()))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);
   }
 }
@@ -1217,11 +1241,11 @@ function wordFlip() {
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
   const sorted = x => x.split("").sort().join("");
   const hintEl = h("div", { class: "hint" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), prog = h("div", { class: "prog" });
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, "↩ Undo"), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, "Clear"), skipBtn(() => { if (busy) return; skip(); }, "Skip →"));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, tr("Clear")), skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
   const results = [];
   // Skipped words go to the back of the queue and come back while time remains.
   let queue = list.slice(0, 6).map((_, k) => k), cur = 0;
-  body.append(prog, hintEl, slots, tiles, ctrls, h("p", { class: "skip-note" }, "Skipped words come back at the end if time remains."));
+  body.append(prog, hintEl, slots, tiles, ctrls, h("p", { class: "skip-note" }, tr("Skipped words come back at the end if time remains.")));
   let letters = [];
   const val = k => k < 4 ? 150 : 200;
   const load = () => {
@@ -1231,8 +1255,8 @@ function wordFlip() {
   };
   const draw = () => {
     const [w, style, hint] = list[i];
-    prog.textContent = `Word ${i + 1}/6 · ${val(i)} pts · Score ${fmt(total)}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : "");
-    hintEl.innerHTML = ""; hintEl.append(h("span", { class: "badge" }, style), " ", hint);
+    prog.textContent = tr("Word {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : "");
+    hintEl.innerHTML = ""; hintEl.append(h("span", { class: "badge" }, tr(style)), " ", hint);
     slots.innerHTML = ""; w.split("").forEach((_, k) => slots.append(h("span", { class: "slot" + (built[k] != null ? " on" : "") }, built[k] != null ? letters[built[k]].c : "")));
     tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { if (busy) return; built.push(k); draw(); check(); } }, l.c)));
   };
@@ -1269,12 +1293,12 @@ function wordBridge() {
   let i = 0, total = 0, over = false, busy = false; const res = [];
   const val = k => k < 4 ? 150 : 200;
   const prog = h("div", { class: "prog" }), puzzle = h("div", { class: "bridge" });
-  const input = h("input", { class: "txt", placeholder: "Missing word", autocomplete: "off", autocapitalize: "characters", spellcheck: "false" });
-  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); guess(); } }, input, h("div", { class: "answer-row" }, h("button", { class: "btn primary", type: "submit" }, "Submit"), skipBtn(() => skipB(), "Skip →")));
+  const input = h("input", { class: "txt", placeholder: tr("Missing word"), autocomplete: "off", autocapitalize: "characters", spellcheck: "false" });
+  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); guess(); } }, input, h("div", { class: "answer-row" }, h("button", { class: "btn primary", type: "submit" }, tr("Submit")), skipBtn(() => skipB(), tr("Skip →"))));
   let queue = list.slice(0, 6).map((_, k) => k);
-  body.append(prog, puzzle, form, h("p", { class: "skip-note" }, "Skipped puzzles come back at the end if time remains."));
+  body.append(prog, puzzle, form, h("p", { class: "skip-note" }, tr("Skipped puzzles come back at the end if time remains.")));
   // Skip sits beside Submit (one row, mid-screen) so it is never under the phone's bottom browser bar.
-  const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = `Puzzle ${i + 1}/6 · ${val(i)} pts · Score ${fmt(total)}/1,000 pts` + (queue.length < 6 ? ` · ${queue.length} left` : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, "?"), h("span", {}, b)); input.value = ""; input.focus(); };
+  const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = tr("Puzzle {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, tr("?")), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
     const v = norm(input.value).toUpperCase().replace(/ /g, ""); if (!v) return;
@@ -1294,22 +1318,22 @@ function wordBridge() {
 
 function connections() {
   const set = session.set.connections;
-  const body = screen("📝 Clusters", "Find 3 groups of 3 · 90 seconds");
+  const body = screen("📝 " + tr("Clusters"), tr("Find 3 groups of 3 · 90 seconds"));
   let words = shuffle(set.groups.flatMap(g => g.words), rng(session.day)), sel = [], found = [], mistakes = 0, total = 0, over = false;
   const solved = h("div", { class: "solved" }), grid = h("div", { class: "grid3" }), info = h("div", { class: "prog" });
   // Secondary controls: small outline pills in their own row under the grid (visibly unlike the word tiles);
   // Submit is the primary action in the bottom bar.
   const ctrls = h("div", { class: "pill-row" },
-    h("button", { class: "pill-btn", type: "button", onclick: () => { words = shuffle(words); draw(); } }, h("span", { "aria-hidden": "true" }, "⇄"), " Shuffle"),
+    h("button", { class: "pill-btn", type: "button", onclick: () => { words = shuffle(words); draw(); } }, h("span", { "aria-hidden": "true" }, "⇄"), " " + tr("Shuffle")),
     h("button", { class: "pill-btn", type: "button", onclick: () => { sel = []; draw(); } }, h("span", { "aria-hidden": "true" }, "✕"), " Deselect"));
   body.append(info, solved, grid, ctrls);
   const subBar = actionBar(body);
-  subBar.append(h("button", { class: "btn primary big", id: "csub", onclick: () => submit() }, "Submit"), skipBtn(() => end()));
+  subBar.append(h("button", { class: "btn primary big", id: "csub", onclick: () => submit() }, tr("Submit")), skipBtn(() => end()));
   // Incremental updates: solved groups are appended once (their animation plays once);
   // selecting a word only toggles that tile's class; the grid is rebuilt only when words change.
   const shown = new Set(); let gridKey = "";
   const draw = () => {
-    info.innerHTML = ""; info.append(`Score ${fmt(total)}/1,000 pts · Mistakes left: `, h("b", {}, "●".repeat(3 - mistakes) + "○".repeat(mistakes)));
+    info.innerHTML = ""; info.append(tr("Score {0}/1,000 pts · Mistakes left: ", fmt(total)), h("b", {}, "●".repeat(3 - mistakes) + "○".repeat(mistakes)));
     found.forEach(g => { if (shown.has(g.name)) return; shown.add(g.name); solved.append(h("div", { class: "group g" + set.groups.findIndex(x => x.name === g.name) + (g.pts === 0 ? " missed" : "") }, h("b", {}, g.name + " · " + g.pts), h("span", {}, g.words.join(", ")))); });
     const key = words.join("|");
     if (key !== gridKey) {
@@ -1322,7 +1346,7 @@ function connections() {
   const submit = () => {
     const g = set.groups.find(g => g.words.every(w => sel.includes(w)));
     if (g) { found.push(g); total += g.pts; track(total); words = words.filter(w => !g.words.includes(w)); sel = []; if (found.length === 3) return end(); }
-    else { mistakes++; const one = set.groups.some(g => g.words.filter(w => sel.includes(w)).length === 2); grid.classList.add("shake"); setTimeout(() => grid.classList.remove("shake"), 400); if (one) feedbackTmp("One away…"); sel = []; if (mistakes >= 3) return end(); }
+    else { mistakes++; const one = set.groups.some(g => g.words.filter(w => sel.includes(w)).length === 2); grid.classList.add("shake"); setTimeout(() => grid.classList.remove("shake"), 400); if (one) feedbackTmp(tr("One away…")); sel = []; if (mistakes >= 3) return end(); }
     draw();
   };
   const feedbackTmp = t => { const f = feedback(body, null, t); setTimeout(() => f.remove(), 1200); };
@@ -1338,16 +1362,16 @@ function connections() {
 
 function oddOneOut() {
   const list = session.set.oddOneOut;
-  const body = screen("📝 Imposter", "8 puzzles · 60 seconds");
+  const body = screen("📝 " + tr("Imposter"), tr("8 puzzles · 60 seconds"));
   let i = 0, total = 0, over = false; const res = [];
   const val = k => k < 4 ? 100 : 150;
   const prog = h("div", { class: "prog" }), opts = h("div", { class: "options two" });
-  body.append(prog, h("p", { class: "prompt" }, "Which one doesn't belong?"), opts);
+  body.append(prog, h("p", { class: "prompt" }, tr("Which one doesn't belong?")), opts);
   const oddBar = actionBar(body); oddBar.append(skipBtn(() => pickIt(-1)));
   let drawnAt = 0;
   const draw = () => {
     drawnAt = performance.now();
-    prog.textContent = `Puzzle ${i + 1}/8 · ${i < 4 ? "Medium" : "Hard"} · ${val(i)} pts · Score ${fmt(total)}/1,000 pts`;
+    prog.textContent = tr("Puzzle {0}/8 · {1} · {2} pts · Score {3}/1,000 pts", i + 1, tr(i < 4 ? tr("Medium") : tr("Hard")), val(i), fmt(total));
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };
@@ -1370,7 +1394,7 @@ function anagramRush() {
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
   const form = h("p", { class: "kbd-tip" }, "⌨️ Type letters · Enter to submit · Backspace to delete · Space to shuffle");
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, "🔀 Shuffle"), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, "Clear"), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, "Submit word"), skipBtn(() => end()));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, tr("🔀 Shuffle")), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, tr("Clear")), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, tr("Submit word")), skipBtn(() => end()));
   body.append(scoreEl, cur, tiles, ctrls, form, list);
   // Update in place (no innerHTML rebuild on each key/submit) so Enter never re-creates the screen or moves focus.
   const slotEls = Array.from({ length: 6 }, () => h("span", { class: "slot" }));
@@ -1378,7 +1402,7 @@ function anagramRush() {
   let tileEls = [];
   const buildTiles = () => { tiles.replaceChildren(...(tileEls = letters.map((l, k) => h("button", { class: "tile", onclick: () => { if (!built.includes(k)) { built.push(k); draw(); } } }, l)))); };
   const scoreB = h("b", {}, "0"), scoreRest = h("small", { class: "raw-sub" });
-  scoreEl.append("Score ", scoreB, "/1,000 pts", scoreRest);
+  scoreEl.append("Score ", scoreB, tr("/1,000 pts"), scoreRest);
   let shownFound = 0;
   const draw = () => {
     scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = `${found.length} words · ${raw} raw`;
@@ -1394,15 +1418,15 @@ function anagramRush() {
   const tryWord = w => {
     if (over) return; w = w.toLowerCase().trim(); built = [];
     if (w.length < 3) { draw(); return; }
-    if (found.includes(w)) flash("Already found", null);
+    if (found.includes(w)) flash(tr("Already found"), null);
     else if (valid.has(w)) { found.unshift(w); raw += PTS[w.length]; track(Math.min(1000, Math.round(raw / target * 1000))); flash("+" + PTS[w.length], true); }
-    else flash("Not a word", false);
+    else flash(tr("Not a word"), false);
     draw();
   };
   const end = () => {
     if (over) return; over = true; timer.stop(); clearTimeout(fbT); fbSlot.remove(); tiles.remove(); ctrls.remove(); form.remove(); cur.remove();
     const missed = set.common.filter(w => !found.includes(w));
-    body.append(h("p", { class: "muted" }, "Missed words: " + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : "none — wow!")));
+    body.append(h("p", { class: "muted" }, tr("Missed words: ") + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : tr("none — wow!"))));
     // ONE number everywhere: the converted /1,000 score is what the header shows, what is banked and what the total sums.
     body.append(h("p", { class: "muted" }, `${found.length} word${found.length === 1 ? "" : "s"} · ${fmt(raw)} raw points`));
     catDone(body, Math.min(1000, Math.round(raw / target * 1000)), "anag raw " + raw);
@@ -1430,7 +1454,7 @@ function normPuzzle(q) {
   if (q && q.type === "illusion") return { ...q, type: "mc", kind: "illusion", img: q.img || String(q.svg || "").replace(/^.*\//, "").replace(/\.svg$/i, "") };
   return q;
 }
-const TF_KIND = { math: "Math trap", sequence: "Sequence", logic: "Logic", guesstimate: "Guesstimate", illusion: "Optical illusion", riddle: "Lateral riddle" };
+const TF_KIND = { math: tr("Math trap"), sequence: tr("Sequence"), logic: tr("Logic"), guesstimate: tr("Guesstimate"), illusion: tr("Optical illusion"), riddle: tr("Lateral riddle") };
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
 function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer", true); }
 function guessQuestion(body, q, value, seconds, done, gq) {
@@ -1438,12 +1462,12 @@ function guessQuestion(body, q, value, seconds, done, gq) {
   let over = false;
   const yearMode = q.exactYear === true || typeof q.yearBand === "number";
   const yearBand = typeof q.yearBand === "number" && isFinite(q.yearBand) ? Math.max(0, q.yearBand) : 0;
-  const input = h("input", { class: "txt", placeholder: yearMode ? "Year" : "Your best estimate", inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Your estimate" + (q.unit ? " in " + q.unit : "") });
+  const input = h("input", { class: "txt", placeholder: yearMode ? tr("Year") : tr("Your best estimate"), inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Your estimate") + (q.unit ? tr(" in ") + q.unit : "") });
   const form = h("form", { class: "answer guess", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } },
-    h("div", { class: "guess-field" }, input, q.unit ? h("span", { class: "guess-unit" }, q.unit) : null),
-    h("button", { class: "btn primary", type: "submit" }, "Lock in"));
+    h("div", { class: "guess-field" }, input, q.unit ? h("span", { class: "guess-unit" }, tr(q.unit)) : null),
+    h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
   const noteTxt = yearMode
-    ? (yearBand > 0 ? `Exact year ±${yearBand} = full points · otherwise 0` : "Exact year only = full points · otherwise 0")
+    ? (yearBand > 0 ? tr("Exact year ±{0} = full points · otherwise 0", yearBand) : tr("Exact year only = full points · otherwise 0"))
     : "Within 5% = full points · 0 at 50% off";
   const note = h("p", { class: "muted guess-note" }, noteTxt);
   body.append(form, note); setTimeout(() => input.focus(), 50);
@@ -1461,14 +1485,14 @@ function guessQuestion(body, q, value, seconds, done, gq) {
       if (yearMode) {
         pts = window.Answers.yearScore(n, q.answer, value, { yearBand });
         const diff = Math.abs(Math.round(n) - Math.round(q.answer));
-        off = diff ? ` Off by ${diff} year${diff === 1 ? "" : "s"}.` : "";
+        off = diff ? tr(diff === 1 ? " Off by {0} year." : " Off by {0} years.", diff) : "";
       } else {
         pts = window.Answers.closenessScore(n, q.answer, value);
-        off = !q.answer ? "" : ` You were ${Math.round(Math.abs(n - q.answer) / Math.abs(q.answer) * 100)}% off.`;
+        off = !q.answer ? "" : tr(" You were {0}% off.", Math.round(Math.abs(n - q.answer) / Math.abs(q.answer) * 100));
       }
     }
-    feedback(body, pts === value ? true : pts > 0 ? null : false, (skipped ? "Skipped." : n === null ? "Time's up." : pts === value ? "Spot on!" : pts > 0 ? "Close!" : "Not close.") +
-      ` Answer: ${fmtN(q.answer)}${q.unit ? " " + q.unit : ""}.${off} +${pts}` + (q.explain ? " — " + q.explain : ""));
+    feedback(body, pts === value ? true : pts > 0 ? null : false, tr(skipped ? "Skipped." : n === null ? "Time's up." : pts === value ? "Spot on!" : pts > 0 ? tr("Close!") : tr("Not close.")) +
+      tr(" Answer: {0}.", fmtN(q.answer) + (q.unit ? " " + q.unit : "")) + `${off} +${pts}` + (q.explain ? " — " + q.explain : ""));
     done(pts);
   }
 }
@@ -1477,13 +1501,13 @@ function thinkFast() {
   let total = 0, i = 0; const log = [];
   const ask = () => {
     const q = qs[i], kind = TF_KIND[q.kind] ? " · " + TF_KIND[q.kind] : "";
-    const body = screen("🧠 Brain Teaser", `Puzzle ${i + 1} of 2${kind} · ${vals[i]} pts · one submission`);
-    const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), "Final puzzle →", ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
+    const body = screen("🧠 " + tr("Brain Teaser"), tr("Puzzle {0} of 2{1} · {2} pts · one submission", i + 1, kind, vals[i]));
+    const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), tr("Final puzzle →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
     if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
-      const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
+      const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
       mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); next(pts); },
         q.img || q.kind === "illusion" ? puzzleArt(q.img) : null, pin);
     } else textQuestion(body, q.q, q.answers, vals[i], TBD.think, next, null, q.answers[0], q.explain, q);
@@ -1495,7 +1519,7 @@ function thinkFast() {
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
 const SITE_URL = "https://lukebiasi11.github.io/Brainclash.com/";
 const shareText = () => `Brain Clash ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
-async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = "Copied!"; } } catch {} }
+async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch {} }
 // Lightweight confetti on a single canvas (~2 s, no library).
 // Fix (Oct 26): the canvas used to sit at z-index 1 INSIDE the modal, under the card (z-index 2), which covers
 // nearly the whole phone width, so the burst was hidden. It now sits ABOVE the card (pointer-events: none),
@@ -1566,28 +1590,28 @@ function countStats() {
 // Pop-up shown the moment the 5th category finishes. Styling: .result-modal* / .confetti-canvas in style.css.
 // Snarky one-liners by score band; picked by day so the line is stable on reload.
 const SNARK = {
-  perfect: ["Flawless. Are you cheating, or just insufferable?", "5,000. Go outside, you've earned it.", "Perfect score. We're calling your mom to brag."],
-  great: ["Big brain energy. Mildly annoying, honestly.", "Strong showing. Don't let it go to your head.", "Impressive. The other brains are taking notes."],
-  mid: ["Solidly… fine. Like a beige couch.", "Not bad, not great. Peak Tuesday energy.", "Your brain showed up. Mostly."],
-  rough: ["Rough one. Your brain called in sick?", "Well, at least you finished.", "Bold strategy: guess everything."],
-  zero: ["Zero. Impressive in its own way.", "A perfect zero. Was the phone upside down?", "Nothing! Tomorrow can only go up."]
+  perfect: ["Flawless. Are you cheating, or just insufferable?", tr("5,000. Go outside, you've earned it."), "Perfect score. We're calling your mom to brag."],
+  great: ["Big brain energy. Mildly annoying, honestly.", tr("Strong showing. Don't let it go to your head."), "Impressive. The other brains are taking notes."],
+  mid: ["Solidly… fine. Like a beige couch.", tr("Not bad, not great. Peak Tuesday energy."), "Your brain showed up. Mostly."],
+  rough: ["Rough one. Your brain called in sick?", tr("Well, at least you finished."), "Bold strategy: guess everything."],
+  zero: ["Zero. Impressive in its own way.", tr("A perfect zero. Was the phone upside down?"), "Nothing! Tomorrow can only go up."]
 };
 function snarkLine(tot) {
   const band = tot >= 5000 ? "perfect" : tot >= 3750 ? "great" : tot >= 2000 ? "mid" : tot > 0 ? "rough" : "zero";
-  const l = SNARK[band]; return l[((session ? session.day : 0) % l.length + l.length) % l.length];
+  const l = SNARK[band]; return tr(l[((session ? session.day : 0) % l.length + l.length) % l.length]);
 }
 // Category-level quips (per 1,000-point category): roast low, praise high. Stable per day + category.
 const CAT_QUIP = {
-  top: ["Showing off now, are we?", "Clean sweep. Rude, honestly.", "That category never stood a chance."],
-  good: ["Nicely done. Keep that energy.", "Solid. Your brain is warmed up.", "Respectable work. Carry on."],
-  mid: ["Middle of the pack. Very… balanced.", "Half right, half vibes.", "Could be worse. Could be better."],
-  low: ["Oof. Shake it off.", "That one bit back.", "Let's pretend that didn't happen."],
-  zero: ["A goose egg. Bold.", "Zero. Next category, quickly.", "Nothing? The next one's yours."]
+  top: ["Showing off now, are we?", tr("Clean sweep. Rude, honestly."), "That category never stood a chance."],
+  good: ["Nicely done. Keep that energy.", tr("Solid. Your brain is warmed up."), "Respectable work. Carry on."],
+  mid: ["Middle of the pack. Very… balanced.", tr("Half right, half vibes."), "Could be worse. Could be better."],
+  low: ["Oof. Shake it off.", tr("That one bit back."), "Let's pretend that didn't happen."],
+  zero: ["A goose egg. Bold.", tr("Zero. Next category, quickly."), "Nothing? The next one's yours."]
 };
 function catQuip(score, cat) {
   const band = score >= 900 ? "top" : score >= 650 ? "good" : score >= 350 ? "mid" : score > 0 ? "low" : "zero";
   const l = CAT_QUIP[band], k = (session ? session.day : 0) * 7 + (cat || 0);
-  return l[((k % l.length) + l.length) % l.length];
+  return tr(l[((k % l.length) + l.length) % l.length]);
 }
 function resultsPopup() {
   if ($(".result-modal")) return;
@@ -1599,12 +1623,12 @@ function resultsPopup() {
   const shareBtn = h("button", { class: "btn primary big result-modal__share", onclick: () => doShare(shareBtn) }, "📤 Share result");
   const m = h("div", { class: "result-modal", role: "dialog", "aria-modal": "true", "aria-label": "Clash complete" },
     h("div", { class: "result-modal__card" },
-      h("small", { class: "result-modal__kicker" }, session.practice ? "Practice complete" : "Clash complete!"),
+      h("small", { class: "result-modal__kicker" }, session.practice ? tr("Practice complete") : tr("Clash complete!")),
       num, h("small", { class: "result-modal__of" }, "/ 5,000"),
       h("p", { class: "result-modal__quip" }, snarkLine(tot)),
       h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
       shareBtn,
-      h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, "See full results")));
+      h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, tr("See full results"))));
   document.addEventListener("keydown", esc);
   document.body.append(m); endFx(tot, m, m.querySelector(".result-modal__card")); countUp(num, tot, 1200);
 }
@@ -1617,19 +1641,19 @@ function results() {
   app.innerHTML = ""; window.scrollTo(0, 0);
   const share = shareText(); // ends with SITE_URL
   app.append(
-    h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? "Practice run complete" : "Today's Clash complete")),
-    h("div", { class: "final" }, h("small", {}, "Final score"), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
+    h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
+    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
     h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
-      h("button", { class: "btn primary", onclick: e => doShare(e.currentTarget) }, "Share result"),
-      h("button", { class: "btn", onclick: home }, "Home")),
-    h("p", { class: "fine" }, "Global & friends leaderboards arrive with accounts in a future version."));
+      h("button", { class: "btn primary", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
+      h("button", { class: "btn", onclick: home }, tr("Home"))),
+    h("p", { class: "fine" }, tr("Global & friends leaderboards arrive with accounts in a future version.")));
   countUp($("#finalnum"), tot, 1600);
   setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
 }
 
-document.addEventListener("click", e => { if (e.target.closest(".brand")) { if (!session || session.inProgress == null || confirm("Leave this game? Progress in the current category is lost.")) home(); } });
+document.addEventListener("click", e => { if (e.target.closest(".brand")) { if (!session || session.inProgress == null || confirm(tr("Leave this game? Progress in the current category is lost."))) home(); } });
 
 // ---------- fit-one-screen ----------
 // Game screens are a full-height flex column (CSS). Older Safari without svh/dvh gets --vh from visualViewport.

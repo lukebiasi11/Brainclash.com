@@ -10,4 +10,9 @@ const t = (name, got, exp) => { if (got !== exp) { bad++; console.log("FAIL", na
   .forEach(([i, a, e, o]) => t(`check ${i} vs ${a[0]}`, A.checkAnswer(i, a, o || {}), e));
 [["2 hours", "minutes", 120], ["90", "minutes", 90], ["1.5 hours", "minutes", 90], ["5 km", "minutes", null], ["$0.05", "cents", 5], ["1.2k", null, 1200]]
   .forEach(([s, u, e]) => t(`estimate ${s} (${u})`, A.parseEstimate(s, u), e));
+// nov2es: accent-insensitive + leading article (en/es) dropped before matching; nearMiss rules unchanged
+[["Mexico", ["méxico"], true], ["méxico", ["mexico"], true], ["Peru", ["Perú"], true], ["sao paulo", ["São Paulo"], true], ["Bogota", ["bogotá"], true],
+ ["el Salvador", ["salvador"], true], ["la Habana", ["habana"], true], ["los andes", ["andes"], true], ["Las Malvinas", ["malvinas"], true],
+ ["the Beatles", ["beatles"], true], ["a Tale of Two Cities", ["tale of two cities"], true], ["el Peru", ["perú"], true], ["Austria", ["Australia"], false], ["la Iran", ["iraq"], false]]
+  .forEach(([i, a, e, o]) => t(`es ${i} vs ${a[0]}`, A.checkAnswer(i, a, o || {}), e));
 console.log(bad ? bad + " failures" : "answers.test.js: all pass"); process.exit(bad ? 1 : 0);
