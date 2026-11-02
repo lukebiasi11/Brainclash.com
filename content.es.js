@@ -38,7 +38,7 @@ window.CONTENT_ES = {
   {
    "pins": [
     {
-     "name": "Tallin, Estonia",
+     "name": "Tallín, Estonia",
      "lat": 59.44,
      "lon": 24.75
     },
@@ -1090,7 +1090,7 @@ window.CONTENT_ES = {
     "explain": "50 pares que suman 101"
    },
    {
-    "q": "El papá de María tiene cinco hijas: Nana, Nene, Nini y Nono. ¿Cómo se llama la quinta hija?",
+    "q": "El papá de María tiene cinco hijas. Cuatro se llaman Nana, Nene, Nini y Nono. ¿Cuál es el nombre de la quinta hija?",
     "answers": [
      "maría",
      "maria",
@@ -1098,7 +1098,9 @@ window.CONTENT_ES = {
     ],
     "wrong": [
      "marta",
-     "marina"
+     "marina",
+     "nunu",
+     "nunú"
     ],
     "explain": "Es la propia María"
    }

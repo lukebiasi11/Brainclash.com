@@ -312,7 +312,7 @@ function nextBtn(parent, label, fn) { if (document.body.classList.contains("in-g
 const actionBar = body => { const bar = h("div", { class: "action-bar" }); body.append(bar); return bar; };
 // Visible Skip control for every play screen — lives in the action bar so it stays above the browser chrome.
 function skipBtn(onSkip, label) {
-  return h("button", { class: "btn skip-btn", type: "button", "aria-label": tr("Skip"), onclick: e => { e.preventDefault(); onSkip(); } }, label || "Skip");
+  return h("button", { class: "btn skip-btn", type: "button", "aria-label": tr("Skip"), onclick: e => { e.preventDefault(); onSkip(); } }, label || tr("Skip"));
 }
 // RULE (Luke): Skip always sits BESIDE the Lock in / Submit button on one row, mid-screen, never under the phone's bottom bar.
 // Typed-answer screens (form.answer): Skip joins the submit button in an .answer-row inside the form.
@@ -444,7 +444,7 @@ function introText(id) {
       bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
       conn: tr("Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds."),
       odd: tr("8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds."),
-      anag: "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses." },
+      anag: tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.") },
     think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
@@ -732,13 +732,13 @@ function history() {
     const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, rd.theme, rd.max));
     // Instructions follow the layout: stacked cards (≤560px, same breakpoint as the CSS) read top → bottom, a row reads left → right.
     body.append(h("p", { class: "prompt" }, tr("Drag the cards into order — "),
-      h("b", { class: "tl-dir tl-dir--v" }, "earliest at top, latest at bottom"), h("b", { class: "tl-dir tl-dir--h" }, "earliest on the left, latest on the right"), "."));
+      h("b", { class: "tl-dir tl-dir--v" }, tr("earliest at top, latest at bottom")), h("b", { class: "tl-dir tl-dir--h" }, tr("earliest on the left, latest on the right")), "."));
     let order = shuffle(rd.events.map((_, i) => i), R);
     if (order.every((v, i) => v === i)) order.reverse();
     const line = h("div", { class: "timeline" });
     const axis = h("div", { class: "axis" }, h("span", {}, tr("Earliest ←")), h("span", {}, tr("→ Latest")));
     const vaxis = h("div", { class: "vaxis", "aria-hidden": "true" }, h("span", {}, tr("Earliest")), h("i", {}), h("span", {}, tr("Latest")));
-    body.append(h("p", { class: "drag-hint" }, "☝️ Touch and drag to reorder"), axis, h("div", { class: "tl-wrap" }, vaxis, line));
+    body.append(h("p", { class: "drag-hint" }, tr("☝️ Touch and drag to reorder")), axis, h("div", { class: "tl-wrap" }, vaxis, line));
     let locked = false;
     const render = () => {
       line.innerHTML = "";
@@ -1325,7 +1325,7 @@ function connections() {
   // Submit is the primary action in the bottom bar.
   const ctrls = h("div", { class: "pill-row" },
     h("button", { class: "pill-btn", type: "button", onclick: () => { words = shuffle(words); draw(); } }, h("span", { "aria-hidden": "true" }, "⇄"), " " + tr("Shuffle")),
-    h("button", { class: "pill-btn", type: "button", onclick: () => { sel = []; draw(); } }, h("span", { "aria-hidden": "true" }, "✕"), " Deselect"));
+    h("button", { class: "pill-btn", type: "button", onclick: () => { sel = []; draw(); } }, h("span", { "aria-hidden": "true" }, "✕"), tr(" Deselect")));
   body.append(info, solved, grid, ctrls);
   const subBar = actionBar(body);
   subBar.append(h("button", { class: "btn primary big", id: "csub", onclick: () => submit() }, tr("Submit")), skipBtn(() => end()));
@@ -1393,7 +1393,7 @@ function anagramRush() {
   const body = screen("📝 Anagram Rush", "6 letters · 60 seconds");
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
-  const form = h("p", { class: "kbd-tip" }, "⌨️ Type letters · Enter to submit · Backspace to delete · Space to shuffle");
+  const form = h("p", { class: "kbd-tip" }, tr("⌨️ Type letters · Enter to submit · Backspace to delete · Space to shuffle"));
   const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { letters = shuffle(letters); built = []; draw(); } }, tr("🔀 Shuffle")), h("button", { class: "btn", onclick: () => { built = []; draw(); } }, tr("Clear")), h("button", { class: "btn primary", onclick: () => tryWord(built.map(k => letters[k]).join("")) }, tr("Submit word")), skipBtn(() => end()));
   body.append(scoreEl, cur, tiles, ctrls, form, list);
   // Update in place (no innerHTML rebuild on each key/submit) so Enter never re-creates the screen or moves focus.
@@ -1402,10 +1402,10 @@ function anagramRush() {
   let tileEls = [];
   const buildTiles = () => { tiles.replaceChildren(...(tileEls = letters.map((l, k) => h("button", { class: "tile", onclick: () => { if (!built.includes(k)) { built.push(k); draw(); } } }, l)))); };
   const scoreB = h("b", {}, "0"), scoreRest = h("small", { class: "raw-sub" });
-  scoreEl.append("Score ", scoreB, tr("/1,000 pts"), scoreRest);
+  scoreEl.append(tr("Score "), scoreB, tr("/1,000 pts"), scoreRest);
   let shownFound = 0;
   const draw = () => {
-    scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = `${found.length} words · ${raw} raw`;
+    scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = tr("{0} words · {1} raw", found.length, raw);
     slotEls.forEach((el, k) => { const on = built[k] != null; el.className = "slot" + (on ? " on" : ""); el.textContent = on ? letters[built[k]] : ""; });
     if (tileEls.length !== letters.length || tileEls.some((b, k) => b.textContent !== letters[k])) buildTiles();
     tileEls.forEach((b, k) => { b.disabled = built.includes(k); });
@@ -1620,7 +1620,7 @@ function resultsPopup() {
   const num = h("b", { class: "result-modal__score" }, "0");
   const close = () => { m.remove(); document.removeEventListener("keydown", esc); };
   const esc = e => { if (e.key === "Escape") close(); };
-  const shareBtn = h("button", { class: "btn primary big result-modal__share", onclick: () => doShare(shareBtn) }, "📤 Share result");
+  const shareBtn = h("button", { class: "btn primary big result-modal__share", onclick: () => doShare(shareBtn) }, tr("📤 Share result"));
   const m = h("div", { class: "result-modal", role: "dialog", "aria-modal": "true", "aria-label": "Clash complete" },
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? tr("Practice complete") : tr("Clash complete!")),
