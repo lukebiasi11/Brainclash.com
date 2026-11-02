@@ -314,6 +314,23 @@ function ensureSkipBar(body, onSkip) {
 }
 
 // ---------- home ----------
+// nov2b: after-play results graph on home (own points per category for today, from the saved dg-<day> session; no backend).
+function scoreGraph(scores, day) {
+  const tot = scores.reduce((a, b) => a + b, 0);
+  const anim = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dt = new Date(day * 864e5).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  const card = h("section", { class: "score-graph" + (anim ? " anim" : ""), "aria-label": "Today's points by category" },
+    h("p", { class: "sg-date" }, "Today's scores · " + dt),
+    h("div", { class: "sg-card" },
+      h("h3", {}, "Points by category"),
+      h("ul", {}, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
+        return h("li", {}, h("span", { class: "sg-nm" }, c.name),
+          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--w:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
+          h("b", { class: "sg-v" }, fmt(scores[i] || 0))); })),
+      h("div", { class: "sg-total" }, h("span", {}, "Total"), h("b", {}, fmt(tot)))));
+  if (anim) requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("in")));
+  return card;
+}
 function home() {
   document.body.classList.remove("in-game");
   $(".result-modal")?.remove();
@@ -340,6 +357,7 @@ function home() {
     })),
     done
       ? h("div", { class: "cta" }, h("p", {}, "You've finished today's Clash: ", h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
+          scoreGraph(s.scores, day),
           h("button", { class: "btn primary big", onclick: () => { session = newSession(false); results(); } }, "View results"),
           h("p", { class: "muted", id: "countdown" }))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? "Continue the Clash" : "Start the Clash"),

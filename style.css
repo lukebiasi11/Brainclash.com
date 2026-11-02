@@ -932,3 +932,23 @@ body.in-game .prompt,body.in-game .wr-prompt{font-size:max(16px,clamp(18px,calc(
 @media (max-width:430px){body.in-game .wr-prompt{font-size:clamp(17px,4.6vw,21px);line-height:1.15}}
 body.in-game form.answer input,body.in-game .answer .txt{font-size:max(16px,1em)}
 body.in-game .game-body.fit-scroll{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+
+/* nov2b: after-play results graph (Designer layout-simple-bars) */
+.score-graph{margin:4px auto 14px;max-width:520px;text-align:left}
+.score-graph .sg-date{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink-bc);margin:0 0 10px}
+.sg-card{background:var(--navy);color:#fff;padding:20px 18px 18px;box-shadow:8px 8px 0 var(--ink-bc)}
+.sg-card h3{font-family:var(--display);font-weight:400;color:var(--bolt);text-transform:uppercase;font-size:24px;letter-spacing:.02em;margin:0 0 14px}
+.sg-card ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.sg-card li{display:grid;grid-template-columns:minmax(84px,7.5em) 1fr 3.2em;align-items:center;gap:12px}
+.sg-nm{font-family:var(--body);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;line-height:1.1}
+.sg-track{height:26px;background:#18205E;position:relative}
+.sg-bar{position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--orange);box-shadow:3px 3px 0 var(--ink-bc)}
+.score-graph.anim .sg-bar{width:0;transition:width .7s cubic-bezier(.2,.8,.2,1) var(--d)}
+.score-graph.anim.in .sg-bar{width:var(--w)}
+.sg-v{font-family:var(--display);font-weight:400;color:var(--bolt);font-size:24px;text-align:right}
+.sg-total{display:flex;justify-content:space-between;align-items:flex-end;border-top:2px dashed #ffffff55;margin-top:18px;padding-top:12px}
+.sg-total span{font-family:var(--body);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:15px}
+.sg-total b{font-family:var(--display);font-weight:400;color:var(--orange);font-size:52px;line-height:1;text-shadow:3px 3px 0 var(--ink-bc)}
+@media (min-width:700px){.sg-card{padding:26px 28px 22px}.sg-nm{font-size:15px}.sg-card li{grid-template-columns:10em 1fr 3.2em}.sg-track{height:34px}.sg-v{font-size:30px}.sg-total b{font-size:64px}}
+@media (prefers-reduced-motion:reduce){.score-graph .sg-bar{transition:none!important;width:var(--w)!important}}
+@media (max-width:360px){.sg-card{padding:16px 12px 14px}.sg-card li{grid-template-columns:auto 1fr 2.6em;gap:8px}.sg-nm{font-size:11px;max-width:6.5em}.sg-v{font-size:20px}}
