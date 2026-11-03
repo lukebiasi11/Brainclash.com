@@ -35,16 +35,22 @@
       .replace(/\s+/g, " ").trim().replace(ARTICLE, "").replace(/\u0001\s?/g, "-").replace(/\$-/g, "-$");
   }
   // Unit-aware quantity: { n, money, unit } where unit is "usd" ($ / dollar(s) / bucks / usd), "cents", or null (bare).
+  // nov3f: Spanish only — "5.050" / "1.234.567" are thousands groups (dots), so 5.050 = 5050. English unchanged.
+  let LANG = (typeof window !== "undefined" && window.I18N && window.I18N.LANG) || "en";
+  function numText(raw) {
+    const s = norm(raw);
+    return (LANG === "es" ? s.replace(/(^|[^\d.])(\d{1,3}(?:\.\d{3})+)(?![\d.])/g, (m, p, g) => p + g.replace(/\./g, "")) : s).replace(/,/g, "");
+  }
   // Money values are in DOLLARS: "$5" = 5, "5 cents" = 0.05. The unit is read from the raw text, never stripped first.
   function parseQty(raw) {
-    const s = norm(raw).replace(/,/g, "");
+    const s = numText(raw);
     const unit = /^-?\$|\$$|(dollars?|bucks|usd)$/.test(s) ? "usd" : (/(cents?|c)$/.test(s) && !/percent$/.test(s)) ? "cents" : null;
     const n = parseNum(raw);
     return n === null ? null : { n, money: unit !== null, unit };
   }
   // Returns a number (fractions and mixed numbers evaluated: "2/15", "7 1/2"), or null.
   function parseNum(raw) {
-    let s = norm(raw).replace(/,/g, "");
+    let s = numText(raw);
     const neg = /^-/.test(s); if (neg) s = s.slice(1);   // sign kept by norm(): "-20", "minus 20", "negative twenty"
     const v = parseUnsigned(s);
     return v === null ? null : neg ? -v : v;
@@ -133,7 +139,7 @@
   const FRAC_WORD = { quarter: 0.25, half: 0.5, "three quarter": 0.75, "three quarters": 0.75 };
   // -> { n, dim, base } (base = value in seconds / metres / percent points) or null when there is no time/length/percent unit.
   function parseDim(raw, expDim) {
-    const s = norm(raw).replace(/,/g, "");
+    const s = numText(raw);
     let m = s.match(/^(?:an? )?(quarter|half|three quarters?) (?:of )?(?:an? )?(hour|minute|day|week|year|mile|meter|metre|kilometer|kilometre)$/);
     if (m) { const u = m[2] + "s", dim = UNITS.time[u] ? "time" : "length"; return { n: FRAC_WORD[m[1]], dim, base: FRAC_WORD[m[1]] * UNITS[dim][u] }; }
     m = s.match(/^(\d+(?:\.\d+)?) and an? half (hours?|minutes?|days?|miles?)$/);
@@ -230,7 +236,7 @@
   // Unit-aware for money via parseNum/parseQty: if the expected unit is "cents", dollar input is converted ($0.05 -> 5).
   const MULT = { k: 1e3, thousand: 1e3, m: 1e6, mil: 1e6, mn: 1e6, million: 1e6, b: 1e9, bn: 1e9, billion: 1e9, t: 1e12, trillion: 1e12 };
   function parseEstimate(raw, unit) {
-    const s0 = norm(raw).replace(/,/g, "").replace(/^(about|around|approx|approximately|roughly|~)\s*/, "").replace(/^~/, "");
+    const s0 = numText(raw).replace(/^(about|around|approx|approximately|roughly|~)\s*/, "").replace(/^~/, "");
     let mult = 1, s = s0;
     const uDim = unit && unit !== "cents" ? (parseDim("1 " + unit) || {}).dim : null;
     const m = s.match(/^(.*?\d)\s*(k|thousand|m|mil|mn|million|b|bn|billion|t|trillion)\b\s*(.*)$/);
@@ -267,6 +273,6 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
-  const api = { checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -10,6 +10,7 @@ const LAUNCH_DATE = "2026-10-23";
 // ======================================================================
 const I18N = window.BC_I18N || { LANG: "en", t: s => s, toggleVisible: () => false }, tr = I18N.t, LANG = I18N.LANG;
 if (LANG === "es") document.documentElement.lang = "es";
+if (window.Answers && Answers.setLang) Answers.setLang(LANG); // nov3f: es dot-thousands in typed numbers
 const C = window.CONTENT;
 const $ = (s, r = document) => r.querySelector(s);
 const app = $("#app");
