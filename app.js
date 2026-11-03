@@ -532,8 +532,8 @@ function globeMap(el, onPick) {
     // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
     // Nov 3b: 0.45°/px at default zoom on every screen (400px ≈ 180°). No per-event cap: coarse mouse events
     // (100px+ each) were being clipped to 20°, so a 400px drag only turned ~20-40°. Tilt stays clamped to ±70°.
-    // nov3d: gain lowered for finer aim (~33 km/px). clientX deltas are already screen px (the globe is never CSS-zoomed).
-    const r = proj.rotate(), ddx = dx * 0.3 / k, ddy = dy * 0.2 / k; // strictly per event, no inertia
+    // nov3e: 0.45°/px horiz, 0.3°/px vert (400px ≈ 180°). clientX deltas are already screen px (the globe is never CSS-zoomed).
+    const r = proj.rotate(), ddx = dx * 0.45 / k, ddy = dy * 0.3 / k; // strictly per event, no inertia
     proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
   function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
