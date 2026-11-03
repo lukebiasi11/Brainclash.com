@@ -967,4 +967,5 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .game-body.tw-done .card .pic{width:36px;height:36px;aspect-ratio:1/1;flex:none;padding:0;align-self:center}
 .game-body.tw-done .card .pic img.ico,.game-body.tw-done .card .pic .ico{width:32px;height:32px;aspect-ratio:1/1;flex:none;object-fit:contain}
-form.answer.guess{margin-top:4px}
+.answer.guess .guess-field{flex:0 0 auto} /* flex-basis 160px became a 160px-tall box in the column .answer layout */
+.order-wrap,body.in-game .order-wrap{flex:0 1 auto} /* don't stretch to fill the screen: FIRST/LAST hug the list */

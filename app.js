@@ -530,8 +530,9 @@ function globeMap(el, onPick) {
   function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
     // Nov 1: was 90/scale (~0.6°/px on phones + inertia → 100°+ per short drag / pole flips). Now ~0.25°/px,
     // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
-    const f = 70 / proj.scale(), r = proj.rotate(), cap = 20; // Nov 3: ~0.45°/px at k=1 → half a turn ≈ 400px
-    const ddx = Math.max(-cap, Math.min(cap, dx * f)), ddy = Math.max(-cap, Math.min(cap, dy * f));
+    // Nov 3b: 0.45°/px at default zoom on every screen (400px ≈ 180°). No per-event cap: coarse mouse events
+    // (100px+ each) were being clipped to 20°, so a 400px drag only turned ~20-40°. Tilt stays clamped to ±70°.
+    const f = 0.45 / k, r = proj.rotate(), ddx = dx * f, ddy = dy * f;
     proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
   function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
