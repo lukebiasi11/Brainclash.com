@@ -86,9 +86,9 @@ window.CONTENT_ES = {
   {
    "pins": [
     {
-     "name": "Sarajevo, Bosnia y Herzegovina",
-     "lat": 43.86,
-     "lon": 18.41
+     "name": "Las Vegas, Nevada, EE. UU.",
+     "lat": 36.17,
+     "lon": -115.14
     },
     {
      "name": "Vientián, Laos",
@@ -97,12 +97,12 @@ window.CONTENT_ES = {
     }
    ],
    "mc": {
-    "q": "¿Sobre qué ciudad se alza la Montaña de la Mesa?",
+    "q": "¿En qué ciudad de Estados Unidos está el Puente Golden Gate?",
     "options": [
-     "Ciudad del Cabo",
-     "Nairobi",
-     "Johannesburgo",
-     "Lagos"
+     "San Francisco",
+     "Seattle",
+     "Los Ángeles",
+     "San Diego"
     ],
     "a": 0
    }

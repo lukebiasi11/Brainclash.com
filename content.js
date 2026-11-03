@@ -96,7 +96,7 @@ window.CONTENT = {
     {"pins":[{"name":"Vilnius, Lithuania","lat":54.69,"lon":25.28},{"name":"Quito, Ecuador","lat":-0.22,"lon":-78.51}],"mc":{"q":"The ancient rock-cut city of Petra is in which country?","options":["Jordan","Egypt","Syria","Lebanon"],"a":0}},
     {"pins":[{"name":"Tallinn, Estonia","lat":59.44,"lon":24.75},{"name":"Maputo, Mozambique","lat":-25.97,"lon":32.57}],"mc":{"q":"The Maya city of Chichén Itzá is in which country?","options":["Guatemala","Belize","Mexico","Honduras"],"a":2}},
     {"pins":[{"name":"Bishkek, Kyrgyzstan","lat":42.87,"lon":74.61},{"name":"Suva, Fiji","lat":-18.14,"lon":178.44}],"mc":{"q":"Easter Island (Rapa Nui) belongs to which country?","options":["Peru","Chile","New Zealand","Ecuador"],"a":1}},
-    {"pins":[{"name":"Sarajevo, Bosnia and Herzegovina","lat":43.86,"lon":18.41},{"name":"Vientiane, Laos","lat":17.98,"lon":102.63}],"mc":{"q":"Table Mountain overlooks which city?","options":["Cape Town","Nairobi","Johannesburg","Lagos"],"a":0}},
+    {"pins":[{"name":"Las Vegas, Nevada, USA","lat":36.17,"lon":-115.14},{"name":"Vientiane, Laos","lat":17.98,"lon":102.63}],"mc":{"q":"The Golden Gate Bridge is in which US city?","options":["San Francisco","Seattle","Los Angeles","San Diego"],"a":0}},
     {"pins":[{"name":"Yerevan, Armenia","lat":40.18,"lon":44.51},{"name":"Bamako, Mali","lat":12.64,"lon":-8}],"mc":{"q":"Serengeti National Park is in which country?","options":["Kenya","Uganda","Tanzania","Zambia"],"a":2}},
     {"pins":[{"name":"Skopje, North Macedonia","lat":42,"lon":21.43},{"name":"La Paz, Bolivia","lat":-16.5,"lon":-68.13}],"mc":{"q":"The Matterhorn straddles the border of Switzerland and which country?","options":["Austria","France","Italy","Germany"],"a":2}},
     {"pins":[{"name":"Tirana, Albania","lat":41.33,"lon":19.82},{"name":"Thimphu, Bhutan","lat":27.47,"lon":89.64}],"mc":{"q":"The Buddhist temple Borobudur is in which country?","options":["Indonesia","Thailand","Cambodia","Myanmar"],"a":0}},
@@ -284,7 +284,7 @@ window.CONTENT = {
     [ ["POST", "BOARD", "CARD"], ["HORSE", "STRING", "SHOE"], ["GRAPE", "CAKE", "FRUIT"], ["SILK", "HOLE", "WORM"], ["DRAGON", "PAPER", "FLY"], ["HAIR", "STROKE", "BRUSH"] ],
     [ ["HONEY", "STONE", "MOON"], ["POP", "FIELD", "CORN"], ["WATER", "OUT", "FALL"], ["BRAIN", "TROOPER", "STORM"], ["NIGHT", "GUARD", "LIFE"], ["PLAY", "HOG", "GROUND"] ],
     // ---- APPENDED Word Nerd week 2 (staged 2026-10-28) ----
-    [["BIRD","TUB","BATH"],["EAR","GUN","SHOT"],["FLAG","STAR","POLE"],["TOWN","SCHOOL","HOME"],["SOUND","SUIT","TRACK"],["HIGH","SHOW","ROAD"]],
+    [["BIRD","TUB","BATH"],["PINE","SAUCE","APPLE"],["SCARE","BAR","CROW"],["TOWN","SCHOOL","HOME"],["SOUND","SUIT","TRACK"],["NECK","BREAKER","TIE"]],
     [["HAT","WHEEL","PIN"],["TOY","WINDOW","SHOP"],["QUICK","PIT","SAND"],["WING","TOE","TIP"],["SHIN","MEAL","BONE"],["WHIP","DUST","SAW"]]
   ],
   connections: [
