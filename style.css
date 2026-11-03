@@ -969,3 +969,4 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .game-body.tw-done .card .pic img.ico,.game-body.tw-done .card .pic .ico{width:32px;height:32px;aspect-ratio:1/1;flex:none;object-fit:contain}
 .answer.guess .guess-field{flex:0 0 auto} /* flex-basis 160px became a 160px-tall box in the column .answer layout */
 .order-wrap,body.in-game .order-wrap{flex:0 1 auto} /* don't stretch to fill the screen: FIRST/LAST hug the list */
+.zbtns{pointer-events:none}.zbtns button{pointer-events:auto} /* nov3d: the zoom-button box spanned the map top and ate drags */
