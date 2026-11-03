@@ -70,7 +70,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 const APK = "bc-admin-approved";
 const appr = () => { try { return JSON.parse(localStorage.getItem(APK)) || {}; } catch { return {}; } };
 const setAppr = (k, v) => { const a = appr(); if (v) a[k] = true; else delete a[k]; localStorage.setItem(APK, JSON.stringify(a)); };
-const ansOf = q => q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") : q.answer != null ? q.answer + (q.unit ? " " + q.unit : "") : "";
+const ansOf = q => !q ? "" : q.type === "order" && q.items ? q.items.join(" → ") : q.type === "match" && q.left ? q.left.map((l, i) => l + " = " + (q.right || [])[(q.pairs || [])[i]]).join("; ") : q.matchup && q.a != null ? (q.matchup[q.a] ?? "") : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") + (q.aliases && q.aliases.length ? " (also: " + q.aliases.join(" / ") + ")" : "") : q.answer != null ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
 const nice = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 // Which raw list index each category uses that day (to flag repeats inside the window).
 function idx(set) { const f = (list, v) => list.indexOf(v); const wg = set.wordGame.id;
@@ -80,7 +80,7 @@ function idx(set) { const f = (list, v) => list.indexOf(v); const wg = set.wordG
 function wordHtml(set) {
   const g = set.wordGame; let items = "", ans = "";
   if (g.id === "flip") { items = set.wordFlip.map(w => `<li><span class="tag">${esc(w[1])}</span>${esc(w[2])}</li>`).join(""); ans = set.wordFlip.map(w => esc(w[0])).join(", "); }
-  else if (g.id === "bridge") { items = set.wordBridge.map(w => `<li>${esc(w[0])} ___ ${esc(w[2])}</li>`).join(""); ans = set.wordBridge.map(w => esc(w[0] + w[1] + " / " + w[1] + w[2])).join(", "); }
+  else if (g.id === "bridge") { items = set.wordBridge.map(w => `<li>${esc(w[0])} ___ ${esc(w[1])}</li>`).join(""); ans = set.wordBridge.map(w => esc(w[2] + " (" + w[0] + w[2] + " / " + w[2] + w[1] + ")")).join(", "); }
   else if (g.id === "conn") { items = `<li>${esc(set.connections.groups.flatMap(x => x.words).sort().join(", "))}</li>`; ans = set.connections.groups.map(x => `<b>${esc(x.name)}</b>: ${esc(x.words.join(", "))}`).join("<br>"); }
   else if (g.id === "odd") { items = set.oddOneOut.map(o => `<li>${esc(o.words.join(", "))}</li>`).join(""); ans = set.oddOneOut.map(o => `${esc(o.words[o.odd])} — ${esc(o.why)}`).join("<br>"); }
   else if (g.id === "anag") { const a = set.anagram || {}; items = `<li>Letters: <b>${esc(a.letters || JSON.stringify(a).slice(0, 80))}</b></li>`; ans = esc((a.valid || []).length + " valid words, e.g. " + (a.valid || []).slice(0, 12).join(", ")); }
@@ -124,7 +124,7 @@ function card(k, dup, isToday) {
   const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
   const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
   const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
-  const sp = s.sports.map(q => `<li><span class="tag">${q.type === "mc" ? "multiple choice" : "type answer"}</span>${esc(q.q)}</li>`).join("");
+  const sp = s.sports.map(q => `<li><span class="tag">${({ mc: "multiple choice", order: "order", match: "match", bracket: "bracket", guess: "estimate" })[q.type] || "type answer"}</span>${esc(q.q)}</li>`).join("");
   const tf = s.thinkFast.map(q => `<li><span class="tag">${esc(q.kind || q.type || "text")}</span>${esc(q.q)}</li>`).join("");
   const hist = ["r1", "r2"].map(r => s.history[r]).filter(Boolean);
   d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>

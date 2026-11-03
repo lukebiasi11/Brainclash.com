@@ -10,7 +10,7 @@ function issueUrl(title, body, labels) {
   while (u.length > MAX && b.length > 50) { b = b.slice(0, Math.floor(b.length * 0.85)) + "\n…(truncated)"; u = mk(b); }
   return u;
 }
-const ansOf = q => !q ? "" : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") : q.answer != null ? q.answer + (q.unit ? " " + q.unit : "") : "";
+const ansOf = q => !q ? "" : q.type === "order" && q.items ? q.items.join(" → ") : q.type === "match" && q.left ? q.left.map((l, i) => l + " = " + (q.right || [])[(q.pairs || [])[i]]).join("; ") : q.matchup && q.a != null ? (q.matchup[q.a] ?? "") : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") + (q.aliases && q.aliases.length ? " (also: " + q.aliases.join(" / ") + ")" : "") : q.answer != null ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
 // Flatten a day's set into reviewable items: {id, cat, prompt, answer}
 function items(set) {
   const out = [], add = (cat, n, prompt, answer) => out.push({ id: cat.toLowerCase().replace(/[^a-z]+/g, "-") + "-" + n, cat, prompt: String(prompt ?? ""), answer: String(answer ?? "") });
@@ -21,7 +21,7 @@ function items(set) {
   set.sports.forEach((q, i) => add("MVP", i + 1, q.q, ansOf(q) || (q.pairs ? JSON.stringify(q.pairs) : q.order ? q.order.join(" → ") : "")));
   const g = set.wordGame, wn = "Word Nerd (" + g.name + ")";
   if (g.id === "flip") set.wordFlip.forEach((x, i) => add(wn, i + 1, x[1] + " — " + x[2], x[0]));
-  else if (g.id === "bridge") set.wordBridge.forEach((x, i) => add(wn, i + 1, x[0] + " ___ " + x[2], x[1]));
+  else if (g.id === "bridge") set.wordBridge.forEach((x, i) => add(wn, i + 1, x[0] + " ___ " + x[1], x[2] + " (" + x[0] + x[2] + " / " + x[2] + x[1] + ")"));
   else if (g.id === "conn") add(wn, 1, set.connections.groups.flatMap(x => x.words).sort().join(", "), set.connections.groups.map(x => x.name + ": " + x.words.join(", ")).join("; "));
   else if (g.id === "odd") set.oddOneOut.forEach((o, i) => add(wn, i + 1, o.words.join(", "), o.words[o.odd] + " — " + o.why));
   else if (g.id === "anag") { const a = set.anagram || {}; add(wn, 1, "Letters: " + (a.letters || ""), (a.valid || []).slice(0, 40).join(", ")); }
