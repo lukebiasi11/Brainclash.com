@@ -439,7 +439,7 @@ function catIntro(i, start) {
 }
 function introText(id) {
   const t = {
-    world: tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to aim the ✛ at your guess, then tap or hit Lock in."),
+    world: tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin."),
     history: tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
     sports: tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
     word: { flip: tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds."),
@@ -530,7 +530,7 @@ function globeMap(el, onPick) {
   function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
     // Nov 1: was 90/scale (~0.6°/px on phones + inertia → 100°+ per short drag / pole flips). Now ~0.25°/px,
     // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
-    const f = 40 / proj.scale(), r = proj.rotate(), cap = 12;
+    const f = 70 / proj.scale(), r = proj.rotate(), cap = 20; // Nov 3: ~0.45°/px at k=1 → half a turn ≈ 400px
     const ddx = Math.max(-cap, Math.min(cap, dx * f)), ddy = Math.max(-cap, Math.min(cap, dy * f));
     proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
@@ -665,7 +665,7 @@ function worldRush() {
     body.classList.add("wr-body");
     body.append(h("p", { class: "prompt wr-prompt" }, tr("Where is "), h("b", { class: "hl" }, target.name), tr("?")));
     const mapEl = h("div", { class: "lmap" });
-    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, tr("Spin to aim at the ✛, then tap or Lock in"));
+    const zhint = h("div", { class: "map-hint", "aria-hidden": "true" }, tr("Spin to put the ✛ on your guess, then Lock in"));
     const wrap = h("div", { class: "map-wrap" }, mapEl, zhint,
       h("a", { class: "map-credit", href: "credits.html", target: "_blank", rel: "noopener" }, "Map data: Natural Earth · Imagery: NASA Blue Marble"));
     body.append(wrap);
@@ -870,7 +870,7 @@ function orderQuestion(body, q, value, seconds, done) {
     h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
   body.append(wrap, live);
-  const announce = t => { live.textContent = ""; void live.offsetWidth; live.textContent = t; };
+  const announce = t => { live.className = "sr-only"; live.textContent = ""; void live.offsetWidth; live.textContent = t; };
   const sync = () => { order = [...list.children].map(c => +c.dataset.idx); };
   const move = (from, to) => {
     if (locked || to < 0 || to >= n || from === to) return;
@@ -1060,7 +1060,7 @@ function matchQuestion(body, q, value, seconds, done) {
   const rightCol = h("div", { class: "match-col match-right", role: "list", "aria-label": "Records" });
   board.append(leftCol, rightCol);
   body.append(board, live);
-  const announce = t => { live.textContent = ""; void live.offsetWidth; live.textContent = t; };
+  const announce = t => { live.className = "sr-only"; live.textContent = ""; void live.offsetWidth; live.textContent = t; };
   const pairedRight = () => new Set(link.filter(x => x != null));
   const render = () => {
     leftCol.innerHTML = ""; rightCol.innerHTML = "";
