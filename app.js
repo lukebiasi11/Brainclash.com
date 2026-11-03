@@ -532,7 +532,7 @@ function globeMap(el, onPick) {
     // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
     // Nov 3b: 0.45°/px at default zoom on every screen (400px ≈ 180°). No per-event cap: coarse mouse events
     // (100px+ each) were being clipped to 20°, so a 400px drag only turned ~20-40°. Tilt stays clamped to ±70°.
-    const f = 0.45 / k, r = proj.rotate(), ddx = dx * f, ddy = dy * f;
+    const r = proj.rotate(), ddx = dx * 0.45 / k, ddy = dy * 0.3 / k; // Nov 3c: strictly per event, no inertia
     proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
   function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
@@ -559,22 +559,16 @@ function globeMap(el, onPick) {
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
     const dx = e.clientX - last[0], dy = e.clientY - last[1], now = performance.now(), dt = Math.max(8, now - lastT);
-    touched = true; rotateBy(dx, dy); vel = [Math.max(-6, Math.min(6, dx / dt * 16)), Math.max(-6, Math.min(6, dy / dt * 16))]; last = [e.clientX, e.clientY]; lastT = now;
+    touched = true; rotateBy(dx, dy); last = [e.clientX, e.clientY]; lastT = now;
   });
   const end = e => {
     if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId);
     if (pts.size === 1) { const p = [...pts.values()][0]; start = last = p; pinch0 = 0; moved = true; return; } // finishing a pinch never drops a pin
     if (pts.size) return;
     if (e.type === "pointerup" && !moved && start) tapAt(e.clientX, e.clientY);
-    else if (moved && performance.now() - lastT < 80 && Math.hypot(vel[0], vel[1]) > 0.5) inertia();
     start = null;
   };
   cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-  function inertia() {
-    const step = () => { vel = [vel[0] * 0.85, vel[1] * 0.85]; rotateBy(vel[0], vel[1]);
-      anim = Math.hypot(vel[0], vel[1]) > 0.2 ? requestAnimationFrame(step) : null; };
-    anim = requestAnimationFrame(step);
-  }
   function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
   cv.addEventListener("wheel", e => { e.preventDefault(); const rc = cv.getBoundingClientRect(); zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - rc.left, e.clientY - rc.top); }, { passive: false });
   function pickAt(x, y) { // canvas-local px → exact lat/lng; ignores clicks off the disc
@@ -959,7 +953,7 @@ function orderQuestion(body, q, value, seconds, done) {
   bar.append(btn);
   const timer = seconds ? Timer(seconds, () => submit(false, true), body.parentNode.querySelector(".game-head")) : null;
   function submit(skipped, timedOut) {
-    if (locked) return; locked = true; timer && timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove();
+    if (locked) return; locked = true; timer && timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove(); if (!bar.children.length) bar.remove(); // empty bar left a big gap above the reveal
     body.querySelector(".drag-hint")?.remove();
     sel = null;
     let good = 0; const pairs = n;
