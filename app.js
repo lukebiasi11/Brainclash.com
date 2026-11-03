@@ -45,7 +45,8 @@ function seededOrder(n, seed) {
   return o;
 }
 const qText = q => Array.isArray(q) ? q.map(x => typeof x === "string" ? x : "").join("") : String(q);
-const withFlag = (text, key) => { if (!key || !window.icon) return text; const m = text.match(/\p{RI}\p{RI}/u); if (!m) return text; const i = m.index; return [text.slice(0, i), ic(m[0], key, "inline-flag"), text.slice(i + m[0].length)]; };
+// Nov 3i: flag MCs have no emoji in q (385dba7: emoji/alt read the answer aloud), so show the img with a neutral alt.
+const withFlag = (text, key) => { if (!key || !window.icon) return text; const m = text.match(/\p{RI}\p{RI}/u); if (!m) { if (!/^flag-/.test(key)) return text; const f = ic("🏳️", key, "inline-flag"); if (f.alt != null) f.alt = tr("Flag"); return [text, " ", f]; } const i = m.index; return [text.slice(0, i), ic(m[0], key, "inline-flag"), text.slice(i + m[0].length)]; };
 function h(tag, attrs = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {

@@ -115,18 +115,18 @@ window.CONTENT_ES = {
      "lon": 44.51
     },
     {
-     "name": "Bamako, Malí",
-     "lat": 12.64,
-     "lon": -8
+     "name": "Seattle, Washington, EE. UU.",
+     "lat": 47.61,
+     "lon": -122.33
     }
    ],
    "mc": {
-    "q": "¿En qué país está el Parque Nacional del Serengueti?",
+    "q": "¿Qué país tiene forma de bota?",
     "options": [
-     "Kenia",
-     "Uganda",
-     "Tanzania",
-     "Zambia"
+     "España",
+     "Grecia",
+     "Italia",
+     "Portugal"
     ],
     "a": 2
    }
@@ -417,27 +417,27 @@ window.CONTENT_ES = {
   },
   {
    "r1": {
-    "theme": "Desastres",
+    "theme": "Películas de Disney",
     "events": [
      [
-      "🔥",
-      "Gran incendio de Chicago",
-      1871
+      "👠",
+      "Se estrena La Cenicienta de Disney",
+      1950
      ],
      [
-      "🚢",
-      "Hunden el Lusitania",
-      1915
+      "☂️",
+      "Se estrena Mary Poppins",
+      1964
      ],
      [
-      "🌋",
-      "Erupción del monte Santa Helena",
-      1980
+      "🧞",
+      "Se estrena Aladdín de Disney",
+      1992
      ],
      [
-      "🌀",
-      "Huracán Katrina",
-      2005
+      "❄️",
+      "Se estrena Frozen",
+      2013
      ]
     ]
    },
@@ -445,29 +445,29 @@ window.CONTENT_ES = {
     "theme": "Momentos del arte",
     "events": [
      [
-      "🌌",
-      "Van Gogh pinta La noche estrellada",
-      1889
+      "🍞",
+      "Leonardo termina La última cena",
+      1498
      ],
      [
-      "🖼️",
-      "Roban la Mona Lisa del Louvre",
-      1911
+      "🌙",
+      "Rembrandt pinta La ronda de noche",
+      1642
      ],
      [
-      "🐂",
-      "Picasso pinta el Guernica",
-      1937
+      "👨‍🌾",
+      "Grant Wood pinta Gótico estadounidense",
+      1930
      ],
      [
-      "🔺",
-      "Abre la Pirámide del Louvre",
-      1989
+      "🥫",
+      "Warhol expone sus Latas de sopa Campbell",
+      1962
      ],
      [
-      "🎈",
-      "Una obra de Banksy se autodestruye en una subasta",
-      2018
+      "🖌️",
+      "Se estrena El placer de pintar de Bob Ross",
+      1983
      ]
     ]
    }
@@ -865,18 +865,24 @@ window.CONTENT_ES = {
     "kind": "stat-chart",
     "visual": true,
     "img": "sports-m01-d5-q2",
-    "q": "Esta barra muestra el récord de ponches en la carrera en MLB: 5,714, de un lanzador de bola rápida que además lanzó un récord de siete juegos sin hit. ¿Quién es?",
+    "q": "Esta barra muestra 714 jonrones en la carrera, el récord de MLB hasta 1974, del cañonero que pasó de los Medias Rojas a los Yankees. ¿Quién es?",
     "answers": [
-     "nolan ryan",
-     "ryan"
+     "babe ruth",
+     "ruth"
     ],
     "aliases": [
-     "nolan rian"
+     "george herman ruth",
+     "the babe",
+     "babe",
+     "el bambino",
+     "bambino"
     ],
     "wrong": [
-     "nolan"
+     "hank aaron",
+     "aaron",
+     "barry bonds"
     ],
-    "explain": "Nolan Ryan: 5,714 ponches y siete juegos sin hit, ambos récords de MLB."
+    "explain": "Babe Ruth conectó 714 jonrones (1914–1935); Hank Aaron lo superó en 1974."
    },
    {
     "type": "bracket",
@@ -1506,29 +1512,29 @@ window.CONTENT_ES = {
   {
    "groups": [
     {
-     "name": "Hierbas de cocina",
+     "name": "Animales del mar",
      "words": [
-      "ALBAHACA",
-      "CILANTRO",
-      "PEREJIL"
+      "TIBURÓN",
+      "FOCA",
+      "MORSA"
      ],
      "pts": 300
     },
     {
-     "name": "Felinos salvajes",
+     "name": "Equipos de la NBA",
      "words": [
-      "TIGRE",
-      "JAGUAR",
-      "PUMA"
+      "HEAT",
+      "MAGIC",
+      "JAZZ"
      ],
      "pts": 300
     },
     {
-     "name": "Tienen concha o caparazón",
+     "name": "Pez ___",
      "words": [
-      "TORTUGA",
-      "CARACOL",
-      "ALMEJA"
+      "ESPADA",
+      "PAYASO",
+      "GLOBO"
      ],
      "pts": 400
     }

@@ -48,7 +48,7 @@
     "8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds.": "8 grupos de cuatro palabras: toca la que no pertenece. 4 medios (100 pts) y luego 4 difíciles (150 pts). 60 segundos.",
     "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.": "Este juego es en inglés. Forma todas las palabras de 3 a 6 letras que puedas con 6 letras en 60 segundos. 3 letras = 10, 4 = 25, 5 = 50, 6 = 100. Los errores no restan.",
     "Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.": "Dos acertijos de 400 y 600 puntos, {0} segundos cada uno. Tienes UN solo intento por acertijo: piensa antes de confirmar.",
-    "Category score": "Puntaje de la categoría", "See final results": "Ver resultados finales", "Next: {0} →": "Siguiente: {0} →", "Score ": "Puntaje ", "/1,000 pts": "/1,000 pts", "Practice": "Práctica", "Skip": "Saltar", "Skip →": "Saltar →",
+    "Category score": "Puntaje de la categoría", "Flag": "Bandera", "See final results": "Ver resultados finales", "Next: {0} →": "Siguiente: {0} →", "Score ": "Puntaje ", "/1,000 pts": "/1,000 pts", "Practice": "Práctica", "Skip": "Saltar", "Skip →": "Saltar →",
     "Leave this game? Progress in the current category is lost.": "¿Salir del juego? Se perderá el progreso de la categoría actual.",
     "{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.": "{0} quedó registrada con {1} pts: saliste a mitad de ronda, así que no se puede repetir.", "That category": "Esa categoría",
     // world rush
