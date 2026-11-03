@@ -456,7 +456,7 @@ window.CONTENT_ES = {
      ],
      [
       "👨‍🌾",
-      "Grant Wood pinta Gótico estadounidense",
+      "Grant Wood pinta Gótico americano",
       1930
      ],
      [
