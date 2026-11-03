@@ -38,8 +38,13 @@
   // nov3f: Spanish only — "5.050" / "1.234.567" are thousands groups (dots), so 5.050 = 5050. English unchanged.
   let LANG = (typeof window !== "undefined" && window.I18N && window.I18N.LANG) || "en";
   function numText(raw) {
-    const s = norm(raw);
-    return (LANG === "es" ? s.replace(/(^|[^\d.])(\d{1,3}(?:\.\d{3})+)(?![\d.])/g, (m, p, g) => p + g.replace(/\./g, "")) : s).replace(/,/g, "");
+    if (LANG !== "es") return norm(raw).replace(/,/g, "");
+    // nov3g (es): dot thousands groups ("5.050" = 5050), then comma + 1-2 digits is a decimal ("3,5" = 3.5, "1.234,5" = 1234.5),
+    // done on the raw text before norm() turns commas into spaces; then Spanish number/unit words → the English ones parsed below.
+    const pre = String(raw == null ? "" : raw).replace(/(^|[^\d.])(\d{1,3}(?:\.\d{3})+)(?![\d.])/g, (m, p, g) => p + g.replace(/\./g, ""))
+      .replace(/(\d),(\d{1,2})(?![\d])/g, "$1.$2");
+    return norm(pre).replace(/,/g, "").replace(/\bpor ciento\b/g, "percent").replace(/\bdolar(es)?\b/g, "dollars").replace(/\bcentavos?\b/g, "cents")
+      .replace(/\bmillon(es)?\b/g, "million").replace(/\bmil\b/g, "thousand");
   }
   // Money values are in DOLLARS: "$5" = 5, "5 cents" = 0.05. The unit is read from the raw text, never stripped first.
   function parseQty(raw) {

@@ -18,5 +18,11 @@ const t = (name, got, exp) => { if (got !== exp) { bad++; console.log("FAIL", na
 // nov3f: es-only dot thousands separators
 A.setLang("es"); t("es parseNum 5.050", A.parseNum("5.050"), 5050); t("es parseNum 1.234.567", A.parseNum("1.234.567"), 1234567); t("es parseNum 5050", A.parseNum("5050"), 5050);
 t("es estimate 5.050", A.parseEstimate("5.050", null), 5050); t("es check 5.050", A.checkAnswer("5.050", ["5050"], {}), true);
-A.setLang("en"); t("en parseNum 5.050", A.parseNum("5.050"), 5.05); t("en parseNum 5050", A.parseNum("5050"), 5050);
+[["3,5", 3.5], ["0,5", 0.5], ["2,5", 2.5], ["1.234,5", 1234.5], ["5.050", 5050], ["1.234.567", 1234567]].forEach(([i, e]) => t("es parseNum " + i, A.parseNum(i), e));
+[["12.000 dólares", 12000], ["12.000 dolares", 12000], ["1 dólar", 1]].forEach(([i, e]) => t("es parseNum " + i, A.parseNum(i), e));
+[["12.000 dólares", 12000], ["3 mil", 3000], ["2 millones", 2000000], ["1 millón", 1000000], ["1 millon", 1000000], ["2,5 millones", 2500000], ["3,5", 3.5]].forEach(([i, e]) => t("es estimate " + i, A.parseEstimate(i, null), e));
+t("es qty 50 centavos", A.parseEstimate("50 centavos", "cents"), 50); t("es qty 12.000 dólares money", (A.parseQty("12.000 dólares") || {}).money, true);
+t("es 25 por ciento", A.checkAnswer("25 por ciento", ["25%"], {}), true);
+A.setLang("en"); t("en parseNum 1,234", A.parseNum("1,234"), 1234); t("en estimate 3 thousand", A.parseEstimate("3 thousand", null), 3000); t("en estimate 3 mil (unchanged: 1e6)", A.parseEstimate("3 mil", null), 3000000); t("en estimate 1,200", A.parseEstimate("1,200", null), 1200);
+t("en parseNum 5.050", A.parseNum("5.050"), 5.05); t("en parseNum 5050", A.parseNum("5050"), 5050);
 console.log(bad ? bad + " failures" : "answers.test.js: all pass"); process.exit(bad ? 1 : 0);

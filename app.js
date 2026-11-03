@@ -254,7 +254,7 @@ function liveTotal() {
 }
 function catScoreChip() {
   const v = session && session.inProgress != null ? Math.round(session.partial || 0) : 0;
-  return h("div", { class: "runtotal", "aria-label": "Category score" }, tr("Score "), h("b", {}, fmt(v)), tr("/1,000 pts"));
+  return h("div", { class: "runtotal", "aria-label": tr("Category score") }, tr("Score "), h("b", {}, fmt(v)), tr("/1,000 pts"));
 }
 function save() { if (session && !session.practice) store.set("dg-" + session.key, session); }
 const wordGameFor = day => getDailySet(keyOf(day)).wordGame;
@@ -343,14 +343,16 @@ function scoreGraph(scores, day) {
   const tot = scores.reduce((a, b) => a + b, 0);
   const anim = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dt = new Date(day * 864e5).toLocaleDateString(I18N.locale, { month: "short", day: "numeric", timeZone: "UTC" });
-  const card = h("section", { class: "score-graph" + (anim ? " anim" : ""), "aria-label": "Today's points by category" },
+  // nov3g: vertical bars (thin, wide gaps) — player's own points per category, 0–1,000 each.
+  const card = h("section", { class: "score-graph" + (anim ? " anim" : ""), "aria-label": tr("Today's points by category") },
     h("p", { class: "sg-date" }, tr("Today's scores · ") + dt),
     h("div", { class: "sg-card" },
       h("h3", {}, tr("Points by category")),
-      h("ul", {}, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
-        return h("li", {}, h("span", { class: "sg-nm" }, c.name),
-          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--w:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
-          h("b", { class: "sg-v" }, fmt(scores[i] || 0))); })),
+      h("ul", { class: "sg-cols" }, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
+        return h("li", { "aria-label": c.name + ": " + fmt(scores[i] || 0) },
+          h("b", { class: "sg-v", "aria-hidden": "true" }, fmt(scores[i] || 0)),
+          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
+          h("span", { class: "sg-nm", "aria-hidden": "true" }, c.name)); })),
       h("div", { class: "sg-total" }, h("span", {}, tr("Total")), h("b", {}, fmt(tot)))));
   if (anim) requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("in")));
   return card;
