@@ -56,18 +56,20 @@ eq(d9.history.r1.events.map(e => [e[1], e[2]]), [
   ["Sojourner, NASA\u2019s first Mars rover, explores the Red Planet", 1997]
 ], "Nov 9 explorer events");
 eq(d9.history.r2.events.map(e => [e[1], e[2]]), [
+  ["Bunker Hill: colonial militia face British troops near Boston early in the American Revolution.", 1775],
   ["Yorktown: British surrender in the American Revolutionary War", 1781],
-  ["Waterloo: Napoleon\u2019s final defeat", 1815],
   ["Gettysburg: Union and Confederate armies clash in the U.S. Civil War", 1863],
   ["The Somme: a major battle of World War I", 1916],
   ["Midway: a major U.S.\u2013Japan naval battle in World War II", 1942]
 ], "Nov 9 battle events");
+t(!/1775|1781|1863|1916|1942/.test(d9.history.r2.events.map(e => e[1]).join(" ")), "Nov 9 battle years stay off the card text");
+eq(d9.history.r2.events.map(e => e[2]).slice().sort((a, b) => a - b), [1775, 1781, 1863, 1916, 1942], "Nov 9 battle chronology");
 t(d9.history.r1.events.concat(d9.history.r2.events).every(e => e.length === 3), "Nov 9 history has no photo id");
 eq(d9.sports[0].options, ["Vince Carter", "Michael Jordan", "Julius Erving", "Kobe Bryant"], "Nov 9 dunk options");
 eq(d9.sports[0].a, 1, "Nov 9 dunk answer");
 eq(d9.sports[1].answers.concat(d9.sports[1].aliases), ["olajuwon", "hakeem olajuwon", "akeem olajuwon", "olajuwan", "hakeem olajuwan"], "Nov 9 Olajuwon accepts");
 eq(d9.sports[2].answers.concat(d9.sports[2].aliases), ["bo jackson", "bo", "vincent jackson", "vincent bo jackson"], "Nov 9 Bo accepts");
-eq(d9.wordBridge, [["NEWS", "CLIP", "PAPER"], ["RAIN", "BOX", "CHECK"], ["QUICK", "PIT", "SAND"], ["WING", "TOE", "TIP"], ["BUS", "WATCH", "STOP"], ["SPACE", "WRECK", "SHIP"]], "Nov 9 bridges");
+eq(d9.wordBridge, [["NEWS", "CLIP", "PAPER"], ["RAIN", "BOX", "CHECK", "DROP"], ["QUICK", "PIT", "SAND"], ["WING", "TOE", "TIP"], ["BUS", "WATCH", "STOP"], ["SPACE", "WRECK", "SHIP"]], "Nov 9 bridges");
 eq(d9.thinkFast[0].answers.concat(d9.thinkFast[0].aliases), ["5", "five", "5 corners", "five corners"], "Nov 9 corners accepts");
 eq(d9.thinkFast[1].answers.concat(d9.thinkFast[1].aliases), ["queue", "a queue", "the word queue"], "Nov 9 queue accepts");
 t(d9.sports.every(q => !q.img), "Nov 9 sports has no legacy image");
@@ -105,6 +107,8 @@ eq(d11.oddOneOut[2].words, ["LEVEL", "RADAR", "CIVIC", "RIVER"], "Nov 11 imposte
 eq(d11.oddOneOut[2].odd, 3, "Nov 11 RIVER is odd");
 eq(d11.oddOneOut[3].words, ["MADE", "PAID", "SAID", "LAID"], "Nov 11 imposter rhyme");
 eq(d11.oddOneOut[3].odd, 2, "Nov 11 SAID is odd");
+eq(d11.oddOneOut[3].prompt, "Say these words aloud. Which has a different vowel sound?", "Nov 11 sound prompt");
+eq(d11.oddOneOut[3].why, "MADE, PAID and LAID rhyme, ending in /e\u026ad/. SAID is pronounced /sed/.", "Nov 11 sound explanation unchanged");
 eq(d11.oddOneOut[0].why, "Chicken isn't a mammal", "Nov 11 imposter 1 kept");
 eq(d11.thinkFast[0].answers.concat(d11.thinkFast[0].aliases), ["cold", "a cold", "the cold", "common cold", "a common cold", "the common cold"], "Nov 11 cold accepts");
 eq(d11.thinkFast[1].q, "The day before yesterday was Thursday. What day will it be the day after tomorrow?", "Nov 11 Monday prompt kept");
@@ -137,12 +141,10 @@ t(E.sports[40] == null && E.sports[41] == null && E.sports[42] == null, "no new 
 t(E.history[40] == null && E.history[42] == null, "no new Spanish history for the revised days");
 t(E.thinkFast[20] == null && E.thinkFast[21] == null && E.thinkFast[22] == null, "no new Spanish brain teasers for Nov 9–11");
 t(!fs.readFileSync(path.join(root, "content.es.js"), "utf8").includes("Olajuwon"), "Spanish file was not given the new Olajuwon wording");
-eq(d9.wordBridge[1], ["RAIN", "BOX", "CHECK"], "HOLD Nov 9 bridge round 2 clue stays RAIN / BOX / CHECK");
-t(!/drop/i.test(JSON.stringify(d9.wordBridge)), "HOLD Nov 9 bridge does not add a DROP rejection");
-eq(d11.oddOneOut[3].words, ["MADE", "PAID", "SAID", "LAID"], "HOLD Nov 11 sound round words unchanged");
-eq(d11.oddOneOut[3].odd, 2, "HOLD Nov 11 sound round still marks SAID, not rewritten");
-console.log("HOLD: Nov 9 bridge round 2 stays CHECK; DROP is not rejected in content and is not scored by the single-answer bridge checker.");
-console.log("HOLD: Nov 11 MADE/PAID/SAID/LAID left as approved SAID-odd pending owner wording.");
+eq(d9.wordBridge[1].slice(0, 3), ["RAIN", "BOX", "CHECK"], "Nov 9 bridge round 2 clues stay RAIN / BOX");
+eq(d9.wordBridge[1][3], "DROP", "Nov 9 bridge round 2 also accepts DROP");
+eq(d11.oddOneOut[3].words, ["MADE", "PAID", "SAID", "LAID"], "Nov 11 sound round words unchanged");
+eq(d11.oddOneOut[3].odd, 2, "Nov 11 sound round still marks SAID");
 console.log("Existing parser notes (not changed): letter Q is rejected for queue; bare Jackson, Brandi, Orlando, Karl, and you are rejected.");
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

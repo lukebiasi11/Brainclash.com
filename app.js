@@ -1289,6 +1289,18 @@ function wordFlip() {
   load();
 }
 
+// Listed answers only (slot 2, plus an optional slot 3). Case, punctuation and spaces fold
+// through the same norm used everywhere else. A second listed answer may also be typed as
+// that puzzle's own left+answer or answer+right compound ("rain check", "drop box").
+function bridgeHit(puzzle, raw) {
+  const v = norm(raw).toUpperCase().replace(/ /g, "");
+  if (!v || !puzzle) return false;
+  const answers = puzzle.slice(2).filter(s => typeof s === "string" && s.trim()).map(s => norm(s).toUpperCase().replace(/ /g, ""));
+  if (answers.includes(v)) return true;
+  if (answers.length < 2) return false;
+  const left = norm(puzzle[0]).toUpperCase().replace(/ /g, ""), right = norm(puzzle[1]).toUpperCase().replace(/ /g, "");
+  return answers.some(a => v === left + a || v === a + right);
+}
 function wordBridge() {
   const list = session.set.wordBridge;
   const body = screen("📝 Word Bridge", "6 puzzles · 60 seconds");
@@ -1303,15 +1315,15 @@ function wordBridge() {
   const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = tr("Puzzle {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, tr("?")), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
-    const v = norm(input.value).toUpperCase().replace(/ /g, ""); if (!v) return;
-    if (v === list[i][2]) { busy = true; total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
+    if (!norm(input.value).replace(/ /g, "")) return;
+    if (bridgeHit(list[i], input.value)) { busy = true; total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
     else { form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
   };
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
   const skipB = () => { if (over || busy) return; res[i] = false; queue.push(queue.shift()); draw(); };
   const end = () => {
     if (over) return; over = true; timer.stop(); form.remove(); puzzle.remove(); prog.remove();
-    body.append(h("ul", { class: "review" }, list.map(([a, b, w], k) => h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : "✗"} ${a} ${w} · ${w} ${b}`))));
+    body.append(h("ul", { class: "review" }, list.map((p, k) => { const [a, b] = p, w = p.slice(2).filter(s => typeof s === "string" && s.trim()).join("/"); return h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : "✗"} ${a} ${w} · ${w} ${b}`); })));
     catDone(body, total, "bridge");
   };
   const timer = Timer(60, end, body.parentNode.querySelector(".game-head"));
@@ -1368,12 +1380,14 @@ function oddOneOut() {
   let i = 0, total = 0, over = false; const res = [];
   const val = k => k < 4 ? 100 : 150;
   const prog = h("div", { class: "prog" }), opts = h("div", { class: "options two" });
-  body.append(prog, h("p", { class: "prompt" }, tr("Which one doesn't belong?")), opts);
+  const promptEl = h("p", { class: "prompt" }, tr("Which one doesn't belong?"));
+  body.append(prog, promptEl, opts);
   const oddBar = actionBar(body); oddBar.append(skipBtn(() => pickIt(-1)));
   let drawnAt = 0;
   const draw = () => {
     drawnAt = performance.now();
     prog.textContent = tr("Puzzle {0}/8 · {1} · {2} pts · Score {3}/1,000 pts", i + 1, tr(i < 4 ? tr("Medium") : tr("Hard")), val(i), fmt(total));
+    promptEl.textContent = list[i].prompt || tr("Which one doesn't belong?");
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };
