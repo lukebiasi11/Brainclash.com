@@ -1235,13 +1235,19 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
 // ---------- 4. Word Challenge ----------
 function wordChallenge() { ({ flip: wordFlip, bridge: wordBridge, conn: connections, odd: oddOneOut, anag: anagramRush })[wordGameFor(session.day).id](); }
 
+// Accent-insensitive only for this tile word: ARCOÍRIS and ARCOIRIS are the same answer.
+// Dictionary anagrams still require the exact tiled letters, so this does not widen other games.
+function flipFold(s) { return String(s).normalize("NFD").replace(/\p{M}/gu, "").toUpperCase(); }
+function flipAccept(word, guess, dict) {
+  const sorted = x => x.split("").sort().join("");
+  return guess === word || flipFold(guess) === flipFold(word) || (sorted(guess) === sorted(word) && dict && dict.has(guess));
+}
 function wordFlip() {
   const list = session.set.wordFlip, R = rng(session.day);
   const body = screen("📝 Unscramble", "6 words · 60 seconds");
   let i = 0, total = 0, over = false, busy = false, built = [];
   // Any dictionary word using exactly the same letters also counts (e.g. LISTEN for SILENT).
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
-  const sorted = x => x.split("").sort().join("");
   const hintEl = h("div", { class: "hint" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), prog = h("div", { class: "prog" });
   const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, tr("Clear")), skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
   const results = [];
@@ -1267,7 +1273,7 @@ function wordFlip() {
     if (built.length < w.length) return;
     const guess = built.map(k => letters[k].c).join("");
     busy = true; // block input during the win/shake animation
-    if (guess === w || (sorted(guess) === sorted(w) && dict.has(guess))) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
+    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
     else { slots.classList.add("shake"); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
   };
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
@@ -1281,7 +1287,7 @@ function wordFlip() {
     if (over) return false;
     if (busy) return /^[a-z]$/i.test(e.key) || e.key === "Backspace" ? undefined : false;
     if (e.key === "Backspace") { built.pop(); draw(); return; }
-    if (/^[a-z]$/i.test(e.key)) { const k = letters.findIndex((l, idx) => l.c === e.key.toUpperCase() && !built.includes(idx)); if (k >= 0) { built.push(k); draw(); check(); } return; }
+    const keyFold = flipFold(e.key); if (keyFold.length === 1 && keyFold >= "A" && keyFold <= "Z") { const k = letters.findIndex((l, idx) => flipFold(l.c) === keyFold && !built.includes(idx)); if (k >= 0) { built.push(k); draw(); check(); } return; }
     return false;
   };
   body.append(h("p", { class: "kbd-tip" }, "⌨️ Type letters on your keyboard · Backspace to undo"));

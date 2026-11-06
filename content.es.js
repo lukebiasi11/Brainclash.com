@@ -1488,32 +1488,32 @@ window.CONTENT_ES = {
    [
     "CALABAZA",
     "definition",
-    "Fruto naranja y grande que se talla en Halloween"
+    "Una favorita de la cosecha con una cáscara dura."
    ],
    [
-    "TORMENTA",
+    "ARCOÍRIS",
     "definition",
-    "Lluvia fuerte con rayos y truenos"
+    "Un espectáculo pasajero de muchos colores."
    ],
    [
     "JIRAFA",
     "definition",
-    "El animal más alto, de cuello larguísimo"
+    "Un animal de manchas con una vista desde las alturas."
    ],
    [
-    "PIMIENTO",
+    "PEPINILLO",
     "definition",
-    "Verdura hueca que puede ser roja, verde o amarilla"
+    "Un acompañante ácido en un sándwich."
    ],
    [
     "CACTUS",
     "definition",
-    "Planta espinosa del desierto"
+    "Crece despacio y tiene sus propias defensas."
    ],
    [
-    "CANGREJO",
+    "MORSA",
     "definition",
-    "Animal marino con pinzas que camina de lado"
+    "Un peso pesado que descansa junto a mares helados."
    ]
   ]
  ],

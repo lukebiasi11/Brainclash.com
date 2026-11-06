@@ -152,9 +152,14 @@ eq(E.sports[39][2].q, "En un peloteo normal de individuales (no tenis en silla d
 t(JSON.stringify(E.sports[39][2].answers.concat(E.sports[39][2].aliases)) === JSON.stringify(["tu oponente", "oponente", "your opponent", "opponent", "tu rival", "rival"]), "ES Nov 8 tennis accepts tu oponente, oponente, your opponent, opponent, tu rival, rival");
 t(JSON.stringify(E.sports[39][2].wrong) === JSON.stringify(["tú", "yo", "you"]), "ES Nov 8 tennis still rejects tú, yo, you");
 eq(E.sports[39].filter(q => ["mc", "bracket", "order", "match"].includes(q.type)).length, 1, "ES Nov 8 one sports choice");
-eq(E.wordFlip[10][0][0], "CALABAZA", "ES unscramble answers not replaced");
-eq(E.wordFlip[10][1][0], "TORMENTA", "ES unscramble word 2 not replaced");
-eq(E.wordFlip[10][4][2], "Planta espinosa del desierto", "ES cactus hint not rewritten");
+t(JSON.stringify(E.wordFlip[10].map(w => [w[0], w[2]])) === JSON.stringify([
+  ["CALABAZA", "Una favorita de la cosecha con una cáscara dura."],
+  ["ARCOÍRIS", "Un espectáculo pasajero de muchos colores."],
+  ["JIRAFA", "Un animal de manchas con una vista desde las alturas."],
+  ["PEPINILLO", "Un acompañante ácido en un sándwich."],
+  ["CACTUS", "Crece despacio y tiene sus propias defensas."],
+  ["MORSA", "Un peso pesado que descansa junto a mares helados."]
+]), "ES Nov 8 Unscramble approved rows");
 eq(E.sports[38][1].answers[0], "oilers", "Spanish Oilers answer still present");
 eq(E.sports[39][1].answers[0], "brett favre", "Spanish Favre answer still present");
 eq(E.worldRush[38].pins[0].name, "Tirana, Albania", "Spanish Tirana pin still present");

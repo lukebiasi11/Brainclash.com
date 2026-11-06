@@ -24,7 +24,15 @@ eq(s7.wordBridge, n7.wordBridge, "Word Bridge stays English in Spanish mode");
 eq(n8.wordGame.id, "flip", "Nov 8 game is Unscramble (Word Flip), not Anagram Rush");
 eq(n8.wordFlip.map(w => w[0]), ["PUMPKIN", "RAINBOW", "GIRAFFE", "PICKLE", "CACTUS", "WALRUS"], "Nov 8 Unscramble English answers");
 eq(n8.wordFlip.map(w => w[2]), ["A harvest favourite with a tough outer shell", "A fleeting display with a full spectrum", "A spotted browser with a lofty outlook", "A tangy guest in a sandwich", "A slow grower with built-in defences", "A heavyweight that lounges near icy seas"], "approved EN Nov 8 hints kept");
-eq(s8.wordFlip.map(w => w[0]), ["CALABAZA", "TORMENTA", "JIRAFA", "PIMIENTO", "CACTUS", "CANGREJO"], "ES unscramble words excluded from this release");
+eq(s8.wordFlip.map(w => [w[0], w[2]]), [
+  ["CALABAZA", "Una favorita de la cosecha con una cáscara dura."],
+  ["ARCOÍRIS", "Un espectáculo pasajero de muchos colores."],
+  ["JIRAFA", "Un animal de manchas con una vista desde las alturas."],
+  ["PEPINILLO", "Un acompañante ácido en un sándwich."],
+  ["CACTUS", "Crece despacio y tiene sus propias defensas."],
+  ["MORSA", "Un peso pesado que descansa junto a mares helados."]
+], "ES Nov 8 Unscramble approved rows");
+t(s8.wordFlip.every(w => w[0].length >= 5 && !w[2].toUpperCase().includes(w[0].normalize("NFD").replace(/\p{M}/gu, ""))), "ES hints do not contain the answer and words are full");
 eq(s8.anagram, n8.anagram, "Nov 8 anagram object stays English even though that day plays Unscramble");
 eq(s7.worldRush.pins[1].name, "Honolulu, Hawái, EE. UU.", "ES Honolulu name");
 eq([s7.worldRush.pins[1].lat, s7.worldRush.pins[1].lon], [21.3069, -157.8583], "ES Honolulu coordinates");
