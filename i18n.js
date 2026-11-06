@@ -51,7 +51,7 @@
     "Results charts couldn't be read from this device. Saved games were left as they are.": "No se pudieron leer las gráficas de resultados en este dispositivo. Los juegos guardados se dejaron como estaban.",
     "Today's competition": "La competencia de hoy", "Daily competition": "La competencia del día", "Not live": "No está en vivo",
     "Comparison unavailable": "Comparación no disponible",
-    "Daily field collection is off. Brain Clash is not gathering other completed games, so there is no average, distribution, or percentile.": "La recolección del campo diario está apagada. Brain Clash no está reuniendo otros juegos terminados, así que no hay promedio, distribución ni percentil.",
+    "Daily field collection is off. Daily Dose is not gathering other completed games, so there is no average, distribution, or percentile.": "La recolección del campo diario está apagada. Daily Dose no está reuniendo otros juegos terminados, así que no hay promedio, distribución ni percentil.",
     "Total score": "Puntaje total", "By category": "Por categoría", "Competition view": "Vista de la competencia",
     "Score range": "Rango de puntaje", "Number of completed games": "Número de juegos terminados", "Category": "Categoría",
     "Your score": "Tu puntaje", "This run": "Esta partida",

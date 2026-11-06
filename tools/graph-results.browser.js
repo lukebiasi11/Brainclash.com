@@ -205,6 +205,8 @@ const SCORES = [
           big: (g2 && g2.querySelector('.g2-big') || {}).textContent || '',
           opts: [...document.querySelectorAll('#g2-metric option')].map(o => o.textContent),
           shareCalls: window.__shareCalls, dash: !!(g2 && g2.querySelector('[data-prior-line]')),
+          logo: (document.querySelector('.hero.small .logo') || {}).textContent || '',
+          share: (document.querySelector('pre.share') || {}).textContent || '',
           graph: document.querySelector('.score-graph') ? 'home-graph-on-results' : 'results-only',
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
         };
@@ -220,6 +222,7 @@ const SCORES = [
       if (!info.dash) fail("desktop prior line"); else pass("desktop prior line");
       if (info.opts.join("|") !== ["Overall", "World Rush", "Time Warp", "MVP", "Word Nerd", "Brain Teaser"].join("|")) fail("desktop options", info.opts); else pass("desktop selector");
       if (info.shareCalls !== 0) fail("desktop share before click", info.shareCalls); else pass("desktop share not required");
+      if (!/DAILY\s*DOSE/.test(info.logo) || !/^Daily Dose /.test(info.share)) fail("desktop branding", { logo: info.logo, share: info.share.slice(0, 40) }); else pass("desktop Daily Dose results and share");
       await shot(cdp, "desktop-en.png");
       const cat = await evalJson(cdp, `(() => { const s = document.querySelector('#g2-metric'); s.value = '0'; s.dispatchEvent(new Event('change')); const g2 = document.getElementById('results-g2'); return { metric: g2.getAttribute('data-metric'), sum: g2.getAttribute('data-all-sum'), mean: g2.getAttribute('data-all-mean'), prior: g2.getAttribute('data-prior-mean'), big: g2.querySelector('.g2-big').textContent, scale: g2.querySelector('.g2-scale').textContent }; })()`);
       if (cat.metric !== "0" || cat.sum !== String(expectedCat.allSum) || cat.big !== "700" || !/1,000|1000/.test(cat.scale)) fail("desktop category", cat); else pass("desktop category math");
@@ -350,6 +353,8 @@ const SCORES = [
         const play = document.querySelector('.cta .btn.primary.big');
         const hero = document.querySelector('.hero:not(.small)');
         const bg = hero ? getComputedStyle(hero, '::after').backgroundImage : '';
+        const logo = document.querySelector('.hero:not(.small) .logo');
+        const brand = document.querySelector('nav.top .brand');
         const last = steps.length ? steps[steps.length - 1].getBoundingClientRect() : null;
         const label = steps.length ? steps[steps.length - 1].querySelector('b').getBoundingClientRect() : null;
         const pr = play ? play.getBoundingClientRect() : null;
@@ -358,7 +363,11 @@ const SCORES = [
           n: steps.length,
           names: steps.map(s => (s.querySelector('b') || {}).textContent || ''),
           play: play ? play.textContent.replace(/\\s+/g, ' ').trim() : '',
+          logo: logo ? logo.textContent.replace(/\\s+/g, '') : '',
+          brand: brand ? brand.textContent.replace(/\\s+/g, '') : '',
+          title: document.title,
           fist: bg.indexOf('brain-clash-fighter-right.webp') >= 0,
+          vs: bg.indexOf('brain-clash-vs.svg') >= 0,
           labelBeforePlay: !!(label && pr) && label.bottom <= pr.top + 1,
           catsOnScreen: steps.every(s => { const r = s.getBoundingClientRect(); return r.height > 0 && r.top >= -1 && r.bottom <= innerHeight + 1; }),
           playOnScreen: !!(pr && pr.height > 0 && pr.top >= -1 && pr.bottom <= innerHeight + 1),
@@ -368,7 +377,8 @@ const SCORES = [
       const names = ["World Rush", "Time Warp", "MVP", "Word Nerd", "Brain Teaser"];
       if (info.n !== 5 || JSON.stringify(info.names) !== JSON.stringify(names)) fail(name + " categories", info); else pass(name + " five categories");
       if (!/Start the Clash/i.test(info.play)) fail(name + " play", info.play); else pass(name + " play button");
-      if (!info.fist) fail(name + " fist", info); else pass(name + " blue glove");
+      if (info.logo !== "DAILYDOSE" || !/DAILYDOSE/.test(info.brand) || !/^Daily Dose/.test(info.title)) fail(name + " title", info); else pass(name + " Daily Dose title");
+      if (!info.fist || !info.vs) fail(name + " fist", info); else pass(name + " full VS and glove");
       if (!info.labelBeforePlay || !info.catsOnScreen || !info.playOnScreen) fail(name + " above the fold", info); else pass(name + " categories then play on screen");
       await shot(cdp, file);
       forbid(cdp, name);
