@@ -342,6 +342,40 @@ const SCORES = [
       forbid(cdp, "empty");
     }
 
+    // Landed short-phone home: five categories, Play, and the blue glove. No saved scores.
+    async function homeLayout(name, file, viewport) {
+      const cdp = await scenario(name, "/index.html", { entries: {} }, viewport);
+      const info = await evalJson(cdp, `(() => {
+        const steps = [...document.querySelectorAll('.path .step')];
+        const play = document.querySelector('.cta .btn.primary.big');
+        const hero = document.querySelector('.hero:not(.small)');
+        const bg = hero ? getComputedStyle(hero, '::after').backgroundImage : '';
+        const last = steps.length ? steps[steps.length - 1].getBoundingClientRect() : null;
+        const label = steps.length ? steps[steps.length - 1].querySelector('b').getBoundingClientRect() : null;
+        const pr = play ? play.getBoundingClientRect() : null;
+        const box = el => el ? { top: Math.round(el.top), bottom: Math.round(el.bottom) } : null;
+        return {
+          n: steps.length,
+          names: steps.map(s => (s.querySelector('b') || {}).textContent || ''),
+          play: play ? play.textContent.replace(/\\s+/g, ' ').trim() : '',
+          fist: bg.indexOf('brain-clash-fighter-right.webp') >= 0,
+          labelBeforePlay: !!(label && pr) && label.bottom <= pr.top + 1,
+          catsOnScreen: steps.every(s => { const r = s.getBoundingClientRect(); return r.height > 0 && r.top >= -1 && r.bottom <= innerHeight + 1; }),
+          playOnScreen: !!(pr && pr.height > 0 && pr.top >= -1 && pr.bottom <= innerHeight + 1),
+          w: innerWidth, h: innerHeight, last: box(last), label: box(label), playBox: box(pr)
+        };
+      })()`);
+      const names = ["World Rush", "Time Warp", "MVP", "Word Nerd", "Brain Teaser"];
+      if (info.n !== 5 || JSON.stringify(info.names) !== JSON.stringify(names)) fail(name + " categories", info); else pass(name + " five categories");
+      if (!/Start the Clash/i.test(info.play)) fail(name + " play", info.play); else pass(name + " play button");
+      if (!info.fist) fail(name + " fist", info); else pass(name + " blue glove");
+      if (!info.labelBeforePlay || !info.catsOnScreen || !info.playOnScreen) fail(name + " above the fold", info); else pass(name + " categories then play on screen");
+      await shot(cdp, file);
+      forbid(cdp, name);
+    }
+    await homeLayout("home568", "home-360-568.png", { width: 360, height: 568, deviceScaleFactor: 2, mobile: true });
+    await homeLayout("home740", "home-360-740.png", { width: 360, height: 740, deviceScaleFactor: 2, mobile: true });
+
     console.log(bad ? bad + " browser failures" : "graph-results.browser.js: all pass");
   } finally {
     chrome.kill("SIGKILL");

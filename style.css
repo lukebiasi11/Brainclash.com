@@ -971,6 +971,73 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .order-wrap,body.in-game .order-wrap{flex:0 1 auto} /* don't stretch to fill the screen: FIRST/LAST hug the list */
 .zbtns{pointer-events:none}.zbtns button{pointer-events:auto} /* nov3d: the zoom-button box spanned the map top and ate drags */
 
+/* nov6fit: the phone pass that only lifted Play left the five categories
+   below the fold. Narrow screens keep hero, all five rows, then Play, and
+   shorten the hero so both fit a 568px-tall screen. The right glove is the
+   supplied blue fist and paints above the VS. Desktop widths are unchanged. */
+.hero:not(.small)::after{
+  background:
+    url(assets/brain-clash-fighter-right.webp?v=nov6fit) right 16px center / calc(var(--fw) * .44) auto no-repeat,
+    url(assets/brain-clash-fighter-left.webp) 0 center / calc(var(--fw) * .44) auto no-repeat,
+    url(assets/brain-clash-vs.svg) calc(var(--fw) * .30 + var(--fshift)) center / calc(var(--fw) * .40) auto no-repeat;
+}
+@media (max-width: 480px), (max-height: 520px) {
+  #app:has(> .cta) > .hero { order: 1; }
+  #app:has(> .cta) > .lang-toggle { order: 2; }
+  #app:has(> .cta) > .path { order: 3; }
+  #app:has(> .cta) > .cta { order: 4; display: flex; flex-direction: column; align-items: stretch; }
+  #app:has(> .cta) > .rules { order: 5; }
+  #app:has(> .cta) > .btn.ghost { order: 6; }
+  #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
+  #app:has(> .cta) > .cta > p:first-child { order: 1; }
+  #app:has(> .cta) > .cta #countdown { order: 2; }
+  #app:has(> .cta) > .cta .score-graph { order: 3; }
+  .rules summary { min-height: 44px; display: flex; align-items: center; }
+  .cta .btn.primary.big { font-size: 30px; gap: 8px; padding: 0 8px; height: 56px; min-height: 52px; }
+  .cta .btn.primary.big::before { flex-basis: 24px; width: 24px; height: 24px; }
+  .cta .btn.primary.big.long { font-size: 22px; }
+  .cta .btn.primary.big.long::before { flex-basis: 20px; width: 20px; height: 20px; }
+}
+@media (max-width: 340px) {
+  .cta .btn.primary.big { font-size: 24px; }
+  .cta .btn.primary.big.long { font-size: 18px; }
+}
+@media (max-width: 480px), (max-height: 520px) {
+  body:has(.hero:not(.small)) nav.top { padding: 4px 12px; }
+  body:has(.hero:not(.small)) nav.top .brand { display: none; }
+  .hero:not(.small) { padding: 0 2px; --fw: 156px; }
+  .hero:not(.small) .logo { font-size: 52px; margin-bottom: 0; line-height: .82; }
+  .hero:not(.small)::after { margin-top: 2px; margin-bottom: 0; }
+  .hero .tag { margin: 0 0 2px; font-size: 13.5px; line-height: 1.2; }
+  .hero .tag + .date { margin-top: 1px; }
+  .date { font-size: 12px; padding: 1px 6px; }
+  .lang-toggle { margin: 3px auto 1px; box-shadow: 3px 3px 0 var(--ink-bc); }
+  .lang-btn { min-height: 44px; padding: 6px 12px; }
+  .path { gap: 2px; margin: 3px 0 2px; }
+  .path .step { min-height: 0; padding: 1px 8px; transform: none; }
+  .path .step .nm { padding-top: 0; }
+  .path .step .nm b { font-size: 15px; line-height: 1; }
+  .path .step .nm small { font-size: 10.5px; line-height: 1.15; margin: 1px 0 0; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 18px; }
+  .cta { margin: 0 0 4px; }
+  .cta .btn.primary.big { margin: 2px 0 4px; }
+  .cta #countdown { margin: 0; line-height: 1.1; font-size: 12.5px; }
+  #app:has(> .cta) > .cta > p:first-child { margin: 2px 0 0; font-size: 12.5px; line-height: 1.2; }
+}
+/* Taller phones have room for a larger wordmark, fighters, and Play button. */
+@media (max-width: 480px) and (min-height: 720px) {
+  .hero:not(.small) { --fw: 240px; }
+  .hero:not(.small) .logo { font-size: 78px; margin-bottom: 4px; }
+  .hero .tag { font-size: 15px; line-height: 1.25; }
+  .path { gap: 4px; margin-top: 6px; }
+  .path .step { min-height: 44px; padding: 4px 10px; }
+  .path .step .nm b { font-size: 17px; }
+  .path .step .nm small { font-size: 11.5px; }
+  .cta .btn.primary.big { height: 72px; min-height: 64px; font-size: 34px; }
+  .cta .btn.primary.big.long { font-size: 26px; }
+  .cta #countdown { font-size: 14px; }
+}
+
 /* Results: Graph 1 stays collection-off. Graph 2 is the local editorial history line. */
 .bc-graphs{max-width:520px;margin:16px auto;display:flex;flex-direction:column;gap:14px}
 .g1-card,.g2-card{background:#fff;color:#14182e;border:1px solid #eceff4;border-radius:22px;padding:16px 16px 14px;box-shadow:0 10px 28px rgba(20,24,45,.08);text-align:left}
