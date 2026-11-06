@@ -1054,9 +1054,13 @@ window.CONTENT_ES = {
     "q": "En un peloteo normal de individuales (no tenis en silla de ruedas), el tiro de tu oponente bota dos veces en tu lado antes de que lo devuelvas. ¿Quién gana el punto?",
     "answers": [
      "tu oponente",
-     "oponente",
+     "oponente"
+    ],
+    "aliases": [
      "your opponent",
-     "opponent"
+     "opponent",
+     "tu rival",
+     "rival"
     ],
     "wrong": [
      "tú",
@@ -1100,7 +1104,9 @@ window.CONTENT_ES = {
      "6",
      "seis",
      "6 pares",
-     "seis pares",
+     "seis pares"
+    ],
+    "aliases": [
      "six",
      "6 pairs",
      "six pairs"
@@ -1111,7 +1117,9 @@ window.CONTENT_ES = {
     "q": "Ava, Ben y Cy terminan una carrera sin empates. Ava no queda primera. Ben termina antes que Cy. ¿Quién termina primero?",
     "answers": [
      "ben",
-     "ben termina primero",
+     "ben termina primero"
+    ],
+    "aliases": [
      "ben finishes first"
     ],
     "wrong": [
@@ -1480,32 +1488,32 @@ window.CONTENT_ES = {
    [
     "CALABAZA",
     "definition",
-    "Una favorita de la cosecha con una cáscara dura"
+    "Fruto naranja y grande que se talla en Halloween"
    ],
    [
-    "ARCOIRIS",
+    "TORMENTA",
     "definition",
-    "Un destello breve con todo el espectro"
+    "Lluvia fuerte con rayos y truenos"
    ],
    [
     "JIRAFA",
     "definition",
-    "Un ramoneador manchado con una vista elevada"
+    "El animal más alto, de cuello larguísimo"
    ],
    [
-    "PEPINILLO",
+    "PIMIENTO",
     "definition",
-    "Un invitado ácido en un sándwich"
+    "Verdura hueca que puede ser roja, verde o amarilla"
    ],
    [
     "CACTUS",
     "definition",
-    "Un crecimiento lento con defensas propias"
+    "Planta espinosa del desierto"
    ],
    [
-    "MORSA",
+    "CANGREJO",
     "definition",
-    "Un peso pesado que descansa junto a mares helados"
+    "Animal marino con pinzas que camina de lado"
    ]
   ]
  ],

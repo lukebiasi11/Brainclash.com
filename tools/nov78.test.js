@@ -142,22 +142,22 @@ check(favre, "Brett", false);
 ["Ben", "ben", "Ben finishes first"].forEach(s => check(tf[1], s, true));
 ["Ava", "Cy", "Benjamin"].forEach(s => check(tf[1], s, false));
 
-// Known English/Spanish mismatch. Do not translate in this batch.
 const E = win.CONTENT_ES;
-const mismatches = [];
-function flag(slot, en, es) { if (en !== es) mismatches.push(slot); t(en !== es, "flagged EN/ES mismatch remains at " + slot); }
-flag("worldRush[38] pin 2", nov7.worldRush.pins[1].name, E.worldRush[38].pins[1].name);
-flag("worldRush[38] mc", nov7.worldRush.mc.q, E.worldRush[38].mc.q);
-flag("sports[38] Q1", s7[0].q, E.sports[38][0].q);
-flag("sports[38] Q3", s7[2].q, E.sports[38][2].q);
-flag("sports[39] Q1 option A", s8[0].options[0], E.sports[39][0].options[0]);
-flag("sports[39] Q3 type", s8[2].type, E.sports[39][2].type);
-flag("thinkFast[19] Q1", tf[0].q, E.thinkFast[19][0].q);
-flag("wordFlip[10] word 1", nov8.wordFlip[0][0], E.wordFlip[10][0][0]);
-// Kept items still agree in substance where Spanish already translated them.
+eq(E.worldRush[38].pins[1].lat, 21.3069, "ES Nov 7 Honolulu latitude");
+eq(E.worldRush[38].mc.a, 0, "ES Nov 7 Giza answer index");
+eq(E.sports[38][0].a, 1, "ES Nov 7 deuce answer index");
+eq(E.sports[38].filter(q => q.type === "mc").length, 1, "ES Nov 7 one sports MC");
+eq(E.sports[39][2].type, "text", "ES Nov 8 tennis is typed, not the old bracket");
+eq(E.sports[39][2].q, "En un peloteo normal de individuales (no tenis en silla de ruedas), el tiro de tu oponente bota dos veces en tu lado antes de que lo devuelvas. ¿Quién gana el punto?", "ES Nov 8 tennis prompt");
+t(JSON.stringify(E.sports[39][2].answers.concat(E.sports[39][2].aliases)) === JSON.stringify(["tu oponente", "oponente", "your opponent", "opponent", "tu rival", "rival"]), "ES Nov 8 tennis accepts tu oponente, oponente, your opponent, opponent, tu rival, rival");
+t(JSON.stringify(E.sports[39][2].wrong) === JSON.stringify(["tú", "yo", "you"]), "ES Nov 8 tennis still rejects tú, yo, you");
+eq(E.sports[39].filter(q => ["mc", "bracket", "order", "match"].includes(q.type)).length, 1, "ES Nov 8 one sports choice");
+eq(E.wordFlip[10][0][0], "CALABAZA", "ES unscramble answers not replaced");
+eq(E.wordFlip[10][1][0], "TORMENTA", "ES unscramble word 2 not replaced");
+eq(E.wordFlip[10][4][2], "Planta espinosa del desierto", "ES cactus hint not rewritten");
 eq(E.sports[38][1].answers[0], "oilers", "Spanish Oilers answer still present");
 eq(E.sports[39][1].answers[0], "brett favre", "Spanish Favre answer still present");
 eq(E.worldRush[38].pins[0].name, "Tirana, Albania", "Spanish Tirana pin still present");
-console.log("EN/ES mismatches flagged (not translated): " + mismatches.join("; "));
+t(E.sports[40] == null && E.thinkFast[20] == null, "Nov 9+ Spanish slots stay empty");
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
