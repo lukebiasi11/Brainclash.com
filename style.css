@@ -970,3 +970,62 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .answer.guess .guess-field{flex:0 0 auto} /* flex-basis 160px became a 160px-tall box in the column .answer layout */
 .order-wrap,body.in-game .order-wrap{flex:0 1 auto} /* don't stretch to fill the screen: FIRST/LAST hug the list */
 .zbtns{pointer-events:none}.zbtns button{pointer-events:auto} /* nov3d: the zoom-button box spanned the map top and ate drags */
+
+/* nov6play: on a phone the home Play button sat below the fold (about y=930
+   in a 568px-tall viewport) because the wordmark, fighter art, language
+   toggle, and five category rows all stacked above a 112px button.
+   Narrow screens put that button directly under the hero. Short screens
+   also tighten the hero. The button stays full size; category rows,
+   How it works, practice, results, and the language toggle stay. */
+@media (max-width: 480px), (max-height: 520px) {
+  /* Home only (.cta). Results also has .path and must keep its own order. */
+  #app:has(> .cta) > .hero { order: 1; }
+  #app:has(> .cta) > .lang-toggle { order: 2; }
+  #app:has(> .cta) > .cta { order: 3; display: flex; flex-direction: column; align-items: stretch; }
+  #app:has(> .cta) > .path { order: 4; }
+  #app:has(> .cta) > .rules { order: 5; }
+  #app:has(> .cta) > .btn.ghost { order: 6; }
+  /* Finished day: the score graph is tall. Keep the primary button above it.
+     On a short screen the status line also goes under the button so the
+     button itself is fully inside the first viewport. */
+  #app:has(> .cta) > .cta > p:first-child { order: 0; }
+  #app:has(> .cta) > .cta .btn.primary.big { order: 1; }
+  #app:has(> .cta) > .cta .score-graph { order: 2; }
+  #app:has(> .cta) > .cta #countdown { order: 3; }
+}
+@media (max-width: 480px) and (max-height: 640px), (max-height: 520px) {
+  #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
+  #app:has(> .cta) > .cta > p:first-child { order: 1; margin: 4px 0 0; font-size: 15px; line-height: 1.25; }
+  #app:has(> .cta) > .cta #countdown { order: 2; margin-top: 2px; line-height: 1.05; }
+  #app:has(> .cta) > .cta .score-graph { order: 3; }
+}
+/* Long Spanish labels ("Empezar" / "Continuar") were clipping inside the
+   nowrap button. Sizes stay headline-scale and fit 320–390px with the icon. */
+@media (max-width: 480px) {
+  .cta .btn.primary.big { font-size: 40px; gap: 8px; padding: 0 8px; }
+  .cta .btn.primary.big::before { flex-basis: 30px; width: 30px; height: 30px; }
+  .cta .btn.primary.big.long { font-size: 36px; }
+  .cta .btn.primary.big.long::before { flex-basis: 26px; width: 26px; height: 26px; }
+  .rules summary { min-height: 44px; display: flex; align-items: center; }
+}
+@media (max-width: 380px) {
+  .cta .btn.primary.big { font-size: 36px; }
+  .cta .btn.primary.big.long { font-size: 32px; }
+}
+@media (max-width: 340px) {
+  .cta .btn.primary.big { font-size: 30px; }
+  .cta .btn.primary.big.long { font-size: 28px; }
+}
+@media (max-width: 480px) and (max-height: 720px), (max-height: 520px) {
+  /* The nav wordmark is already hidden on home; don't reserve its line. BETA stays. */
+  body:has(.hero:not(.small)) nav.top { padding: 6px 14px; }
+  body:has(.hero:not(.small)) nav.top .brand { display: none; }
+  .hero:not(.small) { padding: 4px 2px 0; --fw: 188px; }
+  .hero:not(.small) .logo { font-size: 84px; margin-bottom: 6px; }
+  .hero:not(.small)::after { margin-top: 6px; margin-bottom: 0; }
+  .hero .tag { margin-top: 2px; margin-bottom: 4px; }
+  .hero .tag + .date { margin-top: 2px; }
+  .lang-toggle { margin: 6px auto 0; }
+  .cta { margin-top: 0; margin-bottom: 6px; }
+  .cta .btn.primary.big { margin-top: 8px; margin-bottom: 8px; }
+}
