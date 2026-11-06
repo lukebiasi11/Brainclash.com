@@ -285,7 +285,7 @@ function screen(title, sub) {
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
   const cat = session && CATS[session.scores.length];
   const head = h("header", { class: "game-head" },
-    h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Brain Clash", " · ", (session.scores.length + 1) + "/5"),
+    h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Daily Dose", " · ", (session.scores.length + 1) + "/5"),
     h("h2", {}, title), sub ? h("p", { class: "muted" }, sub) : null,
     catScoreChip());
   const body = h("section", { class: "game-body" });
@@ -370,7 +370,7 @@ function home() {
   const wg = wordGameFor(day);
   app.append(
     h("div", { class: "hero" },
-      h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")),
+      h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")),
       h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("5,000")), tr(" points on the line.")),
       h("p", { class: "date" }, new Date(day * 864e5).toLocaleDateString(I18N.locale, { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) + " · Clash #" + gameNumber(day))),
     I18N.toggleVisible() ? h("div", { class: "lang-toggle", role: "group", "aria-label": tr("Language") }, ["en", "es"].map(l =>
@@ -1540,7 +1540,7 @@ function thinkFast() {
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
 const SITE_URL = "https://lukebiasi11.github.io/Brainclash.com/";
-const shareText = () => `Brain Clash ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
+const shareText = () => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
 async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch {} }
 // Lightweight confetti on a single canvas (~2 s, no library).
 // Fix (Oct 26): the canvas used to sit at z-index 1 INSIDE the modal, under the card (z-index 2), which covers
@@ -1663,7 +1663,7 @@ function results() {
   app.innerHTML = ""; window.scrollTo(0, 0);
   const share = shareText(); // ends with SITE_URL
   app.append(
-    h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
+    h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
     h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
     h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
@@ -1743,7 +1743,7 @@ const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) 
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
 else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
   session = newSession(true); session.key = PREVIEW_KEY; session.day = dayOfKey(PREVIEW_KEY); session.set = getDailySet(PREVIEW_KEY);
-  document.title = "Preview " + PREVIEW_KEY + " — Brain Clash"; window.BCPreview = Object.freeze({ key: PREVIEW_KEY, cat: () => session.scores.length }); runNext();
+  document.title = "Preview " + PREVIEW_KEY + " — Daily Dose"; window.BCPreview = Object.freeze({ key: PREVIEW_KEY, cat: () => session.scores.length }); runNext();
 } else home();
 // Dev/test only (inert unless the URL has ?dgtest): jump straight to a category / word-game format for layout tests.
 if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.freeze({
