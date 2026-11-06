@@ -163,18 +163,18 @@ window.CONTENT_ES = {
      "lon": 19.82
     },
     {
-     "name": "Timbu (Thimphu), Bután",
-     "lat": 27.47,
-     "lon": 89.64
+     "name": "Honolulu, Hawái, EE. UU.",
+     "lat": 21.3069,
+     "lon": -157.8583
     }
    ],
    "mc": {
-    "q": "¿En qué país está el templo budista de Borobudur?",
+    "q": "¿En qué país están las Pirámides de Giza?",
     "options": [
-     "Indonesia",
-     "Tailandia",
-     "Camboya",
-     "Birmania (Myanmar)"
+     "Egipto",
+     "México",
+     "Grecia",
+     "India"
     ],
     "a": 0
    }
@@ -953,14 +953,15 @@ window.CONTENT_ES = {
   [
    {
     "type": "mc",
-    "kind": "true-false",
-    "q": "Exactamente una afirmación es falsa. ¿Cuál?",
+    "q": "En el tenis, ¿cómo se llama un marcador de 40–40?",
     "options": [
-     "Shaquille O'Neal ganó títulos de la NBA con los Lakers de Los Ángeles",
-     "Shaquille O'Neal nunca ganó un campeonato de la NBA"
+     "Cero",
+     "Iguales",
+     "Ventaja",
+     "Punto de partido"
     ],
     "a": 1,
-    "explain": "Shaq ganó cuatro títulos de la NBA, tres de ellos con los Lakers (2000–02)."
+    "explain": "Un marcador de 40–40 se llama iguales."
    },
    {
     "type": "text",
@@ -993,21 +994,25 @@ window.CONTENT_ES = {
     "person": true,
     "q": "Nombra al único jugador que fue compañero de equipo (mismo equipo, misma temporada) de estos cinco jugadores.",
     "clues": [
-     "Mark McGwire",
-     "Don Mattingly",
-     "Tony Gwynn",
-     "Mike Piazza",
-     "Joe Carter"
+     "Kobe Bryant",
+     "Dwyane Wade",
+     "Steve Nash",
+     "LeBron James",
+     "Kevin Garnett"
     ],
     "answers": [
-     "rickey henderson",
-     "henderson",
-     "rickey"
+     "shaquille o'neal",
+     "shaq",
+     "shaquille oneal",
+     "o'neal",
+     "oneal",
+     "shaquille",
+     "shaquille o neal"
     ],
-    "aliases": [
-     "ricky henderson"
+    "wrong": [
+     "neal"
     ],
-    "explain": "Rickey Henderson: con McGwire (A's), Mattingly (Yankees), Gwynn (Padres), Piazza (Mets) y Carter (Blue Jays)."
+    "explain": "Bryant—Lakers; Wade—Heat; Nash—Suns; James—Cavaliers; Garnett—Celtics."
    }
   ],
   [
@@ -1016,11 +1021,11 @@ window.CONTENT_ES = {
     "kind": "which-first",
     "q": "¿Qué pasó primero?",
     "options": [
-     "Billie Jean King vence a Bobby Riggs en la \"Batalla de los sexos\"",
-     "Andre Agassi gana su primer título de Wimbledon"
+     "Serena Williams gana su primer título de individuales del US Open",
+     "Lionel Messi gana la Copa del Mundo masculina con Argentina"
     ],
     "a": 0,
-    "explain": "King venció a Riggs en 1973; Agassi ganó Wimbledon en 1992."
+    "explain": "Serena Williams ganó su primer título de individuales del US Open en 1999; Lionel Messi ganó la Copa del Mundo masculina con Argentina en 2022."
    },
    {
     "type": "text",
@@ -1045,16 +1050,20 @@ window.CONTENT_ES = {
     "explain": "Brett Favre ganó tres MVP de AP consecutivos con Green Bay."
    },
    {
-    "type": "bracket",
-    "kind": "bracket",
-    "round": "Final masculina de Wimbledon 1980",
-    "q": "¿Quién ganó la épica final de individuales masculina de Wimbledon 1980?",
-    "matchup": [
-     "Björn Borg",
-     "John McEnroe"
+    "type": "text",
+    "q": "En un peloteo normal de individuales (no tenis en silla de ruedas), el tiro de tu oponente bota dos veces en tu lado antes de que lo devuelvas. ¿Quién gana el punto?",
+    "answers": [
+     "tu oponente",
+     "oponente",
+     "your opponent",
+     "opponent"
     ],
-    "a": 0,
-    "explain": "Björn Borg venció a John McEnroe en cinco sets."
+    "wrong": [
+     "tú",
+     "yo",
+     "you"
+    ],
+    "explain": "Gana tu oponente. En el tenis normal solo se permite un bote; el tenis en silla de ruedas es distinto."
    }
   ],
   null,
@@ -1086,29 +1095,30 @@ window.CONTENT_ES = {
   null,
   [
    {
-    "q": "¿Cuánto suman todos los números enteros del 1 al 100?",
+    "q": "Una heladería tiene vainilla, chocolate, fresa y menta. Eliges dos sabores DIFERENTES. Cambiar el orden no crea un par nuevo. ¿Cuántos pares puedes elegir?",
     "answers": [
-     "5050",
-     "5,050",
-     "5.050",
-     "cinco mil cincuenta"
+     "6",
+     "seis",
+     "6 pares",
+     "seis pares",
+     "six",
+     "6 pairs",
+     "six pairs"
     ],
-    "explain": "50 pares que suman 101"
+    "explain": "vainilla–chocolate, vainilla–fresa, vainilla–menta, chocolate–fresa, chocolate–menta, fresa–menta."
    },
    {
-    "q": "El papá de María tiene cinco hijas. Cuatro se llaman Nana, Nene, Nini y Nono. ¿Cuál es el nombre de la quinta hija?",
+    "q": "Ava, Ben y Cy terminan una carrera sin empates. Ava no queda primera. Ben termina antes que Cy. ¿Quién termina primero?",
     "answers": [
-     "maría",
-     "maria",
-     "mary"
+     "ben",
+     "ben termina primero",
+     "ben finishes first"
     ],
     "wrong": [
-     "marta",
-     "marina",
-     "nunu",
-     "nunú"
+     "ava",
+     "cy"
     ],
-    "explain": "Es la propia María"
+    "explain": "Ava no puede quedar primera; Cy no puede quedar primero porque Ben va adelante; Ben tiene que quedar primero."
    }
   ],
   null,
@@ -1470,32 +1480,32 @@ window.CONTENT_ES = {
    [
     "CALABAZA",
     "definition",
-    "Fruto naranja y grande que se talla en Halloween"
+    "Una favorita de la cosecha con una cáscara dura"
    ],
    [
-    "TORMENTA",
+    "ARCOIRIS",
     "definition",
-    "Lluvia fuerte con rayos y truenos"
+    "Un destello breve con todo el espectro"
    ],
    [
     "JIRAFA",
     "definition",
-    "El animal más alto, de cuello larguísimo"
+    "Un ramoneador manchado con una vista elevada"
    ],
    [
-    "PIMIENTO",
+    "PEPINILLO",
     "definition",
-    "Verdura hueca que puede ser roja, verde o amarilla"
+    "Un invitado ácido en un sándwich"
    ],
    [
     "CACTUS",
     "definition",
-    "Planta espinosa del desierto"
+    "Un crecimiento lento con defensas propias"
    ],
    [
-    "CANGREJO",
+    "MORSA",
     "definition",
-    "Animal marino con pinzas que camina de lado"
+    "Un peso pesado que descansa junto a mares helados"
    ]
   ]
  ],
