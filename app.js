@@ -388,7 +388,7 @@ function home() {
     done
       ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
           scoreGraph(s.scores, day),
-          h("button", { class: "btn primary big", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
+          h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
@@ -1517,6 +1517,199 @@ function thinkFast() {
   ask();
 }
 
+// ---------- results graphs ----------
+// Graph 1 field collection is off. Do not fetch, poll, post start/finish, or invent a distribution.
+const G1_COLLECTION_OFF = true;
+function clockDayKey() { return keyOf(zoneDay(now())); }
+function fmtDayKey(key, style) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return "";
+  const opt = style === "long" ? { month: "long", day: "numeric", timeZone: "UTC" } : { month: "short", day: "numeric", timeZone: "UTC" };
+  try { return dt.toLocaleDateString(I18N.locale, opt); } catch (e) { return key; }
+}
+function fmtTenths(n) {
+  const H = window.BCHistory;
+  const r = H ? H.roundTenths(n) : (n == null || !Number.isFinite(n) ? null : Math.round(n * 10) / 10);
+  if (r == null) return "—";
+  const digits = Math.abs(r - Math.round(r)) < 1e-6 ? 0 : 1;
+  try { return r.toLocaleString(I18N.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }); } catch (e) { return String(r); }
+}
+function fmtGrouped(n) { const r = Math.round(n); try { return r.toLocaleString(I18N.locale); } catch (e) { return String(r); } }
+function fmtPlain(n) { return String(Math.round(n)); }
+function svgEl(tag, attrs, ...kids) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs || {})) if (v != null && v !== false) e.setAttribute(k, String(v));
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return e;
+}
+function sessionScoresValid() {
+  if (!session || !Array.isArray(session.scores)) return false;
+  const H = window.BCHistory;
+  return H ? H.isValidCompleted({ practice: false, scores: session.scores }) : false;
+}
+function loadPersonalHistory() {
+  const H = window.BCHistory;
+  if (!H) return null;
+  try {
+    const practice = !!(session && session.practice);
+    const viewedDay = !practice && session && H.isDayKey(session.key) ? session.key : null;
+    const memory = viewedDay ? { day: session.key, scores: session.scores, practice: false } : null;
+    const found = H.completedGames(H.readLocalEntries(localStorage), viewedDay, memory);
+    return { games: found.games, later: found.later, viewedDay, practice, clockDay: clockDayKey() };
+  } catch (e) { return null; }
+}
+function g1Axes(mode) {
+  const W = 360, Ht = 150, pad = { l: 8, r: 8, t: 8, b: mode === "total" ? 26 : 16 };
+  const nodes = [
+    svgEl("line", { x1: pad.l, y1: pad.t, x2: pad.l, y2: Ht - pad.b, stroke: "#d5d9e2" }),
+    svgEl("line", { x1: pad.l, y1: Ht - pad.b, x2: W - pad.r, y2: Ht - pad.b, stroke: "#d5d9e2" })
+  ];
+  if (mode === "total") {
+    [0, 1000, 2000, 3000, 4000, 5000].forEach((v, i, arr) => {
+      const x = pad.l + (W - pad.l - pad.r) * (i / (arr.length - 1));
+      nodes.push(svgEl("text", { x, y: Ht - 6, "text-anchor": i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle", fill: "#8b93a7", "font-size": 10 }, String(v)));
+    });
+  } else {
+    nodes.push(svgEl("text", { x: pad.l + 6, y: pad.t + 14, fill: "#8b93a7", "font-size": 11 }, fmtGrouped(1000)));
+    nodes.push(svgEl("text", { x: pad.l + 6, y: Ht - pad.b - 6, fill: "#8b93a7", "font-size": 11 }, "0"));
+  }
+  const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
+  return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
+}
+function g1Section() {
+  const practice = !!(session && session.practice);
+  const pinned = !practice && session && window.BCHistory && window.BCHistory.isDayKey(session.key) ? session.key : "";
+  const clock = clockDayKey();
+  let mode = "total";
+  const section = h("section", { class: "g1-card", id: "results-g1", "data-g1-state": "collection-off", "data-collection": G1_COLLECTION_OFF ? "off" : "blocked", "data-g1-day": pinned, "aria-labelledby": "g1-title" });
+  const title = !practice && pinned && pinned === clock ? tr("Today's competition") : tr("Daily competition");
+  const dateLine = practice ? tr("Practice run · not part of the daily field") : (pinned ? tr("{0} · New York", fmtDayKey(pinned, "long")) : tr("New York"));
+  const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total score"));
+  const catBtn = h("button", { type: "button", "data-g1-view": "category", "aria-pressed": "false" }, tr("By category"));
+  const plot = h("div", { class: "g1-plot" });
+  const paint = () => {
+    totalBtn.setAttribute("aria-pressed", mode === "total" ? "true" : "false");
+    catBtn.setAttribute("aria-pressed", mode === "category" ? "true" : "false");
+    section.setAttribute("data-g1-mode", mode);
+    while (plot.firstChild) plot.removeChild(plot.firstChild);
+    const yName = mode === "total" ? tr("Number of completed games") : tr("Score");
+    const xName = mode === "total" ? tr("Score range") : tr("Category");
+    plot.append(h("div", { class: "g1-chart" }, h("div", { class: "g-ylab" }, yName), h("div", {}, g1Axes(mode), h("div", { class: "g-xlab" }, xName))), h("p", { class: "g1-empty" }, tr("No scores are plotted while collection is off.")));
+    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map(c => h("li", {}, c.name))));
+  };
+  totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
+  catBtn.addEventListener("click", () => { mode = "category"; paint(); });
+  const yours = h("p", { class: "g1-yours" });
+  if (sessionScoresValid()) yours.append(h("span", {}, practice ? tr("This run") : tr("Your score")), h("b", {}, fmtPlain(session.scores.reduce((a, b) => a + b, 0))));
+  section.append(
+    h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), h("p", { class: "g-sub" }, dateLine)), h("span", { class: "g1-badge" }, tr("Not live"))),
+    h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
+    h("h3", {}, tr("Comparison unavailable")),
+    h("p", { class: "g1-unavail" }, tr("Daily field collection is off. Brain Clash is not gathering other completed games, so there is no average, distribution, or percentile.")),
+    plot, yours,
+    h("p", { class: "g-foot" }, tr("Collection stays off. This view does not download scores or send results. Counts would be completed games, not verified players.")));
+  paint();
+  return section;
+}
+function g2Chart(points, scale, highlightDay, priorMean) {
+  const W = 360, Ht = 200, pad = { l: 46, r: 16, t: 16, b: 32 };
+  const iw = W - pad.l - pad.r, ih = Ht - pad.t - pad.b, n = points.length;
+  const xAt = i => n <= 1 ? pad.l + iw / 2 : pad.l + iw * i / (n - 1);
+  const yAt = v => pad.t + ih - (Math.max(0, Math.min(scale, v)) / scale) * ih;
+  const nodes = [];
+  (scale === 5000 ? [0, 2500, 5000] : [0, 500, 1000]).forEach(v => {
+    const y = yAt(v);
+    nodes.push(svgEl("line", { x1: pad.l, y1: y, x2: W - pad.r, y2: y, stroke: "#eceff3" }));
+    nodes.push(svgEl("text", { x: pad.l - 8, y: y + 4, "text-anchor": "end", fill: "#98a0b0", "font-size": 11 }, String(v)));
+  });
+  if (priorMean != null && Number.isFinite(priorMean)) {
+    const y = yAt(priorMean);
+    nodes.push(svgEl("line", { x1: pad.l, y1: y, x2: W - pad.r, y2: y, stroke: "#8b93a7", "stroke-width": "1.5", "stroke-dasharray": "4 4", "data-prior-line": "1" }));
+  }
+  if (n >= 2) nodes.push(svgEl("path", { d: points.map((p, i) => (i ? "L" : "M") + xAt(i).toFixed(1) + " " + yAt(p.value).toFixed(1)).join(" "), fill: "none", stroke: "#1F2C7A", "stroke-width": "2", "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  const labelIdx = n <= 6 ? points.map((_, i) => i) : [0, 1, 2, 3, 4].map(k => Math.round(k * (n - 1) / 4));
+  const seen = new Set();
+  labelIdx.forEach(i => {
+    if (seen.has(i) || !points[i]) return; seen.add(i);
+    const bold = points[i].day === highlightDay;
+    nodes.push(svgEl("text", { x: xAt(i), y: Ht - 8, "text-anchor": "middle", fill: bold ? "#14182e" : "#8b93a7", "font-size": 11, "font-weight": bold ? "700" : "500" }, fmtDayKey(points[i].day, "short")));
+  });
+  points.forEach((p, i) => {
+    const cx = xAt(i), cy = yAt(p.value), on = p.day === highlightDay;
+    nodes.push(svgEl("circle", { cx: cx.toFixed(1), cy: cy.toFixed(1), r: on ? 5.5 : 4.5, fill: on ? "#E8582A" : "#fff", stroke: on ? "#E8582A" : "#1F2C7A", "stroke-width": "2" }));
+    if (on) nodes.push(svgEl("text", { x: Math.min(cx, W - pad.r).toFixed(1), y: cy > pad.t + 18 ? cy - 10 : cy + 16, "text-anchor": i === n - 1 ? "end" : "middle", fill: "#14182e", "font-size": 12, "font-weight": "700" }, fmtPlain(p.value)));
+  });
+  return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g2-svg", "aria-hidden": "true", focusable: "false" }, nodes);
+}
+function g2Section() {
+  const section = h("section", { class: "g2-card", id: "results-g2", "data-g2": "editorial", "aria-labelledby": "g2-title" });
+  const hist = loadPersonalHistory();
+  const select = h("select", { id: "g2-metric" });
+  select.append(h("option", { value: "overall" }, tr("Overall")));
+  CATS.forEach((c, i) => select.append(h("option", { value: String(i) }, c.name)));
+  const sub = h("p", { class: "g-sub" });
+  const body = h("div", { class: "g2-body", "aria-live": "polite" });
+  section.append(h("div", { class: "g2-head" }, h("div", {}, h("h2", { id: "g2-title" }, tr("Your history")), sub), h("label", { class: "g2-select" }, h("span", { class: "sr-only" }, tr("History metric")), select)), body);
+  const paint = () => {
+    const metric = select.value === "overall" ? "overall" : Number(select.value);
+    const name = metric === "overall" ? tr("Overall") : (CATS[metric] ? CATS[metric].name : "");
+    while (body.firstChild) body.removeChild(body.firstChild);
+    if (!hist || !window.BCHistory) {
+      section.setAttribute("data-g2-state", "unreadable");
+      sub.textContent = "";
+      body.append(h("p", { class: "g2-empty" }, tr("History couldn't be read on this page. Saved games were left as they are.")));
+      return;
+    }
+    const H = window.BCHistory, scale = H.scaleFor(metric), summary = H.summarize(hist.games, metric, hist.viewedDay);
+    const includes = !!(hist.viewedDay && summary.viewed);
+    const hero = includes ? summary.viewed : (summary.points.length ? summary.points[summary.points.length - 1] : null);
+    const isToday = !!(includes && hist.viewedDay === hist.clockDay);
+    section.setAttribute("data-g2-state", summary.allCount ? "ready" : "empty");
+    section.setAttribute("data-metric", metric === "overall" ? "overall" : String(metric));
+    section.setAttribute("data-viewed-day", hist.viewedDay || "");
+    section.setAttribute("data-includes-viewed", includes ? "1" : "0");
+    section.setAttribute("data-all-count", String(summary.allCount));
+    section.setAttribute("data-all-sum", String(summary.allSum));
+    section.setAttribute("data-all-mean", summary.allMean == null ? "" : String(H.roundTenths(summary.allMean)));
+    section.setAttribute("data-prior-count", String(summary.priorCount));
+    section.setAttribute("data-prior-mean", summary.priorMean == null ? "" : String(H.roundTenths(summary.priorMean)));
+    section.setAttribute("data-later", String(hist.later));
+    section.setAttribute("data-practice", hist.practice ? "1" : "0");
+    sub.textContent = hist.practice ? tr("Completed games saved on this device") : (isToday ? tr("Completed games, earlier → today") : tr("Completed games, earlier → {0}", fmtDayKey(hist.viewedDay, "short") || ""));
+    const foot = tr("Finished games saved on this device. Practice and unfinished days are left out.");
+    if (!summary.allCount) {
+      body.append(h("p", { class: "g2-empty" }, tr("No completed games on this device yet.")), h("p", { class: "g-foot" }, hist.practice ? tr("Practice runs are not saved and are not part of this history.") : foot));
+      return;
+    }
+    const short = fmtDayKey(hero.day, "short");
+    const kicker = hist.practice ? tr("Latest saved · {0} · {1}", short, name) : isToday ? tr("Today · {0} · {1}", short, name) : includes ? tr("Completed · {0} · {1}", short, name) : tr("Latest saved · {0} · {1}", short, name);
+    const dash = !hist.practice && summary.priorCount > 0 ? summary.priorMean : (hist.practice && summary.allCount >= 2 ? summary.allMean : null);
+    const kids = [h("p", { class: "g2-kicker" }, kicker), h("p", { class: "g2-big" }, fmtPlain(hero.value)), h("p", { class: "g2-scale" }, tr("points · scale 0–{0}", fmtGrouped(scale)))];
+    if (dash != null && !hist.practice) kids.push(h("p", { class: "g2-legend" }, h("i", { "aria-hidden": "true" }), isToday ? tr("Prior avg {0} · excl. today", fmtTenths(summary.priorMean)) : tr("Prior avg {0} · excl. {1}", fmtTenths(summary.priorMean), fmtDayKey(hist.viewedDay, "short"))));
+    else if (dash != null) kids.push(h("p", { class: "g2-legend" }, h("i", { "aria-hidden": "true" }), tr("Dashed line = average {0} of these saved games.", fmtTenths(summary.allMean))));
+    kids.push(h("div", { class: "g2-chart" }, h("div", { class: "g-ylab" }, tr("Score")), h("div", {}, g2Chart(summary.points, scale, includes ? hist.viewedDay : null, dash), h("div", { class: "g-xlab" }, tr("Date")))));
+    kids.push(h("table", { class: "sr-only" }, h("caption", {}, tr("Graph of your completed games")), h("thead", {}, h("tr", {}, h("th", {}, tr("Date")), h("th", {}, tr("Score")))), h("tbody", {}, summary.points.map(p => h("tr", {}, h("td", {}, fmtDayKey(p.day, "long") || p.day), h("td", {}, fmtPlain(p.value)))))));
+    const viewedLong = fmtDayKey(hist.viewedDay, "long");
+    kids.push(h("p", { class: "g2-all-kicker" }, includes && isToday ? tr("All time · includes today") : includes ? tr("All time · includes {0}", viewedLong) : tr("All time · saved games")));
+    kids.push(h("div", { class: "g2-stats" }, h("div", {}, h("span", {}, tr("Average")), h("b", {}, fmtTenths(summary.allMean))), h("div", {}, h("span", {}, tr("Total")), h("b", {}, fmtGrouped(summary.allSum))), h("div", {}, h("span", {}, tr("Games")), h("b", {}, fmtGrouped(summary.allCount)))));
+    if (!hist.practice && includes && summary.priorCount > 0) kids.push(h("p", { class: "g-foot" }, tr("Dashed line = prior avg {0}, before {1} only. Average, total, and games include {1}.", fmtTenths(summary.priorMean), viewedLong)));
+    else if (!hist.practice && includes) kids.push(h("p", { class: "g-foot" }, tr("No earlier completed games on this device. Average, total, and games include {0}.", viewedLong)));
+    if (hist.practice) kids.push(h("p", { class: "g-foot" }, tr("Practice runs are not saved and are not part of this history.")));
+    if (hist.later > 0) kids.push(h("p", { class: "g-foot" }, tr("Later completed games on this device stay with their own day and are not mixed in here.")));
+    kids.push(h("p", { class: "g-foot" }, foot));
+    body.append(...kids);
+  };
+  select.addEventListener("change", paint);
+  paint();
+  return section;
+}
+function bcGraphs() {
+  try { const wrap = h("div", { class: "bc-graphs" }); wrap.append(g1Section(), g2Section()); return wrap; }
+  catch (e) { return h("div", { class: "bc-graphs" }, h("p", { class: "g-fallback" }, tr("Results charts couldn't be read from this device. Saved games were left as they are."))); }
+}
+
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
 const SITE_URL = "https://lukebiasi11.github.io/Brainclash.com/";
@@ -1622,7 +1815,7 @@ function resultsPopup() {
   const num = h("b", { class: "result-modal__score" }, "0");
   const close = () => { m.remove(); document.removeEventListener("keydown", esc); };
   const esc = e => { if (e.key === "Escape") close(); };
-  const shareBtn = h("button", { class: "btn primary big result-modal__share", onclick: () => doShare(shareBtn) }, tr("📤 Share result"));
+  const shareBtn = h("button", { class: "btn primary big result-modal__share", "data-action": "share-results", onclick: () => doShare(shareBtn) }, tr("📤 Share result"));
   const m = h("div", { class: "result-modal", role: "dialog", "aria-modal": "true", "aria-label": "Clash complete" },
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? tr("Practice complete") : tr("Clash complete!")),
@@ -1630,7 +1823,7 @@ function resultsPopup() {
       h("p", { class: "result-modal__quip" }, snarkLine(tot)),
       h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
       shareBtn,
-      h("button", { class: "btn result-modal__full", onclick: () => { close(); results(); } }, tr("See full results"))));
+      h("button", { class: "btn result-modal__full", "data-action": "see-results", onclick: () => { close(); results(); } }, tr("See results"))));
   document.addEventListener("keydown", esc);
   document.body.append(m); endFx(tot, m, m.querySelector(".result-modal__card")); countUp(num, tot, 1200);
 }
@@ -1640,15 +1833,17 @@ function results() {
   $(".result-modal")?.remove();
   countStats();
   document.body.classList.remove("in-game");
+  app.classList.remove("enter");
   app.innerHTML = ""; window.scrollTo(0, 0);
   const share = shareText(); // ends with SITE_URL
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "BRAIN", h("span", {}, "CLASH")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
     h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
+    bcGraphs(),
     h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
-      h("button", { class: "btn primary", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
+      h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
       h("button", { class: "btn", onclick: home }, tr("Home"))),
     h("p", { class: "fine" }, tr("Global & friends leaderboards arrive with accounts in a future version.")));
   countUp($("#finalnum"), tot, 1600);
@@ -1743,6 +1938,15 @@ if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.fr
   sportsSet(day) { if (Array.isArray(day) || (day && typeof day === "object")) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; return runNext(); } DGTest.at(day, 2); },
   state() { return session; },
   popup(sc) { session = newSession(true); session.scores = sc || [400, 300, 250, 500, 600]; results(); resultsPopup(); },
+  // Read-only results hooks. counted is set first so countStats does not write dg-stats or the day record.
+  _view(key, scores, opts) {
+    opts = opts || {};
+    const k = typeof key === "string" ? key : DGTest._key(key);
+    session = { key: k, practice: opts.practice === true, counted: true, scores: Array.isArray(scores) ? scores.slice() : [], details: [] };
+    session.day = dayOfKey(k); session.set = getDailySet(k);
+  },
+  openResults(key, scores, opts) { DGTest._view(key, scores, opts); results(); },
+  completionPopup(key, scores, opts) { DGTest._view(key, scores, opts); resultsPopup(); },
   wordGames: () => [...new Set(Array.from({ length: 60 }, (_, d) => getDailySet(keyOf(d)).wordGame.id))]
 });
 })();
