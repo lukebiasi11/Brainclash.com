@@ -984,46 +984,72 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 }
 @media (max-width: 480px), (max-height: 520px) {
   #app:has(> .cta) > .hero { order: 1; }
-  #app:has(> .cta) > .lang-toggle { order: 2; }
   #app:has(> .cta) > .path { order: 3; }
   #app:has(> .cta) > .cta { order: 4; display: flex; flex-direction: column; align-items: stretch; }
-  #app:has(> .cta) > .rules { order: 5; }
   #app:has(> .cta) > .btn.ghost { order: 6; }
+  /* How it works sits under Play, not in the first screen. */
+  #app:has(> .cta) > .rules { order: 8; }
   #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
   #app:has(> .cta) > .cta > p:first-child { order: 1; }
   #app:has(> .cta) > .cta #countdown { order: 2; }
   #app:has(> .cta) > .cta .score-graph { order: 3; }
   .rules summary { min-height: 44px; display: flex; align-items: center; }
-  .cta .btn.primary.big { font-size: 30px; gap: 8px; padding: 0 8px; height: 56px; min-height: 52px; }
-  .cta .btn.primary.big::before { flex-basis: 24px; width: 24px; height: 24px; }
-  .cta .btn.primary.big.long { font-size: 22px; }
-  .cta .btn.primary.big.long::before { flex-basis: 20px; width: 20px; height: 20px; }
+  .cta .btn.primary.big { font-size: 34px; gap: 10px; padding: 0 10px; height: 72px; min-height: 64px; }
+  .cta .btn.primary.big::before { flex-basis: 28px; width: 28px; height: 28px; }
+  .cta .btn.primary.big.long { font-size: 26px; }
+  .cta .btn.primary.big.long::before { flex-basis: 24px; width: 24px; height: 24px; }
 }
 @media (max-width: 340px) {
   .cta .btn.primary.big { font-size: 24px; }
   .cta .btn.primary.big.long { font-size: 18px; }
 }
 @media (max-width: 480px), (max-height: 520px) {
-  body:has(.hero:not(.small)) nav.top { padding: 4px 12px; }
+  body:has(.hero:not(.small)) nav.top { min-height: 44px; padding: 0 10px 0 2px; align-items: center; }
   body:has(.hero:not(.small)) nav.top .brand { display: none; }
-  .hero:not(.small) { padding: 0 2px; --fw: 156px; }
-  .hero:not(.small) .logo { font-size: 52px; margin-bottom: 0; line-height: .82; }
-  .hero:not(.small)::after { margin-top: 2px; margin-bottom: 0; }
-  .hero .tag { margin: 0 0 2px; font-size: 13.5px; line-height: 1.2; }
-  .hero .tag + .date { margin-top: 1px; }
-  .date { font-size: 12px; padding: 1px 6px; }
-  .lang-toggle { margin: 3px auto 1px; box-shadow: 3px 3px 0 var(--ink-bc); }
-  .lang-btn { min-height: 44px; padding: 6px 12px; }
-  .path { gap: 2px; margin: 3px 0 2px; }
-  .path .step { min-height: 0; padding: 1px 8px; transform: none; }
+  /* Language sits in the header edge: words only, 44px hit target, no center card. */
+  #app:has(> .cta) > .lang-toggle {
+    position: absolute; top: 0; left: 2px; z-index: 6; margin: 0; width: auto;
+    border: 0; box-shadow: none; background: transparent; gap: 0;
+  }
+  #app:has(> .cta) .lang-btn {
+    min-width: 44px; min-height: 44px; padding: 12px 7px 8px; font-size: 13px; font-weight: 800;
+    line-height: 1; background: transparent; color: var(--ink-bc); box-shadow: none;
+  }
+  #app:has(> .cta) .lang-btn.on {
+    background: transparent; color: var(--ink-bc);
+    text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px;
+  }
+  #app:has(> .cta) .lang-btn:focus-visible { outline: 2px solid var(--ink-bc); outline-offset: -4px; }
+  .hero:not(.small) { padding: 2px 2px 0; --fw: 168px; }
+  .hero:not(.small) .logo { font-size: 56px; margin-bottom: 4px; line-height: .82; }
+  .hero:not(.small)::after { margin-top: 6px; margin-bottom: 2px; }
+  .hero .tag { margin: 2px 0 4px; font-size: 14.5px; line-height: 1.25; }
+  .hero .tag + .date { margin-top: 4px; }
+  .date { font-size: 13px; padding: 2px 8px; }
+  .path { gap: 6px; margin: 10px 0 8px; }
+  .path .step { min-height: 42px; padding: 5px 12px; transform: none; }
   .path .step .nm { padding-top: 0; }
-  .path .step .nm b { font-size: 15px; line-height: 1; }
-  .path .step .nm small { font-size: 10.5px; line-height: 1.15; margin: 1px 0 0; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 18px; }
-  .cta { margin: 0 0 4px; }
-  .cta .btn.primary.big { margin: 2px 0 4px; }
+  .path .step .nm b { font-size: 17px; line-height: 1.05; }
+  .path .step .nm small { font-size: 11px; line-height: 1.15; margin: 2px 0 0; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 22px; }
+  .cta { margin: 4px 0 8px; }
+  .cta .btn.primary.big { margin: 6px 0 6px; }
   .cta #countdown { margin: 0; line-height: 1.1; font-size: 12.5px; }
   #app:has(> .cta) > .cta > p:first-child { margin: 2px 0 0; font-size: 12.5px; line-height: 1.2; }
+}
+/* 568–600px: keep the larger Play and open rows, with a slightly shorter hero. */
+@media (max-width: 480px) and (max-height: 640px) {
+  .hero:not(.small) { --fw: 142px; padding-top: 0; }
+  .hero:not(.small) .logo { font-size: 48px; margin-bottom: 2px; }
+  .hero:not(.small)::after { margin-top: 4px; margin-bottom: 0; }
+  .hero .tag { margin: 1px 0 2px; font-size: 14px; line-height: 1.2; }
+  .hero .tag + .date { margin-top: 2px; }
+  .path { gap: 5px; margin: 8px 0 6px; }
+  .path .step { min-height: 40px; padding: 4px 12px; }
+  .path .step .nm b { font-size: 16px; }
+  .cta { margin: 2px 0 4px; }
+  .cta .btn.primary.big { height: 68px; min-height: 64px; font-size: 32px; margin: 4px 0; }
+  .cta .btn.primary.big.long { font-size: 24px; }
 }
 /* Taller phones have room for a larger wordmark, fighters, and Play button. */
 @media (max-width: 480px) and (min-height: 720px) {
