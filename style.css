@@ -1020,47 +1020,48 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
     text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px;
   }
   #app:has(> .cta) .lang-btn:focus-visible { outline: 2px solid var(--ink-bc); outline-offset: -4px; }
-  .hero:not(.small) { padding: 2px 2px 0; --fw: 168px; }
-  .hero:not(.small) .logo { font-size: 56px; margin-bottom: 4px; line-height: .82; }
-  .hero:not(.small)::after { margin-top: 6px; margin-bottom: 2px; }
+  .hero:not(.small) { padding: 2px 2px 0; --fw: 210px; }
+  .hero:not(.small) .logo { font-size: 68px; margin-bottom: 4px; line-height: .82; }
+  .hero:not(.small)::after { margin-top: 8px; margin-bottom: 2px; }
   .hero .tag { margin: 2px 0 4px; font-size: 14.5px; line-height: 1.25; }
   .hero .tag + .date { margin-top: 4px; }
   .date { font-size: 13px; padding: 2px 8px; }
-  .path { gap: 6px; margin: 10px 0 8px; }
-  .path .step { min-height: 42px; padding: 5px 12px; transform: none; }
+  .path { gap: 4px; margin: 8px 0 6px; }
+  .path .step { min-height: 38px; padding: 3px 12px; transform: none; }
   .path .step .nm { padding-top: 0; }
-  .path .step .nm b { font-size: 17px; line-height: 1.05; }
-  .path .step .nm small { font-size: 11px; line-height: 1.15; margin: 2px 0 0; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 22px; }
+  .path .step .nm b { font-size: 16px; line-height: 1.05; }
+  .path .step .nm small { font-size: 11px; line-height: 1.15; margin: 1px 0 0; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 20px; }
   .cta { margin: 4px 0 8px; }
   .cta .btn.primary.big { margin: 6px 0 6px; }
   .cta #countdown { margin: 0; line-height: 1.1; font-size: 12.5px; }
   #app:has(> .cta) > .cta > p:first-child { margin: 2px 0 0; font-size: 12.5px; line-height: 1.2; }
 }
-/* 568–600px: keep the larger Play and open rows, with a slightly shorter hero. */
+/* 568–600px: larger name and brains, rows only a little shorter, Start still on screen. */
 @media (max-width: 480px) and (max-height: 640px) {
-  .hero:not(.small) { --fw: 142px; padding-top: 0; }
-  .hero:not(.small) .logo { font-size: 48px; margin-bottom: 2px; }
-  .hero:not(.small)::after { margin-top: 4px; margin-bottom: 0; }
+  .hero:not(.small) { --fw: 162px; padding-top: 0; }
+  .hero:not(.small) .logo { font-size: 62px; margin-bottom: 2px; }
+  .hero:not(.small)::after { margin-top: 5px; margin-bottom: 0; }
   .hero .tag { margin: 1px 0 2px; font-size: 14px; line-height: 1.2; }
   .hero .tag + .date { margin-top: 2px; }
-  .path { gap: 5px; margin: 8px 0 6px; }
-  .path .step { min-height: 40px; padding: 4px 12px; }
+  .path { gap: 4px; margin: 5px 0 3px; }
+  .path .step { min-height: 36px; padding: 2px 12px; }
   .path .step .nm b { font-size: 16px; }
   .cta { margin: 2px 0 4px; }
   .cta .btn.primary.big { height: 68px; min-height: 64px; font-size: 32px; margin: 4px 0; }
   .cta .btn.primary.big.long { font-size: 24px; }
 }
-/* Taller phones have room for a larger wordmark, fighters, and Play button. */
+/* Taller phones: the name and brains lead; rows stay a step under the prior 44px. */
 @media (max-width: 480px) and (min-height: 720px) {
-  .hero:not(.small) { --fw: 240px; }
-  .hero:not(.small) .logo { font-size: 78px; margin-bottom: 4px; }
-  .hero .tag { font-size: 15px; line-height: 1.25; }
-  .path { gap: 4px; margin-top: 6px; }
-  .path .step { min-height: 44px; padding: 4px 10px; }
-  .path .step .nm b { font-size: 17px; }
-  .path .step .nm small { font-size: 11.5px; }
-  .cta .btn.primary.big { height: 72px; min-height: 64px; font-size: 34px; }
+  .hero:not(.small) { --fw: 300px; }
+  .hero:not(.small) .logo { font-size: 96px; margin-bottom: 6px; }
+  .hero:not(.small)::after { margin-top: 10px; }
+  .hero .tag { font-size: 16px; line-height: 1.25; }
+  .path { gap: 5px; margin-top: 8px; }
+  .path .step { min-height: 40px; padding: 3px 12px; }
+  .path .step .nm b { font-size: 16px; }
+  .path .step .nm small { font-size: 11px; }
+  .cta .btn.primary.big { height: 76px; min-height: 68px; font-size: 36px; }
   .cta .btn.primary.big.long { font-size: 26px; }
   .cta #countdown { font-size: 14px; }
 }
