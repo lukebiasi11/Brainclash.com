@@ -370,6 +370,12 @@ port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
 
+# field-compare is not deployed. The platform JWT check stays on, so a
+# no-account browser cannot call a hosted function until that gate is reviewed.
+# The handler also stays collection-off unless FIELD_COLLECTION=on.
+[functions.field-compare]
+verify_jwt = true
+
 # Experimental features may be deprecated any time
 [experimental]
 # Configures Postgres storage engine to use OrioleDB (S3)

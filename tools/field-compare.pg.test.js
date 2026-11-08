@@ -118,6 +118,24 @@ t("adapter accepts synthetic body", validateFinish({ runId: runA, day: "2026-11-
     psqlAsync(`select private.finish_run('${runD}', '2026-11-08', 'player-d-isolated-4', '{0,100,0,0,0}')`)
   ]);
   t("concurrent different players", both.every(s => JSON.parse(s).ok === true) && q("select finishes from private.day_agg where day_key = '2026-11-08'") === "2");
+  const { createFieldHandler } = require("../supabase/functions/field-compare/handler.js");
+  const httpDb = { async call(name, args) {
+    const sql = name === "start_run"
+      ? `select private.start_run('${args[0]}'::uuid, '${args[1]}'::date, '${args[2]}')`
+      : name === "finish_run"
+        ? `select private.finish_run('${args[0]}'::uuid, '${args[1]}'::date, '${args[2]}', '{${args[3].join(",")}}'::int[])`
+        : `select private.day_snapshot('${args[0]}'::date, '${args[1]}'::uuid)`;
+    return JSON.parse(q(sql));
+  } };
+  const handle = createFieldHandler({ collection: "on", allowedOrigins: ["https://lukebiasi11.github.io"], db: httpDb });
+  const runE = "66666666-6666-4666-8666-666666666666";
+  const hashE = "player-e-isolated-5";
+  const headers = { origin: "https://lukebiasi11.github.io", "content-type": "application/json" };
+  const startRes = await handle(new Request("http://local/field-compare/start", { method: "POST", headers, body: JSON.stringify({ runId: runE, day: "2026-11-09", playerDayHash: hashE }) }));
+  const finishRes = await handle(new Request("http://local/field-compare/finish", { method: "POST", headers, body: JSON.stringify({ runId: runE, day: "2026-11-09", playerDayHash: hashE, scores: [400, 0, 0, 0, 0] }) }));
+  const dayRes = await handle(new Request("http://local/field-compare/day?day=2026-11-09&runId=" + runE, { method: "GET", headers }));
+  const day = await dayRes.json();
+  t("http adapter writes through sql", (await startRes.json()).ok === true && (await finishRes.json()).total === 400 && day.comparison_available === false && day.reason === "threshold_unresolved" && day.own_included === true && day.histogram === null);
   console.log(bad ? bad + " failures" : "field-compare.pg.test.js: all pass");
   process.exit(bad ? 1 : 0);
 })().catch(err => { console.error(err); process.exit(1); });
