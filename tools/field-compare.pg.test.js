@@ -4,10 +4,10 @@ const fs = require("fs");
 const path = require("path");
 const root = path.join(__dirname, "..");
 const db = "bc_field_compare_local";
-const migrations = [
-  "supabase/migrations/20261107032646_field_compare.sql",
-  "supabase/migrations/20261108203140_anonymous_identity_rate.sql"
-].map(file => path.join(root, file));
+const migrations = fs.readdirSync(path.join(root, "supabase/migrations"))
+  .filter(name => name.endsWith(".sql"))
+  .sort()
+  .map(name => path.join(root, "supabase/migrations", name));
 let bad = 0;
 const t = (name, ok, extra) => { if (!ok) { bad++; console.log("FAIL", name, extra || ""); } };
 
@@ -45,6 +45,9 @@ function callAs(role, expr) {
   `));
 }
 function writer(expr) { return callAs("app_writer", expr); }
+function runtimeCall(expr) {
+  return JSON.parse(q(`begin; set local session authorization field_runtime; set local role app_writer; select (${expr})::jsonb; commit;`));
+}
 function attempt(role, statement) {
   return q(`
     create or replace function pg_temp.attempt(p_role text, p_sql text) returns text
@@ -115,7 +118,7 @@ q("update private.field_gate set min_other_finishes = 1 where id = 1");
 const snap = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidA}'::uuid)`);
 t("own identity is excluded", snap.comparison_available === true && Number(snap.rest_average) === 500 && snap.histogram.join(",") === "1,0,0,0,0" && snap.rest_category_average.every(n => Number(n) === 100));
 const stolen = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidB}'::uuid)`);
-t("another identity does not exclude that run", stolen.own_included === false && stolen.rest_finishes === 2 && Number(stolen.rest_average) === 750 && stolen.histogram.join(",") === "1,1,0,0,0");
+t("passing another run id still excludes the caller", stolen.own_included === true && stolen.own_total === 500 && stolen.rest_finishes === 1 && Number(stolen.rest_average) === 1000 && stolen.histogram.join(",") === "0,1,0,0,0" && stolen.rest_category_average.every(n => Number(n) === 200));
 q("update private.field_gate set min_other_finishes = 5 where id = 1");
 const below = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidA}'::uuid)`);
 t("below an operator threshold", below.comparison_available === false && below.reason === "below_threshold" && below.histogram === null);
@@ -155,12 +158,70 @@ const stillThere = JSON.parse(q(`select private.deletion_request('${uidA}'::uuid
 t("configured contact still does not erase", stillThere.error === "erasure_not_enabled" && q("select count(*) from private.runs") === runsBefore && q("select count(*) from private.dedup") === "2");
 q("update private.field_gate set operator_contact = null where id = 1");
 
+const uidRA = "a1111111-1111-4111-8111-111111111111";
+const uidRB = "b2222222-2222-4222-8222-222222222222";
+const uidRV = "c3333333-3333-4333-8333-333333333333";
+const runHonest = "15151515-1515-4151-8151-151515151515";
+const runRandom = "16161616-1616-4161-8161-161616161616";
+const runOther = "17171717-1717-4171-8171-171717171717";
+const runStale = "18181818-1818-4181-8181-181818181818";
+const runWide = "19191919-1919-4191-8191-191919191919";
+const scoresWide = "{100,200,300,400,500}";
+const scoresNarrow = "{10,20,30,40,50}";
+function shot(day, run, uid) {
+  const id = run == null ? "null::uuid" : `'${run}'::uuid`;
+  return writer(`private.day_snapshot('${day}'::date, ${id}, '${uid}'::uuid)`);
+}
+function hidden(row, own, rest, included) {
+  return row.comparison_available === false && row.reason === "below_threshold" && row.histogram == null && row.rest_average == null && row.rest_category_average == null && row.own_included === included && row.own_total === own && row.rest_finishes === rest;
+}
+q("delete from private.rate_window");
+q("update private.field_gate set min_other_finishes = 1 where id = 1");
+writer(`private.start_run('${runStale}'::uuid, '2026-11-19'::date, '${uidRA}'::uuid)`);
+writer(`private.finish_run('${runStale}'::uuid, '2026-11-19'::date, '${uidRA}'::uuid, '{1,1,1,1,1}'::int[])`);
+writer(`private.start_run('${runHonest}'::uuid, '2026-11-20'::date, '${uidRA}'::uuid)`);
+writer(`private.finish_run('${runHonest}'::uuid, '2026-11-20'::date, '${uidRA}'::uuid, '${scoresWide}'::int[])`);
+const reproIds = [runHonest, runRandom, runOther, runStale, null];
+t("review repro 1 stays below threshold for every run id", reproIds.every(id => hidden(shot("2026-11-20", id, uidRA), 1500, 0, true)));
+writer(`private.start_run('${runWide}'::uuid, '2026-11-21'::date, '${uidRA}'::uuid)`);
+writer(`private.finish_run('${runWide}'::uuid, '2026-11-21'::date, '${uidRA}'::uuid, '${scoresWide}'::int[])`);
+writer(`private.start_run('${runOther}'::uuid, '2026-11-21'::date, '${uidRB}'::uuid)`);
+writer(`private.finish_run('${runOther}'::uuid, '2026-11-21'::date, '${uidRB}'::uuid, '${scoresNarrow}'::int[])`);
+q("update private.field_gate set min_other_finishes = 2 where id = 1");
+const repro2 = [runOther, runRandom, runHonest, runStale, null].map(id => shot("2026-11-21", id, uidRB));
+t("review repro 2 does not publish the other score", repro2.every(row => hidden(row, 150, 1, true)) && repro2.every(row => row.rest_finishes !== 2 && Number(row.rest_average) !== 825));
+t("caller A is closed for a random id at threshold 2", hidden(shot("2026-11-21", runRandom, uidRA), 1500, 1, true));
+q("update private.field_gate set min_other_finishes = 1 where id = 1");
+const openA = shot("2026-11-21", runRandom, uidRA);
+const openB = shot("2026-11-21", runHonest, uidRB);
+t("random id still excludes caller categories", openA.comparison_available === true && openA.rest_finishes === 1 && Number(openA.rest_average) === 150 && openA.histogram.join(",") === "1,0,0,0,0" && openA.rest_category_average.map(Number).join(",") === "10,20,30,40,50" && openA.own_bin === 1);
+t("other user id still excludes caller histogram", openB.comparison_available === true && openB.rest_finishes === 1 && Number(openB.rest_average) === 1500 && openB.histogram.join(",") === "0,1,0,0,0" && openB.rest_category_average.map(Number).join(",") === "100,200,300,400,500" && openB.own_bin === 0);
+const visitorHonest = shot("2026-11-21", runHonest, uidRV);
+const visitorRandom = shot("2026-11-21", runRandom, uidRV);
+t("unsubmitted visitor is not opted into an exclusion", visitorHonest.own_included === false && visitorHonest.rest_finishes === 2 && Number(visitorHonest.rest_average) === 825 && visitorHonest.histogram.join(",") === "1,1,0,0,0" && JSON.stringify(visitorHonest.rest_category_average) === JSON.stringify(visitorRandom.rest_category_average));
+q("update private.field_gate set min_other_finishes = 3 where id = 1");
+const visitorClosed = shot("2026-11-21", runOther, uidRV);
+t("visitor sample stays hidden under the threshold", visitorClosed.comparison_available === false && visitorClosed.histogram == null && visitorClosed.rest_average == null && visitorClosed.own_included === false && visitorClosed.rest_finishes === 2);
+q("update private.field_gate set min_other_finishes = 1 where id = 1");
+const wrongDay = shot("2026-11-19", runHonest, uidRA);
+t("wrong-day run id does not select that day's score", hidden(wrongDay, 5, 0, true));
+const body = psql(["-q", "-t", "-A", "-c", "select pg_get_functiondef('private.day_snapshot(date,uuid,uuid)'::regprocedure)"]);
+t("snapshot definition ignores the client run id", /auth_uid = p_uid/.test(body) && !/run_id\s*=\s*p_run_id/.test(body));
+
+t("runtime login has no inherited power and no password", q("select rolcanlogin::text || ',' || rolsuper::text || ',' || rolinherit::text || ',' || rolbypassrls::text from pg_roles where rolname = 'field_runtime'") === "true,false,false,false" && q("select rolpassword is null from pg_authid where rolname = 'field_runtime'") === "t" && q("select pg_has_role('field_runtime', 'app_writer', 'member')") === "t");
+t("runtime cannot call the snapshot until it sets the writer role", attempt("field_runtime", "select private.day_snapshot('2026-11-21'::date, null::uuid, '" + uidRA + "'::uuid)") === "42501");
+const viaRuntime = runtimeCall(`private.day_snapshot('2026-11-21'::date, '${runRandom}'::uuid, '${uidRA}'::uuid)`);
+t("runtime writer path matches the direct writer path", viaRuntime.rest_finishes === 1 && Number(viaRuntime.rest_average) === 150 && viaRuntime.histogram.join(",") === "1,0,0,0,0");
+t("runtime cannot read the contact or schedule retention", attempt("field_runtime", "select operator_contact from private.field_gate") === "42501" && attempt("app_writer", "select private.retain_technical()") === "42501" && attempt("field_runtime", "select private.deletion_request('" + uidRA + "'::uuid, '" + runHonest + "'::uuid)") === "42501" && q("select count(*) from pg_extension where extname = 'pg_cron'") === "0");
+
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const handler = fs.readFileSync(path.join(root, "supabase/functions/field-compare/handler.js"), "utf8");
 const entry = fs.readFileSync(path.join(root, "supabase/functions/field-compare/index.ts"), "utf8");
+const plan = fs.readFileSync(path.join(root, "supabase/staging-retention-plan.md"), "utf8");
 const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("frontend collection stays off", /const G1_COLLECTION_OFF = true;/.test(app) && !app.includes("field-api") && !app.includes("sb_secret"));
-t("deploy path uses the writer role and a verified session", entry.includes("Deno.serve") && entry.includes("set_config('role', 'app_writer', true)") && entry.includes("getClaims") && !entry.includes("SERVICE_ROLE") && !entry.includes("deletion_request"));
+t("deploy path requires the runtime login and a verified session", entry.includes("Deno.serve") && entry.includes("session_user") && entry.includes("field_runtime") && entry.includes("set_config('role', 'app_writer', true)") && entry.includes("getClaims") && !entry.includes("SERVICE_ROLE") && !entry.includes("deletion_request") && !/password\s*=/i.test(entry));
+t("retention plan is explicit and not scheduled", /not enabled/i.test(plan) && /not executed by this repository/.test(plan) && /retain_technical/.test(plan) && /7 days/.test(plan) && !/cron\.schedule/.test(sql) && !/password\s+'/i.test(sql));
 t("handler has no memory counter or delete route", !handler.includes("new Map") && !handler.includes("request.text(") && !handler.includes("deletion_request"));
 t("definer functions stay private", !/create (or replace )?function public\./i.test(sql) && /enable row level security/.test(sql));
 const { validateFinish } = require(path.join(root, "supabase/field-api.js"));
@@ -168,6 +229,14 @@ t("adapter rejects a client identity field", validateFinish({ runId: runA, day: 
 t("adapter accepts scores without an identity field", validateFinish({ runId: runA, day: "2026-11-07", scores: [200, 200, 200, 200, 200] }).ok === true);
 
 (async () => {
+  const [left, right] = await Promise.all([
+    psqlAsync(`begin; set local role app_writer; select private.day_snapshot('2026-11-21'::date, '${runRandom}'::uuid, '${uidRA}'::uuid); commit;`),
+    psqlAsync(`begin; set local session authorization field_runtime; set local role app_writer; select private.day_snapshot('2026-11-21'::date, '${runHonest}'::uuid, '${uidRB}'::uuid); commit;`)
+  ]);
+  const sideA = JSON.parse(left);
+  const sideB = JSON.parse(right);
+  t("concurrent snapshots keep each caller's categories", sideA.histogram.join(",") === "1,0,0,0,0" && sideA.rest_category_average.map(Number).join(",") === "10,20,30,40,50" && sideB.histogram.join(",") === "0,1,0,0,0" && sideB.rest_category_average.map(Number).join(",") === "100,200,300,400,500" && sideB.own_total === 150);
+  q("update private.field_gate set min_other_finishes = null where id = 1");
   q("delete from private.rate_window");
   const runC = "44444444-4444-4444-8444-444444444444";
   const runD = "55555555-5555-4555-8555-555555555555";

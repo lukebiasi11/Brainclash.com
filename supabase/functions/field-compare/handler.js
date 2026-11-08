@@ -3,7 +3,7 @@
    Durable rate slots are private.consume_rate. The process does not keep its own counter.
    FIELD_COLLECTION and the SQL gate both default off. */
 "use strict";
-const { validateStart, validateFinish, validateDay } = require("../../field-api.js");
+const { validateStart, validateFinish, validateDay } = require("./field-api.js");
 const { verifyAnonymousClaims } = require("./auth.js");
 const MAX_BODY = 2048;
 
