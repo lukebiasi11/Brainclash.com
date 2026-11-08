@@ -118,7 +118,7 @@ eq(day("2026-11-06").sports[0].q, "In what year did Atlanta host the Summer Olym
 eq(day("2026-11-12").sports[0].q, "Which happened first?", "Nov 12 sports still which-first");
 t(day("2026-11-12").sports[0].options[0].includes("WrestleMania"), "Nov 12 sports untouched");
 
-function opts(q) { return { aliases: q.aliases, wrong: q.wrong, noSurname: q.noSurname, textOnly: q.textOnly, person: q.person, q: q.q }; }
+function opts(q) { return { aliases: q.aliases, wrong: q.wrong, noSurname: q.noSurname, textOnly: q.textOnly, person: q.person, given: q.given, q: q.q }; }
 function check(q, input, exp) {
   t(A.checkAnswer(input, q.answers, opts(q)) === exp, (exp ? "accept " : "reject ") + JSON.stringify(input));
 }

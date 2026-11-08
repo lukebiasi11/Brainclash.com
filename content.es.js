@@ -1042,8 +1042,11 @@ window.CONTENT_ES = {
      "brett farve",
      "farve"
     ],
-    "wrong": [
+    "given": [
      "brett",
+     "bret"
+    ],
+    "wrong": [
      "packers",
      "green bay"
     ],

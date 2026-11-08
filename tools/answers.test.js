@@ -25,4 +25,20 @@ t("es qty 50 centavos", A.parseEstimate("50 centavos", "cents"), 50); t("es qty 
 t("es 25 por ciento", A.checkAnswer("25 por ciento", ["25%"], {}), true);
 A.setLang("en"); t("en parseNum 1,234", A.parseNum("1,234"), 1234); t("en estimate 3 thousand", A.parseEstimate("3 thousand", null), 3000); t("en estimate 3 mil (unchanged: 1e6)", A.parseEstimate("3 mil", null), 3000000); t("en estimate 1,200", A.parseEstimate("1,200", null), 1200);
 t("en parseNum 5.050", A.parseNum("5.050"), 5.05); t("en parseNum 5050", A.parseNum("5050"), 5050);
+// Favre given-name allowlist: exact after normalization, not a fuzzy target. Shared typo bands unchanged.
+const favreA = ["brett favre", "favre"];
+const favreO = { aliases: ["bret favre", "brett farve", "farve"], given: ["brett", "bret"], wrong: ["packers", "green bay"], q: "Who?" };
+const favreYes = ["Brett", "brett", "BRETT", "Brétt", "Bret", "bret", "Favre", "FAVRE", "Farve", "farve", "Brett Favre", "Bret Favre", "Brett Farve", "Brett-Favre", "Brett Favre!", "Fávre", "Favre.", "Brett  Favre", "brett faver", "favr", "farv", "faver"];
+const favreNo = ["brent", "aaron rodgers", "Aaron Rodgers", "rodgers", "bart starr", "starr", "jordan love", "packers", "green bay", "greenbay", "", "asdf", "??", "br", "b", "karl", "hakeem", "brandi", "bo", "jackson"];
+favreYes.forEach(s => t("favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
+favreNo.forEach(s => t("favre reject " + s, A.checkAnswer(s, favreA, favreO), false));
+t("brett without allowlist", A.checkAnswer("Brett", favreA, { aliases: favreO.aliases, wrong: ["brett", "packers", "green bay"], q: "Who?" }), false);
+t("bret without allowlist", A.checkAnswer("Bret", favreA, { aliases: favreO.aliases, q: "Who?" }), false);
+t("hakeem still not a given name", A.checkAnswer("Hakeem", ["hakeem olajuwon", "olajuwon"], { person: true, q: "Who?" }), false);
+t("karl still not a given name", A.checkAnswer("Karl", ["karl malone", "malone"], { person: true, q: "Who?" }), false);
+t("brandi still rejected", A.checkAnswer("Brandi", ["chastain", "brandi chastain"], { wrong: ["brandi"], q: "Fill in her surname." }), false);
+A.setLang("es");
+["Brett", "Bret", "Farve", "Fávre", "Brett Favre"].forEach(s => t("es favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
+["brent", "rodgers", "packers", "", "asdf"].forEach(s => t("es favre reject " + s, A.checkAnswer(s, favreA, favreO), false));
+A.setLang("en");
 console.log(bad ? bad + " failures" : "answers.test.js: all pass"); process.exit(bad ? 1 : 0);

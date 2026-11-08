@@ -1225,7 +1225,7 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
     skipBar.querySelector(".skip-btn")?.remove();
     if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
     if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
-    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, q: src && typeof src.q === "string" ? src.q : "" })
+    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
     feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);

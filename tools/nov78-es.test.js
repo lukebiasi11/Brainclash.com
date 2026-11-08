@@ -43,13 +43,17 @@ eq(s7.sports[0].options[s7.sports[0].a], "Iguales", "ES deuce option");
 eq(s8.sports.filter(q => ["mc", "bracket", "order", "match"].includes(q.type)).length, 1, "ES Nov 8 one choice");
 eq(s8.sports[2].type, "text", "ES tennis typed");
 eq(s8.sports[2].answers.concat(s8.sports[2].aliases), ["tu oponente", "oponente", "your opponent", "opponent", "tu rival", "rival"], "ES tennis accepted list");
-function opts(q) { return { aliases: q.aliases, wrong: q.wrong, person: q.person, q: q.q }; }
+function opts(q) { return { aliases: q.aliases, wrong: q.wrong, person: q.person, given: q.given, q: q.q }; }
 function check(q, input, exp) { t(A.checkAnswer(input, q.answers, opts(q)) === exp, (exp ? "accept " : "reject ") + JSON.stringify(input)); }
 ["tu oponente", "Tu oponente", "oponente", "el oponente", "your opponent", "opponent", "Your Opponent", "tu rival", "rival", "Tu rival", "Rival"].forEach(s => check(s8.sports[2], s, true));
 ["tú", "yo", "you", "tu"].forEach(s => check(s8.sports[2], s, false));
 ["6", "seis", "6 pares", "seis pares", "six", "6 pairs"].forEach(s => check(s8.thinkFast[0], s, true));
 ["Ben", "ben termina primero", "ben finishes first"].forEach(s => check(s8.thinkFast[1], s, true));
 ["Ava", "Cy"].forEach(s => check(s8.thinkFast[1], s, false));
+const favre = s8.sports[1];
+eq(favre.given, ["brett", "bret"], "ES Favre keeps the given-name allowlist");
+["Brett", "Bret", "BRETT", "Farve", "Favre", "Brett Favre", "Bret Favre", "Fávre", "Favre."].forEach(s => check(favre, s, true));
+["brent", "rodgers", "packers", "green bay", "", "asdf", "br", "karl", "hakeem", "brandi"].forEach(s => check(favre, s, false));
 const n9 = es("2026-11-09");
 eq(n9.sports[0].q, en("2026-11-09").sports[0].q, "Nov 9 Spanish falls back to English");
 eq(n9.history.r2.events[0][1], en("2026-11-09").history.r2.events[0][1], "Nov 9 timeline Spanish falls back to English");

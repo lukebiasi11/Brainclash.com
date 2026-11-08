@@ -1,5 +1,5 @@
 /* Daily Gauntlet — lenient typed-answer checking (shared by app.js and tools/answers.test.js).
-   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q }) -> true/false
+   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given }) -> true/false
    Order: explicit answer/alias -> listed wrong -> unit-aware number -> nickname/surname -> typo (never toward a wrong).
    - answers : accepted spellings from content.js (unchanged format)
    - aliases : OPTIONAL extra accepted spellings (nicknames, abbreviations, other languages)
@@ -183,6 +183,11 @@
     // Known wrong answers are checked BEFORE numbers, nicknames and typos ("mick schumacher" stays wrong).
     const wrongN = [].concat(opts.wrong || []).map(norm).filter(w => w && !goodN.includes(w));
     if (wrongN.includes(v)) return false;
+    // Sports given-name allowlist (opts.given). Exact after norm() only, and not added to the
+    // fuzzy list: one edit on a 5-letter first name also matches other names (brent / brett).
+    // A listed wrong token still loses. Shared typo bands below are unchanged.
+    const given = [].concat(opts.given || []).map(norm).filter(g => g && !wrongN.includes(g));
+    if (given.includes(v)) return true;
     // Units with a dimension: an explicit unit must match the expected dimension ("70 percent" for a count, "15 minutes"
     // for money -> wrong); same dimension compares converted values ("900 seconds" = "15 minutes"). Bare numbers fall through.
     const textOnly = !!opts.textOnly;   // content flag: no number parsing at all ("9" is not "N"/"nine")
