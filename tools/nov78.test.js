@@ -89,7 +89,8 @@ eq(JSON.stringify(s8[0].options), JSON.stringify(["Serena Williams wins her firs
 eq(s8[0].a, 0, "Nov 8 sports Q1 answer index");
 eq(s8[1].q, "No. 4 \u2014 Green Bay Packers quarterback, the only player to win three straight NFL MVP awards. Who?", "Nov 8 Favre prompt kept");
 eq(JSON.stringify(s8[1].answers), JSON.stringify(["brett favre", "favre"]), "Nov 8 Favre answers kept");
-eq(JSON.stringify(s8[1].wrong), JSON.stringify(["brett", "packers", "green bay"]), "Nov 8 Favre wrong kept");
+eq(JSON.stringify(s8[1].given), JSON.stringify(["brett", "bret"]), "Nov 8 Favre given-name allowlist");
+eq(JSON.stringify(s8[1].wrong), JSON.stringify(["packers", "green bay"]), "Nov 8 Favre wrong list no longer blocks Brett");
 eq(s8[1].img, "sports-m01-d8-q2", "Nov 8 Favre art kept");
 eq(s8[2].type, "text", "Nov 8 sports Q3 typed");
 t(s8[2].kind == null, "Nov 8 sports Q3 is not a bracket/MC kind");
@@ -120,7 +121,7 @@ t(!/ice-cream|Honolulu|Deuce|your opponent/.test(JSON.stringify(nov9)), "Nov 9 d
 
 // Same opts app.js passes into Answers.checkAnswer.
 function optsFor(q, forcePerson) {
-  return { aliases: q.aliases, wrong: q.wrong || q.options, noSurname: q.noSurname, textOnly: q.textOnly, person: forcePerson ? true : q.person, q: q.q };
+  return { aliases: q.aliases, wrong: q.wrong || q.options, noSurname: q.noSurname, textOnly: q.textOnly, person: forcePerson ? true : q.person, given: q.given, q: q.q };
 }
 function check(q, input, exp, forcePerson) {
   t(A.checkAnswer(input, q.answers, optsFor(q, forcePerson)) === exp, (exp ? "accept " : "reject ") + JSON.stringify(input) + " for " + q.q.slice(0, 42));
@@ -135,8 +136,9 @@ const oil = s7[1];
 ["Oilers", "Edmonton Oilers", "Oiler", "the oilers"].forEach(s => check(oil, s, true));
 ["Edmonton", "Flames", "Calgary Flames"].forEach(s => check(oil, s, false));
 const favre = s8[1];
-["Brett Favre", "Favre", "Bret Favre", "Brett Farve", "Farve"].forEach(s => check(favre, s, true));
-check(favre, "Brett", false);
+["Brett Favre", "Favre", "Bret Favre", "Brett Farve", "Farve", "Brett", "BRETT", "Bret", "Fávre", "Favre.", "Brett Favre!", "brett faver", "favr"].forEach(s => check(favre, s, true));
+["brent", "aaron rodgers", "rodgers", "bart starr", "starr", "jordan love", "packers", "green bay", "", "asdf", "br", "b", "karl", "hakeem", "brandi"].forEach(s => check(favre, s, false));
+t(fs.readFileSync(path.join(root, "app.js"), "utf8").includes("given: src && src.given"), "typed checker receives the given-name allowlist");
 ["6", "six", "6 pairs", "six pairs", "Six pairs."].forEach(s => check(tf[0], s, true));
 ["4", "12", "24", "5"].forEach(s => check(tf[0], s, false));
 ["Ben", "ben", "Ben finishes first"].forEach(s => check(tf[1], s, true));

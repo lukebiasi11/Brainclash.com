@@ -48,6 +48,7 @@ if (C) {
         if (!str(q.answer) && !(list(q.answers) && q.answers.length && q.answers.every(str))) E(ww, "common-teammate needs answer");
         if (q.aliases && !(list(q.aliases) && q.aliases.every(str))) E(ww, "aliases must be a list of text");
       } else if (!list(q.answers) || !q.answers.length || !q.answers.every(str)) E(ww, "answers must be a list of text");
+      if (q.given && !(list(q.given) && q.given.length && q.given.every(str))) E(ww, "given must be a list of text");
       if (q.kind && !SPORTS_TEXT_KINDS.has(q.kind)) E(ww, "unknown text kind " + q.kind);
       if (q.kind && q.kind !== "fill" && q.kind !== "common-teammate" && !str(q.img)) E(ww, q.kind + " needs img");
     } else if (t === "guess") {
