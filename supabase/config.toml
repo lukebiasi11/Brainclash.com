@@ -370,11 +370,13 @@ port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
 
-# field-compare is not deployed. The platform JWT check stays on, so a
-# no-account browser cannot call a hosted function until that gate is reviewed.
-# The handler also stays collection-off unless FIELD_COLLECTION=on.
+# field-compare is not deployed. Anonymous sign-ins stay disabled above.
+# Platform verify_jwt is not a user session: a publishable key can pass it.
+# The signing-keys guide also says that check may not validate asymmetric
+# keys. The handler requires auth.getClaims and an anonymous authenticated
+# session. FIELD_COLLECTION defaults off.
 [functions.field-compare]
-verify_jwt = true
+verify_jwt = false
 
 # Experimental features may be deprecated any time
 [experimental]

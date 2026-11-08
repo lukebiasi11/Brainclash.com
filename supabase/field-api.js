@@ -11,11 +11,11 @@ function validDay(day) {
 function validId(id) { return typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
 function validHash(hash) { return typeof hash === "string" && !hash.includes("@") && /^[A-Za-z0-9_-]{16,128}$/.test(hash); }
 function privilegeField(body) {
-  return body && typeof body === "object" && ["secret", "serviceRole", "role", "collection", "operatorContact"].some(k => Object.prototype.hasOwnProperty.call(body, k));
+  return body && typeof body === "object" && ["secret", "serviceRole", "role", "collection", "operatorContact", "authUid", "playerDayHash"].some(k => Object.prototype.hasOwnProperty.call(body, k));
 }
 function validateStart(body) {
   if (!body || typeof body !== "object" || privilegeField(body)) return { ok: false, error: "invalid_input" };
-  if (!validId(body.runId) || !validDay(body.day) || !validHash(body.playerDayHash)) return { ok: false, error: "invalid_input" };
+  if (!validId(body.runId) || !validDay(body.day)) return { ok: false, error: "invalid_input" };
   return { ok: true };
 }
 function validateFinish(body) {

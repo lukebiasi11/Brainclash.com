@@ -1,14 +1,11 @@
-/* Local Edge-style HTTP adapter. Not deployed.
-   Trust limits: playerDayHash is an opaque client token, not a verified person.
-   Scores are client-reported range checks, not proof the game was played.
-   The rate limit is per process and resets when the process restarts.
-   Own-score exclusion, histogram, and the unset minimum-other-finishes gate
-   are decided in private SQL. This file never reads a secret from the request. */
+/* Local HTTP adapter for a future Edge Function. Not deployed.
+   Identity comes only from verifyAnonymousClaims. A client hash is not accepted.
+   Durable rate slots are private.consume_rate. The process does not keep its own counter.
+   FIELD_COLLECTION and the SQL gate both default off. */
 "use strict";
 const { validateStart, validateFinish, validateDay } = require("../../field-api.js");
+const { verifyAnonymousClaims } = require("./auth.js");
 const MAX_BODY = 2048;
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 20;
 
 function cors(origin, allowed) {
   if (!origin || !allowed.has(origin)) return {};
@@ -23,20 +20,46 @@ function cors(origin, allowed) {
 function json(status, body, headers) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
 }
-function limited(buckets, key, now) {
-  const bucket = buckets.get(key) || { start: now, n: 0 };
-  if (now - bucket.start >= WINDOW_MS) { bucket.start = now; bucket.n = 0; }
-  bucket.n += 1;
-  buckets.set(key, bucket);
-  return bucket.n > MAX_PER_WINDOW;
+
+async function readCappedBody(request) {
+  const declared = request.headers.get("content-length");
+  if (declared !== null && (!/^\d+$/.test(declared) || Number(declared) > MAX_BODY)) {
+    if (request.body) await request.body.cancel().catch(() => {});
+    return { error: "body_too_large" };
+  }
+  if (!request.body) return { text: "" };
+  const reader = request.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_BODY) {
+        await reader.cancel();
+        return { error: "body_too_large" };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { error: "invalid_input" };
+  }
+  const buf = new Uint8Array(bytes);
+  let offset = 0;
+  for (const chunk of chunks) { buf.set(chunk, offset); offset += chunk.byteLength; }
+  try {
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(buf) };
+  } catch {
+    return { error: "invalid_input" };
+  }
 }
 
 function createFieldHandler(options = {}) {
   const allowed = new Set(options.allowedOrigins || []);
   const collection = options.collection === "on";
   const db = options.db || null;
-  const buckets = new Map();
-  const now = options.now || (() => Date.now());
+  const getClaims = options.getClaims || null;
   return async function handle(request) {
     const url = new URL(request.url);
     const origin = request.headers.get("origin");
@@ -45,30 +68,32 @@ function createFieldHandler(options = {}) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
     const op = url.pathname.endsWith("/finish") ? "finish" : url.pathname.endsWith("/start") ? "start" : url.pathname.endsWith("/day") ? "day" : "";
     if (!op || (op === "day" && request.method !== "GET") || (op !== "day" && request.method !== "POST")) return json(405, { ok: false, error: "method_not_allowed" }, headers);
-    if (!collection) return json(503, { ok: false, error: "collection_off" }, headers);
-    if (!db) return json(503, { ok: false, error: "not_configured" }, headers);
     let body = {};
     if (request.method === "POST") {
+      const raw = await readCappedBody(request);
+      if (raw.error) return json(raw.error === "body_too_large" ? 413 : 400, { ok: false, error: raw.error }, headers);
       if (!String(request.headers.get("content-type") || "").includes("application/json")) return json(400, { ok: false, error: "invalid_input" }, headers);
-      const text = await request.text();
-      if (text.length > MAX_BODY) return json(413, { ok: false, error: "body_too_large" }, headers);
-      try { body = JSON.parse(text); } catch { return json(400, { ok: false, error: "invalid_input" }, headers); }
+      try { body = JSON.parse(raw.text || "{}"); } catch { return json(400, { ok: false, error: "invalid_input" }, headers); }
     } else body = { day: url.searchParams.get("day"), runId: url.searchParams.get("runId") };
-    const key = origin + ":" + (body.runId || body.playerDayHash || "");
-    if (limited(buckets, key, now())) return json(429, { ok: false, error: "rate_limited" }, headers);
+    if (!collection) return json(503, { ok: false, error: "collection_off" }, headers);
+    if (!db || !getClaims) return json(503, { ok: false, error: "not_configured" }, headers);
+    const identity = await verifyAnonymousClaims(getClaims, request.headers.get("authorization"));
+    if (!identity.ok) return json(401, identity, headers);
+    const rate = await db.call("consume_rate", [identity.uid]);
+    if (!rate.ok) return json(429, { ok: false, error: "rate_limited" }, headers);
     if (op === "start") {
       const check = validateStart(body);
       if (!check.ok) return json(400, check, headers);
-      return json(200, await db.call("start_run", [body.runId, body.day, body.playerDayHash]), headers);
+      return json(200, await db.call("start_run", [body.runId, body.day, identity.uid]), headers);
     }
     if (op === "finish") {
       const check = validateFinish(body);
       if (!check.ok) return json(400, check, headers);
-      return json(200, await db.call("finish_run", [body.runId, body.day, body.playerDayHash, body.scores]), headers);
+      return json(200, await db.call("finish_run", [body.runId, body.day, identity.uid, body.scores]), headers);
     }
     const check = validateDay(body);
     if (!check.ok) return json(400, check, headers);
-    return json(200, await db.call("day_snapshot", [body.day, body.runId]), headers);
+    return json(200, await db.call("day_snapshot", [body.day, body.runId, identity.uid]), headers);
   };
 }
 module.exports = { createFieldHandler };
