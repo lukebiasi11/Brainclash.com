@@ -1072,6 +1072,14 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   .cta .btn.primary.big.long { font-size: 26px; }
   .cta #countdown { font-size: 14px; }
 }
+/* Tall phones have room under Practice mode, so open the hero instead of stacking it. */
+@media (max-width: 480px) and (min-height: 800px) {
+  .hero:not(.small) .logo { margin-bottom: 12px; }
+  .hero .tag { margin-bottom: 0; }
+  .hero .tag + .date { margin-top: 12px; }
+  .hero:not(.small)::after { margin-top: 12px; margin-bottom: 12px; }
+  .path { margin-top: 0; }
+}
 
 /* Results: Graph 1 stays collection-off. Graph 2 is the local editorial history line. */
 .bc-graphs{max-width:520px;margin:16px auto;display:flex;flex-direction:column;gap:14px}
