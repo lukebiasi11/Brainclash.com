@@ -241,11 +241,13 @@ t("runtime writer path matches the direct writer path", viaRuntime.rest_finishes
 t("runtime cannot read the contact or schedule retention", attempt("field_runtime", "select operator_contact from private.field_gate") === "42501" && attempt("app_writer", "select private.retain_technical()") === "42501" && attempt("field_runtime", "select private.deletion_request('" + uidRA + "'::uuid, '" + runHonest + "'::uuid)") === "42501" && q("select count(*) from pg_extension where extname = 'pg_cron'") === "0");
 
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
+const clientCfg = fs.readFileSync(path.join(root, "field-config.js"), "utf8");
+const client = fs.readFileSync(path.join(root, "field-compare.js"), "utf8");
 const handler = fs.readFileSync(path.join(root, "supabase/functions/field-compare/handler.js"), "utf8");
 const entry = fs.readFileSync(path.join(root, "supabase/functions/field-compare/index.ts"), "utf8");
 const plan = fs.readFileSync(path.join(root, "supabase/staging-retention-plan.md"), "utf8");
 const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
-t("frontend collection stays off", /const G1_COLLECTION_OFF = true;/.test(app) && !app.includes("field-api") && !app.includes("sb_secret"));
+t("live field config is on with a public key", /FIELD_COMPARE_ENABLED = true/.test(clientCfg) && /publishableKey:\s*"sb_publishable_[^"]+"/.test(clientCfg) && client.includes("FIELD_COMPARE_ENABLED !== true") && !app.includes("field-api") && !app.includes("sb_secret") && !clientCfg.includes("sb_secret"));
 t("deploy path requires the runtime login and a verified session", entry.includes("Deno.serve") && entry.includes("session_user") && entry.includes("field_runtime") && entry.includes("set_config('role', 'app_writer', true)") && entry.includes("getClaims") && !entry.includes("SERVICE_ROLE") && !entry.includes("deletion_request") && !/password\s*=/i.test(entry));
 t("retention plan is explicit and not scheduled", /not enabled/i.test(plan) && /not executed by this repository/.test(plan) && /retain_technical/.test(plan) && /7 days/.test(plan) && !/cron\.schedule/.test(sql) && !/password\s+'/i.test(sql));
 t("handler has no memory counter or delete route", !handler.includes("new Map") && !handler.includes("request.text(") && !handler.includes("deletion_request"));
