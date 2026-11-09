@@ -11,7 +11,7 @@
   const ES = {
     // categories / word games
     "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos",
-    "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Juegos de palabras", "Logic": "Lógica",
+    "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Palabras", "Logic": "Lógica",
     "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden",
     "3 questions · easy → hard": "3 preguntas · de fácil a difícil", "2 brain-benders · one shot each": "2 acertijos · un solo intento cada uno",
     "Unscramble": "Descifra", "Word Bridge": "Puente de Palabras", "Clusters": "Grupos", "Imposter": "Impostor", "Anagram Rush": "Anagramas Exprés",
