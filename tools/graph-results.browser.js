@@ -370,6 +370,8 @@ const SCORES = [
           vs: bg.indexOf('brain-clash-vs.svg') >= 0,
           labelBeforePlay: !!(label && pr) && label.bottom <= pr.top + 1,
           catsOnScreen: steps.every(s => { const r = s.getBoundingClientRect(); return r.height > 0 && r.top >= -1 && r.bottom <= innerHeight + 1; }),
+          rowOverflow: steps.filter(s => s.scrollWidth - s.clientWidth > 1).map(s => (s.querySelector("b") || {}).textContent || ""),
+          locksOut: steps.filter(s => { const p = s.querySelector(".pts"); if (!p) return true; const r = p.getBoundingClientRect(); return r.width < 1 || r.left < -1 || r.right > innerWidth + 1 || r.top < -1 || r.bottom > innerHeight + 1; }).map(s => (s.querySelector("b") || {}).textContent || ""),
           playOnScreen: !!(pr && pr.height > 0 && pr.top >= -1 && pr.bottom <= innerHeight + 1),
           w: innerWidth, h: innerHeight, last: box(last), label: box(label), playBox: box(pr)
         };
@@ -380,6 +382,7 @@ const SCORES = [
       if (info.logo !== "DAILYDOSE" || !/DAILYDOSE/.test(info.brand) || !/^Daily Dose/.test(info.title)) fail(name + " title", info); else pass(name + " Daily Dose title");
       if (!info.fist || !info.vs) fail(name + " fist", info); else pass(name + " full VS and glove");
       if (!info.labelBeforePlay || !info.catsOnScreen || !info.playOnScreen) fail(name + " above the fold", info); else pass(name + " categories then play on screen");
+      if ((info.rowOverflow || []).length || (info.locksOut || []).length) fail(name + " row fit", { overflow: info.rowOverflow, locks: info.locksOut }); else pass(name + " subtitles fit and locks stay on screen");
       await shot(cdp, file);
       forbid(cdp, name);
     }
