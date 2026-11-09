@@ -9,6 +9,8 @@ const RESET_TIMEZONE = "America/New_York";
 const LAUNCH_DATE = "2026-10-23";
 // ======================================================================
 const I18N = window.BC_I18N || { LANG: "en", t: s => s, toggleVisible: () => false }, tr = I18N.t, LANG = I18N.LANG;
+const privacyLink = document.querySelector("a[data-privacy]");
+if (privacyLink) privacyLink.textContent = tr("Privacy");
 if (LANG === "es") document.documentElement.lang = "es";
 if (window.Answers && Answers.setLang) Answers.setLang(LANG); // nov3f: es dot-thousands in typed numbers
 const C = window.CONTENT;
@@ -421,6 +423,7 @@ function commitCat(score, detail) {
   session.details.push(detail || "");
   delete session.inProgress; delete session.partial; delete session.partialCat;
   save(); session.lastCat = session.scores[session.scores.length - 1]; liveTotal(); session.lastCat = null;
+  if (session.scores.length >= 5) fieldNoteFinish();
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
 function catIntro(i, start) {
@@ -458,6 +461,7 @@ function introText(id) {
 function runNext() {
   const i = session.scores.length;
   if (i >= 5) return results();
+  fieldNotePlay();
   const go = [worldRush, history, sports, wordChallenge, thinkFast][i];
   catIntro(i, go);
 }
@@ -1538,8 +1542,10 @@ function thinkFast() {
 }
 
 // ---------- results graphs ----------
-// Graph 1 field collection is off. Do not fetch, poll, post start/finish, or invent a distribution.
-const G1_COLLECTION_OFF = true;
+// Graph 1 calls the field only when FIELD_COMPARE_ENABLED is true.
+function fieldOn() { try { return window.FIELD_COMPARE_ENABLED === true; } catch (e) { return false; } }
+function fieldNotePlay() { try { if (fieldOn() && window.FieldCompare && session) window.FieldCompare.onPlay(session); } catch (e) {} }
+function fieldNoteFinish() { try { if (fieldOn() && window.FieldCompare && session) window.FieldCompare.onFinish(session); } catch (e) {} }
 function clockDayKey() { return keyOf(zoneDay(now())); }
 function fmtDayKey(key, style) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
@@ -1598,12 +1604,61 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Section() {
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1live1" }, tr("Privacy"))); }
+function g1FieldChart(mode, youScores, snap) {
+  const W = 360, Ht = 168, pad = { l: 40, r: 8, t: 18, b: 8 };
+  const iw = W - pad.l - pad.r, ih = Ht - pad.t - pad.b, scale = mode === "total" ? 5000 : 1000;
+  const yAt = v => pad.t + ih - (Math.max(0, Math.min(scale, Number(v) || 0)) / scale) * ih;
+  const base = pad.t + ih;
+  const nodes = [];
+  [0, scale / 2, scale].forEach(v => {
+    const y = yAt(v);
+    nodes.push(svgEl("line", { x1: pad.l, y1: y, x2: W - pad.r, y2: y, stroke: "#eceff3" }));
+    nodes.push(svgEl("text", { x: pad.l - 6, y: y + 3, "text-anchor": "end", fill: "#8b93a7", "font-size": 10 }, fmt(v)));
+  });
+  nodes.push(svgEl("line", { x1: pad.l, y1: pad.t, x2: pad.l, y2: base, stroke: "#d5d9e2" }));
+  nodes.push(svgEl("line", { x1: pad.l, y1: base, x2: W - pad.r, y2: base, stroke: "#d5d9e2" }));
+  const ready = !!(snap && snap.state === "ready" && youScores);
+  const whole = n => Math.round(Number(n));
+  let label = tr("Score") + ". " + (mode === "total" ? tr("You and everyone else") : tr("Category"));
+  if (ready && mode === "total") {
+    const you = whole(youScores.reduce((a, b) => a + b, 0));
+    const rest = whole(snap.restAverage);
+    label = tr("You {0}. Everyone else {1}.", fmt(you), fmt(rest));
+    const pairs = [[you, rest]];
+    const gap = iw;
+    pairs.forEach(pair => {
+      const cx = pad.l + gap / 2, bw = 28, pairGap = 12;
+      pair.forEach((v, j) => {
+        const x = cx - bw - pairGap / 2 + j * (bw + pairGap);
+        const y = yAt(v), hgt = Math.max(0, base - y);
+        nodes.push(svgEl("rect", { x: x.toFixed(1), y: y.toFixed(1), width: bw, height: hgt.toFixed(1), fill: j ? "#1F2C7A" : "#E8582A", rx: 2 }));
+        nodes.push(svgEl("text", { class: "g1-bar-val", x: (x + bw / 2).toFixed(1), y: Math.max(12, y - 4), "text-anchor": "middle", fill: "#14182e", "font-size": 11, "font-weight": "700" }, fmt(v)));
+      });
+    });
+  } else if (ready) {
+    const bits = [];
+    const gap = iw / 5, bw = 8, pairGap = 3;
+    for (let i = 0; i < 5; i++) {
+      const pair = [whole(youScores[i]), whole(snap.restCategoryAverage[i])];
+      bits.push(fmt(pair[0]) + " / " + fmt(pair[1]));
+      const cx = pad.l + gap * i + gap / 2;
+      pair.forEach((v, j) => {
+        const x = cx - bw - pairGap / 2 + j * (bw + pairGap);
+        const y = yAt(v), hgt = Math.max(0, base - y);
+        nodes.push(svgEl("rect", { x: x.toFixed(1), y: y.toFixed(1), width: bw, height: hgt.toFixed(1), fill: j ? "#1F2C7A" : "#E8582A", rx: 1 }));
+      });
+    }
+    label = tr("You and everyone else by category") + ". " + bits.join(", ");
+  }
+  return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
+}
+function g1OffSection() {
   const practice = !!(session && session.practice);
   const pinned = !practice && session && window.BCHistory && window.BCHistory.isDayKey(session.key) ? session.key : "";
   const clock = clockDayKey();
   let mode = "total";
-  const section = h("section", { class: "g1-card", id: "results-g1", "data-g1-state": "collection-off", "data-collection": G1_COLLECTION_OFF ? "off" : "blocked", "data-g1-day": pinned, "aria-labelledby": "g1-title" });
+  const section = h("section", { class: "g1-card", id: "results-g1", "data-g1-state": "collection-off", "data-collection": "off", "data-g1-day": pinned, "aria-labelledby": "g1-title" });
   const title = !practice && pinned && pinned === clock ? tr("Today's competition") : tr("Daily competition");
   const dateLine = practice ? tr("Practice run · not part of the daily field") : (pinned ? tr("{0} · New York", fmtDayKey(pinned, "long")) : tr("New York"));
   const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total score"));
@@ -1629,9 +1684,87 @@ function g1Section() {
     h("h3", {}, tr("Comparison unavailable")),
     h("p", { class: "g1-unavail" }, tr("Daily field collection is off. Daily Dose is not gathering other completed games, so there is no average, distribution, or percentile.")),
     plot, yours,
-    h("p", { class: "g-foot" }, tr("Collection stays off. This view does not download scores or send results. Counts would be completed games, not verified players.")));
+    h("p", { class: "g-foot" }, tr("Collection stays off. This view does not download scores or send results. Counts would be completed games, not verified players.")),
+    g1Privacy());
   paint();
   return section;
+}
+function g1OnSection() {
+  const practice = !!(session && session.practice);
+  const preview = /[?&]preview=\d{4}-\d{2}-\d{2}\b/.test(location.search);
+  const skipped = practice || preview || window.BC_NO_BOOT === true;
+  const pinned = !practice && session && window.BCHistory && window.BCHistory.isDayKey(session.key) ? session.key : "";
+  const clock = clockDayKey();
+  let mode = "total";
+  let snap = null;
+  const section = h("section", { class: "g1-card", id: "results-g1", "data-g1-state": skipped ? "practice" : "pending", "data-collection": skipped ? "skipped" : "on", "data-g1-day": pinned, "aria-labelledby": "g1-title" });
+  const title = !practice && pinned && pinned === clock ? tr("Today's competition") : tr("Daily competition");
+  const dateLine = practice || preview ? tr("Practice run · not part of the daily field") : (pinned ? tr("{0} · New York", fmtDayKey(pinned, "long")) : tr("New York"));
+  const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total score"));
+  const catBtn = h("button", { type: "button", "data-g1-view": "category", "aria-pressed": "false" }, tr("By category"));
+  const status = h("p", { class: "g1-quiet" });
+  const plot = h("div", { class: "g1-plot" });
+  const legend = h("p", { class: "g1-legend" });
+  const note = h("p", { class: "g-foot" });
+  const paint = () => {
+    totalBtn.setAttribute("aria-pressed", mode === "total" ? "true" : "false");
+    catBtn.setAttribute("aria-pressed", mode === "category" ? "true" : "false");
+    section.setAttribute("data-g1-mode", mode);
+    const you = sessionScoresValid() ? session.scores.slice(0, 5) : null;
+    const ready = !skipped && snap && snap.state === "ready" && you;
+    section.setAttribute("data-g1-state", skipped ? "practice" : snap ? (ready ? "ready" : "quiet") : "pending");
+    section.setAttribute("data-g1-reason", snap && snap.reason ? snap.reason : "");
+    if (ready) {
+      const youVal = mode === "total" ? you.reduce((a, b) => a + b, 0) : you[0];
+      const restVal = mode === "total" ? snap.restAverage : snap.restCategoryAverage[0];
+      section.setAttribute("data-you", String(Math.round(youVal)));
+      section.setAttribute("data-rest", String(Math.round(restVal)));
+    }
+    while (plot.firstChild) plot.removeChild(plot.firstChild);
+    while (legend.firstChild) legend.removeChild(legend.firstChild);
+    const yName = tr("Score");
+    const xName = mode === "total" ? tr("You and everyone else") : tr("Category");
+    plot.append(h("div", { class: "g1-chart" }, h("div", { class: "g-ylab" }, yName), h("div", {}, g1FieldChart(mode, you, ready ? snap : null), h("div", { class: "g-xlab" }, xName))));
+    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map((c, i) => h("li", {},
+      h("span", { class: "g1-cat-name" }, c.name),
+      ready && you ? h("span", { class: "g1-cat-nums" }, fmt(you[i]) + " · " + fmt(snap.restCategoryAverage[i])) : null))));
+    if (ready) {
+      status.textContent = "";
+      legend.append(h("span", {}, h("i", { class: "you", "aria-hidden": "true" }), tr("You")), h("span", {}, h("i", { class: "rest", "aria-hidden": "true" }), tr("Everyone else")));
+      note.textContent = tr("Everyone else is the average of other finished games today.");
+    } else if (!skipped && snap) {
+      status.textContent = tr("Not enough players yet today");
+      note.textContent = "";
+    } else {
+      status.textContent = "";
+      note.textContent = "";
+    }
+  };
+  totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
+  catBtn.addEventListener("click", () => { mode = "category"; paint(); });
+  const yours = h("p", { class: "g1-yours" });
+  if (sessionScoresValid()) yours.append(h("span", {}, practice || preview ? tr("This run") : tr("Your score")), h("b", {}, fmt(session.scores.reduce((a, b) => a + b, 0))));
+  section.append(
+    h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), h("p", { class: "g-sub" }, dateLine))),
+    h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
+    status, plot, legend, note, yours, g1Privacy());
+  paint();
+  if (!skipped && window.FieldCompare && session) {
+    Promise.resolve().then(() => window.FieldCompare.dayFor(session)).then(result => {
+      if (!section.isConnected) return;
+      snap = result && result.state === "ready" ? result : { state: "quiet", reason: (result && result.reason) || "network" };
+      paint();
+    }).catch(() => {
+      if (!section.isConnected) return;
+      snap = { state: "quiet", reason: "network" };
+      paint();
+    });
+  }
+  return section;
+}
+function g1Section() {
+  try { return fieldOn() ? g1OnSection() : g1OffSection(); }
+  catch (e) { return g1OffSection(); }
 }
 function g2Chart(points, scale, highlightDay, priorMean) {
   const W = 360, Ht = 200, pad = { l: 46, r: 16, t: 16, b: 32 };

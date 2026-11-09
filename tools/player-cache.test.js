@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request app, English content, Spanish content, and answers at v=nov8player.
+// New HTML must request app at v=g1live1 and English content, Spanish content, and answers at v=nov8player.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -7,7 +7,9 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const V = "nov8player";
+const APP_V = "g1live1";
+const CONTENT_V = "nov8player";
+const V = CONTENT_V;
 let bad = 0;
 const fail = (name, detail) => { bad++; console.log("FAIL", name, detail == null ? "" : typeof detail === "string" ? detail : JSON.stringify(detail)); };
 const pass = name => console.log("ok", name);
@@ -20,8 +22,8 @@ function has(list, s) { return list.includes(s); }
 const indexSrc = srcs("index.html");
 const adminSrc = srcs("admin.html");
 const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
-[["index app", indexSrc, "app.js?v=" + V], ["index content", indexSrc, "content.js?v=" + V], ["index es", indexSrc, "content.es.js?v=" + V], ["index answers", indexSrc, "answers.js?v=" + V],
- ["admin app", adminSrc, "app.js?v=" + V], ["admin content", adminSrc, "content.js?v=" + V], ["admin answers", adminSrc, "answers.js?v=" + V]].forEach(([n, list, s]) => {
+[["index app", indexSrc, "app.js?v=" + APP_V], ["index content", indexSrc, "content.js?v=" + CONTENT_V], ["index es", indexSrc, "content.es.js?v=" + CONTENT_V], ["index answers", indexSrc, "answers.js?v=" + CONTENT_V],
+ ["admin app", adminSrc, "app.js?v=" + APP_V], ["admin content", adminSrc, "content.js?v=" + CONTENT_V], ["admin answers", adminSrc, "answers.js?v=" + CONTENT_V]].forEach(([n, list, s]) => {
   if (!has(list, s)) fail(n, s); else pass(n);
 });
 [["index old app", indexSrc, "app.js?v=g2local1"], ["index old content", indexSrc, "content.js?v=nov3k"], ["index old es", indexSrc, "content.es.js?v=nov3k"],
@@ -30,7 +32,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=nov6vs-g2local1"], ["i18n", "i18n.js?v=g2local1"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"]].forEach(([n, s]) => {
+[["style", "style.css?v=g1field2"], ["i18n", "i18n.js?v=g1field3"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1field1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
@@ -143,12 +145,12 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
   try {
     await go("/old-cache.html", `new Promise(r => { const t = Date.now(); const tick = () => window.BCDaily && window.Answers ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);
     const oldJudge = await evalJson(cdp, judge);
-    if (oldJudge.brett !== false || oldJudge.bret !== false || oldJudge.favre !== true) fail("old cached stack", oldJudge); else pass("old cached stack rejects Brett and Bret");
+    if (JSON.stringify(oldJudge.given) !== JSON.stringify(["brett", "bret"]) || oldJudge.brett !== true || oldJudge.bret !== true || oldJudge.brent !== false || oldJudge.favre !== true) fail("old cached stack", oldJudge); else pass("old cached stack accepts Brett and Bret");
     const oldStore = await evalJson(cdp, storeDump);
 
     const enReqs = await go("/index.html", `new Promise(r => { const t = Date.now(); const tick = () => document.querySelector("#app") && document.querySelector("#app").children.length && window.BCDaily ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);
     const enFiles = enReqs.map(u => u.replace(origin, "")).filter(u => /\/(app|content|content\.es|answers)\.js/.test(u));
-    const want = ["/app.js?v=" + V, "/content.js?v=" + V, "/content.es.js?v=" + V, "/answers.js?v=" + V];
+    const want = ["/app.js?v=" + APP_V, "/content.js?v=" + CONTENT_V, "/content.es.js?v=" + CONTENT_V, "/answers.js?v=" + CONTENT_V];
     if (want.every(s => enFiles.includes(s)) && !enFiles.some(s => s.includes("v=g2local1") || s.includes("content.js?v=nov3k") || s.includes("content.es.js?v=nov3k") || s.includes("answers.js?v=nov3k"))) pass("new HTML reloads app, content, Spanish content, answers");
     else fail("new HTML requests", enFiles);
     const enJudge = await evalJson(cdp, judge);
@@ -171,7 +173,7 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
     const tags = served.filter(s => /\/(app|content|content\.es|answers)\.js/.test(s.url));
     const oldHits = tags.filter(s => s.tag === "old").map(s => s.url);
     const newHits = tags.filter(s => s.tag === "new").map(s => s.url);
-    if (oldHits.some(u => u.includes("v=g2local1") || u.includes("v=nov3k")) && newHits.some(u => u.includes("app.js?v=" + V)) && newHits.some(u => u.includes("content.es.js?v=" + V))) pass("server served old bytes only for the old cache keys");
+    if (oldHits.some(u => u.includes("v=g2local1") || u.includes("v=nov3k")) && newHits.some(u => u.includes("app.js?v=" + APP_V)) && newHits.some(u => u.includes("content.es.js?v=" + CONTENT_V))) pass("server served old bytes only for the old cache keys");
     else fail("serve tags", { oldHits, newHits });
   } finally {
     chrome.kill("SIGKILL");
