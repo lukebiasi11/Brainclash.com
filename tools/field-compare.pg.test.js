@@ -143,11 +143,26 @@ t("threshold unresolved hides comparison", unresolved.comparison_available === f
 q("update private.field_gate set min_other_finishes = 1 where id = 1");
 const snap = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidA}'::uuid)`);
 t("own identity is excluded", snap.comparison_available === true && Number(snap.rest_average) === 500 && snap.histogram.join(",") === "1,0,0,0,0" && snap.rest_category_average.every(n => Number(n) === 100));
+t("500-point bins exclude the caller", snap.score_bins.join(",") === "0,1,0,0,0,0,0,0,0,0" && snap.own_score_bin === 2 && snap.others_at_or_above === 0 && snap.category_bins.every(row => row.join(",") === "0,1,0,0,0,0,0,0,0,0") && snap.category_at_or_above.join(",") === "0,0,0,0,0");
 const stolen = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidB}'::uuid)`);
 t("passing another run id still excludes the caller", stolen.own_included === true && stolen.own_total === 500 && stolen.rest_finishes === 1 && Number(stolen.rest_average) === 1000 && stolen.histogram.join(",") === "0,1,0,0,0" && stolen.rest_category_average.every(n => Number(n) === 200));
+t("percentile counts other games at or above", stolen.score_bins.join(",") === "0,0,1,0,0,0,0,0,0,0" && stolen.own_score_bin === 1 && stolen.others_at_or_above === 1 && stolen.category_bins.every(row => row.join(",") === "0,0,1,0,0,0,0,0,0,0") && stolen.category_at_or_above.every(n => n === 1));
+const runCap = "46464646-4646-4464-8464-464646464646";
+const runZero = "47474747-4747-4474-8474-474747474747";
+writer(`private.start_run('${runCap}'::uuid, '2026-12-01'::date, '${uidA}'::uuid)`);
+writer(`private.finish_run('${runCap}'::uuid, '2026-12-01'::date, '${uidA}'::uuid, '{1000,1000,1000,1000,1000}'::int[])`);
+writer(`private.start_run('${runZero}'::uuid, '2026-12-01'::date, '${uidB}'::uuid)`);
+writer(`private.finish_run('${runZero}'::uuid, '2026-12-01'::date, '${uidB}'::uuid, '{0,0,0,0,0}'::int[])`);
+const cap = writer(`private.day_snapshot('2026-12-01'::date, '${runZero}'::uuid, '${uidB}'::uuid)`);
+t("5000 and a category 1000 land in the last bin", cap.comparison_available === true && cap.score_bins.join(",") === "0,0,0,0,0,0,0,0,0,1" && cap.category_bins.every(row => row[9] === 1) && cap.others_at_or_above === 1);
+q("delete from private.technical_event where run_id in ('" + runCap + "','" + runZero + "')");
+q("delete from private.dedup where run_id in ('" + runCap + "','" + runZero + "')");
+q("delete from private.runs where run_id in ('" + runCap + "','" + runZero + "')");
+q("delete from private.attempts where run_id in ('" + runCap + "','" + runZero + "')");
+q("delete from private.day_agg where day_key = '2026-12-01'");
 q("update private.field_gate set min_other_finishes = 5 where id = 1");
 const below = writer(`private.day_snapshot('2026-11-07'::date, '${runA}'::uuid, '${uidA}'::uuid)`);
-t("below an operator threshold", below.comparison_available === false && below.reason === "below_threshold" && below.histogram === null);
+t("below an operator threshold", below.comparison_available === false && below.reason === "below_threshold" && below.histogram === null && below.score_bins == null && below.category_bins == null && below.others_at_or_above == null && unresolved.score_bins == null);
 q("update private.field_gate set min_other_finishes = null where id = 1");
 
 q("delete from private.rate_window");
@@ -199,7 +214,7 @@ function shot(day, run, uid) {
   return writer(`private.day_snapshot('${day}'::date, ${id}, '${uid}'::uuid)`);
 }
 function hidden(row, own, rest, included) {
-  return row.comparison_available === false && row.reason === "below_threshold" && row.histogram == null && row.rest_average == null && row.rest_category_average == null && row.own_included === included && row.own_total === own && row.rest_finishes === rest;
+  return row.comparison_available === false && row.reason === "below_threshold" && row.histogram == null && row.rest_average == null && row.rest_category_average == null && row.score_bins == null && row.category_bins == null && row.others_at_or_above == null && row.own_included === included && row.own_total === own && row.rest_finishes === rest;
 }
 q("delete from private.rate_window");
 q("update private.field_gate set min_other_finishes = 1 where id = 1");
@@ -233,6 +248,10 @@ const wrongDay = shot("2026-11-19", runHonest, uidRA);
 t("wrong-day run id does not select that day's score", hidden(wrongDay, 5, 0, true));
 const body = psql(["-q", "-t", "-A", "-c", "select pg_get_functiondef('private.day_snapshot(date,uuid,uuid)'::regprocedure)"]);
 t("snapshot definition ignores the client run id", /auth_uid = p_uid/.test(body) && !/run_id\s*=\s*p_run_id/.test(body));
+const finishDef = psql(["-q", "-t", "-A", "-c", "select pg_get_functiondef('private.finish_run(uuid,date,uuid,int[])'::regprocedure)"]);
+const startDef = psql(["-q", "-t", "-A", "-c", "select pg_get_functiondef('private.start_run(uuid,date,uuid)'::regprocedure)"]);
+t("finish does not reject a missing elapsed time", !/elapsed/i.test(finishDef) && /start_required/.test(finishDef) && /player_day_exists/.test(finishDef));
+t("a later start is the same start", !/elapsed|started_at|clock/i.test(startDef) && /collection_off/.test(startDef) && /rate_limited/.test(startDef));
 
 t("runtime login has no inherited power and no password", q("select rolcanlogin::text || ',' || rolsuper::text || ',' || rolinherit::text || ',' || rolbypassrls::text from pg_roles where rolname = 'field_runtime'") === "true,false,false,false" && q("select rolpassword is null from pg_authid where rolname = 'field_runtime'") === "t" && q("select pg_has_role('field_runtime', 'app_writer', 'member')") === "t");
 t("runtime cannot call the snapshot until it sets the writer role", attempt("field_runtime", "select private.day_snapshot('2026-11-21'::date, null::uuid, '" + uidRA + "'::uuid)") === "42501");
