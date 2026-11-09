@@ -19,7 +19,7 @@
 
   // Surnames too ambiguous to accept on their own, even if content lists them.
   const AMBIGUOUS_SURNAMES = new Set(["ronaldo", "james", "bonds", "payton", "schumacher", "gore", "ali",
-    "williams", "johnson", "smith", "jones", "brown", "davis", "jackson", "manning", "griffey", "ripken", "watt", "harrison", "curry"]);
+    "williams", "johnson", "smith", "jones", "brown", "davis", "jackson", "manning", "griffey", "ripken", "watt", "harrison", "curry", "joyner"]);
   // First words that signal a place/team, not a person ("New York" must not accept "york").
   const NOT_A_FIRST_NAME = new Set(["new", "san", "los", "las", "st", "saint", "fort", "north", "south", "east", "west", "united", "real", "el", "la", "le", "de", "port", "mount", "lake", "great", "old", "upper", "lower", "central", "golden", "green", "red", "blue", "white", "black", "kansas", "tampa", "green", "dallas", "boston", "chicago", "miami", "denver", "houston", "seattle", "atlanta", "detroit"]);
   // Unicode vulgar fractions -> " a/b" so "7½" = "7 1/2" = "7.5".
