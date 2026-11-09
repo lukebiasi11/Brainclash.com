@@ -1,22 +1,41 @@
 // Practice-only examples for pair, reveal, and slider. Not part of the daily lists.
 // Live dates never read this file. Open index.html?preview=demo
-// Marble positions fill a jar from the bottom. The returned list length is the count.
+// The glass outline and the inner trapezoid share these numbers.
+// Circles are packed only inside the trapezoid, which sits inside the glass.
+const JAR = {
+  view: "0 0 220 300",
+  d: "M86 8 h48 l12 36 h42 l-10 220 a40 18 0 0 1 -40 14 H82 a40 18 0 0 1 -40 -14 L32 44 h42 z",
+  top: 70,
+  bottom: 250,
+  topLeft: 44,
+  topRight: 176,
+  botLeft: 56,
+  botRight: 164
+};
+function jarRow(y) {
+  const t = (y - JAR.top) / (JAR.bottom - JAR.top);
+  return [JAR.topLeft + t * (JAR.botLeft - JAR.topLeft), JAR.topRight + t * (JAR.botRight - JAR.topRight)];
+}
+function marbleInside(p, r) {
+  if (p.y - r < JAR.top || p.y + r > JAR.bottom) return false;
+  const span = jarRow(p.y);
+  return p.x - r >= span[0] && p.x + r <= span[1];
+}
 function marbleJar(count) {
-  const left = 28, right = 172, bottom = 236, top = 58;
   for (let r = 8; r >= 2; r = Math.round((r - 0.1) * 10) / 10) {
     const pts = [];
-    let y = bottom - r, row = 0;
-    while (pts.length < count && y - r >= top) {
-      const t = (bottom - y) / (bottom - top);
-      const neck = t > 0.78 ? (t - 0.78) / 0.22 : 0;
+    let y = JAR.bottom - r, row = 0;
+    while (pts.length < count && y - r >= JAR.top) {
+      const span = jarRow(y);
       const inset = (row % 2) * r;
-      const rowLeft = left + neck * 36 + inset;
-      const rowRight = right - neck * 36;
-      for (let x = rowLeft + r; x <= rowRight - r + 1e-6 && pts.length < count; x += r * 2) pts.push({ x: x, y: y });
+      for (let x = span[0] + r + inset; x <= span[1] - r + 1e-6 && pts.length < count; x += r * 2) {
+        const p = { x: x, y: y };
+        if (marbleInside(p, r)) pts.push(p);
+      }
       y -= r * 1.72;
       row++;
     }
-    if (pts.length === count) return { count: count, r: r, pts: pts };
+    if (pts.length === count && pts.every(p => marbleInside(p, r))) return { count: count, r: r, pts: pts, jar: JAR };
   }
   return null;
 }
@@ -86,7 +105,7 @@ window.TYPE_DEMO = [
     explain: "The jar is drawn with exactly 437 marbles.",
     points: 1000,
     min: 0,
-    max: 800,
+    max: 2000,
     step: 1,
     answer: 437,
     unit: "marbles",

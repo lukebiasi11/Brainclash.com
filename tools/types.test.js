@@ -72,7 +72,19 @@ t("reveal clues easiest last", demo.filter(q => q.type === "reveal").every(q => 
 const jarQ = demo.find(q => q.marbles);
 t("marble answer", jarQ.answer, 437);
 t("marble scale", jarQ.scale, "percent");
-t("jar count", win.marbleJar(437).pts.length, 437);
+t("marble start is the midpoint", A.sliderStart(jarQ.min, jarQ.max, jarQ.step), 1000);
+t("marble start is not a hint", A.sliderStartClose(jarQ.answer, 1000), false);
+t("a start within 10% is rejected", A.sliderStartClose(437, 400), true);
+const jar = win.marbleJar(437);
+t("jar count", jar && jar.pts.length, 437);
+t("every marble is inside the jar", jar.pts.every(p => {
+  const J = jar.jar;
+  if (p.y - jar.r < J.top - 1e-6 || p.y + jar.r > J.bottom + 1e-6) return false;
+  const t = (p.y - J.top) / (J.bottom - J.top);
+  const left = J.topLeft + t * (J.botLeft - J.topLeft);
+  const right = J.topRight + t * (J.botRight - J.topRight);
+  return p.x - jar.r >= left - 1e-6 && p.x + jar.r <= right + 1e-6;
+}), true);
 t("piano per unit", demo.find(q => q.answer === 88).per_unit, 8);
 
 console.log(bad ? bad + " failures" : "types.test.js: all pass");

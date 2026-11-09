@@ -1328,12 +1328,12 @@ function sliderArt(q) {
     const jar = window.marbleJar(q.marbles);
     if (!jar) return null;
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("viewBox", "0 0 200 260");
+    svg.setAttribute("viewBox", jar.jar.view);
     svg.setAttribute("class", "jar-svg");
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", tr("A jar of marbles"));
     const glass = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    glass.setAttribute("d", "M70 18 h60 l8 28 h22 l-14 196 a28 18 0 0 1 -28 14 H82 a28 18 0 0 1 -28 -14 L40 46 h22 z");
+    glass.setAttribute("d", jar.jar.d);
     glass.setAttribute("class", "jar-glass");
     svg.append(glass);
     const colors = ["#E8582A", "#1F2C7A", "#F2C230", "#2E9B57", "#C0262D"];
@@ -1353,7 +1353,7 @@ function sliderQuestion(body, q, value, seconds, done) {
   const tol = q.tolerance == null ? 0 : q.tolerance;
   const percent = q.scale === "percent";
   const perPct = q.per_pct == null ? 20 : q.per_pct;
-  let valueNow = sliderSnap((min + max) / 2, min, max, step);
+  let valueNow = window.Answers.sliderStart(min, max, step);
   let over = false;
   const art = sliderArt(q);
   body.append(typeDiff(q));

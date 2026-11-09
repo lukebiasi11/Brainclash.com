@@ -59,6 +59,10 @@ const sliderQ = (w, q) => {
   if (q.per_pct != null && !(typeof q.per_pct === "number" && isFinite(q.per_pct) && q.per_pct >= 0)) E(w, "per_pct must be a number >= 0");
   if (q.scale === "percent") { if (q.answer === 0) E(w, "percent scale needs a non-zero answer"); }
   else if (!(typeof q.per_unit === "number" && q.per_unit > 0)) E(w, "per_unit is required unless scale is percent");
+  const start = q.min + (q.max - q.min) / 2;
+  const stepN = q.step > 0 ? q.step : 1;
+  const snapped = Math.min(q.max, Math.max(q.min, q.min + Math.round((start - q.min) / stepN) * stepN));
+  if (typeof q.answer === "number" && Math.abs(q.answer - snapped) <= 0.1 * Math.max(Math.abs(snapped), 1)) E(w, "answer is within 10% of the slider start, which gives the answer away");
 };
 const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
 if (C) {

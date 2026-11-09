@@ -324,6 +324,18 @@
     return Math.max(0, Math.round(v - per * off));
   }
   // World Rush keeps its two pins. Time Warp keeps the timeline, so a slider is refused there.
+  function sliderStart(min, max, step) {
+    const s = step > 0 ? step : 1;
+    const mid = (Number(min) + Number(max)) / 2;
+    const k = Math.round((mid - Number(min)) / s);
+    const n = Number(min) + k * s;
+    return Math.min(Number(max), Math.max(Number(min), +n.toFixed(6)));
+  }
+  // True when the answer is within 10% of the neutral start (the midpoint).
+  function sliderStartClose(answer, start) {
+    const scale = Math.max(Math.abs(Number(start)), 1);
+    return Math.abs(Number(answer) - Number(start)) <= 0.1 * scale + 1e-9;
+  }
   function typeFitsCategory(category, type) {
     if (category === "worldRush" && (type === "pair" || type === "reveal" || type === "slider")) return false;
     if ((category === "history" || category === "timeWarp") && type === "slider") return false;
@@ -343,6 +355,6 @@
     }
     return { aliases, given };
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);
