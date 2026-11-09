@@ -99,6 +99,9 @@
       "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
     "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.":
       "Descifra 6 palabras de dificultad media a alta con la pista (definición, sinónimo, antónimo o adivinanza). Toca las letras para deletrear; las respuestas correctas avanzan solas. Las primeras 4 valen 150 pts y las últimas 2, 200. 60 segundos.",
+    "Unscramble 6 words in 60 seconds. The hint stays hidden until you ask for it, and asking cuts that word to 60%. The score also falls as the clock runs down. All 6, no hints, with at least 45 seconds left, is 1,000.":
+      "Descifra 6 palabras en 60 segundos. La pista sigue oculta hasta que la pidas, y pedirla deja esa palabra en 60%. El puntaje también baja cuando se acaba el tiempo. Las 6, sin pistas, con al menos 45 segundos restantes, son 1,000.",
+    "Show hint (−40%)": "Ver pista (−40%)", "Hint used": "Pista usada", "Hint": "Pista", "Hidden until you ask.": "Oculta hasta que la pidas.", "hint": "pista",
     "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.":
       "Este juego es en inglés. Encuentra la palabra del medio que termina la primera y empieza la segunda, p. ej. SUN _ HOUSE → LIGHT (sunlight, lighthouse). 6 acertijos: los primeros 4 valen 150 pts y los últimos 2, 200. 60 segundos.",
     "Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds.": "Ordena 9 palabras en 3 grupos de 3. Los grupos valen 300, 300 y 400. Tres errores terminan la ronda. 90 segundos.",

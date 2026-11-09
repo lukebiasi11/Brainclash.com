@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request app at v=g1hist1 and English content, Spanish content, and answers at v=nov8player.
+// New HTML must request app and answers at v=unscramble1, and English and Spanish content at v=nov8player.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -7,8 +7,9 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "g1hist1";
+const APP_V = "unscramble1";
 const CONTENT_V = "nov8player";
+const ANSWERS_V = "unscramble1";
 const V = CONTENT_V;
 let bad = 0;
 const fail = (name, detail) => { bad++; console.log("FAIL", name, detail == null ? "" : typeof detail === "string" ? detail : JSON.stringify(detail)); };
@@ -22,8 +23,8 @@ function has(list, s) { return list.includes(s); }
 const indexSrc = srcs("index.html");
 const adminSrc = srcs("admin.html");
 const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
-[["index app", indexSrc, "app.js?v=" + APP_V], ["index content", indexSrc, "content.js?v=" + CONTENT_V], ["index es", indexSrc, "content.es.js?v=" + CONTENT_V], ["index answers", indexSrc, "answers.js?v=" + CONTENT_V],
- ["admin app", adminSrc, "app.js?v=" + APP_V], ["admin content", adminSrc, "content.js?v=" + CONTENT_V], ["admin answers", adminSrc, "answers.js?v=" + CONTENT_V]].forEach(([n, list, s]) => {
+[["index app", indexSrc, "app.js?v=" + APP_V], ["index content", indexSrc, "content.js?v=" + CONTENT_V], ["index es", indexSrc, "content.es.js?v=" + CONTENT_V], ["index answers", indexSrc, "answers.js?v=" + ANSWERS_V],
+ ["admin app", adminSrc, "app.js?v=" + APP_V], ["admin content", adminSrc, "content.js?v=" + CONTENT_V], ["admin answers", adminSrc, "answers.js?v=" + ANSWERS_V]].forEach(([n, list, s]) => {
   if (!has(list, s)) fail(n, s); else pass(n);
 });
 [["index old app", indexSrc, "app.js?v=g2local1"], ["index old content", indexSrc, "content.js?v=nov3k"], ["index old es", indexSrc, "content.es.js?v=nov3k"],
@@ -32,7 +33,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=g1hist1"], ["i18n", "i18n.js?v=g1hist1"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
+[["style", "style.css?v=g1hist1"], ["i18n", "i18n.js?v=unscramble1"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
@@ -150,7 +151,7 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
 
     const enReqs = await go("/index.html", `new Promise(r => { const t = Date.now(); const tick = () => document.querySelector("#app") && document.querySelector("#app").children.length && window.BCDaily ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);
     const enFiles = enReqs.map(u => u.replace(origin, "")).filter(u => /\/(app|content|content\.es|answers)\.js/.test(u));
-    const want = ["/app.js?v=" + APP_V, "/content.js?v=" + CONTENT_V, "/content.es.js?v=" + CONTENT_V, "/answers.js?v=" + CONTENT_V];
+    const want = ["/app.js?v=" + APP_V, "/content.js?v=" + CONTENT_V, "/content.es.js?v=" + CONTENT_V, "/answers.js?v=" + ANSWERS_V];
     if (want.every(s => enFiles.includes(s)) && !enFiles.some(s => s.includes("v=g2local1") || s.includes("content.js?v=nov3k") || s.includes("content.es.js?v=nov3k") || s.includes("answers.js?v=nov3k"))) pass("new HTML reloads app, content, Spanish content, answers");
     else fail("new HTML requests", enFiles);
     const enJudge = await evalJson(cdp, judge);

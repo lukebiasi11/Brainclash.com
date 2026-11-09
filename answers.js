@@ -283,6 +283,26 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  // Unscramble bases: first 4 words 150, last 2 words 200. Sum is 1,000.
+  // Before 2026-11-10 that sum is the score. There is no time factor and the hint is always shown.
+  // From 2026-11-10: a used hint keeps 60% of that word, then the total decays with time left.
+  // Full 1,000 requires every word, no hints, and at least 45 seconds still on the clock.
+  const FLIP_BASE = [150, 150, 150, 150, 200, 200];
+  const FLIP_STRICT_FROM = "2026-11-10";
+  function flipStrict(day) { return typeof day === "string" && day >= FLIP_STRICT_FROM; }
+  function unscrambleScore(solved, hinted, timeLeft, strict) {
+    let raw = 0;
+    for (let i = 0; i < 6; i++) {
+      if (!solved || !solved[i]) continue;
+      let p = FLIP_BASE[i];
+      if (strict && hinted && hinted[i]) p = Math.round(p * 0.6);
+      raw += p;
+    }
+    if (!strict) return raw;
+    const t = Math.max(0, Math.min(60, Number(timeLeft) || 0));
+    const factor = t >= 45 ? 1 : 0.62 + 0.38 * (t / 45);
+    return Math.min(1000, Math.round(raw * factor));
+  }
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, FLIP_BASE, FLIP_STRICT_FROM, flipStrict, unscrambleScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);
