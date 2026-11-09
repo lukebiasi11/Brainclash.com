@@ -1,5 +1,5 @@
 /* Daily Gauntlet — lenient typed-answer checking (shared by app.js and tools/answers.test.js).
-   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given }) -> true/false
+   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given, exactOnly }) -> true/false
    Order: explicit answer/alias -> listed wrong -> unit-aware number -> nickname/surname -> typo (never toward a wrong).
    - answers : accepted spellings from content.js (unchanged format)
    - aliases : OPTIONAL extra accepted spellings (nicknames, abbreviations, other languages)
@@ -183,11 +183,11 @@
     // Known wrong answers are checked BEFORE numbers, nicknames and typos ("mick schumacher" stays wrong).
     const wrongN = [].concat(opts.wrong || []).map(norm).filter(w => w && !goodN.includes(w));
     if (wrongN.includes(v)) return false;
-    // Sports given-name allowlist (opts.given). Exact after norm() only, and not added to the
-    // fuzzy list: one edit on a 5-letter first name also matches other names (brent / brett).
-    // A listed wrong token still loses. Shared typo bands below are unchanged.
-    const given = [].concat(opts.given || []).map(norm).filter(g => g && !wrongN.includes(g));
-    if (given.includes(v)) return true;
+    // given and exactOnly are the same exact-only list (first names). They match after norm()
+    // and are removed from the typo list, so "muhamma" is not a typo of "Muhammad".
+    const exactOnly = [].concat(opts.given || [], opts.exactOnly || []).map(norm).filter(g => g && !wrongN.includes(g));
+    const exactSet = new Set(exactOnly);
+    if (exactSet.has(v)) return true;
     // Units with a dimension: an explicit unit must match the expected dimension ("70 percent" for a count, "15 minutes"
     // for money -> wrong); same dimension compares converted values ("900 seconds" = "15 minutes"). Bare numbers fall through.
     const textOnly = !!opts.textOnly;   // content flag: no number parsing at all ("9" is not "N"/"nine")
@@ -212,7 +212,7 @@
     }
     if (textOnly ? /\d/.test(v) : (good.some(isNumeric) && /\d/.test(v))) return false;
     // Names: nickname on the first word ("Mike Jordan" = "Michael Jordan").
-    const vc = canonName(v), goodC = goodN.map(canonName);
+    const vc = canonName(v), goodC = goodN.filter(g => !exactSet.has(g)).map(canonName);
     if (goodC.includes(vc)) return true;
     // Last name alone ("Barry Bonds" -> "bonds") ONLY when the question is about a person (see isPersonQuestion),
     // never for ambiguous surnames, and never when the question opts out.
@@ -343,16 +343,16 @@
     if (category === "history" || category === "timeWarp") return type === "timeline" || type === "mc" || type === "text" || type === "typed" || type === "pair" || type === "reveal";
     return true;
   }
-  // accept[] → typed-matcher fields. A single word of 5 letters or fewer is exact-only
-  // (the Brett rule: one edit on a short first name is a different name). Longer words
-  // and multi-word names are aliases, so the existing typo bands apply.
+  // accept[] → typed-matcher fields. A single word is exact-only (given / exactOnly):
+  // one edit on a first name is a different name ("brent"/"brett", "muhamma"/"Muhammad",
+  // "willi"/"Willie"). Multi-word names are aliases, so the existing typo bands apply.
   function splitAccept(accept) {
     const aliases = [], given = [];
     for (const raw of [].concat(accept || [])) {
       if (raw == null) continue;
       const s = String(raw).trim();
       if (!s) continue;
-      if (!/\s/.test(s) && [...s].length <= 5) given.push(s);
+      if (!/\s/.test(s)) given.push(s);
       else aliases.push(s);
     }
     return { aliases, given };

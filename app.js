@@ -697,14 +697,14 @@ function worldRush() {
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? tr("Next pin →") : tr("Geography Q →"), step < 2 ? doPin : doThird);
+      nextBtn(bar, step < 2 ? tr("Next pin →") : (set.pair ? tr("Next question →") : tr("Geography Q →")), step < 2 ? doPin : doThird);
     }
   };
   const doThird = () => { if (set.pair) doPair(); else doMC(); };
   const doPair = () => {
-    const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
     const q = set.pair && set.pair.type ? set.pair : Object.assign({ type: "pair" }, set.pair || {});
-    pairQuestion(body, q, 100, TBD.mc, pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
+    const body = screen("🌎 " + tr("World Rush"), tr("{0} · {1} pts", tr(q.prompt || "Pair"), 100));
+    pairQuestion(body, q, 100, pairRoundSeconds(q), pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
   };
   const doMC = () => {
     const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
@@ -886,9 +886,23 @@ function artBox(cls, id, alt, keepPlaceholder) {
 }
 function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
 // Q3 team-path: order nicknames first→last. Vertical chips, drag / ▲▼ / tap-to-swap / arrow keys.
+function localizedText(value) {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const en = typeof value.en === "string" ? value.en.trim() : "";
+    const es = typeof value.es === "string" ? value.es.trim() : "";
+    return LANG === "es" ? (es || en) : (en || es);
+  }
+  return "";
+}
 function questionHint(q, fallback) {
-  if (q && typeof q.hint === "string" && q.hint.trim()) return tr(q.hint.trim());
+  const custom = localizedText(q && q.hint);
+  if (custom) return typeof q.hint === "string" ? tr(custom) : custom;
   return tr(fallback);
+}
+function pairRoundSeconds(q) {
+  const n = Number(q && q.roundSeconds);
+  return Number.isFinite(n) && n > 0 ? n : 8;
 }
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
@@ -901,7 +915,8 @@ function orderQuestion(body, q, value, seconds, done) {
   if (order.every((v, i) => v === i) && n > 1) { const o = order.slice(); [o[0], o[n - 1]] = [o[n - 1], o[0]]; order = o; }
   let locked = false, sel = null;
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
-  const list = h("div", { class: "order-list", role: "list", "aria-label": q && typeof q.hint === "string" && q.hint.trim() ? questionHint(q, orderFallback) : "Teams in career order, first at top" });
+  const customHint = localizedText(q && q.hint);
+  const list = h("div", { class: "order-list", role: "list", "aria-label": customHint ? questionHint(q, orderFallback) : "Teams in career order, first at top" });
   const wrap = h("div", { class: "order-wrap" },
     h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
@@ -1238,13 +1253,23 @@ function pairQuestion(body, q, value, seconds, done) {
   const n = rounds.length;
   let i = 0, correct = 0, over = false, awaiting = false;
   body.append(typeDiff(q));
-  body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  body.append(h("p", { class: "prompt" }, tr(q.prompt || "")));
   const meta = h("p", { class: "pair-meta" });
   const cards = h("div", { class: "pair-cards" });
   const note = h("p", { class: "pair-note" });
   body.append(meta, cards, note);
   const bar = actionBar(body);
-  const timer = seconds ? Timer(seconds, () => finish(true), typeHead(body)) : null;
+  const roundSecs = pairRoundSeconds(q);
+  let roundTimer = null;
+  function stopRoundTimer() {
+    if (roundTimer) { roundTimer.stop(); roundTimer = null; }
+    const head = typeHead(body);
+    if (head) head.querySelectorAll(".timer").forEach(n => n.remove());
+  }
+  function armRoundTimer() {
+    stopRoundTimer();
+    if (roundSecs > 0) roundTimer = Timer(roundSecs, () => lockRound(null, true), typeHead(body));
+  }
   const scoreNow = () => { if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(window.Answers.pairScore(correct, n, value)); } };
   function render() {
     const r = rounds[i];
@@ -1256,22 +1281,24 @@ function pairQuestion(body, q, value, seconds, done) {
     bar.replaceChildren();
     ["left", "right"].forEach(side => {
       const b = h("button", { type: "button", class: "opt pair-card", "data-side": side }, r[side]);
-      b.onclick = () => choose(side);
+      b.onclick = () => lockRound(side, false);
       cards.append(b);
     });
+    armRoundTimer();
   }
-  function choose(side) {
+  function lockRound(side, timedOut) {
     if (over || awaiting) return;
     awaiting = true;
+    stopRoundTimer();
     const r = rounds[i];
-    const ok = side === r.correct;
+    const ok = !timedOut && side === r.correct;
     if (ok) correct++;
     [...cards.children].forEach(b => {
       b.disabled = true;
       if (b.dataset.side === r.correct) b.classList.add("right");
-      else if (b.dataset.side === side) b.classList.add("wrong");
+      else if (!timedOut && b.dataset.side === side) b.classList.add("wrong");
     });
-    note.textContent = r.note || (ok ? tr("Correct") : tr("Answer: {0}", r[r.correct]));
+    note.textContent = timedOut ? tr("Time's up. ") + (r.note || tr("Answer: {0}", r[r.correct])) : (r.note || (ok ? tr("Correct") : tr("Answer: {0}", r[r.correct])));
     note.classList.add(ok ? "good" : "bad");
     scoreNow();
     const last = i >= n - 1;
@@ -1282,7 +1309,7 @@ function pairQuestion(body, q, value, seconds, done) {
   function finish(timedOut) {
     if (over) return;
     over = true;
-    timer && timer.stop();
+    stopRoundTimer();
     [...cards.querySelectorAll("button")].forEach(b => { b.disabled = true; });
     bar.replaceChildren();
     const pts = window.Answers.pairScore(correct, n, value);
@@ -1297,7 +1324,8 @@ function pairQuestion(body, q, value, seconds, done) {
 function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
   const parts = window.Answers.splitAccept(q.accept);
-  const opts = { aliases: parts.aliases, given: parts.given, q: q.prompt || "" };
+  const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
+  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
   let shown = 1, over = false;
   body.append(typeDiff(q));
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
@@ -1450,18 +1478,19 @@ function sliderQuestion(body, q, value, seconds, done) {
 }
 function runSlotDemo() {
   const demo = window.SLOT_DEMO || {};
-  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint)\b/) || [])[1] || "world";
+  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint|secs)\b/) || [])[1] || "world";
   session.practice = true;
-  session.inProgress = shot === "warp" || shot === "mc" ? 1 : shot === "world" ? 0 : 2;
+  session.inProgress = shot === "warp" || shot === "mc" || shot === "secs" ? 1 : shot === "world" ? 0 : 2;
   session.partial = 0;
   session.partialCat = session.inProgress;
-  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" ? [0] : [0, 0];
+  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" || shot === "secs" ? [0] : [0, 0];
   const q = { order: demo.order, orderhint: demo.orderHint, match: demo.match, matchhint: demo.matchHint }[shot];
   if (shot === "world") session.set = Object.assign({}, session.set, { worldRush: demo.world });
   else if (shot === "warp") session.set = Object.assign({}, session.set, { history: demo.history });
   else if (shot === "mc") session.set = Object.assign({}, session.set, { history: demo.historyOther });
+  else if (shot === "secs") session.set = Object.assign({}, session.set, { history: { r1: demo.timed, r2: demo.history.r2 } });
   else session.set = Object.assign({}, session.set, { sports: [q, q, q] });
-  if (shot === "warp" || shot === "mc") history();
+  if (shot === "warp" || shot === "mc" || shot === "secs") history();
   else if (shot === "world") worldRush();
   else sports();
 }
@@ -1540,7 +1569,7 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
     skipBar.querySelector(".skip-btn")?.remove();
     if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
     if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
-    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, q: src && typeof src.q === "string" ? src.q : "" })
+    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
     feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);

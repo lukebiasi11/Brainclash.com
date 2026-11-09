@@ -135,7 +135,7 @@ window.TYPE_DEMO = [
 window.SLOT_DEMO = {
   world: {
     pins: [{ name: "Oslo, Norway", lat: 59.91, lon: 10.75 }, { name: "Lagos, Nigeria", lat: 6.52, lon: 3.38 }],
-    pair: window.TYPE_DEMO[0]
+    pair: Object.assign({}, window.TYPE_DEMO[0], { prompt: "Which is bigger?" })
   },
   history: { r1: window.TYPE_DEMO[1], r2: window.TYPE_DEMO[2] },
   historyOther: {
@@ -143,7 +143,8 @@ window.SLOT_DEMO = {
     r2: { type: "text", q: "Who invented the telephone?", answers: ["alexander graham bell", "bell"] }
   },
   order: { type: "order", q: "Put these teams in career order.", items: ["Alpha", "Beta", "Gamma"] },
-  orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: "Put the first stop at the top." },
+  orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: { en: "Put the first stop at the top.", es: "La primera parada va arriba." } },
+  timed: Object.assign({}, window.TYPE_DEMO[1], { roundSeconds: 12 }),
   match: {
     type: "match", q: "Match the name to the record.",
     left: ["Ada", "Marie", "Katherine", "Grace"],

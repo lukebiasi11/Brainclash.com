@@ -16,6 +16,7 @@ if (fs.existsSync(samplesPath)) {
 const C = win.CONTENT, A = win.ANAGRAM_SETS;
 const E = (where, msg) => errs.push(`${where}: ${msg}`);
 const str = v => typeof v === "string" && v.trim() !== "";
+const hintOk = h => typeof h === "string" ? str(h) : !!h && typeof h === "object" && !Array.isArray(h) && (str(h.en) || str(h.es));
 const list = (v, n) => Array.isArray(v) && (n == null || v.length === n);
 const mc = (w, o) => { if (!str(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
 const DIFFS = new Set(["easy", "medium", "hard"]);
@@ -33,6 +34,7 @@ const pairQ = (w, q) => {
     if (r.correct !== "left" && r.correct !== "right") E(ww, 'correct must be "left" or "right"');
     if (r.note != null && !str(r.note)) E(ww, "note must be text");
   });
+  if (q.roundSeconds != null && !(typeof q.roundSeconds === "number" && isFinite(q.roundSeconds) && q.roundSeconds > 0)) E(w, "roundSeconds must be a number of seconds");
 };
 const revealQ = (w, q) => {
   typeMeta(w, q);
@@ -40,6 +42,8 @@ const revealQ = (w, q) => {
   if (!list(q.clues, 3) || !q.clues.every(str)) E(w, "clues must be exactly 3 strings, easiest last");
   if (!str(q.answer)) E(w, "missing answer");
   if (!list(q.accept) || !q.accept.length || !q.accept.every(str)) E(w, "accept must be a non-empty list of text");
+  if (q.given != null && !(list(q.given) && q.given.every(str))) E(w, "given must be a list of text");
+  if (q.exactOnly != null && !(list(q.exactOnly) && q.exactOnly.every(str))) E(w, "exactOnly must be a list of text");
 };
 const sliderQ = (w, q) => {
   typeMeta(w, q);
@@ -135,6 +139,7 @@ if (C) {
         if (q.aliases && !(list(q.aliases) && q.aliases.every(str))) E(ww, "aliases must be a list of text");
       } else if (!list(q.answers) || !q.answers.length || !q.answers.every(str)) E(ww, "answers must be a list of text");
       if (q.given && !(list(q.given) && q.given.length && q.given.every(str))) E(ww, "given must be a list of text");
+      if (q.exactOnly && !(list(q.exactOnly) && q.exactOnly.length && q.exactOnly.every(str))) E(ww, "exactOnly must be a list of text");
       if (q.kind && !SPORTS_TEXT_KINDS.has(q.kind)) E(ww, "unknown text kind " + q.kind);
       if (q.kind && q.kind !== "fill" && q.kind !== "common-teammate" && !str(q.img)) E(ww, q.kind + " needs img");
     } else if (t === "guess") {
@@ -145,7 +150,7 @@ if (C) {
       if (q.yearBand != null && !(typeof q.yearBand === "number" && q.yearBand >= 0)) E(ww, "yearBand must be a non-negative number");
     } else if (t === "order") {
       if (!str(q.q)) E(ww, "missing q");
-      if (q.hint != null && !str(q.hint)) E(ww, "hint must be text");
+      if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
       if (q.kind && q.kind !== "team-path") E(ww, "unknown order kind " + q.kind);
       if (!list(q.items) || q.items.length < 3 || q.items.length > 5 || !q.items.every(str)) E(ww, "items must be 3–5 nickname strings");
       else if (new Set(q.items.map(x => x.toLowerCase())).size !== q.items.length) E(ww, "duplicate nicknames in items (return stints need an explicit prompt rule)");
@@ -160,7 +165,7 @@ if (C) {
     else if (t === "slider") sliderQ(ww, q);
     else if (t === "match") {
       if (!str(q.q)) E(ww, "missing q");
-      if (q.hint != null && !str(q.hint)) E(ww, "hint must be text");
+      if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
       if (q.kind && q.kind !== "match-records") E(ww, "unknown match kind " + q.kind);
       if (!list(q.left, 4) || !q.left.every(str)) E(ww, "left must be 4 athlete strings");
       if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");

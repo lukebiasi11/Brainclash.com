@@ -55,7 +55,7 @@ t("reveal ok in sports", A.typeFitsCategory("sports", "reveal"), true);
 t("pair ok in sports", A.typeFitsCategory("sports", "pair"), true);
 t("slider ok in think", A.typeFitsCategory("thinkFast", "slider"), true);
 
-eq("split short first name", A.splitAccept(["Serena", "Bo", "Serena Williams", "  ", "S. Williams"]), { aliases: ["Serena", "Serena Williams", "S. Williams"], given: ["Bo"] });
+eq("split first names are exact", A.splitAccept(["Serena", "Bo", "Serena Williams", "  ", "S. Williams"]), { aliases: ["Serena Williams", "S. Williams"], given: ["Serena", "Bo"] });
 const serena = A.splitAccept(["Serena", "Serena Williams"]);
 t("accept Serena exact", A.checkAnswer("serena", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), true);
 t("accept full name", A.checkAnswer("Serena Williams!", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), true);
@@ -128,6 +128,11 @@ t("slot time warp mc and typed", V.checkHistoryDay("h", slots.historyOther).leng
 t("order hint is text", V.checkSportsQuestion("s", slots.orderHint).length, 0);
 t("match hint is text", V.checkSportsQuestion("s", slots.matchHint).length, 0);
 t("order hint must be text", V.checkSportsQuestion("s", Object.assign({}, slots.order, { hint: 4 })).some(m => m.includes("hint must be text")), true);
+t("hint object is allowed", V.checkSportsQuestion("s", slots.orderHint).length, 0);
+t("hint object needs a language", V.checkSportsQuestion("s", Object.assign({}, slots.order, { hint: { en: " " } })).some(m => m.includes("hint must be text")), true);
+t("pair roundSeconds", V.checkWorldDay("w", { pins: slots.world.pins, pair: Object.assign({}, slots.world.pair, { roundSeconds: 12 }) }).length, 0);
+t("pair roundSeconds rejected", V.checkWorldDay("w", { pins: slots.world.pins, pair: Object.assign({}, slots.world.pair, { roundSeconds: 0 }) }).some(m => m.includes("roundSeconds")), true);
+t("reveal exactOnly", V.checkHistoryDay("h", { r1: Object.assign({}, slots.history.r1), r2: Object.assign({}, slots.history.r2, { exactOnly: ["Serena"] }) }).length, 0);
 t("missing hint keeps the default", V.checkSportsQuestion("s", slots.order).length, 0);
 
 console.log(bad ? bad + " failures" : "types.test.js: all pass");

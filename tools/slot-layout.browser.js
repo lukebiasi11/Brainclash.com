@@ -63,6 +63,7 @@ const stateExpr = `(() => {
     aria: (document.querySelector(".order-list") || {}).getAttribute ? (document.querySelector(".order-list").getAttribute("aria-label") || "") : "",
     note: (document.querySelector(".pair-note") || {}).textContent || "",
     fb: (document.querySelector(".fb") || {}).textContent || "",
+    timer: (document.querySelector(".timer-text") || {}).textContent || "",
     clues: document.querySelectorAll(".reveal-clue").length,
     cards: document.querySelectorAll(".pair-card").length,
     saved: Object.keys(localStorage).filter(k => k === "dg-stats" || /^dg-\\d{4}-/.test(k)),
@@ -119,11 +120,11 @@ const stateExpr = `(() => {
       if (!await waitFor(cdp, `document.querySelector(".btn.primary") && /lock in pin|confirmar pin/i.test(document.querySelector(".btn.primary").textContent || "")`)) throw new Error("pin 2 button " + lang);
       if (!await clickRe(cdp, "/lock in pin|confirmar pin/i")) throw new Error("pin 2 " + lang);
       await pause(cdp, 400);
-      if (!await clickRe(cdp, "/geography q|pregunta de geograf/i")) throw new Error("to pair " + lang);
+      if (!await clickRe(cdp, "/next question|siguiente pregunta/i")) throw new Error("to pair " + lang);
       if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("world pair " + lang);
-      await pause(cdp, 1000);
       const wq = await ev(cdp, stateExpr);
-      const worldOk = wq.cards === 2 && wq.overflow <= 1 && !wq.small.length && /larger by area/i.test(wq.prompt) && (lang === "en" ? /geography question/i.test(wq.sub) : /pregunta de geograf/i.test(wq.sub));
+      const worldOk = wq.cards === 2 && wq.overflow <= 1 && !wq.small.length && /8s/.test(wq.timer) && (lang === "en" ? /which is bigger/i.test(wq.prompt) && /which is bigger/i.test(wq.sub) : /más grande/i.test(wq.prompt) && /más grande/i.test(wq.sub));
+      await pause(cdp, 1000);
       if (!worldOk) fail(lang + " world pair question", wq); else pass(lang + " world pair question");
       await shot("slot-world-" + lang + "-question.png");
       if (!await playPair("world.pair")) throw new Error("play world pair " + lang);
@@ -185,6 +186,13 @@ const stateExpr = `(() => {
       const orderH = await ev(cdp, stateExpr);
       const orderHintOk = lang === "en" ? orderH.hint === "Put the first stop at the top." : orderH.hint === "La primera parada va arriba.";
       if (!orderHintOk || /first team at the top|primer equipo/.test(orderH.hint) || orderH.aria !== orderH.hint) fail(lang + " order custom hint", orderH); else pass(lang + " order custom hint");
+      if (lang === "es") await shot("slot-hint-es.png");
+      if (lang === "en") {
+        await open("/index.html?preview=slots&shot=secs&lang=en");
+        if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("round seconds");
+        const secs = await ev(cdp, stateExpr);
+        if (!/12s/.test(secs.timer) || !/which came first/i.test(secs.prompt)) fail("pair roundSeconds 12", secs); else pass("pair roundSeconds 12");
+      }
       await open("/index.html?preview=slots&shot=match&lang=" + lang);
       if (!await waitFor(cdp, `document.querySelector(".drag-hint")`)) throw new Error("match " + lang);
       const match = await ev(cdp, stateExpr);

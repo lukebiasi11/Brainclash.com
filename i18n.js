@@ -116,6 +116,7 @@
     "Question {0} of 3 · {1} · {2} pts": "Pregunta {0} de 3 · {1} · {2} pts", "Easy": "Fácil", "Medium": "Media", "Hard": "Difícil", "Next question →": "Siguiente pregunta →",
     "Type your answer": "Escribe tu respuesta", "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.": "Arrastra en orden: el primer equipo arriba. O usa ▲▼ (o las flechas del teclado), o toca dos fichas para cambiarlas.",
     "Put the first stop at the top.": "La primera parada va arriba.", "Match each person to their year.": "Empareja cada persona con su año.",
+    "Which is bigger?": "¿Cuál es más grande?", "{0} · {1} pts": "{0} · {1} pts", "Pair": "Pareja",
     "FIRST": "PRIMERO", "LAST": "ÚLTIMO", "{0}/{1} in the right spot → +{2}": "{0}/{1} en su lugar → +{2}", "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.": "Toca un nombre y luego un dato para emparejarlos. Toca una pareja otra vez para separarla. También puedes arrastrar.",
     "Correct: ": "Correcto: ", "{0}/{1} correct → +{2}": "{0}/{1} correctas → +{2}",
     // word games
