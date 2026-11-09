@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { createFieldHandler } = require("../supabase/functions/field-compare/handler.js");
+const { pathToFileURL } = require("url");
 let bad = 0;
 const t = (name, ok, extra) => { if (!ok) { bad++; console.log("FAIL", name, extra || ""); } };
 const origin = "https://lukebiasi11.github.io";
@@ -36,6 +36,7 @@ const claims = {
 };
 
 (async () => {
+  const { createFieldHandler } = await import(pathToFileURL(path.join(__dirname, "../supabase/functions/field-compare/handler.js")).href);
   const counts = new Map();
   const db = dbFor(counts);
   const on = createFieldHandler({ collection: "on", allowedOrigins: [origin], db, getClaims: claims.session });

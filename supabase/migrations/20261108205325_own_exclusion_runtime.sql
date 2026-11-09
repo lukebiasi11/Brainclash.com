@@ -8,24 +8,30 @@
 -- database exists. The login is NOINHERIT, so it must SET ROLE app_writer.
 -- This file does not schedule retain_technical and does not enable pg_cron.
 
+-- Hosted migrations run as postgres, which is not a superuser. Do not name
+-- SUPERUSER, REPLICATION, or BYPASSRLS here. A new role already defaults to
+-- none of those. LOGIN and NOINHERIT are attributes this role may set.
+-- On PostgreSQL 17 a non-superuser can GRANT a role only with ADMIN OPTION
+-- on it. The same user created app_writer, so it has that option.
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'field_runtime') then
-    create role field_runtime
-      login
-      noinherit
-      nosuperuser
-      nobypassrls
-      nocreatedb
-      nocreaterole
-      noreplication;
+    create role field_runtime login noinherit;
   end if;
 end $$;
 
-alter role field_runtime noinherit nosuperuser nobypassrls nocreatedb nocreaterole noreplication login;
+alter role field_runtime login noinherit;
+
 do $$
 begin
-  if not pg_has_role('field_runtime', 'app_writer', 'member') then
+  if not exists (
+    select 1
+    from pg_auth_members m
+    join pg_roles granted on granted.oid = m.roleid
+    join pg_roles member on member.oid = m.member
+    where granted.rolname = 'app_writer'
+      and member.rolname = 'field_runtime'
+  ) then
     grant app_writer to field_runtime;
   end if;
 end $$;

@@ -67,8 +67,8 @@ Expected:
 
 - `version()` starts with `PostgreSQL 17`.
 - The status row is `false, false, false`. Collection is off, no operator contact, and the other-game threshold is null.
-- `field_runtime` is `true, false, false` (login, no inherit, not superuser).
-- Membership in `app_writer` is true.
+- `field_runtime` is login, not superuser, and does not inherit. The migration sets only `LOGIN` and `NOINHERIT`. It does not name `SUPERUSER`, `REPLICATION`, or `BYPASSRLS`, because hosted `postgres` cannot change those. A new role defaults to none of them.
+- Membership in `app_writer` is true. The migration role created `app_writer`, so on PostgreSQL 17 it has `ADMIN OPTION` and the `GRANT` succeeds.
 
 `execute_sql` as `anon` must fail to read the contact:
 
@@ -131,9 +131,9 @@ Authentication, Providers or settings, allow anonymous sign-ins: on, for this te
 
 Leave the anonymous sign-in rate limit at 30 per hour per IP (`rate_limit_anonymous_users`).
 
-The Auth guide says to turn on CAPTCHA before anonymous sign-ins, because each sign-in inserts an `auth.users` row. The curl in step 8 cannot complete a real CAPTCHA widget. For this window, leave CAPTCHA off and rely on that 30-per-hour limit. Step 11 turns anonymous sign-ins back off.
+The Auth guide says to turn on CAPTCHA before anonymous sign-ins, because each sign-in inserts an `auth.users` row. The curl in section 6 cannot complete a real CAPTCHA widget. For this window, leave CAPTCHA off and rely on that 30-per-hour limit. Section 10 turns anonymous sign-ins back off.
 
-If Luke instead wants CAPTCHA on, stop before step 8. The dashboard providers are hCaptcha and Turnstile (`security_captcha_provider`). The secret stays in the dashboard. The signup body then also needs `gotrue_meta_security.captcha_token` with a token from that provider. Do not invent a token and do not commit one.
+If Luke instead wants CAPTCHA on, stop before section 6. The dashboard providers are hCaptcha and Turnstile (`security_captcha_provider`). The secret stays in the dashboard. The signup body then also needs `gotrue_meta_security.captcha_token` with a token from that provider. Do not invent a token and do not commit one.
 
 ### What not to push
 
@@ -152,7 +152,7 @@ Do not run `supabase config push`. The repo `config.toml` is the local file: ano
 
 `verify_jwt` false is the designed platform setting. It is not user auth. The function still requires `getClaims` to return an anonymous `authenticated` session. A publishable key must not pass that check.
 
-`files`: four files. `name` is the path next to the entrypoint, because `index.ts` imports `./handler.js` and that file requires `./field-api.js` and `./auth.js`. `content` is the repo file with no edits.
+`files`: four files. `name` is the path next to the entrypoint. `index.ts` imports `./handler.js`, and that ESM file imports `./field-api.js` and `./auth.js`. Do not prebundle them. `content` is the repo file with no edits.
 
 | `files[].name` | Repo path |
 | --- | --- |
@@ -161,7 +161,7 @@ Do not run `supabase config push`. The repo `config.toml` is the local file: ano
 | `field-api.js` | `supabase/functions/field-compare/field-api.js` |
 | `auth.js` | `supabase/functions/field-compare/auth.js` |
 
-Do not upload `supabase/field-api.js`. That path is a local re-export. `handler.d.ts` is typecheck-only and is not part of this payload.
+Do not upload `supabase/field-api.js`, `package.json`, or `deno.json`. Those are local Node and Deno settings. `handler.d.ts` is typecheck-only and is not part of this payload. The four files above are already ESM. Hosted Deno loads them directly. Do not prebundle.
 
 Expected: the function `field-compare` exists, its entrypoint is `index.ts`, and JWT verification at the platform is off. `get_logs` for this function may be empty until step 7.
 

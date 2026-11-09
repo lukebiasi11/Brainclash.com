@@ -1,4 +1,4 @@
-// Deployable entry. Local tests bundle this file and do not start the server.
+// Deployable entry. Local tests load this file without bundling it.
 // FIELD_DB_URL must log in as field_runtime. That role has no password in git.
 // Each call checks session_user, then SET ROLE app_writer. A superuser URL fails
 // closed. getClaims is the session check; platform verify_jwt is not.

@@ -1,10 +1,9 @@
-/* Local HTTP adapter for a future Edge Function. Not deployed.
+/* Deployed with the Edge function. Hosted Deno loads this file as ESM.
    Identity comes only from verifyAnonymousClaims. A client hash is not accepted.
    Durable rate slots are private.consume_rate. The process does not keep its own counter.
    FIELD_COLLECTION and the SQL gate both default off. */
-"use strict";
-const { validateStart, validateFinish, validateDay } = require("./field-api.js");
-const { verifyAnonymousClaims } = require("./auth.js");
+import { validateStart, validateFinish, validateDay } from "./field-api.js";
+import { verifyAnonymousClaims } from "./auth.js";
 const MAX_BODY = 2048;
 
 function cors(origin, allowed) {
@@ -55,7 +54,7 @@ async function readCappedBody(request) {
   }
 }
 
-function createFieldHandler(options = {}) {
+export function createFieldHandler(options = {}) {
   const allowed = new Set(options.allowedOrigins || []);
   const collection = options.collection === "on";
   const db = options.db || null;
@@ -96,4 +95,3 @@ function createFieldHandler(options = {}) {
     return json(200, await db.call("day_snapshot", [body.day, body.runId, identity.uid]), headers);
   };
 }
-module.exports = { createFieldHandler };

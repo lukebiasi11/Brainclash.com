@@ -1,7 +1,6 @@
 /* Request checks shipped with the Edge function directory.
    The secret key stays in the function environment. This file has no key and no project URL.
    Postgres functions in private are the authority for writes. */
-"use strict";
 function validDay(day) {
   if (typeof day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
   const [y, m, d] = day.split("-").map(Number);
@@ -13,19 +12,18 @@ function validHash(hash) { return typeof hash === "string" && !hash.includes("@"
 function privilegeField(body) {
   return body && typeof body === "object" && ["secret", "serviceRole", "role", "collection", "operatorContact", "authUid", "playerDayHash"].some(k => Object.prototype.hasOwnProperty.call(body, k));
 }
-function validateStart(body) {
+export function validateStart(body) {
   if (!body || typeof body !== "object" || privilegeField(body)) return { ok: false, error: "invalid_input" };
   if (!validId(body.runId) || !validDay(body.day)) return { ok: false, error: "invalid_input" };
   return { ok: true };
 }
-function validateFinish(body) {
+export function validateFinish(body) {
   const start = validateStart(body);
   if (!start.ok) return start;
   if (!Array.isArray(body.scores) || body.scores.length !== 5 || body.scores.some(n => typeof n !== "number" || !Number.isInteger(n) || n < 0 || n > 1000)) return { ok: false, error: "invalid_input" };
   return { ok: true };
 }
-function validateDay(query) {
+export function validateDay(query) {
   if (!query || !validDay(query.day) || !validId(query.runId)) return { ok: false, error: "invalid_input" };
   return { ok: true };
 }
-module.exports = { validateStart, validateFinish, validateDay };

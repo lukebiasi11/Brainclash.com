@@ -5,10 +5,9 @@
    says the platform Verify JWT setting may not accept the new keys.
    A passing token is an anonymous Auth session. It is not proof of a fair game,
    and the scores in the body are still only client-reported integers. */
-"use strict";
 const UID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function verifyAnonymousClaims(getClaims, authorization) {
+export async function verifyAnonymousClaims(getClaims, authorization) {
   const match = /^Bearer\s+(\S+)$/i.exec(authorization || "");
   if (!match || typeof getClaims !== "function") return { ok: false, error: "identity_required" };
   let result;
@@ -20,4 +19,3 @@ async function verifyAnonymousClaims(getClaims, authorization) {
   }
   return { ok: true, uid: claims.sub };
 }
-module.exports = { verifyAnonymousClaims };

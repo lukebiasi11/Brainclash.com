@@ -2,6 +2,7 @@
 const { execFileSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 const root = path.join(__dirname, "..");
 const db = "bc_field_compare_local";
 const migrations = fs.readdirSync(path.join(root, "supabase/migrations"))
@@ -66,6 +67,31 @@ function attempt(role, statement) {
     select pg_temp.attempt('${role}', \$e\$${statement}\$e\$);
   `);
 }
+
+function psqlDb(database, args, input) {
+  return execFileSync("sudo", ["-u", "postgres", "psql", "-v", "ON_ERROR_STOP=1", "-d", database, ...args], { encoding: "utf8", input });
+}
+for (const name of [db, "bc_field_hosted", "bc_role_probe"]) {
+  psqlDb("postgres", ["-c", `drop database if exists ${name}`]);
+}
+for (const name of ["field_runtime", "app_writer"]) psqlDb("postgres", ["-c", `drop role if exists ${name}`]);
+psqlDb("postgres", ["-c", `
+  do $$ begin
+    if not exists (select 1 from pg_roles where rolname = 'bc_hosted_admin') then
+      create role bc_hosted_admin login createrole nosuperuser nobypassrls nocreatedb;
+    end if;
+  end $$;
+  alter role bc_hosted_admin login createrole nosuperuser nobypassrls nocreatedb;
+`]);
+psqlDb("postgres", ["-c", "create database bc_field_hosted owner bc_hosted_admin"]);
+psqlDb("bc_field_hosted", ["-f", "-"], "set session authorization bc_hosted_admin;\n" + migrations.map(file => fs.readFileSync(file, "utf8")).join("\n"));
+const runtimeFlags = psqlDb("bc_field_hosted", ["-tAc", "select rolcanlogin::text || ',' || rolsuper::text || ',' || rolinherit::text || ',' || rolcreaterole::text || ',' || rolcreatedb::text || ',' || rolreplication::text || ',' || rolbypassrls::text from pg_roles where rolname = 'field_runtime'"]).trim();
+const runtimeMember = psqlDb("bc_field_hosted", ["-tAc", "select pg_has_role('field_runtime', 'app_writer', 'member')"]).trim();
+const adminIsSuper = psqlDb("bc_field_hosted", ["-tAc", "select rolsuper::text from pg_roles where rolname = 'bc_hosted_admin'"]).trim();
+const createdByAdmin = psqlDb("bc_field_hosted", ["-tAc", "select admin_option::text from pg_auth_members m join pg_roles granted on granted.oid = m.roleid join pg_roles member on member.oid = m.member where granted.rolname = 'field_runtime' and member.rolname = 'bc_hosted_admin'"]).trim();
+const migration3 = fs.readFileSync(migrations.find(file => file.endsWith("own_exclusion_runtime.sql")), "utf8");
+t("non-superuser can apply the role migration", adminIsSuper === "false" && createdByAdmin === "true" && runtimeFlags === "true,false,false,false,false,false,false" && runtimeMember === "t" && !/^\s*(create|alter)\s+role\b[^\n]*(superuser|bypassrls|replication)/im.test(migration3));
+psqlDb("postgres", ["-c", "drop database if exists bc_field_hosted"]);
 
 execFileSync("sudo", ["-u", "postgres", "psql", "-d", "postgres", "-c", `drop database if exists ${db}`]);
 execFileSync("sudo", ["-u", "postgres", "psql", "-d", "postgres", "-c", `create database ${db}`]);
@@ -224,11 +250,11 @@ t("deploy path requires the runtime login and a verified session", entry.include
 t("retention plan is explicit and not scheduled", /not enabled/i.test(plan) && /not executed by this repository/.test(plan) && /retain_technical/.test(plan) && /7 days/.test(plan) && !/cron\.schedule/.test(sql) && !/password\s+'/i.test(sql));
 t("handler has no memory counter or delete route", !handler.includes("new Map") && !handler.includes("request.text(") && !handler.includes("deletion_request"));
 t("definer functions stay private", !/create (or replace )?function public\./i.test(sql) && /enable row level security/.test(sql));
-const { validateFinish } = require(path.join(root, "supabase/field-api.js"));
-t("adapter rejects a client identity field", validateFinish({ runId: runA, day: "2026-11-07", playerDayHash: "player-a-isolated-1", scores: [200, 200, 200, 200, 200] }).ok === false);
-t("adapter accepts scores without an identity field", validateFinish({ runId: runA, day: "2026-11-07", scores: [200, 200, 200, 200, 200] }).ok === true);
 
 (async () => {
+  const { validateFinish } = await import(pathToFileURL(path.join(root, "supabase/functions/field-compare/field-api.js")).href);
+  t("adapter rejects a client identity field", validateFinish({ runId: runA, day: "2026-11-07", playerDayHash: "player-a-isolated-1", scores: [200, 200, 200, 200, 200] }).ok === false);
+  t("adapter accepts scores without an identity field", validateFinish({ runId: runA, day: "2026-11-07", scores: [200, 200, 200, 200, 200] }).ok === true);
   const [left, right] = await Promise.all([
     psqlAsync(`begin; set local role app_writer; select private.day_snapshot('2026-11-21'::date, '${runRandom}'::uuid, '${uidRA}'::uuid); commit;`),
     psqlAsync(`begin; set local session authorization field_runtime; set local role app_writer; select private.day_snapshot('2026-11-21'::date, '${runHonest}'::uuid, '${uidRB}'::uuid); commit;`)
@@ -253,7 +279,7 @@ t("adapter accepts scores without an identity field", validateFinish({ runId: ru
     psqlAsync(`begin; set local role app_writer; select private.finish_run('${runD}'::uuid, '2026-11-08'::date, '${uidD}'::uuid, '{0,100,0,0,0}'::int[]); commit;`)
   ]);
   t("concurrent different identities", both.every(s => JSON.parse(s).ok === true) && q("select finishes from private.day_agg where day_key = '2026-11-08'") === "2");
-  const { createFieldHandler } = require("../supabase/functions/field-compare/handler.js");
+  const { createFieldHandler } = await import(pathToFileURL(path.join(root, "supabase/functions/field-compare/handler.js")).href);
   const uidE = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   const httpDb = { async call(name, args) { return writer(sqlFor(name, args)); } };
   const handle = createFieldHandler({
