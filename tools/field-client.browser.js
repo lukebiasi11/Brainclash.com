@@ -175,7 +175,7 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-collection'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, privacy: !!g1.querySelector('a[href^=\"privacy.html\"]') }; })()`);
       const footer = await evalJson(cdp, `(() => { const a = document.querySelector('footer a[data-privacy]'); return { href: a && a.getAttribute('href'), text: a && a.textContent, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0 }; })()`);
       if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag off keeps the collection-off card");
-      if (!footer || footer.href !== "privacy.html?v=g1field2" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
+      if (!footer || footer.href !== "privacy.html?v=g1field3" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
       const after = await evalJson(cdp, snapExpr());
       const changed = sameStore(before, after);
       if (changed) fail("flag off storage", changed); else pass("flag off storage untouched");
@@ -296,14 +296,15 @@ const YOU = [700, 680, 660, 640, 680];
     }
 
     {
-      const cdp = await page("/privacy.html?v=g1field2", null, phone);
-      const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText), anon: /anonymous/i.test(document.body.innerText) }; })()`);
-      if (en.title !== "Daily comparison" || !/Last updated: November 9, 2026/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || en.placeholder || en.draft || en.anon || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
-      await shot(cdp, "privacy_notice_en_mobile.png", "#privacy");
+      const cdp = await page("/privacy.html?v=g1field3", null, phone);
+      await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelectorAll('a[href^="mailto:"]').length >= 2) resolve(true); else if (Date.now() - start > 4000) resolve(false); else setTimeout(tick, 30); }; tick(); })`);
+      const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^="mailto:"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText), anon: /anonymous/i.test(document.body.innerText) }; })()`);
+      if (en.title !== "Daily comparison" || !/Last updated: November 9, 2026/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || !/To delete your scores, email thedailydosetrivia@gmail.com/.test(en.text) || en.placeholder || en.draft || en.anon || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
+      await shot(cdp, "privacy_notice_en_mobile_email.png", "#privacy");
       await evalJson(cdp, "document.querySelector('[data-lang=es]').click()");
       const es = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === 'Comparación diaria') { const text = document.body.innerText; resolve({ title: t.textContent, text, mail: [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href')), placeholder: text.indexOf('OPERATOR_CONTACT') >= 0, draft: /Borrador pendiente/.test(text), anon: /anónim/i.test(text) }); } else if (Date.now()-start>4000) resolve({ title: t && t.textContent, text: '' }); else setTimeout(tick, 40); }; tick(); })`);
-      if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización:/.test(es.text) || !/menores de 13/.test(es.text) || es.placeholder || es.draft || es.anon || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
-      await shot(cdp, "privacy_notice_es_mobile.png", "#privacy");
+      if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización:/.test(es.text) || !/menores de 13/.test(es.text) || !/Para borrar tus puntajes, escribe a thedailydosetrivia@gmail.com/.test(es.text) || es.placeholder || es.draft || es.anon || (es.mail || []).length < 2 || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
+      await shot(cdp, "privacy_notice_es_mobile_email.png", "#privacy");
       if (cdp.reqs.some(r => /field-compare|supabase\.co/.test(r.url))) fail("privacy network", cdp.reqs.filter(r => /field-compare|supabase/.test(r.url))); else pass("privacy page makes no field calls");
     }
 

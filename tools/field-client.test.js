@@ -139,7 +139,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "The site doesn't respond differently to Do Not Track signals.",
     "Scores are kept indefinitely, as a combined daily total and under that random ID.",
     "Rate-limit records and request metadata are deleted after 7 days.",
-    "To delete your scores, contact",
+    "To delete your scores, email",
     "Clearing your browser data gives you a new ID but doesn't delete earlier scores.",
     "Daily Dose isn't meant for children under 13.",
     "If this changes, we'll update this notice and the date above."
@@ -168,9 +168,9 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
   ok("index loads the field client", indexHtml.includes("field-config.js?v=g1field2") && indexHtml.includes("field-compare.js?v=g1field1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1field2"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1field3"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1field2"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1field3"'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);

@@ -28,7 +28,7 @@ Scores are kept indefinitely, as a combined daily total and under that random ID
 
 Rate-limit records and request metadata are deleted after 7 days.
 
-To delete your scores, contact [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
+To delete your scores, email [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 Clearing your browser data gives you a new ID but doesn't delete earlier scores.
 

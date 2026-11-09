@@ -1604,7 +1604,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1field2" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1field3" }, tr("Privacy"))); }
 function g1FieldChart(mode, youScores, snap) {
   const W = 360, Ht = 168, pad = { l: 40, r: 8, t: 18, b: 8 };
   const iw = W - pad.l - pad.r, ih = Ht - pad.t - pad.b, scale = mode === "total" ? 5000 : 1000;

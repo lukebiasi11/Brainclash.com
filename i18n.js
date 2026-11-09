@@ -74,7 +74,7 @@
     "The site doesn't respond differently to Do Not Track signals.": "El sitio no responde de forma distinta a las señales de No rastrear.",
     "Scores are kept indefinitely, as a combined daily total and under that random ID.": "Los puntajes se guardan de forma indefinida, como un total combinado del día y bajo ese identificador.",
     "Rate-limit records and request metadata are deleted after 7 days.": "Los registros de límite de solicitudes y los datos técnicos de la solicitud se borran a los 7 días.",
-    "To delete your scores, contact {0}.": "Para borrar tus puntajes, escribe a {0}.",
+    "To delete your scores, email {0}.": "Para borrar tus puntajes, escribe a {0}.",
     "Clearing your browser data gives you a new ID but doesn't delete earlier scores.": "Si borras los datos de este navegador, obtienes un identificador nuevo, pero eso no borra los puntajes anteriores.",
     "Who it is for: people 13 and older in the United States.": "Para quién: personas de 13 años o más en Estados Unidos.",
     "Daily Dose isn't meant for children under 13. If we learn we have scores from a child under 13, we'll delete them.": "Daily Dose no está pensado para menores de 13 años. Si nos enteramos de que tenemos puntajes de un menor de 13 años, los borramos.",
