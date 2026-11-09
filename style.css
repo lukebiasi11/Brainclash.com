@@ -706,10 +706,11 @@ body{background:transparent}
   .hero:not(.small) .logo::after{left:1.1111em;top:.5em;width:.6667em;height:1em} /* 270-70, 150-60, 120 */
 }
 /* ===== subcategory label, variant A (permanent; shows when c.sub is supplied) ===== */
-.path .step .nm{display:flex;flex-direction:column;justify-content:center;align-self:center;line-height:1.05;padding-top:3px}
-.path .step .nm small{display:block;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(18,11,46,.75);opacity:1;line-height:1.1;margin:5px 0 0}
+.path .step .nm{display:flex;flex-direction:column;justify-content:center;align-self:center;line-height:1.05;padding-top:3px;min-width:0}
+.path .step .nm small{display:block;min-width:0;max-width:100%;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(18,11,46,.75);opacity:1;line-height:1.1;margin:5px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .path .step .nm small:empty{display:none}
 .path .step .ic,.path .step .pts{align-self:center}
+.path .step .pts{flex-shrink:0}
 /* 2:09pm: hide the duplicate nav brand on home (big wordmark present); BETA stays, so the bar keeps its height */
 body:has(.hero:not(.small)) nav.top .brand{visibility:hidden;pointer-events:none}
 body:has(.hero:not(.small)) nav.top{justify-content:flex-end}
