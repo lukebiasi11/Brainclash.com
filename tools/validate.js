@@ -16,7 +16,8 @@ if (fs.existsSync(samplesPath)) {
 const C = win.CONTENT, A = win.ANAGRAM_SETS;
 const E = (where, msg) => errs.push(`${where}: ${msg}`);
 const str = v => typeof v === "string" && v.trim() !== "";
-const hintOk = h => typeof h === "string" ? str(h) : !!h && typeof h === "object" && !Array.isArray(h) && (str(h.en) || str(h.es));
+const textOrI18n = v => str(v) || (!!v && typeof v === "object" && !Array.isArray(v) && (str(v.en) || str(v.es)));
+const hintOk = textOrI18n;
 const list = (v, n) => Array.isArray(v) && (n == null || v.length === n);
 const mc = (w, o) => { if (!str(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
 const DIFFS = new Set(["easy", "medium", "hard"]);
@@ -26,13 +27,13 @@ const typeMeta = (w, q) => {
 };
 const pairQ = (w, q) => {
   typeMeta(w, q);
-  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!textOrI18n(q.prompt)) E(w, "missing prompt");
   if (!list(q.rounds, 5)) return E(w, "rounds must be exactly 5");
   q.rounds.forEach((r, i) => {
     const ww = w + " round " + (i + 1);
-    if (!r || !str(r.left) || !str(r.right)) E(ww, "needs left and right text");
+    if (!r || !textOrI18n(r.left) || !textOrI18n(r.right)) E(ww, "needs left and right text");
     if (r.correct !== "left" && r.correct !== "right") E(ww, 'correct must be "left" or "right"');
-    if (r.note != null && !str(r.note)) E(ww, "note must be text");
+    if (r.note != null && !textOrI18n(r.note)) E(ww, "note must be text");
   });
   if (q.roundSeconds != null && !(typeof q.roundSeconds === "number" && isFinite(q.roundSeconds) && q.roundSeconds > 0)) E(w, "roundSeconds must be a number of seconds");
 };
@@ -207,6 +208,12 @@ if (C) {
       const ww = `${w} puzzle ${j + 1}`;       const t = q.type || "text";
       if (t === "pair" || t === "reveal" || t === "slider") {
         if (t === "pair") pairQ(ww, q); else if (t === "reveal") revealQ(ww, q); else sliderQ(ww, q);
+      } else if (t === "emoji" || t === "emoji-rebus") {
+        if (!str(q.emoji)) E(ww, "emoji rebus needs an emoji string");
+        const ans = [].concat(q.answers || [], q.answer == null ? [] : [q.answer]);
+        if (!ans.length || !ans.every(str)) E(ww, "emoji rebus needs answers");
+        if (q.prompt != null && !textOrI18n(q.prompt)) E(ww, "prompt must be text or {en, es}");
+        if (q.accept != null && !(list(q.accept) && q.accept.every(str))) E(ww, "accept must be a list of text");
       } else if (!str(q.q)) E(ww, "missing q");
       else if (t === "guess") { if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs a numeric answer"); if (q.unit != null && !str(q.unit)) E(ww, "unit must be text"); }
       else if (t === "mc" || t === "illusion") {
@@ -241,6 +248,16 @@ else {
   });
   Object.entries(seen).forEach(([k, n]) => { if (!n) E("TYPE_DEMO", "needs at least one " + k); });
 }
+const emojiDays = win.EMOJI_DEMO;
+if (!list(emojiDays, 2)) E("EMOJI_DEMO", "needs the belief and corndog sample days");
+else emojiDays.forEach((day, i) => {
+  const w = "EMOJI_DEMO day " + (i + 1);
+  if (!list(day, 2)) return E(w, "needs exactly 2 puzzles");
+  const q = day[0];
+  if (!q || (q.type !== "emoji" && q.type !== "emoji-rebus")) E(w, "first puzzle must be an emoji rebus");
+  else if (!str(q.emoji) || !list(q.answers) || !q.answers.every(str)) E(w, "emoji rebus needs an emoji string and answers");
+  else if (q.prompt != null && !textOrI18n(q.prompt)) E(w, "prompt must be text or {en, es}");
+});
 if (require.main === module) {
   if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
   console.log("✅ OK — content.js and anagrams.js look good.");

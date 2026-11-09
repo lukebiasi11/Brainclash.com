@@ -210,11 +210,22 @@ function esLocalize(set) {
 }
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
-  return esLocalize({ day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
+  const set = { day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
     // Word formats rotate daily (period 5); each format's list advances once per 5-day cycle: w = floor(day / 5).
     wordGame: pick(WORD_GAMES, d), wordFlip: sched("wordFlip", C.wordFlip, w), wordBridge: sched("wordBridge", C.wordBridge, w),
     connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w, d),
-    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) });
+    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) };
+  // A date can pin one category to a list index. Every other date keeps the frozen schedule.
+  const spec = typeof window !== "undefined" && window.DAY_OVERRIDES && window.DAY_OVERRIDES[dayKey];
+  if (spec && typeof spec === "object") {
+    for (const name of Object.keys(spec)) {
+      const key = name === "anagrams" ? "anagram" : name;
+      const list = key === "anagram" ? window.ANAGRAM_SETS : (window.CONTENT && window.CONTENT[key]);
+      const idx = spec[name];
+      if (Array.isArray(list) && Number.isInteger(idx) && idx >= 0 && idx < list.length) set[key] = list[idx];
+    }
+  }
+  return esLocalize(set);
 }
 // Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
 // or a future day. Before there are past days it falls back to a pre-launch day.
@@ -703,8 +714,8 @@ function worldRush() {
   const doThird = () => { if (set.pair) doPair(); else doMC(); };
   const doPair = () => {
     const q = set.pair && set.pair.type ? set.pair : Object.assign({ type: "pair" }, set.pair || {});
-    const body = screen("🌎 " + tr("World Rush"), tr("{0} · {1} pts", tr(q.prompt || "Pair"), 100));
-    pairQuestion(body, q, 100, pairRoundSeconds(q), pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
+    const body = screen("🌎 " + tr("World Rush"), tr("{0} · {1} pts", pairLabel(q.prompt || "Pair"), 100));
+    pairQuestion(body, q, 100, 8, pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
   };
   const doMC = () => {
     const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
@@ -851,14 +862,14 @@ function history() {
     }
   };
   function playRound(rd, kind) {
-    const label = rd.theme || (kind === "mc" || kind === "text" ? rd.q : rd.prompt) || "";
+    const label = rd.theme || (kind === "mc" || kind === "text" ? pairLabel(rd.q) : pairLabel(rd.prompt)) || "";
     const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, label, rd.max));
     const after = pts => {
       total += pts; log.push(pts); track(total); r++;
       if (r < 2) nextBtn(actionBar(body), tr("Round 2 →"), play);
       else catDone(body, total, log.join("/"));
     };
-    if (kind === "pair") pairQuestion(body, rd, rd.max, rd.secs, after);
+    if (kind === "pair") pairQuestion(body, rd, rd.max, 8, after);
     else if (kind === "reveal") revealQuestion(body, rd, rd.max, rd.secs, after);
     else if (kind === "mc") mcQuestion(body, rd.q, rd.options, rd.a, rd.max, rd.secs, after);
     else textQuestion(body, rd.q, rd.answers || [], rd.max, rd.secs, after, null, (rd.answers && rd.answers[0]) || "", rd.explain, rd, { timeoutZero: true });
@@ -900,9 +911,20 @@ function questionHint(q, fallback) {
   if (custom) return typeof q.hint === "string" ? tr(custom) : custom;
   return tr(fallback);
 }
-function pairRoundSeconds(q) {
+function pairLabel(value) {
+  if (value && typeof value === "object") return localizedText(value);
+  return value == null ? "" : tr(String(value));
+}
+function pairRoundSeconds(q, fallback) {
   const n = Number(q && q.roundSeconds);
-  return Number.isFinite(n) && n > 0 ? n : 8;
+  if (Number.isFinite(n) && n > 0) return n;
+  const f = Number(fallback);
+  return Number.isFinite(f) && f > 0 ? f : 8;
+}
+function flipPack(raw) {
+  const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.words) ? raw.words : []);
+  const n = Number(raw && raw.timerSec);
+  return { list, secs: Number.isFinite(n) && n > 0 ? n : 60 };
 }
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
@@ -1241,9 +1263,9 @@ function typeDiff(q) {
   return name ? h("p", { class: "q-diff" }, tr(name)) : null;
 }
 function typeExplain(body, q) { if (q && q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); }
-function playNewType(body, q, value, seconds, done) {
+function playNewType(body, q, value, seconds, done, pairFallback) {
   if (!q || (q.type !== "pair" && q.type !== "reveal" && q.type !== "slider")) return false;
-  if (q.type === "pair") pairQuestion(body, q, value, seconds, done);
+  if (q.type === "pair") pairQuestion(body, q, value, pairFallback != null ? pairFallback : 8, done);
   else if (q.type === "reveal") revealQuestion(body, q, value, seconds, done);
   else sliderQuestion(body, q, value, seconds, done);
   return true;
@@ -1253,13 +1275,13 @@ function pairQuestion(body, q, value, seconds, done) {
   const n = rounds.length;
   let i = 0, correct = 0, over = false, awaiting = false;
   body.append(typeDiff(q));
-  body.append(h("p", { class: "prompt" }, tr(q.prompt || "")));
+  body.append(h("p", { class: "prompt" }, pairLabel(q.prompt || "")));
   const meta = h("p", { class: "pair-meta" });
   const cards = h("div", { class: "pair-cards" });
   const note = h("p", { class: "pair-note" });
   body.append(meta, cards, note);
   const bar = actionBar(body);
-  const roundSecs = pairRoundSeconds(q);
+  const roundSecs = pairRoundSeconds(q, seconds);
   let roundTimer = null;
   function stopRoundTimer() {
     if (roundTimer) { roundTimer.stop(); roundTimer = null; }
@@ -1280,7 +1302,7 @@ function pairQuestion(body, q, value, seconds, done) {
     cards.replaceChildren();
     bar.replaceChildren();
     ["left", "right"].forEach(side => {
-      const b = h("button", { type: "button", class: "opt pair-card", "data-side": side }, r[side]);
+      const b = h("button", { type: "button", class: "opt pair-card", "data-side": side }, pairLabel(r[side]));
       b.onclick = () => lockRound(side, false);
       cards.append(b);
     });
@@ -1298,7 +1320,8 @@ function pairQuestion(body, q, value, seconds, done) {
       if (b.dataset.side === r.correct) b.classList.add("right");
       else if (!timedOut && b.dataset.side === side) b.classList.add("wrong");
     });
-    note.textContent = timedOut ? tr("Time's up. ") + (r.note || tr("Answer: {0}", r[r.correct])) : (r.note || (ok ? tr("Correct") : tr("Answer: {0}", r[r.correct])));
+    const revealed = pairLabel(r.note) || tr("Answer: {0}", pairLabel(r[r.correct]));
+    note.textContent = timedOut ? tr("Time's up. ") + revealed : (pairLabel(r.note) || (ok ? tr("Correct") : tr("Answer: {0}", pairLabel(r[r.correct]))));
     note.classList.add(ok ? "good" : "bad");
     scoreNow();
     const last = i >= n - 1;
@@ -1478,20 +1501,25 @@ function sliderQuestion(body, q, value, seconds, done) {
 }
 function runSlotDemo() {
   const demo = window.SLOT_DEMO || {};
-  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint|secs)\b/) || [])[1] || "world";
+  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint|secs|think|emoji|flip)\b/) || [])[1] || "world";
   session.practice = true;
-  session.inProgress = shot === "warp" || shot === "mc" || shot === "secs" ? 1 : shot === "world" ? 0 : 2;
+  session.inProgress = shot === "warp" || shot === "mc" || shot === "secs" ? 1 : shot === "world" ? 0 : shot === "think" || shot === "emoji" ? 4 : shot === "flip" ? 3 : 2;
   session.partial = 0;
   session.partialCat = session.inProgress;
-  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" || shot === "secs" ? [0] : [0, 0];
+  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" || shot === "secs" ? [0] : shot === "think" || shot === "emoji" ? [0, 0, 0, 0] : shot === "flip" ? [0, 0, 0] : [0, 0];
   const q = { order: demo.order, orderhint: demo.orderHint, match: demo.match, matchhint: demo.matchHint }[shot];
   if (shot === "world") session.set = Object.assign({}, session.set, { worldRush: demo.world });
   else if (shot === "warp") session.set = Object.assign({}, session.set, { history: demo.history });
   else if (shot === "mc") session.set = Object.assign({}, session.set, { history: demo.historyOther });
   else if (shot === "secs") session.set = Object.assign({}, session.set, { history: { r1: demo.timed, r2: demo.history.r2 } });
+  else if (shot === "think") session.set = Object.assign({}, session.set, { thinkFast: [demo.thinkPair, { q: "Type belief.", answers: ["belief"] }] });
+  else if (shot === "emoji") session.set = Object.assign({}, session.set, { thinkFast: (window.EMOJI_DEMO || [])[0] });
+  else if (shot === "flip") session.set = Object.assign({}, session.set, { wordFlip: demo.flip });
   else session.set = Object.assign({}, session.set, { sports: [q, q, q] });
   if (shot === "warp" || shot === "mc" || shot === "secs") history();
   else if (shot === "world") worldRush();
+  else if (shot === "think" || shot === "emoji") thinkFast();
+  else if (shot === "flip") wordFlip();
   else sports();
 }
 function runTypeDemo() {
@@ -1587,8 +1615,8 @@ function flipAccept(word, guess, dict) {
   return guess === word || flipFold(guess) === flipFold(word) || (sorted(guess) === sorted(word) && dict && dict.has(guess));
 }
 function wordFlip() {
-  const list = session.set.wordFlip, R = rng(session.day);
-  const body = screen("📝 Unscramble", "6 words · 60 seconds");
+  const packed = flipPack(session.set.wordFlip), list = packed.list, flipSecs = packed.secs, R = rng(session.day);
+  const body = screen("📝 Unscramble", "6 words · " + flipSecs + " seconds");
   let i = 0, total = 0, over = false, busy = false, built = [];
   // Any dictionary word using exactly the same letters also counts (e.g. LISTEN for SILENT).
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
@@ -1635,7 +1663,7 @@ function wordFlip() {
     return false;
   };
   body.append(h("p", { class: "kbd-tip" }, "⌨️ Type letters on your keyboard · Backspace to undo"));
-  const timer = Timer(60, end, body.parentNode.querySelector(".game-head"));
+  const timer = Timer(flipSecs, end, body.parentNode.querySelector(".game-head"));
   load();
 }
 
@@ -1862,6 +1890,13 @@ function guessQuestion(body, q, value, seconds, done, gq) {
     done(pts);
   }
 }
+function emojiQuestion(body, q, value, seconds, done) {
+  body.append(h("p", { class: "emoji-rebus" }, q.emoji || ""));
+  const answers = [].concat(q.answers || [], q.answer ? [q.answer] : []).filter(a => a != null && String(a).trim());
+  const parts = window.Answers.splitAccept(q.accept);
+  const src = Object.assign({}, q, { aliases: [].concat(q.aliases || [], parts.aliases), given: [].concat(q.given || [], parts.given), exactOnly: q.exactOnly });
+  textQuestion(body, pairLabel(q.prompt || q.q || "What word do these emojis spell?"), answers, value, seconds, done, null, answers[0] || "", q.explain, src, { timeoutZero: true });
+}
 function thinkFast() {
   const qs = session.set.thinkFast.map(normPuzzle), vals = [400, 600];
   let total = 0, i = 0; const log = [];
@@ -1871,7 +1906,8 @@ function thinkFast() {
     const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), tr("Final puzzle →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
-    if (playNewType(body, q, vals[i], TBD.think, next)) { /* pair, reveal, or slider */ }
+    if (q.type === "emoji" || q.type === "emoji-rebus" || q.kind === "emoji-rebus") emojiQuestion(body, q, vals[i], TBD.think, next);
+    else if (playNewType(body, q, vals[i], TBD.think, next, 20)) { /* pair uses 20s per round; reveal and slider keep the category timer */ }
     else if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled

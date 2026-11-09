@@ -343,17 +343,15 @@
     if (category === "history" || category === "timeWarp") return type === "timeline" || type === "mc" || type === "text" || type === "typed" || type === "pair" || type === "reveal";
     return true;
   }
-  // accept[] → typed-matcher fields. A single word is exact-only (given / exactOnly):
-  // one edit on a first name is a different name ("brent"/"brett", "muhamma"/"Muhammad",
-  // "willi"/"Willie"). Multi-word names are aliases, so the existing typo bands apply.
+  // accept[] is typo-tolerant, including single-word surnames ("bryent" for Bryant).
+  // Exact-only first names come from the question's given / exactOnly list, not from accept.
   function splitAccept(accept) {
     const aliases = [], given = [];
     for (const raw of [].concat(accept || [])) {
       if (raw == null) continue;
       const s = String(raw).trim();
       if (!s) continue;
-      if (!/\s/.test(s)) given.push(s);
-      else aliases.push(s);
+      aliases.push(s);
     }
     return { aliases, given };
   }

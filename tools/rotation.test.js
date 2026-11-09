@@ -48,4 +48,14 @@ for (const k in LISTS) {
   for (const day in before) { const i = before[day][k]; seen.add(i); checked++; if (after[day][k] !== i) moved++; if (seen.size >= len(k)) break; }
   t(moved === 0, `${k}: appending moved ${moved} of ${checked} scheduled dates`);
 }
+const plain = load();
+const scheduled = plain.win.CONTENT.thinkFast.indexOf(plain.getDailySet("2026-11-16").thinkFast);
+const other = scheduled === 0 ? 1 : 0;
+const pinned = load(w => { w.DAY_OVERRIDES = { "2026-11-16": { thinkFast: other } }; });
+const idx = (R, day, key) => R.win.CONTENT[key].indexOf(R.getDailySet(day)[key]);
+t(idx(plain, "2026-11-15", "thinkFast") === idx(pinned, "2026-11-15", "thinkFast"), "a date without an override keeps its thinkFast index");
+t(idx(plain, "2026-11-17", "thinkFast") === idx(pinned, "2026-11-17", "thinkFast"), "the following date is not shifted");
+t(idx(pinned, "2026-11-16", "thinkFast") === other, "2026-11-16 thinkFast uses the override index");
+t(idx(plain, "2026-11-16", "sports") === idx(pinned, "2026-11-16", "sports"), "the override does not move another category");
+t(idx(plain, "2026-11-16", "worldRush") === idx(pinned, "2026-11-16", "worldRush"), "worldRush stays on the frozen schedule");
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

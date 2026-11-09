@@ -64,6 +64,8 @@ const stateExpr = `(() => {
     note: (document.querySelector(".pair-note") || {}).textContent || "",
     fb: (document.querySelector(".fb") || {}).textContent || "",
     timer: (document.querySelector(".timer-text") || {}).textContent || "",
+    card: (document.querySelector(".pair-card") || {}).textContent || "",
+    emoji: (document.querySelector(".emoji-rebus") || {}).textContent || "",
     clues: document.querySelectorAll(".reveal-clue").length,
     cards: document.querySelectorAll(".pair-card").length,
     saved: Object.keys(localStorage).filter(k => k === "dg-stats" || /^dg-\\d{4}-/.test(k)),
@@ -123,7 +125,7 @@ const stateExpr = `(() => {
       if (!await clickRe(cdp, "/next question|siguiente pregunta/i")) throw new Error("to pair " + lang);
       if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("world pair " + lang);
       const wq = await ev(cdp, stateExpr);
-      const worldOk = wq.cards === 2 && wq.overflow <= 1 && !wq.small.length && /8s/.test(wq.timer) && (lang === "en" ? /which is bigger/i.test(wq.prompt) && /which is bigger/i.test(wq.sub) : /más grande/i.test(wq.prompt) && /más grande/i.test(wq.sub));
+      const worldOk = wq.cards === 2 && wq.overflow <= 1 && !wq.small.length && /8s/.test(wq.timer) && (lang === "en" ? /which is bigger/i.test(wq.prompt) && /which is bigger/i.test(wq.sub) && /Brazil/.test(wq.card) : /más grande/i.test(wq.prompt) && /más grande/i.test(wq.sub) && /Brasil/.test(wq.card));
       await pause(cdp, 1000);
       if (!worldOk) fail(lang + " world pair question", wq); else pass(lang + " world pair question");
       await shot("slot-world-" + lang + "-question.png");
@@ -187,7 +189,21 @@ const stateExpr = `(() => {
       const orderHintOk = lang === "en" ? orderH.hint === "Put the first stop at the top." : orderH.hint === "La primera parada va arriba.";
       if (!orderHintOk || /first team at the top|primer equipo/.test(orderH.hint) || orderH.aria !== orderH.hint) fail(lang + " order custom hint", orderH); else pass(lang + " order custom hint");
       if (lang === "es") await shot("slot-hint-es.png");
+      await open("/index.html?preview=slots&shot=emoji&lang=" + lang);
+      if (!await waitFor(cdp, `document.querySelector(".emoji-rebus")`)) throw new Error("emoji " + lang);
+      const emo = await ev(cdp, stateExpr);
+      const emoOk = emo.emoji.includes("🐝") && emo.emoji.includes("🍃") && emo.overflow <= 1 && (lang === "en" ? /what word do these emojis spell/i.test(emo.prompt) : /qué palabra forman/i.test(emo.prompt)) && emo.saved.length === 0;
+      if (!emoOk) fail(lang + " emoji rebus", emo); else pass(lang + " emoji rebus");
+      await shot("slot-emoji-" + lang + "-question.png");
       if (lang === "en") {
+        await open("/index.html?preview=slots&shot=think&lang=en");
+        if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("think pair");
+        const think = await ev(cdp, stateExpr);
+        if (!/20s/.test(think.timer)) fail("thinkFast pair is 20s", think); else pass("thinkFast pair is 20s");
+        await open("/index.html?preview=slots&shot=flip&lang=en");
+        if (!await waitFor(cdp, `document.querySelector(".timer-text")`)) throw new Error("flip timer");
+        const flip = await ev(cdp, stateExpr);
+        if (!/30s/.test(flip.timer) || !/30 seconds/.test(flip.sub)) fail("unscramble timerSec", flip); else pass("unscramble timerSec");
         await open("/index.html?preview=slots&shot=secs&lang=en");
         if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("round seconds");
         const secs = await ev(cdp, stateExpr);

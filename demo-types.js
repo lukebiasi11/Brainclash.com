@@ -135,7 +135,14 @@ window.TYPE_DEMO = [
 window.SLOT_DEMO = {
   world: {
     pins: [{ name: "Oslo, Norway", lat: 59.91, lon: 10.75 }, { name: "Lagos, Nigeria", lat: 6.52, lon: 3.38 }],
-    pair: Object.assign({}, window.TYPE_DEMO[0], { prompt: "Which is bigger?" })
+    pair: Object.assign({}, window.TYPE_DEMO[0], {
+      prompt: { en: "Which is bigger?", es: "¿Cuál es más grande?" },
+      rounds: window.TYPE_DEMO[0].rounds.map((r, i) => i ? r : Object.assign({}, r, {
+        left: { en: r.left, es: "Brasil" },
+        right: { en: r.right, es: "Australia" },
+        note: { en: r.note, es: "Brasil es más grande por área." }
+      }))
+    })
   },
   history: { r1: window.TYPE_DEMO[1], r2: window.TYPE_DEMO[2] },
   historyOther: {
@@ -145,6 +152,15 @@ window.SLOT_DEMO = {
   order: { type: "order", q: "Put these teams in career order.", items: ["Alpha", "Beta", "Gamma"] },
   orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: { en: "Put the first stop at the top.", es: "La primera parada va arriba." } },
   timed: Object.assign({}, window.TYPE_DEMO[1], { roundSeconds: 12 }),
+  thinkPair: window.TYPE_DEMO[0],
+  flip: Object.assign([
+    ["BELIEF", "definition", "A bee plus a leaf"],
+    ["CORNDOG", "definition", "Corn plus a dog"],
+    ["PLANET", "definition", "A world in orbit"],
+    ["ROCKET", "definition", "It leaves the ground"],
+    ["BRIDGE", "definition", "It crosses a river"],
+    ["CASTLE", "definition", "A stone home for a king"]
+  ], { timerSec: 30 }),
   match: {
     type: "match", q: "Match the name to the record.",
     left: ["Ada", "Marie", "Katherine", "Grace"],
@@ -159,3 +175,13 @@ window.SLOT_DEMO = {
     hint: "Match each person to their year."
   }
 };
+window.EMOJI_DEMO = [
+  [
+    { type: "emoji", emoji: "🐝🍃", prompt: { en: "What word do these emojis spell?", es: "¿Qué palabra forman estos emojis?" }, answers: ["belief"], accept: ["belief"] },
+    { type: "text", q: "Type that word once more.", answers: ["belief"] }
+  ],
+  [
+    { type: "emoji", emoji: "🌽🐕", prompt: { en: "What word do these emojis spell?", es: "¿Qué palabra forman estos emojis?" }, answers: ["corndog", "corn dog"], accept: ["corndog", "corn dog"] },
+    { type: "text", q: "Type that word once more.", answers: ["corndog", "corn dog"] }
+  ]
+];

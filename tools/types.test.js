@@ -55,7 +55,7 @@ t("reveal ok in sports", A.typeFitsCategory("sports", "reveal"), true);
 t("pair ok in sports", A.typeFitsCategory("sports", "pair"), true);
 t("slider ok in think", A.typeFitsCategory("thinkFast", "slider"), true);
 
-eq("split first names are exact", A.splitAccept(["Serena", "Bo", "Serena Williams", "  ", "S. Williams"]), { aliases: ["Serena Williams", "S. Williams"], given: ["Serena", "Bo"] });
+eq("split accept stays typo-tolerant", A.splitAccept(["Serena", "Bo", "Serena Williams", "  ", "S. Williams", "Bryant"]), { aliases: ["Serena", "Bo", "Serena Williams", "S. Williams", "Bryant"], given: [] });
 const serena = A.splitAccept(["Serena", "Serena Williams"]);
 t("accept Serena exact", A.checkAnswer("serena", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), true);
 t("accept full name", A.checkAnswer("Serena Williams!", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), true);
@@ -63,8 +63,11 @@ t("accept typo of full name", A.checkAnswer("Serena Wiliams", ["Serena Williams"
 t("reject other player", A.checkAnswer("Venus Williams", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), false);
 t("reject empty", A.checkAnswer("  ", ["Serena Williams"], { aliases: serena.aliases, given: serena.given, q: "Who is this?" }), false);
 const brett = A.splitAccept(["Brett", "Bret"]);
-t("short accept is exact", A.checkAnswer("Brett", ["Favre"], { aliases: brett.aliases, given: brett.given, q: "Who?" }), true);
-t("short accept is not fuzzy", A.checkAnswer("brent", ["Favre"], { aliases: brett.aliases, given: brett.given, q: "Who?" }), false);
+t("surname accept is exact", A.checkAnswer("Brett", ["Favre"], { aliases: brett.aliases, given: brett.given, q: "Who?" }), true);
+t("bryent matches Bryant", A.checkAnswer("bryent", ["Kobe Bryant"], { aliases: A.splitAccept(["Bryant"]).aliases, given: A.splitAccept(["Bryant"]).given, q: "Who is this?" }), true);
+t("sorenstam typo", A.checkAnswer("sorentam", ["Annika Sorenstam"], { aliases: ["Sorenstam"], q: "Who is this?" }), true);
+t("exactOnly still blocks a fragment", A.checkAnswer("muhamma", ["Muhammad Ali"], { aliases: ["Muhammad"], exactOnly: ["Muhammad"], q: "Who is this?" }), false);
+t("given still blocks brent", A.checkAnswer("brent", ["Favre"], { aliases: ["Brett"], given: ["Brett"], q: "Who?" }), false);
 
 const content = fs.readFileSync(path.join(root, "content.js"), "utf8") + fs.readFileSync(path.join(root, "content.es.js"), "utf8");
 t("live content has no pair", /"type"\s*:\s*"pair"/.test(content), false);
@@ -134,6 +137,22 @@ t("pair roundSeconds", V.checkWorldDay("w", { pins: slots.world.pins, pair: Obje
 t("pair roundSeconds rejected", V.checkWorldDay("w", { pins: slots.world.pins, pair: Object.assign({}, slots.world.pair, { roundSeconds: 0 }) }).some(m => m.includes("roundSeconds")), true);
 t("reveal exactOnly", V.checkHistoryDay("h", { r1: Object.assign({}, slots.history.r1), r2: Object.assign({}, slots.history.r2, { exactOnly: ["Serena"] }) }).length, 0);
 t("missing hint keeps the default", V.checkSportsQuestion("s", slots.order).length, 0);
+const appSrc = fs.readFileSync(path.join(root, "app.js"), "utf8");
+eval(appSrc.slice(appSrc.indexOf("function esMerge"), appSrc.indexOf("function esLocalize")));
+eval(appSrc.slice(appSrc.indexOf("function flipPack"), appSrc.indexOf("function orderQuestion")));
+const merged = esMerge(
+  { pair: { prompt: "Which is bigger?", rounds: [{ left: "Brazil", right: "Australia", note: "Brazil is larger.", correct: "left" }] } },
+  { pair: { prompt: "¿Cuál es más grande?", rounds: [{ left: "Brasil", note: "Brasil es más grande." }] } }
+);
+t("spanish pair prompt merges", merged.pair.prompt, "¿Cuál es más grande?");
+t("spanish pair left merges", merged.pair.rounds[0].left, "Brasil");
+t("spanish pair right stays english", merged.pair.rounds[0].right, "Australia");
+t("spanish pair note merges", merged.pair.rounds[0].note, "Brasil es más grande.");
+t("unscramble default 60", flipPack(["WORD"]).secs, 60);
+t("unscramble timerSec", flipPack({ words: [], timerSec: 45 }).secs, 45);
+t("unscramble timerSec on the list", flipPack(Object.assign([], { timerSec: 30 })).secs, 30);
+t("unscramble ignores a zero timer", flipPack({ timerSec: 0 }).secs, 60);
+t("emoji samples", Array.isArray(win.EMOJI_DEMO) && win.EMOJI_DEMO.length === 2 && win.EMOJI_DEMO[0][0].emoji === "🐝🍃" && win.EMOJI_DEMO[1][0].emoji === "🌽🐕", true);
 
 console.log(bad ? bad + " failures" : "types.test.js: all pass");
 process.exit(bad ? 1 : 0);
