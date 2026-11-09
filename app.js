@@ -1604,7 +1604,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1field1" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1field2" }, tr("Privacy"))); }
 function g1FieldChart(mode, youScores, snap) {
   const W = 360, Ht = 168, pad = { l: 40, r: 8, t: 18, b: 8 };
   const iw = W - pad.l - pad.r, ih = Ht - pad.t - pad.b, scale = mode === "total" ? 5000 : 1000;
@@ -1614,16 +1614,18 @@ function g1FieldChart(mode, youScores, snap) {
   [0, scale / 2, scale].forEach(v => {
     const y = yAt(v);
     nodes.push(svgEl("line", { x1: pad.l, y1: y, x2: W - pad.r, y2: y, stroke: "#eceff3" }));
-    nodes.push(svgEl("text", { x: pad.l - 6, y: y + 3, "text-anchor": "end", fill: "#8b93a7", "font-size": 10 }, fmtPlain(v)));
+    nodes.push(svgEl("text", { x: pad.l - 6, y: y + 3, "text-anchor": "end", fill: "#8b93a7", "font-size": 10 }, fmt(v)));
   });
   nodes.push(svgEl("line", { x1: pad.l, y1: pad.t, x2: pad.l, y2: base, stroke: "#d5d9e2" }));
   nodes.push(svgEl("line", { x1: pad.l, y1: base, x2: W - pad.r, y2: base, stroke: "#d5d9e2" }));
   const ready = !!(snap && snap.state === "ready" && youScores);
+  const whole = n => Math.round(Number(n));
   let label = tr("Score") + ". " + (mode === "total" ? tr("You and everyone else") : tr("Category"));
   if (ready && mode === "total") {
-    const you = youScores.reduce((a, b) => a + b, 0);
-    label = tr("You {0}. Everyone else {1}.", fmtPlain(you), fmtTenths(snap.restAverage));
-    const pairs = [[you, snap.restAverage]];
+    const you = whole(youScores.reduce((a, b) => a + b, 0));
+    const rest = whole(snap.restAverage);
+    label = tr("You {0}. Everyone else {1}.", fmt(you), fmt(rest));
+    const pairs = [[you, rest]];
     const gap = iw;
     pairs.forEach(pair => {
       const cx = pad.l + gap / 2, bw = 28, pairGap = 12;
@@ -1631,14 +1633,15 @@ function g1FieldChart(mode, youScores, snap) {
         const x = cx - bw - pairGap / 2 + j * (bw + pairGap);
         const y = yAt(v), hgt = Math.max(0, base - y);
         nodes.push(svgEl("rect", { x: x.toFixed(1), y: y.toFixed(1), width: bw, height: hgt.toFixed(1), fill: j ? "#1F2C7A" : "#E8582A", rx: 2 }));
-        nodes.push(svgEl("text", { x: (x + bw / 2).toFixed(1), y: Math.max(12, y - 4), "text-anchor": "middle", fill: "#14182e", "font-size": 11, "font-weight": "700" }, j ? fmtTenths(v) : fmtPlain(v)));
+        nodes.push(svgEl("text", { class: "g1-bar-val", x: (x + bw / 2).toFixed(1), y: Math.max(12, y - 4), "text-anchor": "middle", fill: "#14182e", "font-size": 11, "font-weight": "700" }, fmt(v)));
       });
     });
   } else if (ready) {
-    label = tr("You and everyone else by category");
+    const bits = [];
     const gap = iw / 5, bw = 8, pairGap = 3;
     for (let i = 0; i < 5; i++) {
-      const pair = [youScores[i], snap.restCategoryAverage[i]];
+      const pair = [whole(youScores[i]), whole(snap.restCategoryAverage[i])];
+      bits.push(fmt(pair[0]) + " / " + fmt(pair[1]));
       const cx = pad.l + gap * i + gap / 2;
       pair.forEach((v, j) => {
         const x = cx - bw - pairGap / 2 + j * (bw + pairGap);
@@ -1646,6 +1649,7 @@ function g1FieldChart(mode, youScores, snap) {
         nodes.push(svgEl("rect", { x: x.toFixed(1), y: y.toFixed(1), width: bw, height: hgt.toFixed(1), fill: j ? "#1F2C7A" : "#E8582A", rx: 1 }));
       });
     }
+    label = tr("You and everyone else by category") + ". " + bits.join(", ");
   }
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
@@ -1713,15 +1717,17 @@ function g1OnSection() {
     if (ready) {
       const youVal = mode === "total" ? you.reduce((a, b) => a + b, 0) : you[0];
       const restVal = mode === "total" ? snap.restAverage : snap.restCategoryAverage[0];
-      section.setAttribute("data-you", String(youVal));
-      section.setAttribute("data-rest", String(restVal));
+      section.setAttribute("data-you", String(Math.round(youVal)));
+      section.setAttribute("data-rest", String(Math.round(restVal)));
     }
     while (plot.firstChild) plot.removeChild(plot.firstChild);
     while (legend.firstChild) legend.removeChild(legend.firstChild);
     const yName = tr("Score");
     const xName = mode === "total" ? tr("You and everyone else") : tr("Category");
     plot.append(h("div", { class: "g1-chart" }, h("div", { class: "g-ylab" }, yName), h("div", {}, g1FieldChart(mode, you, ready ? snap : null), h("div", { class: "g-xlab" }, xName))));
-    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map(c => h("li", {}, c.name))));
+    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map((c, i) => h("li", {},
+      h("span", { class: "g1-cat-name" }, c.name),
+      ready && you ? h("span", { class: "g1-cat-nums" }, fmt(you[i]) + " · " + fmt(snap.restCategoryAverage[i])) : null))));
     if (ready) {
       status.textContent = "";
       legend.append(h("span", {}, h("i", { class: "you", "aria-hidden": "true" }), tr("You")), h("span", {}, h("i", { class: "rest", "aria-hidden": "true" }), tr("Everyone else")));
@@ -1737,7 +1743,7 @@ function g1OnSection() {
   totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
   catBtn.addEventListener("click", () => { mode = "category"; paint(); });
   const yours = h("p", { class: "g1-yours" });
-  if (sessionScoresValid()) yours.append(h("span", {}, practice || preview ? tr("This run") : tr("Your score")), h("b", {}, fmtPlain(session.scores.reduce((a, b) => a + b, 0))));
+  if (sessionScoresValid()) yours.append(h("span", {}, practice || preview ? tr("This run") : tr("Your score")), h("b", {}, fmt(session.scores.reduce((a, b) => a + b, 0))));
   section.append(
     h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), h("p", { class: "g-sub" }, dateLine))),
     h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),

@@ -8,37 +8,65 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=g1field1">
+<link rel="stylesheet" href="style.css?v=g1field2">
 </head>
 <body>
 <div class="bg-wrap" aria-hidden="true"><div class="bg-grid"></div></div>
 <nav class="top"><a class="brand" href="index.html"><span class="bolt">⚡</span>DAILY<b>DOSE</b></a><span class="beta">BETA</span></nav>
 <main class="privacy-page" id="privacy">
   <article class="privacy-card" aria-labelledby="privacy-title">
-    <p class="privacy-draft" data-en="Draft pending the lawyer's review.">Draft pending the lawyer's review.</p>
+    <p class="privacy-updated" data-updated>Last updated: November 9, 2026</p>
     <h1 id="privacy-title" data-en="Daily comparison">Daily comparison</h1>
-    <p data-en="Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random anonymous ID. Daily Dose does not ask for your name or email.">Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random anonymous ID. Daily Dose does not ask for your name or email.</p>
-    <p data-en="What is sent: the five category scores, the day, and the time of the request, with that anonymous ID.">What is sent: the five category scores, the day, and the time of the request, with that anonymous ID.</p>
+    <p data-en="If this changes, we'll update this notice and the date above.">If this changes, we'll update this notice and the date above.</p>
+    <p data-en="Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. Daily Dose does not ask for your name or email.">Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. Daily Dose does not ask for your name or email.</p>
+    <p data-en="When the daily comparison is on, finishing a daily game automatically sends your scores. Practice games don't send anything.">When the daily comparison is on, finishing a daily game automatically sends your scores. Practice games don't send anything.</p>
+    <p data-en="What is sent: the five category scores, the day, and the time of the request, with that random ID.">What is sent: the five category scores, the day, and the time of the request, with that random ID.</p>
     <p data-en="Why: to show your score beside the average of everyone else who finished that day.">Why: to show your score beside the average of everyone else who finished that day.</p>
-    <p data-en="What is kept: the scores stay. They are kept as a combined daily total and under the anonymous ID. Rate-limit records and request metadata are deleted after 7 days.">What is kept: the scores stay. They are kept as a combined daily total and under the anonymous ID. Rate-limit records and request metadata are deleted after 7 days.</p>
+    <p data-en="Our hosting providers (GitHub Pages and Supabase) receive technical data such as your IP address to deliver the site.">Our hosting providers (GitHub Pages and Supabase) receive technical data such as your IP address to deliver the site.</p>
+    <p data-en="We don't sell or share this data, and there are no ads or third-party analytics.">We don't sell or share this data, and there are no ads or third-party analytics.</p>
+    <p data-en="The site doesn't respond differently to Do Not Track signals.">The site doesn't respond differently to Do Not Track signals.</p>
+    <p data-en="Scores are kept indefinitely, as a combined daily total and under that random ID.">Scores are kept indefinitely, as a combined daily total and under that random ID.</p>
+    <p data-en="Rate-limit records and request metadata are deleted after 7 days.">Rate-limit records and request metadata are deleted after 7 days.</p>
+    <p data-mail="To delete your scores, contact {0}.">To delete your scores, contact thedailydosetrivia@gmail.com.</p>
+    <p data-en="Clearing your browser data gives you a new ID but doesn't delete earlier scores.">Clearing your browser data gives you a new ID but doesn't delete earlier scores.</p>
     <p data-en="Who it is for: people 13 and older in the United States.">Who it is for: people 13 and older in the United States.</p>
-    <p data-contact>Contact: OPERATOR_CONTACT</p>
+    <p data-en="Daily Dose isn't meant for children under 13. If we learn we have scores from a child under 13, we'll delete them.">Daily Dose isn't meant for children under 13. If we learn we have scores from a child under 13, we'll delete them.</p>
+    <p data-mail="Contact: {0}">Contact: thedailydosetrivia@gmail.com</p>
     <div class="lang-toggle" role="group" aria-label="Language">
       <button type="button" class="lang-btn" data-lang="en">English</button>
       <button type="button" class="lang-btn" data-lang="es">Español</button>
     </div>
   </article>
 </main>
-<script src="i18n.js?v=g1field1"></script>
-<script src="field-config.js?v=g1field1"></script>
+<script src="i18n.js?v=g1field2"></script>
+<script src="field-config.js?v=g1field2"></script>
 <script>
 (function () {
   const I = window.BC_I18N, tr = I ? I.t : function (s) { return s; };
+  const cfg = window.FIELD_COMPARE || {};
+  const email = cfg.OPERATOR_CONTACT || "";
   if (I && I.LANG === "es") document.documentElement.lang = "es";
+  function formatDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    if (!m) return iso || "";
+    const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    try { return dt.toLocaleDateString(I && I.locale, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }); }
+    catch (e) { return iso; }
+  }
+  function linkMail(el, template) {
+    const text = tr(template, email);
+    const at = email ? text.indexOf(email) : -1;
+    el.replaceChildren();
+    if (at < 0) { el.textContent = text; return; }
+    const a = document.createElement("a");
+    a.href = "mailto:" + email;
+    a.textContent = email;
+    el.append(text.slice(0, at), a, text.slice(at + email.length));
+  }
   document.querySelectorAll("[data-en]").forEach(el => { el.textContent = tr(el.getAttribute("data-en")); });
-  const contact = (window.FIELD_COMPARE && window.FIELD_COMPARE.OPERATOR_CONTACT) || "OPERATOR_CONTACT";
-  const line = document.querySelector("[data-contact]");
-  if (line) line.textContent = tr("Contact: {0}", contact);
+  document.querySelectorAll("[data-mail]").forEach(el => linkMail(el, el.getAttribute("data-mail")));
+  const updated = document.querySelector("[data-updated]");
+  if (updated) updated.textContent = tr("Last updated: {0}", formatDate(cfg.NOTICE_LAST_UPDATED));
   document.title = tr("Privacy") + " — Daily Dose";
   document.querySelectorAll("[data-lang]").forEach(btn => {
     const on = I && I.LANG === btn.getAttribute("data-lang");

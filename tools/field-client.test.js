@@ -131,34 +131,46 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const notice = fs.readFileSync(path.join(root, "docs", "privacy-notice-draft.md"), "utf8");
   const i18n = fs.readFileSync(path.join(root, "i18n.js"), "utf8");
   const enBits = [
-    "Draft pending the lawyer's review.",
-    "There is no account. This browser gets a random anonymous ID. Daily Dose does not ask for your name or email.",
-    "What is sent: the five category scores, the day, and the time of the request, with that anonymous ID.",
-    "Why: to show your score beside the average of everyone else who finished that day.",
+    "This browser gets a random ID that isn't tied to your name or email.",
+    "When the daily comparison is on, finishing a daily game automatically sends your scores. Practice games don't send anything.",
+    "What is sent: the five category scores, the day, and the time of the request, with that random ID.",
+    "Our hosting providers (GitHub Pages and Supabase) receive technical data such as your IP address to deliver the site.",
+    "We don't sell or share this data, and there are no ads or third-party analytics.",
+    "The site doesn't respond differently to Do Not Track signals.",
+    "Scores are kept indefinitely, as a combined daily total and under that random ID.",
     "Rate-limit records and request metadata are deleted after 7 days.",
-    "Who it is for: people 13 and older in the United States."
+    "To delete your scores, contact",
+    "Clearing your browser data gives you a new ID but doesn't delete earlier scores.",
+    "Daily Dose isn't meant for children under 13.",
+    "If this changes, we'll update this notice and the date above."
   ];
   const esBits = [
-    "Borrador pendiente de la revisión del abogado.",
-    "No hay cuenta. Este navegador recibe un identificador anónimo al azar. Daily Dose no pide tu nombre ni tu correo.",
-    "Qué se envía: los cinco puntajes por categoría, el día y la hora de la solicitud, junto con ese identificador anónimo.",
-    "Para qué: para mostrar tu puntaje junto al promedio de las demás personas que terminaron ese día.",
+    "un identificador al azar que no está ligado a tu nombre ni a tu correo",
+    "Cuando la comparación diaria está activada, terminar el juego del día envía tus puntajes automáticamente. Las prácticas no envían nada.",
+    "Nuestros proveedores de alojamiento (GitHub Pages y Supabase) reciben datos técnicos, como tu dirección IP, para entregar el sitio.",
+    "No vendemos ni compartimos estos datos, y no hay anuncios ni analítica de terceros.",
+    "El sitio no responde de forma distinta a las señales de No rastrear.",
+    "Los puntajes se guardan de forma indefinida, como un total combinado del día y bajo ese identificador.",
     "Los registros de límite de solicitudes y los datos técnicos de la solicitud se borran a los 7 días.",
-    "Para quién: personas de 13 años o más en Estados Unidos."
+    "Para borrar tus puntajes, escribe a",
+    "Si borras los datos de este navegador, obtienes un identificador nuevo, pero eso no borra los puntajes anteriores.",
+    "Daily Dose no está pensado para menores de 13 años.",
+    "Si esto cambia, vamos a actualizar este aviso y la fecha de arriba."
   ];
   enBits.forEach(s => ok("notice EN " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
   esBits.forEach(s => ok("notice ES " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
-  ok("contact placeholder in the notice", notice.includes("Contact: OPERATOR_CONTACT") && notice.includes("Contacto: OPERATOR_CONTACT"));
-  ok("contact line is rendered from config", i18n.includes("\"Contact: {0}\": \"Contacto: {0}\""));
-  ok("notice has no email address", !/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(notice + fs.readFileSync(path.join(root, "field-config.js"), "utf8")));
+  ok("docs header stays a lawyer draft", notice.startsWith("# Daily Dose daily comparison — privacy notice (draft)") && notice.includes("Draft pending the lawyer's review."));
+  ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
+  ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
   ok("quiet copy is translated", i18n.includes("Not enough players yet today") && i18n.includes("Todavía no hay suficientes jugadores hoy"));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1field1") && indexHtml.includes("field-compare.js?v=g1field1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1field1"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1field2") && indexHtml.includes("field-compare.js?v=g1field1"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1field2"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1field2"'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);

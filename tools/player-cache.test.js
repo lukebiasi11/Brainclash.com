@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request app, English content, Spanish content, and answers at v=nov8player.
+// New HTML must request app at v=g1field2 and English content, Spanish content, and answers at v=nov8player.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -7,7 +7,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "g1field1";
+const APP_V = "g1field2";
 const CONTENT_V = "nov8player";
 const V = CONTENT_V;
 let bad = 0;
@@ -32,7 +32,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=g1field1"], ["i18n", "i18n.js?v=g1field1"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1field1"]].forEach(([n, s]) => {
+[["style", "style.css?v=g1field2"], ["i18n", "i18n.js?v=g1field2"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1field1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
@@ -145,7 +145,7 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
   try {
     await go("/old-cache.html", `new Promise(r => { const t = Date.now(); const tick = () => window.BCDaily && window.Answers ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);
     const oldJudge = await evalJson(cdp, judge);
-    if (oldJudge.brett !== false || oldJudge.bret !== false || oldJudge.favre !== true) fail("old cached stack", oldJudge); else pass("old cached stack rejects Brett and Bret");
+    if (JSON.stringify(oldJudge.given) !== JSON.stringify(["brett", "bret"]) || oldJudge.brett !== true || oldJudge.bret !== true || oldJudge.brent !== false || oldJudge.favre !== true) fail("old cached stack", oldJudge); else pass("old cached stack accepts Brett and Bret");
     const oldStore = await evalJson(cdp, storeDump);
 
     const enReqs = await go("/index.html", `new Promise(r => { const t = Date.now(); const tick = () => document.querySelector("#app") && document.querySelector("#app").children.length && window.BCDaily ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);

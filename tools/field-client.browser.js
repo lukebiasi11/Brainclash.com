@@ -81,11 +81,12 @@ async function openPage(port, url, seed, viewport) {
   if (!ready) throw new Error("page did not render " + url);
   return cdp;
 }
-async function shot(cdp, name) {
-  const box = await evalJson(cdp, `(() => { const e = document.getElementById('results-g1'); e.scrollIntoView({ block: 'start' }); const r = e.getBoundingClientRect(); return { x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height }; })()`);
-  const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: Math.max(0, box.x), y: Math.max(0, box.y), width: Math.max(1, Math.ceil(box.w)), height: Math.max(1, Math.min(1400, Math.ceil(box.h))), scale: 1 } }, 30000);
+async function shot(cdp, name, sel) {
+  const box = await evalJson(cdp, `(() => { const e = document.querySelector(${JSON.stringify(sel || "#results-g1")}); e.scrollIntoView({ block: 'start' }); const r = e.getBoundingClientRect(); return { x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height }; })()`);
+  const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: Math.max(0, box.x), y: Math.max(0, box.y), width: Math.max(1, Math.ceil(box.w)), height: Math.max(1, Math.min(3200, Math.ceil(box.h))), scale: 1 } }, 30000);
   const file = path.join(SHOTS, name);
   fs.writeFileSync(file, Buffer.from(img.data, "base64"));
+  console.log("wrote", file);
   return file;
 }
 function snapExpr() {
@@ -119,7 +120,7 @@ const install = `(() => {
     below: { status: 200, body: { ok: true, comparison_available: false, reason: "below_threshold", rest_finishes: 2 } },
     rate: { status: 429, body: { ok: false, error: "rate_limited" } },
     origin: { status: 403, body: { ok: false, error: "origin_denied" } },
-    ready: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 12, rest_average: 2410.5, rest_category_average: [480, 510, 390, 620, 410.5] } }
+    ready: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 17, minimum: 13, maximum: 4999, histogram: [8, 8, 8, 8, 8], players: [{ id: "player-secret", total: 42 }], rest_average: 2410.5, rest_category_average: [480, 510, 390, 620, 410.5] } }
   };
   window.fetch = (url, opts) => {
     const u = String(url);
@@ -172,7 +173,9 @@ const YOU = [700, 680, 660, 640, 680];
       const before = await evalJson(cdp, snapExpr());
       await evalJson(cdp, "DGTest.openResults('2026-11-09'," + JSON.stringify(YOU) + ")");
       const info = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-collection'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, privacy: !!g1.querySelector('a[href^=\"privacy.html\"]') }; })()`);
+      const footer = await evalJson(cdp, `(() => { const a = document.querySelector('footer a[data-privacy]'); return { href: a && a.getAttribute('href'), text: a && a.textContent, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0 }; })()`);
       if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag off keeps the collection-off card");
+      if (!footer || footer.href !== "privacy.html?v=g1field2" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
       const after = await evalJson(cdp, snapExpr());
       const changed = sameStore(before, after);
       if (changed) fail("flag off storage", changed); else pass("flag off storage untouched");
@@ -221,7 +224,7 @@ const YOU = [700, 680, 660, 640, 680];
       }
       const after = await evalJson(cdp, snapExpr());
       if (sameStore(before, after)) fail("failure storage", sameStore(before, after)); else pass("failure paths leave localStorage untouched");
-      await shot(cdp, "g1_fallback_en_mobile.png");
+      await shot(cdp, "g1_fallback_en_mobile_whole.png");
       pass("shot g1_fallback_en_mobile.png");
       await closePage(cdp);
     }
@@ -230,7 +233,7 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await show(cdp, "below", YOU, false);
       if (info.state !== "quiet" || info.text.indexOf("Todavía no hay suficientes jugadores hoy") < 0) fail("es fallback", info.text); else pass("es fallback copy");
       if (cdp.errors.length || cdp.logs.length) fail("es fallback console", cdp.errors.concat(cdp.logs)); else pass("es fallback no console errors");
-      await shot(cdp, "g1_fallback_es_mobile.png");
+      await shot(cdp, "g1_fallback_es_mobile_whole.png");
       pass("shot g1_fallback_es_mobile.png");
       await closePage(cdp);
     }
@@ -238,27 +241,29 @@ const YOU = [700, 680, 660, 640, 680];
       const cdp = await armed(null);
       const before = await evalJson(cdp, snapExpr());
       const info = await show(cdp, "ready", YOU, false);
-      if (info.state !== "ready" || info.rects !== 2 || info.you !== "3360" || info.rest !== "2410.5" || !/Everyone else/.test(info.text)) fail("populated total", info); else pass("populated total bars");
+      const hidden = /player-secret|\b17\b|4,999|4999|\bminimum\b|\bmaximum\b|2,410\.5|2410\.5/.test(info.text);
+      if (info.state !== "ready" || info.rects !== 2 || info.you !== "3360" || info.rest !== "2411" || !/3,360/.test(info.text) || !/2,411/.test(info.text) || hidden) fail("populated total", info); else pass("populated total bars use whole grouped scores");
+      if (hidden) fail("g1 hides the field size", info.text); else pass("g1 shows no player count, min, max, or per-player row");
       if (info.w !== 360 || info.overflow > 1) fail("populated width", info); else pass("populated mobile width");
-      const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { mode: g1.getAttribute('data-g1-mode'), rects: g1.querySelectorAll('rect').length, names: [...g1.querySelectorAll('.g1-cats li')].map(li => li.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest') }; })()`);
-      if (cat.mode !== "category" || cat.rects !== 10 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser") fail("category toggle", cat); else pass("category toggle draws ten bars without another request");
+      const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { mode: g1.getAttribute('data-g1-mode'), rects: g1.querySelectorAll('rect').length, names: [...g1.querySelectorAll('.g1-cat-name')].map(li => li.textContent), nums: [...g1.querySelectorAll('.g1-cat-nums')].map(li => li.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), tenths: /2,410\\.5|2410\\.5|410\\.5|player-secret|4999|\\b17\\b/.test(g1.textContent) }; })()`);
+      if (cat.mode !== "category" || cat.rects !== 10 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser" || cat.nums.join("|") !== "700 · 480|680 · 510|660 · 390|640 · 620|680 · 411" || cat.tenths) fail("category toggle", cat); else pass("category toggle uses whole grouped scores");
       await evalJson(cdp, "document.querySelector('[data-g1-view=total]').click()");
       if (sameStore(before, await evalJson(cdp, snapExpr()))) fail("populated storage", "changed"); else pass("populated storage untouched");
       if (cdp.errors.length || cdp.logs.length) fail("populated console", cdp.errors.concat(cdp.logs)); else pass("populated no console errors");
       const posts = info.calls.filter(c => c.method === "POST");
       if (posts.length) fail("results view posted", posts); else pass("results view only reads the day");
-      await shot(cdp, "g1_populated_en_mobile.png");
+      await shot(cdp, "g1_populated_en_mobile_whole.png");
       pass("shot g1_populated_en_mobile.png");
       await closePage(cdp);
     }
     {
       const cdp = await armed("es");
       const info = await show(cdp, "ready", YOU, false);
-      if (info.state !== "ready" || info.rects !== 2 || !/Los demás/.test(info.text) || !/Privacidad/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
-      const cat = await evalJson(cdp, `(() => { document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return [...g1.querySelectorAll('.g1-cats li')].map(li => li.textContent).join('|'); })()`);
-      if (cat !== "Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos") fail("es categories", cat); else pass("es category names");
+      if (info.state !== "ready" || info.rects !== 2 || !/Los demás/.test(info.text) || !/Privacidad/.test(info.text) || !/3,360/.test(info.text) || !/2,411/.test(info.text) || /2,410\.5|2410\.5/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
+      const cat = await evalJson(cdp, `(() => { document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { names: [...g1.querySelectorAll('.g1-cat-name')].map(li => li.textContent).join('|'), nums: [...g1.querySelectorAll('.g1-cat-nums')].map(li => li.textContent).join('|') }; })()`);
+      if (cat.names !== "Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos" || cat.nums !== "700 · 480|680 · 510|660 · 390|640 · 620|680 · 411") fail("es categories", cat); else pass("es category names and whole scores");
       await evalJson(cdp, "document.querySelector('[data-g1-view=total]').click()");
-      await shot(cdp, "g1_populated_es_mobile.png");
+      await shot(cdp, "g1_populated_es_mobile_whole.png");
       pass("shot g1_populated_es_mobile.png");
       await closePage(cdp);
     }
@@ -291,12 +296,14 @@ const YOU = [700, 680, 660, 640, 680];
     }
 
     {
-      const cdp = await page("/privacy.html?v=g1field1", null, phone);
-      const en = await evalJson(cdp, `(() => ({ title: document.getElementById('privacy-title').textContent, draft: document.querySelector('.privacy-draft').textContent, contact: document.querySelector('[data-contact]').textContent, sent: [...document.querySelectorAll('[data-en]')].map(el => el.textContent).join('\\n') }))()`);
-      if (en.title !== "Daily comparison" || !/Draft pending the lawyer's review/.test(en.draft) || en.contact !== "Contact: OPERATOR_CONTACT" || !/random anonymous ID/.test(en.sent)) fail("privacy en", en); else pass("privacy notice EN");
+      const cdp = await page("/privacy.html?v=g1field2", null, phone);
+      const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText), anon: /anonymous/i.test(document.body.innerText) }; })()`);
+      if (en.title !== "Daily comparison" || !/Last updated: November 9, 2026/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || en.placeholder || en.draft || en.anon || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
+      await shot(cdp, "privacy_notice_en_mobile.png", "#privacy");
       await evalJson(cdp, "document.querySelector('[data-lang=es]').click()");
-      const es = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === 'Comparación diaria') resolve({ title: t.textContent, contact: document.querySelector('[data-contact]').textContent, sent: document.body.innerText }); else if (Date.now()-start>4000) resolve({ title: t && t.textContent, contact: '' }); else setTimeout(tick, 40); }; tick(); })`);
-      if (es.title !== "Comparación diaria" || es.contact !== "Contacto: OPERATOR_CONTACT" || !/identificador anónimo al azar/.test(es.sent)) fail("privacy es", es); else pass("privacy notice ES");
+      const es = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === 'Comparación diaria') { const text = document.body.innerText; resolve({ title: t.textContent, text, mail: [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href')), placeholder: text.indexOf('OPERATOR_CONTACT') >= 0, draft: /Borrador pendiente/.test(text), anon: /anónim/i.test(text) }); } else if (Date.now()-start>4000) resolve({ title: t && t.textContent, text: '' }); else setTimeout(tick, 40); }; tick(); })`);
+      if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización:/.test(es.text) || !/menores de 13/.test(es.text) || es.placeholder || es.draft || es.anon || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
+      await shot(cdp, "privacy_notice_es_mobile.png", "#privacy");
       if (cdp.reqs.some(r => /field-compare|supabase\.co/.test(r.url))) fail("privacy network", cdp.reqs.filter(r => /field-compare|supabase/.test(r.url))); else pass("privacy page makes no field calls");
     }
 
