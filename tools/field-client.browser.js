@@ -153,6 +153,7 @@ const YOU = [700, 680, 660, 640, 680];
     async function page(url, lang, viewport) {
       const seedSrc = url.indexOf("admin") >= 0 ? "try{localStorage.clear()}catch(e){}" : url.indexOf("privacy") >= 0 ? null : seed(lang);
       const cdp = await openPage(port, origin + url, seedSrc, viewport || phone);
+      if (url.indexOf("index.html") >= 0) await evalJson(cdp, "window.FIELD_COMPARE_ENABLED = false; true");
       pages.push(cdp);
       return cdp;
     }
@@ -174,8 +175,8 @@ const YOU = [700, 680, 660, 640, 680];
       await evalJson(cdp, "DGTest.openResults('2026-11-09'," + JSON.stringify(YOU) + ")");
       const info = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-collection'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, privacy: !!g1.querySelector('a[href^=\"privacy.html\"]') }; })()`);
       const footer = await evalJson(cdp, `(() => { const a = document.querySelector('footer a[data-privacy]'); return { href: a && a.getAttribute('href'), text: a && a.textContent, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0 }; })()`);
-      if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag off keeps the collection-off card");
-      if (!footer || footer.href !== "privacy.html?v=g1field3" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
+      if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag override off keeps the collection-off card");
+      if (!footer || footer.href !== "privacy.html?v=g1live1" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
       const after = await evalJson(cdp, snapExpr());
       const changed = sameStore(before, after);
       if (changed) fail("flag off storage", changed); else pass("flag off storage untouched");

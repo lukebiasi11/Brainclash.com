@@ -101,7 +101,7 @@ async function openPage(port, url, seed, viewport) {
   const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (location.href.indexOf('index.html') >= 0 && document.querySelector('#app') && document.querySelector('#app').children.length) resolve(true); else if (Date.now() - start > 8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
   if (!ready) throw new Error("page did not render " + url);
   await cdp.send("Runtime.evaluate", { expression: "Promise.race([document.fonts && document.fonts.ready, new Promise(r => setTimeout(r, 2000))])", awaitPromise: true });
-  await cdp.send("Runtime.evaluate", { expression: "window.__shareCalls=0; navigator.share=function(){window.__shareCalls++;return Promise.resolve();}; if(!navigator.clipboard) navigator.clipboard={}; navigator.clipboard.writeText=function(){window.__shareCalls++;return Promise.resolve();}; true", returnByValue: true });
+  await cdp.send("Runtime.evaluate", { expression: "window.__shareCalls=0; navigator.share=function(){window.__shareCalls++;return Promise.resolve();}; if(!navigator.clipboard) navigator.clipboard={}; navigator.clipboard.writeText=function(){window.__shareCalls++;return Promise.resolve();}; window.FIELD_COMPARE_ENABLED=false; true", returnByValue: true });
   return cdp;
 }
 async function evalJson(cdp, expression) {
