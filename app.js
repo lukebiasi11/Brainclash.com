@@ -697,8 +697,14 @@ function worldRush() {
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? tr("Next pin →") : tr("Geography Q →"), step < 2 ? doPin : doMC);
+      nextBtn(bar, step < 2 ? tr("Next pin →") : tr("Geography Q →"), step < 2 ? doPin : doThird);
     }
+  };
+  const doThird = () => { if (set.pair) doPair(); else doMC(); };
+  const doPair = () => {
+    const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
+    const q = set.pair && set.pair.type ? set.pair : Object.assign({ type: "pair" }, set.pair || {});
+    pairQuestion(body, q, 100, TBD.mc, pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
   };
   const doMC = () => {
     const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
@@ -733,8 +739,16 @@ function history() {
   const rounds = [{ ...set.r1, secs: 45, max: 400 }, { ...set.r2, secs: 45, max: 600 }];
   let total = 0, r = 0; const log = [];
   const R = rng(session.day * 7 + 3);
+  const kindOf = rd => {
+    const t = rd && rd.type;
+    if (t === "pair" || t === "reveal" || t === "mc") return t;
+    if (t === "text" || t === "typed") return "text";
+    return "timeline";
+  };
   const play = () => {
     const rd = rounds[r];
+    const kind = kindOf(rd);
+    if (kind !== "timeline") return playRound(rd, kind);
     const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, rd.theme, rd.max));
     // Instructions follow the layout: stacked cards (≤560px, same breakpoint as the CSS) read top → bottom, a row reads left → right.
     body.append(h("p", { class: "prompt" }, tr("Drag the cards into order — "),
@@ -836,6 +850,19 @@ function history() {
       if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, tr("Round 2 →"), play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
+  function playRound(rd, kind) {
+    const label = rd.theme || (kind === "mc" || kind === "text" ? rd.q : rd.prompt) || "";
+    const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, label, rd.max));
+    const after = pts => {
+      total += pts; log.push(pts); track(total); r++;
+      if (r < 2) nextBtn(actionBar(body), tr("Round 2 →"), play);
+      else catDone(body, total, log.join("/"));
+    };
+    if (kind === "pair") pairQuestion(body, rd, rd.max, rd.secs, after);
+    else if (kind === "reveal") revealQuestion(body, rd, rd.max, rd.secs, after);
+    else if (kind === "mc") mcQuestion(body, rd.q, rd.options, rd.a, rd.max, rd.secs, after);
+    else textQuestion(body, rd.q, rd.answers || [], rd.max, rd.secs, after, null, (rd.answers && rd.answers[0]) || "", rd.explain, rd, { timeoutZero: true });
+  }
   play();
 }
 
@@ -859,17 +886,22 @@ function artBox(cls, id, alt, keepPlaceholder) {
 }
 function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
 // Q3 team-path: order nicknames first→last. Vertical chips, drag / ▲▼ / tap-to-swap / arrow keys.
+function questionHint(q, fallback) {
+  if (q && typeof q.hint === "string" && q.hint.trim()) return tr(q.hint.trim());
+  return tr(fallback);
+}
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
   const n = items.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, tr("Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.")));
+  const orderFallback = "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.";
+  body.append(h("p", { class: "drag-hint" }, questionHint(q, orderFallback)));
   let order = seededOrder(n, session.key + "|order|" + q.q);
   if (order.every((v, i) => v === i)) order = seededOrder(n, session.key + "|order|" + q.q + "|reshuffle");
   if (order.every((v, i) => v === i) && n > 1) { const o = order.slice(); [o[0], o[n - 1]] = [o[n - 1], o[0]]; order = o; }
   let locked = false, sel = null;
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
-  const list = h("div", { class: "order-list", role: "list", "aria-label": "Teams in career order, first at top" });
+  const list = h("div", { class: "order-list", role: "list", "aria-label": q && typeof q.hint === "string" && q.hint.trim() ? questionHint(q, orderFallback) : "Teams in career order, first at top" });
   const wrap = h("div", { class: "order-wrap" },
     h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
@@ -1050,7 +1082,7 @@ function matchQuestion(body, q, value, seconds, done) {
   const pairs = (q.pairs || []).slice(); // pairs[i] = right-index for left[i]
   const n = left.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, tr("Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
+  body.append(h("p", { class: "drag-hint" }, questionHint(q, "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   // rightOrder[pos] = original right index at display position
   let rightOrder = seededOrder(n, session.key + "|match-r|" + q.q);
@@ -1415,6 +1447,23 @@ function sliderQuestion(body, q, value, seconds, done) {
     typeExplain(body, q);
     done(pts);
   }
+}
+function runSlotDemo() {
+  const demo = window.SLOT_DEMO || {};
+  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint)\b/) || [])[1] || "world";
+  session.practice = true;
+  session.inProgress = shot === "warp" || shot === "mc" ? 1 : shot === "world" ? 0 : 2;
+  session.partial = 0;
+  session.partialCat = session.inProgress;
+  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" ? [0] : [0, 0];
+  const q = { order: demo.order, orderhint: demo.orderHint, match: demo.match, matchhint: demo.matchHint }[shot];
+  if (shot === "world") session.set = Object.assign({}, session.set, { worldRush: demo.world });
+  else if (shot === "warp") session.set = Object.assign({}, session.set, { history: demo.history });
+  else if (shot === "mc") session.set = Object.assign({}, session.set, { history: demo.historyOther });
+  else session.set = Object.assign({}, session.set, { sports: [q, q, q] });
+  if (shot === "warp" || shot === "mc") history();
+  else if (shot === "world") worldRush();
+  else sports();
 }
 function runTypeDemo() {
   const list = (window.TYPE_DEMO || []).slice();
@@ -2332,8 +2381,12 @@ syncClock();
 window.BCDaily = Object.freeze({ getDailySet, keyOf, dayOfKey, todayKey: () => keyOf(zoneDay(now())), gameNumber, wordGames: WORD_GAMES.map(w => ({ ...w })) });
 const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) || [])[1];
 const DEMO_PREVIEW = /[?&]preview=demo\b/.test(location.search);
+const SLOT_PREVIEW = /[?&]preview=slots\b/.test(location.search);
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
-else if (DEMO_PREVIEW) {
+else if (SLOT_PREVIEW) {
+  session = newSession(true); session.key = "demo"; session.day = dayOfKey(LAUNCH_DATE); session.scores = [];
+  document.title = "Slot demo — Daily Dose"; runSlotDemo();
+} else if (DEMO_PREVIEW) {
   session = newSession(true); session.key = "demo"; session.day = dayOfKey(LAUNCH_DATE); session.scores = [];
   document.title = "Type demo — Daily Dose"; runTypeDemo();
 } else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {

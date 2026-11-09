@@ -130,3 +130,31 @@ window.TYPE_DEMO = [
     tolerance: 0
   }
 ];
+// Practice-only days for the slots the validator already accepts. Not a calendar date.
+// Open index.html?preview=slots&shot=world|warp|mc|order|orderhint|match|matchhint
+window.SLOT_DEMO = {
+  world: {
+    pins: [{ name: "Oslo, Norway", lat: 59.91, lon: 10.75 }, { name: "Lagos, Nigeria", lat: 6.52, lon: 3.38 }],
+    pair: window.TYPE_DEMO[0]
+  },
+  history: { r1: window.TYPE_DEMO[1], r2: window.TYPE_DEMO[2] },
+  historyOther: {
+    r1: { type: "mc", q: "Which came first?", options: ["Model T", "Titanic"], a: 0 },
+    r2: { type: "text", q: "Who invented the telephone?", answers: ["alexander graham bell", "bell"] }
+  },
+  order: { type: "order", q: "Put these teams in career order.", items: ["Alpha", "Beta", "Gamma"] },
+  orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: "Put the first stop at the top." },
+  match: {
+    type: "match", q: "Match the name to the record.",
+    left: ["Ada", "Marie", "Katherine", "Grace"],
+    right: ["1843", "1867", "1918", "1906"],
+    pairs: [0, 1, 2, 3]
+  },
+  matchHint: {
+    type: "match", q: "Match the person to the year.",
+    left: ["Ada", "Marie", "Katherine", "Grace"],
+    right: ["1843", "1867", "1918", "1906"],
+    pairs: [0, 1, 2, 3],
+    hint: "Match each person to their year."
+  }
+};

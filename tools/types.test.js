@@ -121,6 +121,14 @@ t("time warp slider round", has(V.checkHistoryDay("h", warp({ type: "slider", pr
 t("sports pair", V.checkSportsQuestion("s", area).length, 0);
 t("sports reveal", V.checkSportsQuestion("s", who).length, 0);
 t("sports slider", V.checkSportsQuestion("s", { type: "slider", prompt: "How many keys does a piano have?", min: 0, max: 150, step: 1, answer: 88, per_unit: 8 }).length, 0);
+const slots = win.SLOT_DEMO;
+t("slot world is a pair third question", V.checkWorldDay("w", slots.world).length, 0);
+t("slot time warp is pair then reveal", V.checkHistoryDay("h", slots.history).length, 0);
+t("slot time warp mc and typed", V.checkHistoryDay("h", slots.historyOther).length, 0);
+t("order hint is text", V.checkSportsQuestion("s", slots.orderHint).length, 0);
+t("match hint is text", V.checkSportsQuestion("s", slots.matchHint).length, 0);
+t("order hint must be text", V.checkSportsQuestion("s", Object.assign({}, slots.order, { hint: 4 })).some(m => m.includes("hint must be text")), true);
+t("missing hint keeps the default", V.checkSportsQuestion("s", slots.order).length, 0);
 
 console.log(bad ? bad + " failures" : "types.test.js: all pass");
 process.exit(bad ? 1 : 0);

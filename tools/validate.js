@@ -145,6 +145,7 @@ if (C) {
       if (q.yearBand != null && !(typeof q.yearBand === "number" && q.yearBand >= 0)) E(ww, "yearBand must be a non-negative number");
     } else if (t === "order") {
       if (!str(q.q)) E(ww, "missing q");
+      if (q.hint != null && !str(q.hint)) E(ww, "hint must be text");
       if (q.kind && q.kind !== "team-path") E(ww, "unknown order kind " + q.kind);
       if (!list(q.items) || q.items.length < 3 || q.items.length > 5 || !q.items.every(str)) E(ww, "items must be 3–5 nickname strings");
       else if (new Set(q.items.map(x => x.toLowerCase())).size !== q.items.length) E(ww, "duplicate nicknames in items (return stints need an explicit prompt rule)");
@@ -159,6 +160,7 @@ if (C) {
     else if (t === "slider") sliderQ(ww, q);
     else if (t === "match") {
       if (!str(q.q)) E(ww, "missing q");
+      if (q.hint != null && !str(q.hint)) E(ww, "hint must be text");
       if (q.kind && q.kind !== "match-records") E(ww, "unknown match kind " + q.kind);
       if (!list(q.left, 4) || !q.left.every(str)) E(ww, "left must be 4 athlete strings");
       if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");
