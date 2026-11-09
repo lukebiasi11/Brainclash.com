@@ -40,11 +40,20 @@ t("percent tolerance", A.sliderScore(1020, 1000, 1000, { scale: "percent", per_p
 t("slider junk", A.sliderScore("1989", 1989, 300, year), 0);
 t("slider negative value", A.sliderScore(1, 1, -5, year), 0);
 t("slider not in history", A.typeFitsCategory("history", "slider"), false);
+t("slider not in time warp", A.typeFitsCategory("timeWarp", "slider"), false);
+t("pair ok in history", A.typeFitsCategory("history", "pair"), true);
+t("reveal ok in history", A.typeFitsCategory("history", "reveal"), true);
+t("timeline stays in history", A.typeFitsCategory("history", "timeline"), true);
+t("mc stays in history", A.typeFitsCategory("history", "mc"), true);
+t("typed stays in history", A.typeFitsCategory("history", "text"), true);
 t("slider not in world", A.typeFitsCategory("worldRush", "slider"), false);
-t("pair not in world", A.typeFitsCategory("worldRush", "pair"), false);
+t("reveal not in world", A.typeFitsCategory("worldRush", "reveal"), false);
+t("pair ok in world third slot", A.typeFitsCategory("worldRush", "pair"), true);
+t("mc ok in world third slot", A.typeFitsCategory("worldRush", "mc"), true);
 t("slider ok in sports", A.typeFitsCategory("sports", "slider"), true);
-t("slider ok in think", A.typeFitsCategory("thinkFast", "slider"), true);
+t("reveal ok in sports", A.typeFitsCategory("sports", "reveal"), true);
 t("pair ok in sports", A.typeFitsCategory("sports", "pair"), true);
+t("slider ok in think", A.typeFitsCategory("thinkFast", "slider"), true);
 
 eq("split short first name", A.splitAccept(["Serena", "Bo", "Serena Williams", "  ", "S. Williams"]), { aliases: ["Serena", "Serena Williams", "S. Williams"], given: ["Bo"] });
 const serena = A.splitAccept(["Serena", "Serena Williams"]);
@@ -86,6 +95,32 @@ t("every marble is inside the jar", jar.pts.every(p => {
   return p.x - jar.r >= left - 1e-6 && p.x + jar.r <= right + 1e-6;
 }), true);
 t("piano per unit", demo.find(q => q.answer === 88).per_unit, 8);
+
+const V = require("./validate.js");
+const pins = [{ name: "Oslo, Norway", lat: 59.91, lon: 10.75 }, { name: "Lagos, Nigeria", lat: 6.52, lon: 3.38 }];
+const area = { type: "pair", prompt: "Larger by area?", rounds: ["Brazil", "Canada", "China", "India", "USA"].map((name, i) => ({ left: name, right: "Australia", correct: i % 2 ? "right" : "left" })) };
+const who = { type: "reveal", prompt: "Who is this?", clues: ["a clue", "another", "the easy one"], answer: "Ada Lovelace", accept: ["Ada", "Ada Lovelace"] };
+const mcq = { type: "mc", q: "Which is larger by area?", options: ["Brazil", "Australia"], a: 1 };
+const tl = n => ({ theme: "Years", events: Array.from({ length: n }, (_, i) => ["⭐", "Event " + (i + 1), 1800 + i]) });
+const warp = (r1, r2) => ({ r1, r2: r2 || tl(5) });
+const has = (list, bit) => list.some(msg => msg.includes(bit));
+t("world keeps exactly 2 pins", has(V.checkWorldDay("w", { pins: pins.slice(0, 1), pair: area }), "exactly 2 pins"), true);
+t("world mc third slot", V.checkWorldDay("w", { pins, mc: mcq }).length, 0);
+t("world pair third slot", V.checkWorldDay("w", { pins, pair: area }).length, 0);
+t("world pair is not both", has(V.checkWorldDay("w", { pins, mc: mcq, pair: area }), "not both"), true);
+t("world needs a third question", has(V.checkWorldDay("w", { pins }), "third question"), true);
+t("world reveal is refused", has(V.checkWorldDay("w", { pins, reveal: who }), "Reveal and slider"), true);
+t("world slider is refused", has(V.checkWorldDay("w", { pins, slider: { type: "slider" } }), "Reveal and slider"), true);
+t("world pair stays off the pins", has(V.checkWorldDay("w", { pins, type: "pair", prompt: area.prompt, rounds: area.rounds }), "does not replace the two pins"), true);
+t("time warp timeline stays", V.checkHistoryDay("h", warp(tl(4))).length, 0);
+t("time warp pair round", V.checkHistoryDay("h", warp(area)).length, 0);
+t("time warp reveal round", V.checkHistoryDay("h", warp(who)).length, 0);
+t("time warp mc round", V.checkHistoryDay("h", warp(mcq)).length, 0);
+t("time warp typed round", V.checkHistoryDay("h", warp({ type: "text", q: "In what year?", answers: ["1800"] })).length, 0);
+t("time warp slider round", has(V.checkHistoryDay("h", warp({ type: "slider", prompt: "Year?", min: 0, max: 2000, step: 1, answer: 1800, per_unit: 1 })), "slider is not allowed"), true);
+t("sports pair", V.checkSportsQuestion("s", area).length, 0);
+t("sports reveal", V.checkSportsQuestion("s", who).length, 0);
+t("sports slider", V.checkSportsQuestion("s", { type: "slider", prompt: "How many keys does a piano have?", min: 0, max: 150, step: 1, answer: 88, per_unit: 8 }).length, 0);
 
 console.log(bad ? bad + " failures" : "types.test.js: all pass");
 process.exit(bad ? 1 : 0);

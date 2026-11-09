@@ -65,24 +65,59 @@ const sliderQ = (w, q) => {
   if (typeof q.answer === "number" && Math.abs(q.answer - snapped) <= 0.1 * Math.max(Math.abs(snapped), 1)) E(w, "answer is within 10% of the slider start, which gives the answer away");
 };
 const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
+let checkWorldDay = () => ["content.js: window.CONTENT not found"];
+let checkHistoryDay = checkWorldDay;
+let checkSportsQuestion = checkWorldDay;
 if (C) {
-  bank("worldRush", (w, d) => {
+  const capture = fn => {
+    const start = errs.length;
+    fn();
+    const mine = errs.slice(start);
+    errs.length = start;
+    return mine;
+  };
+  checkWorldDay = (w, d) => capture(() => {
+    if (!d || typeof d !== "object") return E(w, "malformed");
     if (!list(d.pins, 2)) E(w, "needs exactly 2 pins");
-    else d.pins.forEach((p, j) => { if (!str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
-    if (!d.mc) E(w, "missing mc"); else mc(w + " mc", d.mc); if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
-    if (["pair", "reveal", "slider"].includes(d.type) || (d.mc && ["pair", "reveal", "slider"].includes(d.mc.type))) E(w, "World Rush keeps 2 pin questions plus one multiple choice");
+    else d.pins.forEach((p, j) => { if (!p || !str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(p && typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(p && typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
+    const hasMc = d.mc != null, hasPair = d.pair != null;
+    if (d.reveal != null || d.slider != null || d.type === "reveal" || d.type === "slider" || (d.mc && (d.mc.type === "reveal" || d.mc.type === "slider" || d.mc.type === "pair"))) E(w, "the third question is multiple choice or a pair. Reveal and slider are not used, and a pair does not replace the pins");
+    if (d.type === "pair" && !hasPair) E(w, "put the pair on the pair field so it does not replace the two pins");
+    if (hasMc && hasPair) E(w, "the third slot is one question: multiple choice or a pair, not both");
+    else if (!hasMc && !hasPair) E(w, "missing the third question (multiple choice or a pair)");
+    else if (hasPair) {
+      if (d.pair.type != null && d.pair.type !== "pair") E(w + " pair", 'type must be "pair"');
+      pairQ(w + " pair", d.pair);
+    } else {
+      if (d.mc.type != null && d.mc.type !== "mc") E(w + " mc", 'type must be "mc"');
+      mc(w + " mc", d.mc);
+      if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
+    }
   });
-  bank("history", (w, d) => {
+  checkHistoryDay = (w, d) => capture(() => {
+    if (!d || typeof d !== "object") return E(w, "malformed");
+    if (d.type === "slider" || d.slider != null) E(w, "slider is not allowed in Time Warp; the timeline style stays");
     [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
       const x = d[r]; if (!x) return E(w, `missing ${r}`);
+      const t = x.type;
+      if (t === "slider") return E(w, "slider is not allowed in Time Warp; the timeline style stays");
+      if (t === "pair") return pairQ(`${w} ${r}`, x);
+      if (t === "reveal") return revealQ(`${w} ${r}`, x);
+      if (t === "mc") return mc(`${w} ${r}`, x);
+      if (t === "text" || t === "typed") {
+        if (!str(x.q)) E(`${w} ${r}`, "missing q");
+        if (!list(x.answers) || !x.answers.length || !x.answers.every(str)) E(`${w} ${r}`, "answers must be a list of text");
+        return;
+      }
+      if (t != null && t !== "timeline") return E(`${w} ${r}`, "type must be timeline, mc, text, pair, or reveal");
       if (!str(x.theme)) E(`${w} ${r}`, "missing theme");
       if (!list(x.events, n)) return E(`${w} ${r}`, `needs exactly ${n} events`);
-      x.events.forEach((e, j) => { if (!((list(e, 3) || (list(e, 4) && str(e[3]))) && str(e[0]) && str(e[1]) && Number.isFinite(e[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
-      const ys = x.events.map(e => e[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
-      if (x.type === "slider") E(w, "slider is not allowed in Time Warp; the timeline style stays");
+      x.events.forEach((ev, j) => { if (!((list(ev, 3) || (list(ev, 4) && str(ev[3]))) && str(ev[0]) && str(ev[1]) && Number.isFinite(ev[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
+      const ys = x.events.map(ev => ev[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
     });
-    if (d.type === "slider") E(w, "slider is not allowed in Time Warp; the timeline style stays");
   });
+  bank("worldRush", (w, d) => { checkWorldDay(w, d).forEach(msg => errs.push(msg)); });
+  bank("history", (w, d) => { checkHistoryDay(w, d).forEach(msg => errs.push(msg)); });
   const SPORTS_TEXT_KINDS = new Set(["fill", "stat-chart", "moment", "color-swatch", "jersey-number", "common-teammate"]);
   const sportsQ = (ww, q) => {
     const t = q.type || "text";
@@ -131,6 +166,7 @@ if (C) {
       else if (new Set(q.pairs).size !== 4) E(ww, "pairs must be a permutation of 0–3");
     } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", "match", "pair", "reveal", or "slider"');
   };
+  checkSportsQuestion = (w, q) => capture(() => sportsQ(w, q));
   bank("sports", (w, d) => { if (!list(d, 3)) return E(w, "needs exactly 3 questions"); d.forEach((q, j) => sportsQ(`${w} Q${j + 1}`, q)); });
   // Optional Sports rework draft samples (fixtures only — not live content)
   if (win.SPORTS_REWORK_SAMPLES) {
@@ -198,5 +234,8 @@ else {
   });
   Object.entries(seen).forEach(([k, n]) => { if (!n) E("TYPE_DEMO", "needs at least one " + k); });
 }
-if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
-console.log("✅ OK — content.js and anagrams.js look good.");
+if (require.main === module) {
+  if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
+  console.log("✅ OK — content.js and anagrams.js look good.");
+}
+module.exports = { checkWorldDay, checkHistoryDay, checkSportsQuestion };

@@ -323,7 +323,6 @@
     if (!Number.isFinite(per) || per < 0) return 0;
     return Math.max(0, Math.round(v - per * off));
   }
-  // World Rush keeps its two pins. Time Warp keeps the timeline, so a slider is refused there.
   function sliderStart(min, max, step) {
     const s = step > 0 ? step : 1;
     const mid = (Number(min) + Number(max)) / 2;
@@ -336,9 +335,12 @@
     const scale = Math.max(Math.abs(Number(start)), 1);
     return Math.abs(Number(answer) - Number(start)) <= 0.1 * scale + 1e-9;
   }
+  // World Rush keeps its two pins. The third question is multiple choice or a pair.
+  // Time Warp keeps the timeline and also takes multiple choice, typed answers, pair, and reveal. A slider is refused there.
+  // Sports takes pair, reveal, and slider.
   function typeFitsCategory(category, type) {
-    if (category === "worldRush" && (type === "pair" || type === "reveal" || type === "slider")) return false;
-    if ((category === "history" || category === "timeWarp") && type === "slider") return false;
+    if (category === "worldRush") return type === "mc" || type === "pair";
+    if (category === "history" || category === "timeWarp") return type === "timeline" || type === "mc" || type === "text" || type === "typed" || type === "pair" || type === "reveal";
     return true;
   }
   // accept[] → typed-matcher fields. A single word of 5 letters or fewer is exact-only
