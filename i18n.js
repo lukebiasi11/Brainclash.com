@@ -131,6 +131,17 @@
     " Off by {0} year.": " Te desviaste {0} año.", " Off by {0} years.": " Te desviaste {0} años.", " You were {0}% off.": " Te desviaste un {0}%.",
     "Skipped.": "Saltada.", "Time's up.": "Se acabó el tiempo.", "Spot on!": "¡Exacto!", "Close!": "¡Cerca!", "Not close.": "Lejos.", " Answer: {0}.": " Respuesta: {0}.",
     "Puzzle {0} of 2{1} · {2} pts · one submission": "Acertijo {0} de 2{1} · {2} pts · un intento", "Final puzzle →": "Último acertijo →",
+    // pair / reveal / slider
+    "Type demo": "Demo de tipos", "Example {0} of {1} · {2} pts": "Ejemplo {0} de {1} · {2} pts", "Next example →": "Siguiente ejemplo →",
+    "Demo complete": "Demo terminada", "This practice demo is not saved.": "Esta práctica de demo no se guarda.",
+    "Round {0} of {1}": "Ronda {0} de {1}", "Next round →": "Siguiente ronda →", "See score": "Ver puntaje", "Correct": "Correcto", "Answer: {0}": "Respuesta: {0}",
+    "{0} of {1} rounds. +{2}": "{0} de {1} rondas. +{2}", "Time's up. ": "Se acabó el tiempo. ",
+    "Next clue": "Siguiente pista", "Clue {0} of {1}": "Pista {0} de {1}", "Correct on clue {0}. +{1}": "Correcto en la pista {0}. +{1}",
+    "Your answer": "Tu respuesta", "Full points within {0}. 0 at {1} off.": "Puntos completos dentro de {0}. 0 si te desvías {1}.",
+    "Exact = full points. 0 at {0} off.": "Exacto = puntos completos. 0 si te desvías {0}.",
+    "Exact. Answer: {0}. +{1}": "Exacto. Respuesta: {0}. +{1}", "Within range. Answer: {0}. +{1}": "Dentro del rango. Respuesta: {0}. +{1}",
+    "Off by {0}. Answer: {1}. +{2}": "Te desviaste {0}. Respuesta: {1}. +{2}",
+    "keys": "teclas",
     // results
     "Clash complete": "Clash terminado", "Practice complete": "Práctica terminada", "Clash complete!": "¡Clash terminado!", "See full results": "Ver resultados completos",
     "Practice run complete": "Práctica terminada", "Today's Clash complete": "Clash de hoy terminado", "Final score": "Puntaje final", "Share result": "Compartir resultado", "Home": "Inicio", "Copied!": "¡Copiado!",

@@ -4,7 +4,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), errs = [];
 const win = {};
-for (const f of ["content.js", "anagrams.js"]) {
+for (const f of ["content.js", "anagrams.js", "demo-types.js"]) {
   try { vm.runInNewContext(fs.readFileSync(path.join(root, f), "utf8"), { window: win }, { filename: f }); }
   catch (e) { errs.push(`${f}: SYNTAX ERROR — ${e.message}${e.stack ? " (" + (e.stack.split("\n")[0]) + ")" : ""}`); }
 }
@@ -18,6 +18,43 @@ const E = (where, msg) => errs.push(`${where}: ${msg}`);
 const str = v => typeof v === "string" && v.trim() !== "";
 const list = (v, n) => Array.isArray(v) && (n == null || v.length === n);
 const mc = (w, o) => { if (!str(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
+const DIFFS = new Set(["easy", "medium", "hard"]);
+const typeMeta = (w, q) => {
+  if (q.difficulty != null && !DIFFS.has(q.difficulty)) E(w, "difficulty must be easy, medium, or hard");
+  if (q.explain != null && !str(q.explain)) E(w, "explain must be text");
+};
+const pairQ = (w, q) => {
+  typeMeta(w, q);
+  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!list(q.rounds, 5)) return E(w, "rounds must be exactly 5");
+  q.rounds.forEach((r, i) => {
+    const ww = w + " round " + (i + 1);
+    if (!r || !str(r.left) || !str(r.right)) E(ww, "needs left and right text");
+    if (r.correct !== "left" && r.correct !== "right") E(ww, 'correct must be "left" or "right"');
+    if (r.note != null && !str(r.note)) E(ww, "note must be text");
+  });
+};
+const revealQ = (w, q) => {
+  typeMeta(w, q);
+  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!list(q.clues, 3) || !q.clues.every(str)) E(w, "clues must be exactly 3 strings, easiest last");
+  if (!str(q.answer)) E(w, "missing answer");
+  if (!list(q.accept) || !q.accept.length || !q.accept.every(str)) E(w, "accept must be a non-empty list of text");
+};
+const sliderQ = (w, q) => {
+  typeMeta(w, q);
+  if (!str(q.prompt)) E(w, "missing prompt");
+  ["min", "max", "step", "answer"].forEach(k => { if (typeof q[k] !== "number" || !isFinite(q[k])) E(w, k + " must be a finite number"); });
+  if (!(q.max > q.min)) E(w, "max must be greater than min");
+  if (!(q.step > 0)) E(w, "step must be > 0");
+  if (typeof q.answer === "number" && (q.answer < q.min || q.answer > q.max)) E(w, "answer must be between min and max");
+  else if (typeof q.answer === "number" && q.step > 0 && Math.abs((q.answer - q.min) / q.step - Math.round((q.answer - q.min) / q.step)) > 1e-6) E(w, "answer must land on a step");
+  if (q.unit != null && !str(q.unit)) E(w, "unit must be text");
+  if (q.tolerance != null && !(typeof q.tolerance === "number" && isFinite(q.tolerance) && q.tolerance >= 0)) E(w, "tolerance must be a number >= 0");
+  if (q.falloff != null && !(typeof q.falloff === "number" && isFinite(q.falloff) && q.falloff >= 0)) E(w, "falloff must be a number >= 0");
+  const tol = q.tolerance == null ? 0 : q.tolerance, fall = q.falloff == null ? 25 : q.falloff;
+  if (typeof tol === "number" && typeof fall === "number" && fall < tol) E(w, "falloff must be >= tolerance");
+};
 const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
 if (C) {
   bank("worldRush", (w, d) => {
@@ -68,14 +105,17 @@ if (C) {
       const m = q.matchup || q.options;
       if (!list(m, 2) || !m.every(str)) E(ww, "matchup must be two nickname strings");
       if (!(Number.isInteger(q.a) && q.a >= 0 && q.a <= 1)) E(ww, "a must be 0 or 1 (winner index)");
-    } else if (t === "match") {
+    } else if (t === "pair") pairQ(ww, q);
+    else if (t === "reveal") revealQ(ww, q);
+    else if (t === "slider") sliderQ(ww, q);
+    else if (t === "match") {
       if (!str(q.q)) E(ww, "missing q");
       if (q.kind && q.kind !== "match-records") E(ww, "unknown match kind " + q.kind);
       if (!list(q.left, 4) || !q.left.every(str)) E(ww, "left must be 4 athlete strings");
       if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");
       if (!list(q.pairs, 4) || !q.pairs.every(p => Number.isInteger(p) && p >= 0 && p < 4)) E(ww, "pairs must be 4 ints 0–3 (right index per left)");
       else if (new Set(q.pairs).size !== 4) E(ww, "pairs must be a permutation of 0–3");
-    } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", or "match"');
+    } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", "match", "pair", "reveal", or "slider"');
   };
   bank("sports", (w, d) => { if (!list(d, 3)) return E(w, "needs exactly 3 questions"); d.forEach((q, j) => sportsQ(`${w} Q${j + 1}`, q)); });
   // Optional Sports rework draft samples (fixtures only — not live content)
@@ -107,9 +147,11 @@ if (C) {
   bank("thinkFast", (w, d) => {
     if (!list(d, 2)) return E(w, "needs exactly 2 puzzles");
     d.forEach((q, j) => {
-      const ww = `${w} puzzle ${j + 1}`; if (!str(q.q)) E(ww, "missing q");
-      const t = q.type || "text";
-      if (t === "guess") { if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs a numeric answer"); if (q.unit != null && !str(q.unit)) E(ww, "unit must be text"); }
+      const ww = `${w} puzzle ${j + 1}`;       const t = q.type || "text";
+      if (t === "pair" || t === "reveal" || t === "slider") {
+        if (t === "pair") pairQ(ww, q); else if (t === "reveal") revealQ(ww, q); else sliderQ(ww, q);
+      } else if (!str(q.q)) E(ww, "missing q");
+      else if (t === "guess") { if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs a numeric answer"); if (q.unit != null && !str(q.unit)) E(ww, "unit must be text"); }
       else if (t === "mc" || t === "illusion") {
         if (!list(q.options) || q.options.length < 2 || !q.options.every(str)) E(ww, "options must be 2+ strings");
         else if (!Number.isInteger(q.a) || q.a < 0 || q.a >= q.options.length) E(ww, "a must index options");
@@ -130,5 +172,17 @@ if (A) {
   const sets = Object.values(A); if (!sets.length) E("anagrams.js", "no sets");
   sets.forEach((s, i) => { const w = `anagrams set ${i + 1} (${s.letters})`; if (!/^[A-Z]{6}$/.test(s.letters || "")) E(w, "letters must be 6 CAPITALS"); if (!list(s.valid) || !s.valid.length) E(w, "valid list empty"); if (!list(s.common) || !s.common.length) E(w, "common list empty"); else { const v = new Set(s.valid); s.common.forEach(c => { if (!v.has(c)) E(w, `common word "${c}" not in valid list`); }); } });
 } else if (!errs.some(e => e.startsWith("anagrams"))) E("anagrams.js", "window.ANAGRAM_SETS not found");
+const demo = win.TYPE_DEMO;
+if (!list(demo) || !demo.length) E("demo-types.js", "window.TYPE_DEMO must be a non-empty list");
+else {
+  const seen = { pair: 0, reveal: 0, slider: 0 };
+  demo.forEach((q, i) => {
+    const w = "TYPE_DEMO " + (i + 1);
+    if (!q || !seen.hasOwnProperty(q.type)) return E(w, "type must be pair, reveal, or slider");
+    seen[q.type]++;
+    if (q.type === "pair") pairQ(w, q); else if (q.type === "reveal") revealQ(w, q); else sliderQ(w, q);
+  });
+  Object.entries(seen).forEach(([k, n]) => { if (!n) E("TYPE_DEMO", "needs at least one " + k); });
+}
 if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
 console.log("✅ OK — content.js and anagrams.js look good.");

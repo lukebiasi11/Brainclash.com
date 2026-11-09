@@ -283,6 +283,52 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  // Pair: each correct round has equal weight. Score = round(value × correct / rounds).
+  function pairScore(correct, rounds, value) {
+    const n = Math.max(0, rounds | 0);
+    const c = Math.max(0, Math.min(n, correct | 0));
+    const v = Number(value);
+    if (!n || !Number.isFinite(v) || v <= 0) return 0;
+    return Math.round(v * c / n);
+  }
+  // Reveal: correct on clue 1, 2, or 3 earns 3/3, 2/3, or 1/3. Any other stage is 0.
+  function revealScore(stage, value) {
+    const v = Number(value);
+    if (!Number.isFinite(v) || v <= 0) return 0;
+    if (stage !== 1 && stage !== 2 && stage !== 3) return 0;
+    return Math.round(v * (4 - stage) / 3);
+  }
+  // Slider: full credit when |guess−answer| ≤ tolerance (default 0).
+  // Linear down to 0 at falloff (default 25). Outside that, 0.
+  // If falloff ≤ tolerance there is no slope: full inside the band, 0 outside.
+  function sliderScore(guess, answer, value, opts) {
+    if (typeof guess !== "number" || typeof answer !== "number" || !isFinite(guess) || !isFinite(answer)) return 0;
+    const v = Number(value);
+    if (!Number.isFinite(v) || v <= 0) return 0;
+    const o = opts || {};
+    const tol = o.tolerance == null ? 0 : Number(o.tolerance);
+    const fall = o.falloff == null ? 25 : Number(o.falloff);
+    if (!Number.isFinite(tol) || tol < 0 || !Number.isFinite(fall) || fall < 0) return 0;
+    const off = Math.abs(guess - answer);
+    if (off <= tol + 1e-9) return Math.round(v);
+    if (!(fall > tol)) return 0;
+    if (off >= fall - 1e-9) return 0;
+    return Math.round(v * (fall - off) / (fall - tol));
+  }
+  // accept[] → typed-matcher fields. A single word of 5 letters or fewer is exact-only
+  // (the Brett rule: one edit on a short first name is a different name). Longer words
+  // and multi-word names are aliases, so the existing typo bands apply.
+  function splitAccept(accept) {
+    const aliases = [], given = [];
+    for (const raw of [].concat(accept || [])) {
+      if (raw == null) continue;
+      const s = String(raw).trim();
+      if (!s) continue;
+      if (!/\s/.test(s) && [...s].length <= 5) given.push(s);
+      else aliases.push(s);
+    }
+    return { aliases, given };
+  }
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);
