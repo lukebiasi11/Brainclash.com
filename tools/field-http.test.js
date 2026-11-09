@@ -113,6 +113,42 @@ const claims = {
     if (res.status === 429) limited++;
   }
   t("rotated run ids share the identity ceiling", limited === 5 && rateDb.calls.filter(call => call.name === "consume_rate").every(call => call.args[0] === uid));
+  class PostgresError extends Error {
+    constructor(message, code) { super(message); this.name = "PostgresError"; this.code = code; }
+  }
+  const leakedUrl = "postgres://field_runtime:secret-pass@aws-1-us-west-2.pooler.supabase.com:5432/postgres";
+  const leakedJwt = "Bearer eyJhbGciOiJIUzI1NiJ9.aaa.bbb";
+  const lines = [];
+  const previousError = console.error;
+  console.error = (line) => lines.push(String(line));
+  const failing = createFieldHandler({
+    collection: "on",
+    allowedOrigins: [origin],
+    getClaims: claims.session,
+    db: { async call(name) { if (name === "consume_rate") throw new PostgresError(`permission denied ${leakedUrl} ${leakedJwt} ${uid}`, "42501"); return { ok: true }; } }
+  });
+  const down = await failing(req("/field-compare/start", { body: { runId: run, day: "2026-11-07" } }));
+  const downBody = await down.json();
+  const logged = lines.join("\n");
+  console.error = previousError;
+  t("database failure is not a rate limit", down.status === 503 && downBody.ok === false && downBody.error === "db_unavailable");
+  t("database failure log names the stage and hides secrets", logged.includes("stage=consume_rate") && logged.includes("class=PostgresError") && logged.includes("sqlstate=42501") && logged.includes("permission denied") && !logged.includes("secret-pass") && !logged.includes("pooler.supabase.com") && !logged.includes("eyJhbGci") && !logged.includes(uid));
+  const shaped = createFieldHandler({
+    collection: "on",
+    allowedOrigins: [origin],
+    getClaims: claims.session,
+    db: { async call() { return { ok: false, error: "db_error" }; } }
+  });
+  const shapedRes = await shaped(req("/field-compare/finish", { body: { runId: run, day: "2026-11-07", scores: [1, 1, 1, 1, 1] } }));
+  t("db_error result is unavailable", shapedRes.status === 503 && (await shapedRes.json()).error === "db_unavailable");
+  const onlyLimited = createFieldHandler({
+    collection: "on",
+    allowedOrigins: [origin],
+    getClaims: claims.session,
+    db: { async call(name) { return name === "consume_rate" ? { ok: false, error: "rate_limited" } : { ok: true }; } }
+  });
+  const limitedRes = await onlyLimited(req("/field-compare/day?day=2026-11-07&runId=" + run, { method: "GET" }));
+  t("only a rate_limited result is 429", limitedRes.status === 429 && (await limitedRes.json()).error === "rate_limited");
   const handler = fs.readFileSync(path.join(root, "supabase/functions/field-compare/handler.js"), "utf8");
   const entry = fs.readFileSync(path.join(root, "supabase/functions/field-compare/index.ts"), "utf8");
   t("no process-local counter", !handler.includes("new Map") && !handler.includes("request.text("));

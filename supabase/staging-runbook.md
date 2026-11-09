@@ -152,7 +152,7 @@ Do not run `supabase config push`. The repo `config.toml` is the local file: ano
 
 `verify_jwt` false is the designed platform setting. It is not user auth. The function still requires `getClaims` to return an anonymous `authenticated` session. A publishable key must not pass that check.
 
-`files`: four files. `name` is the path next to the entrypoint. `index.ts` imports `./handler.js`, and that ESM file imports `./field-api.js` and `./auth.js`. Do not prebundle them. `content` is the repo file with no edits.
+`files`: five files. `name` is the path next to the entrypoint. `index.ts` imports `./handler.js` and `./db-log.js`. `handler.js` imports `./field-api.js`, `./auth.js`, and `./db-log.js`. Do not prebundle them. `content` is the repo file with no edits.
 
 | `files[].name` | Repo path |
 | --- | --- |
@@ -160,6 +160,7 @@ Do not run `supabase config push`. The repo `config.toml` is the local file: ano
 | `handler.js` | `supabase/functions/field-compare/handler.js` |
 | `field-api.js` | `supabase/functions/field-compare/field-api.js` |
 | `auth.js` | `supabase/functions/field-compare/auth.js` |
+| `db-log.js` | `supabase/functions/field-compare/db-log.js` |
 
 Do not upload `supabase/field-api.js`, `package.json`, or `deno.json`. Those are local Node and Deno settings. `handler.d.ts` is typecheck-only and is not part of this payload. The four files above are already ESM. Hosted Deno loads them directly. Do not prebundle.
 
@@ -345,6 +346,97 @@ where day_key = '2099-01-01';
 Expected: one row, run id `11111111-1111-4111-8111-111111111111`, total 1500.
 
 `get_logs` for `field-compare`: these synthetic calls only.
+
+## Section 6 failure triage
+
+At `212f22c`, section 6 returned HTTP 429 `rate_limited` for start, finish, and day, and `private.rate_window` stayed at 0 rows. A real `consume_rate` limit writes a row before it returns `rate_limited`. Zero rows means the function did not commit. The handler was treating every failed database call as a rate limit. After this change, a database failure is HTTP 503 `{"ok":false,"error":"db_unavailable"}`. Only a `rate_limited` result from the SQL function is HTTP 429.
+
+`get_logs` for `field-compare` should contain one line:
+
+```text
+field-compare db_unavailable stage=<stage> class=<ErrorClass> sqlstate=<SQLSTATE or none> message=<short text>
+```
+
+`stage` is `connect`, `set_role`, `consume_rate`, `start`, `finish`, or `day`. The line does not include the connection URL, the password, the JWT, or the uid. Use the stage and SQLSTATE with the checks below. Do not turn collection on while triaging.
+
+### Pooler login for the custom role
+
+`FIELD_DB_URL` must use the session pooler, port 5432. The user is `field_runtime.xhgrcbsshhpvmfwzjtmp`, not `field_runtime` and not `postgres.xhgrcbsshhpvmfwzjtmp`. The database name is `postgres`. The password is the one set with `alter role field_runtime password ...`. PostgreSQL 17 stores that as SCRAM-SHA-256.
+
+`execute_sql`:
+
+```sql
+select rolcanlogin, rolpassword is not null as password_set
+from pg_roles
+join pg_authid on pg_authid.oid = pg_roles.oid
+where rolname = 'field_runtime';
+show password_encryption;
+```
+
+Expected: `rolcanlogin` true, `password_set` true, and `password_encryption` is `scram-sha-256`. Do not select `rolpassword` itself. If `execute_sql` cannot read `pg_authid`, skip the password column and do not print a hash.
+
+Supavisor authenticates that `user.ref` name against the role. `stage=connect` with a message about tenant, user, or password means the pooler rejected the login before SQL ran: the user suffix is wrong, the role is not `LOGIN`, or the secret password does not match. A wrong `session_user` after a successful login is `stage=connect` and `message=session role was not the runtime login (...)`.
+
+### TLS
+
+`postgres.js` defaults to no TLS. The pooler requires TLS, so the entry now sets `ssl: 'require'` and does not ship a private CA. `stage=connect` with a certificate or handshake message means the runtime trust store did not accept the pooler certificate. Do not put the URL in a log or a follow-up.
+
+### Direct connection
+
+`db.xhgrcbsshhpvmfwzjtmp.supabase.co:5432` is IPv6-only. The user there is `field_runtime` with no `.xhgrcbsshhpvmfwzjtmp` suffix. Use it only if the pooler login is proven and the edge runtime has IPv6. `stage=connect` with an unreachable-network message on that host means IPv6 is not available. Prefer the session pooler.
+
+### SET ROLE on PostgreSQL 17
+
+`field_runtime` is `NOINHERIT`, so it does not gain `EXECUTE` by membership alone. `SET ROLE app_writer` works only when `pg_auth_members.set_option` is true.
+
+`execute_sql`:
+
+```sql
+select member_role.rolname as member,
+       granted_role.rolname as granted,
+       admin_option, inherit_option, set_option
+from pg_auth_members
+join pg_roles granted_role on granted_role.oid = pg_auth_members.roleid
+join pg_roles member_role on member_role.oid = pg_auth_members.member
+where granted_role.rolname = 'app_writer'
+  and member_role.rolname = 'field_runtime';
+```
+
+Expected: one row, `set_option` true. `stage=set_role` with SQLSTATE `42501` means this option is false. The migration owner can repair it with `grant app_writer to field_runtime with set true`. Do not grant `admin option` to `field_runtime`.
+
+### EXECUTE and USAGE
+
+`execute_sql`:
+
+```sql
+select has_schema_privilege('app_writer', 'private', 'USAGE') as writer_usage,
+       has_schema_privilege('field_runtime', 'private', 'USAGE') as runtime_usage;
+select p.proname,
+       has_function_privilege('app_writer', p.oid, 'EXECUTE') as writer_execute,
+       has_function_privilege('field_runtime', p.oid, 'EXECUTE') as runtime_execute
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'private'
+  and p.proname in ('consume_rate', 'start_run', 'finish_run', 'day_snapshot')
+order by 1;
+```
+
+Expected: `writer_usage` true. `writer_execute` true for all four. `runtime_execute` false, because the login must change role first. `stage=consume_rate` with SQLSTATE `42501`, and zero `rate_window` rows, means the role change did not stick or `EXECUTE` is missing, and the transaction rolled back.
+
+### Security definer owner
+
+`execute_sql`:
+
+```sql
+select p.proname, pg_get_userbyid(p.proowner) as owner, p.prosecdef
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'private'
+  and p.proname in ('consume_rate', 'start_run', 'finish_run', 'day_snapshot')
+order by 1;
+```
+
+Expected: `owner` is `postgres` and `prosecdef` is true. The function body is schema-qualified and `search_path` is empty, so the owner can read `private` while `app_writer` cannot. An owner of `field_runtime` or `app_writer` cannot see the gate or the rate table.
 
 ## 7. Turn collection off and prove it
 

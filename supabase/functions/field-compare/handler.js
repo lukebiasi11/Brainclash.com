@@ -4,6 +4,7 @@
    FIELD_COLLECTION and the SQL gate both default off. */
 import { validateStart, validateFinish, validateDay } from "./field-api.js";
 import { verifyAnonymousClaims } from "./auth.js";
+import { reportDbFailure } from "./db-log.js";
 const MAX_BODY = 2048;
 
 function cors(origin, allowed) {
@@ -54,6 +55,19 @@ async function readCappedBody(request) {
   }
 }
 
+async function callDb(db, stage, name, args) {
+  let result;
+  try {
+    result = await db.call(name, args);
+  } catch (error) {
+    reportDbFailure(stage, error);
+    return { kind: "down" };
+  }
+  if (!result || typeof result !== "object" || result.error === "db_error" || result.error === "db_unavailable") return { kind: "down" };
+  if (result.error === "rate_limited") return { kind: "limited" };
+  return { kind: "ok", result };
+}
+
 export function createFieldHandler(options = {}) {
   const allowed = new Set(options.allowedOrigins || []);
   const collection = options.collection === "on";
@@ -78,20 +92,30 @@ export function createFieldHandler(options = {}) {
     if (!db || !getClaims) return json(503, { ok: false, error: "not_configured" }, headers);
     const identity = await verifyAnonymousClaims(getClaims, request.headers.get("authorization"));
     if (!identity.ok) return json(401, identity, headers);
-    const rate = await db.call("consume_rate", [identity.uid]);
-    if (!rate.ok) return json(429, { ok: false, error: "rate_limited" }, headers);
+    const rate = await callDb(db, "consume_rate", "consume_rate", [identity.uid]);
+    if (rate.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+    if (rate.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
     if (op === "start") {
       const check = validateStart(body);
       if (!check.ok) return json(400, check, headers);
-      return json(200, await db.call("start_run", [body.runId, body.day, identity.uid]), headers);
+      const started = await callDb(db, "start", "start_run", [body.runId, body.day, identity.uid]);
+      if (started.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+      if (started.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
+      return json(200, started.result, headers);
     }
     if (op === "finish") {
       const check = validateFinish(body);
       if (!check.ok) return json(400, check, headers);
-      return json(200, await db.call("finish_run", [body.runId, body.day, identity.uid, body.scores]), headers);
+      const finished = await callDb(db, "finish", "finish_run", [body.runId, body.day, identity.uid, body.scores]);
+      if (finished.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+      if (finished.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
+      return json(200, finished.result, headers);
     }
     const check = validateDay(body);
     if (!check.ok) return json(400, check, headers);
-    return json(200, await db.call("day_snapshot", [body.day, body.runId, identity.uid]), headers);
+    const day = await callDb(db, "day", "day_snapshot", [body.day, body.runId, identity.uid]);
+    if (day.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+    if (day.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
+    return json(200, day.result, headers);
   };
 }
