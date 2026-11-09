@@ -1,5 +1,27 @@
 // Practice-only examples for pair, reveal, and slider. Not part of the daily lists.
 // Live dates never read this file. Open index.html?preview=demo
+// Marble positions fill a jar from the bottom. The returned list length is the count.
+function marbleJar(count) {
+  const left = 28, right = 172, bottom = 236, top = 58;
+  for (let r = 8; r >= 2; r = Math.round((r - 0.1) * 10) / 10) {
+    const pts = [];
+    let y = bottom - r, row = 0;
+    while (pts.length < count && y - r >= top) {
+      const t = (bottom - y) / (bottom - top);
+      const neck = t > 0.78 ? (t - 0.78) / 0.22 : 0;
+      const inset = (row % 2) * r;
+      const rowLeft = left + neck * 36 + inset;
+      const rowRight = right - neck * 36;
+      for (let x = rowLeft + r; x <= rowRight - r + 1e-6 && pts.length < count; x += r * 2) pts.push({ x: x, y: y });
+      y -= r * 1.72;
+      row++;
+    }
+    if (pts.length === count) return { count: count, r: r, pts: pts };
+  }
+  return null;
+}
+window.marbleJar = marbleJar;
+window.MARBLE_COUNT = 437;
 window.TYPE_DEMO = [
   {
     type: "pair",
@@ -60,16 +82,19 @@ window.TYPE_DEMO = [
   {
     type: "slider",
     difficulty: "medium",
-    prompt: "In what year did the Berlin Wall fall?",
-    explain: "The Berlin Wall fell in 1989.",
-    points: 300,
-    min: 1900,
-    max: 2020,
+    prompt: "How many marbles are in the jar?",
+    explain: "The jar is drawn with exactly 437 marbles.",
+    points: 1000,
+    min: 0,
+    max: 800,
     step: 1,
-    answer: 1989,
-    unit: "year",
+    answer: 437,
+    unit: "marbles",
+    scale: "percent",
+    per_pct: 20,
     tolerance: 0,
-    falloff: 25
+    typed: true,
+    marbles: 437
   },
   {
     type: "slider",
@@ -82,7 +107,7 @@ window.TYPE_DEMO = [
     step: 1,
     answer: 88,
     unit: "keys",
-    tolerance: 2,
-    falloff: 20
+    per_unit: 8,
+    tolerance: 0
   }
 ];

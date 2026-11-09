@@ -1122,3 +1122,9 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .nudge-row{display:flex;gap:8px}
 .nudge-row .nudge,body.in-game .nudge-row .nudge{flex:1 1 0;min-width:44px;min-height:44px;height:44px;padding:8px 0}
 .slider-hint{margin-top:6px}
+.slider-art{display:flex;justify-content:center;margin:0 0 6px}
+.jar-svg{width:min(168px,62%);height:auto;display:block}
+.jar-glass{fill:rgba(255,255,255,.35);stroke:#120B2E;stroke-width:3}
+.slider-photo{display:block;max-width:100%;max-height:150px;margin:0 auto;object-fit:contain}
+.slider-type-row{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:13px;margin-top:6px}
+.slider-type{min-height:44px;width:100%}

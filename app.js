@@ -1323,28 +1323,66 @@ function sliderSnap(n, min, max, step) {
   const k = Math.round((clamped - min) / s);
   return Math.min(max, Math.max(min, +(min + k * s).toFixed(6)));
 }
+function sliderArt(q) {
+  if (typeof q.marbles === "number" && window.marbleJar) {
+    const jar = window.marbleJar(q.marbles);
+    if (!jar) return null;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 200 260");
+    svg.setAttribute("class", "jar-svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", tr("A jar of marbles"));
+    const glass = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    glass.setAttribute("d", "M70 18 h60 l8 28 h22 l-14 196 a28 18 0 0 1 -28 14 H82 a28 18 0 0 1 -28 -14 L40 46 h22 z");
+    glass.setAttribute("class", "jar-glass");
+    svg.append(glass);
+    const colors = ["#E8582A", "#1F2C7A", "#F2C230", "#2E9B57", "#C0262D"];
+    jar.pts.forEach((p, i) => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", jar.r * 0.86);
+      c.setAttribute("fill", colors[i % colors.length]);
+      svg.append(c);
+    });
+    return svg;
+  }
+  if (typeof q.image === "string" && q.image.trim()) return h("img", { class: "slider-photo", src: q.image, alt: "" });
+  return null;
+}
 function sliderQuestion(body, q, value, seconds, done) {
   const min = q.min, max = q.max, step = q.step > 0 ? q.step : 1;
   const tol = q.tolerance == null ? 0 : q.tolerance;
-  const fall = q.falloff == null ? 25 : q.falloff;
+  const percent = q.scale === "percent";
+  const perPct = q.per_pct == null ? 20 : q.per_pct;
   let valueNow = sliderSnap((min + max) / 2, min, max, step);
   let over = false;
+  const art = sliderArt(q);
   body.append(typeDiff(q));
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  if (art) body.append(h("div", { class: "slider-art" }, art));
   const unit = q.unit ? h("span", { class: "slider-unit" }, tr(q.unit)) : null;
   const val = h("b", { class: "slider-val" }, String(valueNow));
-  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "aria-label": q.prompt || tr("Your answer") });
-  const show = n => { valueNow = sliderSnap(n, min, max, step); range.value = String(valueNow); val.textContent = String(valueNow); };
+  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": q.prompt || tr("Your answer") });
+  const typed = q.typed ? h("input", { class: "txt slider-type", type: "number", inputmode: "numeric", min: String(min), max: String(max), step: String(step), value: String(valueNow), "aria-label": tr("Type a number") }) : null;
+  const show = n => {
+    if (!Number.isFinite(n)) return;
+    valueNow = sliderSnap(n, min, max, step);
+    range.value = String(valueNow);
+    val.textContent = String(valueNow);
+    if (typed && document.activeElement !== typed) typed.value = String(valueNow);
+  };
   range.oninput = () => show(+range.value);
+  if (typed) typed.oninput = () => { if (typed.value === "" || typed.value === "-") return; show(+typed.value); };
   const nudges = h("div", { class: "nudge-row" }, [-10, -1, 1, 10].map(d => {
     const b = h("button", { type: "button", class: "btn nudge", "aria-label": (d > 0 ? "+" : "") + d }, (d > 0 ? "+" : "") + d);
     b.onclick = () => { if (!over) show(valueNow + d); };
     return b;
   }));
-  const hint = tol > 0
-    ? tr("Full points within {0}. 0 at {1} off.", tol, fall)
-    : tr("Exact = full points. 0 at {0} off.", fall);
-  body.append(h("p", { class: "slider-readout" }, val, unit), range, nudges, h("p", { class: "muted slider-hint" }, hint));
+  const hint = percent
+    ? tr("Each 1% off costs {0} points.", perPct) + (tol > 0 ? " " + tr("Full points within {0}.", tol) : "")
+    : tr("Each 1 off costs {0} points.", q.per_unit) + (tol > 0 ? " " + tr("Full points within {0}.", tol) : "");
+  body.append(h("p", { class: "slider-readout" }, val, unit), range, nudges);
+  if (typed) body.append(h("label", { class: "slider-type-row" }, tr("Or type a number"), typed));
+  body.append(h("p", { class: "muted slider-hint" }, hint));
   const bar = actionBar(body);
   const lock = h("button", { type: "button", class: "btn primary big" }, tr("Lock in"));
   lock.onclick = () => finish(false);
@@ -1355,19 +1393,24 @@ function sliderQuestion(body, q, value, seconds, done) {
     over = true;
     timer && timer.stop();
     range.disabled = true;
+    if (typed) typed.disabled = true;
     nudges.querySelectorAll("button").forEach(b => { b.disabled = true; });
     lock.remove();
     const guess = timedOut ? null : valueNow;
-    const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, { tolerance: q.tolerance, falloff: q.falloff });
+    const scoreOpts = { scale: q.scale, per_unit: q.per_unit, per_pct: q.per_pct, tolerance: q.tolerance };
+    const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, scoreOpts);
     if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(pts); }
     const off = guess == null ? null : Math.abs(guess - q.answer);
     const shown = String(q.answer) + (q.unit ? " " + tr(q.unit) : "");
-    const offText = off == null ? "" : (Math.abs(off - Math.round(off)) < 1e-6 ? String(Math.round(off)) : String(Math.round(off * 100) / 100));
+    const pct = guess == null || !q.answer ? null : off / Math.abs(q.answer) * 100;
+    const numText = n => Math.abs(n - Math.round(n)) < 1e-6 ? String(Math.round(n)) : String(Math.round(n * 10) / 10);
     let msg;
     if (timedOut) msg = tr("Time's up. Answer: {0}. +0", shown);
     else if (off === 0) msg = tr("Exact. Answer: {0}. +{1}", shown, pts);
-    else if (tol > 0 && off <= tol) msg = tr("Within range. Answer: {0}. +{1}", shown, pts);
-    else msg = tr("Off by {0}. Answer: {1}. +{2}", offText, shown, pts);
+    else if (!percent && tol > 0 && off <= tol) msg = tr("Within range. Answer: {0}. +{1}", shown, pts);
+    else if (percent && tol > 0 && pct <= tol) msg = tr("Within range. Answer: {0}. +{1}", shown, pts);
+    else if (percent) msg = tr("Off by {0}%. +{1}", numText(pct), pts);
+    else msg = tr("Off by {0}. Answer: {1}. +{2}", numText(off), shown, pts);
     feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
     typeExplain(body, q);
     done(pts);
@@ -2255,7 +2298,7 @@ function fitScreen() {
     return;
   }
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
-  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
+  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
   // nov2a: prompt text must stay >= 16px after zoom; if that still overflows, the card scrolls (fit-scroll) instead.

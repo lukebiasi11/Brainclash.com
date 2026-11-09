@@ -111,10 +111,10 @@ const fitExpr = `(() => {
         const sq = await ev(cdp, fitExpr);
         if (sq.overflow > 1 || sq.small.length) fail(label + " slider question " + tag, sq); else pass(label + " slider question " + tag);
         if (tag === "844") await shot("type-slider-" + label + "-question.png");
-        await ev(cdp, `(() => { const r = document.querySelector(".slider-range"); r.value = "1989"; r.dispatchEvent(new Event("input")); document.querySelector(".action-bar .btn").click(); return true; })()`);
+        await ev(cdp, `(() => { const r = document.querySelector(".slider-range"); const typed = document.querySelector(".slider-type"); const n = r.dataset.answer; if (typed) { typed.value = n; typed.dispatchEvent(new Event("input")); } else { r.value = n; r.dispatchEvent(new Event("input")); } document.querySelector(".action-bar .btn").click(); return true; })()`);
         await ev(cdp, "new Promise(r => setTimeout(r, 200))");
         const sa = await ev(cdp, fitExpr);
-        if (sa.overflow > 1 || !/1989/.test(sa.fb)) fail(label + " slider answered " + tag, sa); else pass(label + " slider answered " + tag);
+        if (sa.overflow > 1 || !/437/.test(sa.fb)) fail(label + " slider answered " + tag, sa); else pass(label + " slider answered " + tag);
         if (tag === "844") await shot("type-slider-" + label + "-answered.png");
       }
     }

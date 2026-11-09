@@ -50,10 +50,15 @@ const sliderQ = (w, q) => {
   if (typeof q.answer === "number" && (q.answer < q.min || q.answer > q.max)) E(w, "answer must be between min and max");
   else if (typeof q.answer === "number" && q.step > 0 && Math.abs((q.answer - q.min) / q.step - Math.round((q.answer - q.min) / q.step)) > 1e-6) E(w, "answer must land on a step");
   if (q.unit != null && !str(q.unit)) E(w, "unit must be text");
+  if (q.image != null && !str(q.image)) E(w, "image must be a local asset path");
+  if (q.typed != null && typeof q.typed !== "boolean") E(w, "typed must be true or false");
+  if (q.scale != null && q.scale !== "unit" && q.scale !== "percent") E(w, 'scale must be "unit" or "percent"');
+  if (q.falloff != null) E(w, "falloff is not used; set per_unit, or scale percent with per_pct");
   if (q.tolerance != null && !(typeof q.tolerance === "number" && isFinite(q.tolerance) && q.tolerance >= 0)) E(w, "tolerance must be a number >= 0");
-  if (q.falloff != null && !(typeof q.falloff === "number" && isFinite(q.falloff) && q.falloff >= 0)) E(w, "falloff must be a number >= 0");
-  const tol = q.tolerance == null ? 0 : q.tolerance, fall = q.falloff == null ? 25 : q.falloff;
-  if (typeof tol === "number" && typeof fall === "number" && fall < tol) E(w, "falloff must be >= tolerance");
+  if (q.per_unit != null && !(typeof q.per_unit === "number" && isFinite(q.per_unit) && q.per_unit >= 0)) E(w, "per_unit must be a number >= 0");
+  if (q.per_pct != null && !(typeof q.per_pct === "number" && isFinite(q.per_pct) && q.per_pct >= 0)) E(w, "per_pct must be a number >= 0");
+  if (q.scale === "percent") { if (q.answer === 0) E(w, "percent scale needs a non-zero answer"); }
+  else if (!(typeof q.per_unit === "number" && q.per_unit > 0)) E(w, "per_unit is required unless scale is percent");
 };
 const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
 if (C) {
@@ -61,14 +66,19 @@ if (C) {
     if (!list(d.pins, 2)) E(w, "needs exactly 2 pins");
     else d.pins.forEach((p, j) => { if (!str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
     if (!d.mc) E(w, "missing mc"); else mc(w + " mc", d.mc); if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
+    if (["pair", "reveal", "slider"].includes(d.type) || (d.mc && ["pair", "reveal", "slider"].includes(d.mc.type))) E(w, "World Rush keeps 2 pin questions plus one multiple choice");
   });
-  bank("history", (w, d) => [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
-    const x = d[r]; if (!x) return E(w, `missing ${r}`);
-    if (!str(x.theme)) E(`${w} ${r}`, "missing theme");
-    if (!list(x.events, n)) return E(`${w} ${r}`, `needs exactly ${n} events`);
-    x.events.forEach((e, j) => { if (!((list(e, 3) || (list(e, 4) && str(e[3]))) && str(e[0]) && str(e[1]) && Number.isFinite(e[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
-    const ys = x.events.map(e => e[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
-  }));
+  bank("history", (w, d) => {
+    [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
+      const x = d[r]; if (!x) return E(w, `missing ${r}`);
+      if (!str(x.theme)) E(`${w} ${r}`, "missing theme");
+      if (!list(x.events, n)) return E(`${w} ${r}`, `needs exactly ${n} events`);
+      x.events.forEach((e, j) => { if (!((list(e, 3) || (list(e, 4) && str(e[3]))) && str(e[0]) && str(e[1]) && Number.isFinite(e[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
+      const ys = x.events.map(e => e[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
+      if (x.type === "slider") E(w, "slider is not allowed in Time Warp; the timeline style stays");
+    });
+    if (d.type === "slider") E(w, "slider is not allowed in Time Warp; the timeline style stays");
+  });
   const SPORTS_TEXT_KINDS = new Set(["fill", "stat-chart", "moment", "color-swatch", "jersey-number", "common-teammate"]);
   const sportsQ = (ww, q) => {
     const t = q.type || "text";

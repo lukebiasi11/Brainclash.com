@@ -298,22 +298,36 @@
     if (stage !== 1 && stage !== 2 && stage !== 3) return 0;
     return Math.round(v * (4 - stage) / 3);
   }
-  // Slider: full credit when |guess−answer| ≤ tolerance (default 0).
-  // Linear down to 0 at falloff (default 25). Outside that, 0.
-  // If falloff ≤ tolerance there is no slope: full inside the band, 0 outside.
+  // Slider default mode is per_unit: score = max(0, points − per_unit × |guess−answer|).
+  // tolerance (default 0) still awards full points when the absolute error is within it.
+  // scale "percent" uses per_pct (default 20): points lost per 1% off |answer|.
+  // falloff is not used. It never shipped.
   function sliderScore(guess, answer, value, opts) {
     if (typeof guess !== "number" || typeof answer !== "number" || !isFinite(guess) || !isFinite(answer)) return 0;
     const v = Number(value);
     if (!Number.isFinite(v) || v <= 0) return 0;
     const o = opts || {};
     const tol = o.tolerance == null ? 0 : Number(o.tolerance);
-    const fall = o.falloff == null ? 25 : Number(o.falloff);
-    if (!Number.isFinite(tol) || tol < 0 || !Number.isFinite(fall) || fall < 0) return 0;
+    if (!Number.isFinite(tol) || tol < 0) return 0;
+    if (o.scale === "percent") {
+      if (answer === 0) return guess === 0 ? Math.round(v) : 0;
+      const pct = Math.abs(guess - answer) / Math.abs(answer) * 100;
+      if (pct <= tol + 1e-9) return Math.round(v);
+      const per = o.per_pct == null ? 20 : Number(o.per_pct);
+      if (!Number.isFinite(per) || per < 0) return 0;
+      return Math.max(0, Math.round(v - per * pct));
+    }
     const off = Math.abs(guess - answer);
     if (off <= tol + 1e-9) return Math.round(v);
-    if (!(fall > tol)) return 0;
-    if (off >= fall - 1e-9) return 0;
-    return Math.round(v * (fall - off) / (fall - tol));
+    const per = o.per_unit == null ? 0 : Number(o.per_unit);
+    if (!Number.isFinite(per) || per < 0) return 0;
+    return Math.max(0, Math.round(v - per * off));
+  }
+  // World Rush keeps its two pins. Time Warp keeps the timeline, so a slider is refused there.
+  function typeFitsCategory(category, type) {
+    if (category === "worldRush" && (type === "pair" || type === "reveal" || type === "slider")) return false;
+    if ((category === "history" || category === "timeWarp") && type === "slider") return false;
+    return true;
   }
   // accept[] → typed-matcher fields. A single word of 5 letters or fewer is exact-only
   // (the Brett rule: one edit on a short first name is a different name). Longer words
@@ -329,6 +343,6 @@
     }
     return { aliases, given };
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);
