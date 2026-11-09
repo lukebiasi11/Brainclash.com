@@ -283,26 +283,29 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
-  // Unscramble bases: first 4 words 150, last 2 words 200. Sum is 1,000.
-  // Before 2026-11-10 that sum is the score. There is no time factor and the hint is always shown.
-  // From 2026-11-10: a used hint keeps 60% of that word, then the total decays with time left.
-  // Full 1,000 requires every word, no hints, and at least 45 seconds still on the clock.
-  const FLIP_BASE = [150, 150, 150, 150, 200, 200];
-  const FLIP_STRICT_FROM = "2026-11-10";
-  function flipStrict(day) { return typeof day === "string" && day >= FLIP_STRICT_FROM; }
-  function unscrambleScore(solved, hinted, timeLeft, strict) {
-    let raw = 0;
-    for (let i = 0; i < 6; i++) {
-      if (!solved || !solved[i]) continue;
-      let p = FLIP_BASE[i];
-      if (strict && hinted && hinted[i]) p = Math.round(p * 0.6);
-      raw += p;
-    }
-    if (!strict) return raw;
-    const t = Math.max(0, Math.min(60, Number(timeLeft) || 0));
-    const factor = t >= 45 ? 1 : 0.62 + 0.38 * (t / 45);
-    return Math.min(1000, Math.round(raw * factor));
+  // Anagram Rush. Through 2026-11-09, 1,000 = 60% of the common-word raw total
+  // at 10/25/50/100. From 2026-11-10, longer words weigh more and 1,000 = 92.5%
+  // of the common-word raw total. Saved games are numbers already stored; this
+  // only runs when a day is played.
+  const ANAGRAM_STRICT_FROM = "2026-11-10";
+  const ANAGRAM_OLD = { 3: 10, 4: 25, 5: 50, 6: 100 };
+  const ANAGRAM_NEW = { 3: 10, 4: 30, 5: 70, 6: 150, 7: 250 };
+  function anagramStrict(day) { return typeof day === "string" && day >= ANAGRAM_STRICT_FROM; }
+  function anagramPoints(len, strict) {
+    const n = len | 0;
+    if (n < 3) return 0;
+    if (n >= 7) return strict ? ANAGRAM_NEW[7] : 0;
+    return (strict ? ANAGRAM_NEW : ANAGRAM_OLD)[n] || 0;
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, FLIP_BASE, FLIP_STRICT_FROM, flipStrict, unscrambleScore };
+  function anagramCommonRaw(words, strict) {
+    return [].concat(words || []).reduce((sum, w) => sum + anagramPoints(String(w).length, strict), 0);
+  }
+  function anagramScore(raw, commonRaw, strict) {
+    const share = strict ? 0.925 : 0.6;
+    const target = share * Number(commonRaw);
+    if (!(target > 0) || !Number.isFinite(raw)) return 0;
+    return Math.min(1000, Math.max(0, Math.round(raw / target * 1000)));
+  }
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);

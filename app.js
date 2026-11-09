@@ -449,11 +449,13 @@ function introText(id) {
     world: tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin."),
     history: tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
     sports: tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
-    word: { flip: (window.Answers && Answers.flipStrict(session.key) ? tr("Unscramble 6 words in 60 seconds. The hint stays hidden until you ask for it, and asking cuts that word to 60%. The score also falls as the clock runs down. All 6, no hints, with at least 45 seconds left, is 1,000.") : tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.")),
+    word: { flip: tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds."),
       bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
       conn: tr("Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds."),
       odd: tr("8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds."),
-      anag: tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.") },
+      anag: (window.Answers && Answers.anagramStrict(session.key)
+        ? tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 92.5% of the common-word points. No penalty for wrong guesses.")
+        : tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.")) },
     think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
@@ -1253,18 +1255,13 @@ function wordFlip() {
   // Any dictionary word using exactly the same letters also counts (e.g. LISTEN for SILENT).
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
   const hintEl = h("div", { class: "hint" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), prog = h("div", { class: "prog" });
-  const strict = window.Answers && Answers.flipStrict(session.key);
-  const hinted = [false, false, false, false, false, false];
-  const hintBtn = strict ? h("button", { class: "btn", type: "button", onclick: () => { if (busy || over || hinted[i]) return; hinted[i] = true; draw(); } }, tr("Show hint (−40%)")) : null;
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, tr("Clear")), hintBtn, skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, tr("Clear")), skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
   const results = [];
   // Skipped words go to the back of the queue and come back while time remains.
   let queue = list.slice(0, 6).map((_, k) => k), cur = 0;
   body.append(prog, hintEl, slots, tiles, ctrls, h("p", { class: "skip-note" }, tr("Skipped words come back at the end if time remains.")));
   let letters = [];
-  const base = k => k < 4 ? 150 : 200;
-  const val = k => strict && hinted[k] ? Math.round(base(k) * 0.6) : base(k);
-  const project = left => window.Answers.unscrambleScore([0, 1, 2, 3, 4, 5].map(k => !!results[k]), hinted, left, strict);
+  const val = k => k < 4 ? 150 : 200;
   const load = () => {
     i = queue[0]; const [w] = list[i];
     do letters = shuffle(w.split("").map((c, k) => ({ c, k })), R); while (letters.map(l => l.c).join("") === w);
@@ -1273,10 +1270,7 @@ function wordFlip() {
   const draw = () => {
     const [w, style, hint] = list[i];
     prog.textContent = tr("Word {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : "");
-    hintEl.innerHTML = "";
-    if (!strict || hinted[i]) hintEl.append(h("span", { class: "badge" }, tr(style)), " ", hint);
-    else hintEl.append(h("span", { class: "badge" }, tr("Hint")), " ", tr("Hidden until you ask."));
-    if (hintBtn) { hintBtn.disabled = !!hinted[i]; hintBtn.textContent = hinted[i] ? tr("Hint used") : tr("Show hint (−40%)"); }
+    hintEl.innerHTML = ""; hintEl.append(h("span", { class: "badge" }, tr(style)), " ", hint);
     slots.innerHTML = ""; w.split("").forEach((_, k) => slots.append(h("span", { class: "slot" + (built[k] != null ? " on" : "") }, built[k] != null ? letters[built[k]].c : "")));
     tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { if (busy) return; built.push(k); draw(); check(); } }, l.c)));
   };
@@ -1285,17 +1279,14 @@ function wordFlip() {
     if (built.length < w.length) return;
     const guess = built.map(k => letters[k].c).join("");
     busy = true; // block input during the win/shake animation
-    if (flipAccept(w, guess, dict)) { results[i] = true; total = strict ? project(timer.left) : total + val(i); track(total); slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
+    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
     else { slots.classList.add("shake"); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
   };
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
   const skip = () => { if (over) return; results[i] = false; queue.push(queue.shift()); load(); };
   const end = () => {
-    if (over) return;
-    const left = timer.left;
-    over = true; timer.stop(); ctrls.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
-    if (strict) total = project(left);
-    body.append(h("ul", { class: "review" }, list.map(([w], k) => h("li", { class: results[k] ? "ok" : "no" }, (results[k] ? "✓ " : "✗ ") + w + (strict && hinted[k] ? " · " + tr("hint") : "")))));
+    if (over) return; over = true; timer.stop(); ctrls.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
+    body.append(h("ul", { class: "review" }, list.map(([w], k) => h("li", { class: results[k] ? "ok" : "no" }, (results[k] ? "✓ " : "✗ ") + w))));
     catDone(body, total, "flip");
   };
   onKey = e => {
@@ -1424,9 +1415,11 @@ function oddOneOut() {
 
 function anagramRush() {
   const set = session.set.anagram;
-  const valid = new Set(set.valid), PTS = { 3: 10, 4: 25, 5: 50, 6: 100 };
-  // Behind-the-scenes conversion (NOT finalized in spec): 1,000 = 60% of the raw points available from common words.
-  const target = 0.6 * set.common.reduce((a, w) => a + PTS[w.length], 0);
+  const valid = new Set(set.valid);
+  const strict = window.Answers && Answers.anagramStrict(session.key);
+  const ptsOf = w => window.Answers.anagramPoints(w.length, strict);
+  const commonRaw = window.Answers.anagramCommonRaw(set.common, strict);
+  const shown = raw => window.Answers.anagramScore(raw, commonRaw, strict);
   const body = screen("📝 " + tr("Anagram Rush"), tr("6 letters · 60 seconds"));
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
@@ -1442,11 +1435,11 @@ function anagramRush() {
   scoreEl.append(tr("Score "), scoreB, tr("/1,000 pts"), scoreRest);
   let shownFound = 0;
   const draw = () => {
-    scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = tr("{0} words · {1} raw", found.length, raw);
+    scoreB.textContent = shown(raw); scoreRest.textContent = tr("{0} words · {1} raw", found.length, raw);
     slotEls.forEach((el, k) => { const on = built[k] != null; el.className = "slot" + (on ? " on" : ""); el.textContent = on ? letters[built[k]] : ""; });
     if (tileEls.length !== letters.length || tileEls.some((b, k) => b.textContent !== letters[k])) buildTiles();
     tileEls.forEach((b, k) => { b.disabled = built.includes(k); });
-    while (shownFound < found.length) { const w = found[found.length - 1 - shownFound]; list.prepend(h("span", { class: "chip" }, w.toUpperCase() + " +" + PTS[w.length])); shownFound++; }
+    while (shownFound < found.length) { const w = found[found.length - 1 - shownFound]; list.prepend(h("span", { class: "chip" }, w.toUpperCase() + " +" + ptsOf(w))); shownFound++; }
   };
   // Fixed-height feedback line: text changes in place, no element insert/remove, no full-screen flash (layout never shifts).
   const fbSlot = h("div", { class: "an-fb", "aria-live": "polite" });
@@ -1456,7 +1449,7 @@ function anagramRush() {
     if (over) return; w = w.toLowerCase().trim(); built = [];
     if (w.length < 3) { draw(); return; }
     if (found.includes(w)) flash(tr("Already found"), null);
-    else if (valid.has(w)) { found.unshift(w); raw += PTS[w.length]; track(Math.min(1000, Math.round(raw / target * 1000))); flash("+" + PTS[w.length], true); }
+    else if (valid.has(w)) { found.unshift(w); raw += ptsOf(w); track(shown(raw)); flash("+" + ptsOf(w), true); }
     else flash(tr("Not a word"), false);
     draw();
   };
@@ -1466,7 +1459,7 @@ function anagramRush() {
     body.append(h("p", { class: "muted" }, tr("Missed words: ") + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : tr("none — wow!"))));
     // ONE number everywhere: the converted /1,000 score is what the header shows, what is banked and what the total sums.
     body.append(h("p", { class: "muted" }, `${found.length} word${found.length === 1 ? "" : "s"} · ${fmt(raw)} raw points`));
-    catDone(body, Math.min(1000, Math.round(raw / target * 1000)), "anag raw " + raw);
+    catDone(body, shown(raw), "anag raw " + raw);
   };
   onKey = e => {
     if (over) return false;
