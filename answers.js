@@ -1,5 +1,5 @@
 /* Daily Gauntlet — lenient typed-answer checking (shared by app.js and tools/answers.test.js).
-   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given }) -> true/false
+   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given, exactOnly }) -> true/false
    Order: explicit answer/alias -> listed wrong -> unit-aware number -> nickname/surname -> typo (never toward a wrong).
    - answers : accepted spellings from content.js (unchanged format)
    - aliases : OPTIONAL extra accepted spellings (nicknames, abbreviations, other languages)
@@ -19,7 +19,7 @@
 
   // Surnames too ambiguous to accept on their own, even if content lists them.
   const AMBIGUOUS_SURNAMES = new Set(["ronaldo", "james", "bonds", "payton", "schumacher", "gore", "ali",
-    "williams", "johnson", "smith", "jones", "brown", "davis", "jackson", "manning", "griffey", "ripken", "watt", "harrison", "curry"]);
+    "williams", "johnson", "smith", "jones", "brown", "davis", "jackson", "manning", "griffey", "ripken", "watt", "harrison", "curry", "joyner"]);
   // First words that signal a place/team, not a person ("New York" must not accept "york").
   const NOT_A_FIRST_NAME = new Set(["new", "san", "los", "las", "st", "saint", "fort", "north", "south", "east", "west", "united", "real", "el", "la", "le", "de", "port", "mount", "lake", "great", "old", "upper", "lower", "central", "golden", "green", "red", "blue", "white", "black", "kansas", "tampa", "green", "dallas", "boston", "chicago", "miami", "denver", "houston", "seattle", "atlanta", "detroit"]);
   // Unicode vulgar fractions -> " a/b" so "7½" = "7 1/2" = "7.5".
@@ -183,11 +183,11 @@
     // Known wrong answers are checked BEFORE numbers, nicknames and typos ("mick schumacher" stays wrong).
     const wrongN = [].concat(opts.wrong || []).map(norm).filter(w => w && !goodN.includes(w));
     if (wrongN.includes(v)) return false;
-    // Sports given-name allowlist (opts.given). Exact after norm() only, and not added to the
-    // fuzzy list: one edit on a 5-letter first name also matches other names (brent / brett).
-    // A listed wrong token still loses. Shared typo bands below are unchanged.
-    const given = [].concat(opts.given || []).map(norm).filter(g => g && !wrongN.includes(g));
-    if (given.includes(v)) return true;
+    // given and exactOnly are the same exact-only list (first names). They match after norm()
+    // and are removed from the typo list, so "muhamma" is not a typo of "Muhammad".
+    const exactOnly = [].concat(opts.given || [], opts.exactOnly || []).map(norm).filter(g => g && !wrongN.includes(g));
+    const exactSet = new Set(exactOnly);
+    if (exactSet.has(v)) return true;
     // Units with a dimension: an explicit unit must match the expected dimension ("70 percent" for a count, "15 minutes"
     // for money -> wrong); same dimension compares converted values ("900 seconds" = "15 minutes"). Bare numbers fall through.
     const textOnly = !!opts.textOnly;   // content flag: no number parsing at all ("9" is not "N"/"nine")
@@ -212,7 +212,7 @@
     }
     if (textOnly ? /\d/.test(v) : (good.some(isNumeric) && /\d/.test(v))) return false;
     // Names: nickname on the first word ("Mike Jordan" = "Michael Jordan").
-    const vc = canonName(v), goodC = goodN.map(canonName);
+    const vc = canonName(v), goodC = goodN.filter(g => !exactSet.has(g)).map(canonName);
     if (goodC.includes(vc)) return true;
     // Last name alone ("Barry Bonds" -> "bonds") ONLY when the question is about a person (see isPersonQuestion),
     // never for ambiguous surnames, and never when the question opts out.
@@ -283,6 +283,78 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
+  // Pair: each correct round has equal weight. Score = round(value × correct / rounds).
+  function pairScore(correct, rounds, value) {
+    const n = Math.max(0, rounds | 0);
+    const c = Math.max(0, Math.min(n, correct | 0));
+    const v = Number(value);
+    if (!n || !Number.isFinite(v) || v <= 0) return 0;
+    return Math.round(v * c / n);
+  }
+  // Reveal: correct on clue 1, 2, or 3 earns 3/3, 2/3, or 1/3. Any other stage is 0.
+  function revealScore(stage, value) {
+    const v = Number(value);
+    if (!Number.isFinite(v) || v <= 0) return 0;
+    if (stage !== 1 && stage !== 2 && stage !== 3) return 0;
+    return Math.round(v * (4 - stage) / 3);
+  }
+  // Slider default mode is per_unit: score = max(0, points − per_unit × |guess−answer|).
+  // tolerance (default 0) still awards full points when the absolute error is within it.
+  // scale "percent" uses per_pct (default 20): points lost per 1% off |answer|.
+  // falloff is not used. It never shipped.
+  function sliderScore(guess, answer, value, opts) {
+    if (typeof guess !== "number" || typeof answer !== "number" || !isFinite(guess) || !isFinite(answer)) return 0;
+    const v = Number(value);
+    if (!Number.isFinite(v) || v <= 0) return 0;
+    const o = opts || {};
+    const tol = o.tolerance == null ? 0 : Number(o.tolerance);
+    if (!Number.isFinite(tol) || tol < 0) return 0;
+    if (o.scale === "percent") {
+      if (answer === 0) return guess === 0 ? Math.round(v) : 0;
+      const pct = Math.abs(guess - answer) / Math.abs(answer) * 100;
+      if (pct <= tol + 1e-9) return Math.round(v);
+      const per = o.per_pct == null ? 20 : Number(o.per_pct);
+      if (!Number.isFinite(per) || per < 0) return 0;
+      return Math.max(0, Math.round(v - per * pct));
+    }
+    const off = Math.abs(guess - answer);
+    if (off <= tol + 1e-9) return Math.round(v);
+    const per = o.per_unit == null ? 0 : Number(o.per_unit);
+    if (!Number.isFinite(per) || per < 0) return 0;
+    return Math.max(0, Math.round(v - per * off));
+  }
+  function sliderStart(min, max, step) {
+    const s = step > 0 ? step : 1;
+    const mid = (Number(min) + Number(max)) / 2;
+    const k = Math.round((mid - Number(min)) / s);
+    const n = Number(min) + k * s;
+    return Math.min(Number(max), Math.max(Number(min), +n.toFixed(6)));
+  }
+  // True when the answer is within 10% of the neutral start (the midpoint).
+  function sliderStartClose(answer, start) {
+    const scale = Math.max(Math.abs(Number(start)), 1);
+    return Math.abs(Number(answer) - Number(start)) <= 0.1 * scale + 1e-9;
+  }
+  // World Rush keeps its two pins. The third question is multiple choice or a pair.
+  // Time Warp keeps the timeline and also takes multiple choice, typed answers, pair, and reveal. A slider is refused there.
+  // Sports takes pair, reveal, and slider.
+  function typeFitsCategory(category, type) {
+    if (category === "worldRush") return type === "mc" || type === "pair";
+    if (category === "history" || category === "timeWarp") return type === "timeline" || type === "mc" || type === "text" || type === "typed" || type === "pair" || type === "reveal";
+    return true;
+  }
+  // accept[] is typo-tolerant, including single-word surnames ("bryent" for Bryant).
+  // Exact-only first names come from the question's given / exactOnly list, not from accept.
+  function splitAccept(accept) {
+    const aliases = [], given = [];
+    for (const raw of [].concat(accept || [])) {
+      if (raw == null) continue;
+      const s = String(raw).trim();
+      if (!s) continue;
+      aliases.push(s);
+    }
+    return { aliases, given };
+  }
   // Anagram Rush. Through 2026-11-09, 1,000 = 60% of the common-word raw total
   // at 10/25/50/100. From 2026-11-10, longer words weigh more and 1,000 = 92.5%
   // of the common-word raw total. Saved games are numbers already stored; this
@@ -306,6 +378,6 @@
     if (!(target > 0) || !Number.isFinite(raw)) return 0;
     return Math.min(1000, Math.max(0, Math.round(raw / target * 1000)));
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);

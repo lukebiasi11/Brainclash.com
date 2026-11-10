@@ -115,8 +115,8 @@ eq(d11.thinkFast[1].q, "The day before yesterday was Thursday. What day will it 
 eq(d11.thinkFast[1].answers, ["monday"], "Nov 11 Monday answer kept");
 
 eq(day("2026-11-06").sports[0].q, "In what year did Atlanta host the Summer Olympics?", "Nov 6 sports untouched");
-eq(day("2026-11-12").sports[0].q, "Which happened first?", "Nov 12 sports still which-first");
-t(day("2026-11-12").sports[0].options[0].includes("WrestleMania"), "Nov 12 sports untouched");
+eq(day("2026-11-12").sports[0].type, "pair", "Nov 12 sports Q1 is the approved pair");
+eq(day("2026-11-12").sports[0].prompt.en, "Over or Under? Pick the true side.", "Nov 12 sports Q1 prompt");
 
 function opts(q) { return { aliases: q.aliases, wrong: q.wrong, noSurname: q.noSurname, textOnly: q.textOnly, person: q.person, given: q.given, q: q.q }; }
 function check(q, input, exp) {

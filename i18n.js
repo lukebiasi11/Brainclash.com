@@ -123,6 +123,8 @@
     // sports
     "Question {0} of 3 · {1} · {2} pts": "Pregunta {0} de 3 · {1} · {2} pts", "Easy": "Fácil", "Medium": "Media", "Hard": "Difícil", "Next question →": "Siguiente pregunta →",
     "Type your answer": "Escribe tu respuesta", "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.": "Arrastra en orden: el primer equipo arriba. O usa ▲▼ (o las flechas del teclado), o toca dos fichas para cambiarlas.",
+    "Put the first stop at the top.": "La primera parada va arriba.", "Match each person to their year.": "Empareja cada persona con su año.",
+    "Which is bigger?": "¿Cuál es más grande?", "{0} · {1} pts": "{0} · {1} pts", "Pair": "Pareja",
     "FIRST": "PRIMERO", "LAST": "ÚLTIMO", "{0}/{1} in the right spot → +{2}": "{0}/{1} en su lugar → +{2}", "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.": "Toca un nombre y luego un dato para emparejarlos. Toca una pareja otra vez para separarla. También puedes arrastrar.",
     "Correct: ": "Correcto: ", "{0}/{1} correct → +{2}": "{0}/{1} correctas → +{2}",
     // word games
@@ -139,6 +141,21 @@
     " Off by {0} year.": " Te desviaste {0} año.", " Off by {0} years.": " Te desviaste {0} años.", " You were {0}% off.": " Te desviaste un {0}%.",
     "Skipped.": "Saltada.", "Time's up.": "Se acabó el tiempo.", "Spot on!": "¡Exacto!", "Close!": "¡Cerca!", "Not close.": "Lejos.", " Answer: {0}.": " Respuesta: {0}.",
     "Puzzle {0} of 2{1} · {2} pts · one submission": "Acertijo {0} de 2{1} · {2} pts · un intento", "Final puzzle →": "Último acertijo →",
+    // pair / reveal / slider
+    "Type demo": "Demo de tipos", "Example {0} of {1} · {2} pts": "Ejemplo {0} de {1} · {2} pts", "Next example →": "Siguiente ejemplo →",
+    "Demo complete": "Demo terminada", "This practice demo is not saved.": "Esta práctica de demo no se guarda.",
+    "Round {0} of {1}": "Ronda {0} de {1}", "Next round →": "Siguiente ronda →", "See score": "Ver puntaje", "Correct": "Correcto", "Answer: {0}": "Respuesta: {0}",
+    "{0} of {1} rounds. +{2}": "{0} de {1} rondas. +{2}", "Time's up. ": "Se acabó el tiempo. ",
+    "Next clue": "Siguiente pista", "Clue {0} of {1}": "Pista {0} de {1}", "Correct on clue {0}. +{1}": "Correcto en la pista {0}. +{1}",
+    "Your answer": "Tu respuesta", "Full points within {0}. 0 at {1} off.": "Puntos completos dentro de {0}. 0 si te desvías {1}.",
+    "Each 1 off costs {0} points.": "Cada 1 de diferencia cuesta {0} puntos.",
+    "Each 1% off costs {0} points.": "Cada 1% de diferencia cuesta {0} puntos.",
+    "Full points within {0}.": "Puntos completos dentro de {0}.",
+    "Or type a number": "O escribe un número", "Type a number": "Escribe un número", "A jar of marbles": "Un frasco de canicas",
+    "Off by {0}%.": "Te desviaste un {0}%.", "Off by {0}%. +{1}": "Te desviaste un {0}%. +{1}",
+    "Exact. Answer: {0}. +{1}": "Exacto. Respuesta: {0}. +{1}", "Within range. Answer: {0}. +{1}": "Dentro del rango. Respuesta: {0}. +{1}",
+    "Off by {0}. Answer: {1}. +{2}": "Te desviaste {0}. Respuesta: {1}. +{2}",
+    "keys": "teclas", "marbles": "canicas",
     // results
     "Clash complete": "Clash terminado", "Practice complete": "Práctica terminada", "Clash complete!": "¡Clash terminado!", "See full results": "Ver resultados completos",
     "Practice run complete": "Práctica terminada", "Today's Clash complete": "Clash de hoy terminado", "Final score": "Puntaje final", "Share result": "Compartir resultado", "Home": "Inicio", "Copied!": "¡Copiado!",

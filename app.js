@@ -174,16 +174,34 @@ const FROZEN = {
   oddOneOut: { u0: 4149, idx: [0,1,9,10,5] },
   anagram: { u0: 4149, idx: [2,3,7,8,9] }
 };
+// Indexes named by DAY_OVERRIDES are already scheduled. They stay out of the fresh queue and the wrap
+// so appending a pinned day does not move any other date.
+function pinnedIdx(name) {
+  const out = new Set();
+  const all = typeof window !== "undefined" && window.DAY_OVERRIDES;
+  if (!all) return out;
+  for (const spec of Object.values(all)) {
+    if (!spec || typeof spec !== "object") continue;
+    const idx = spec[name] != null ? spec[name] : (name === "anagram" ? spec.anagrams : undefined);
+    if (Number.isInteger(idx)) out.add(idx);
+  }
+  return out;
+}
 function schedIdx(name, len, u) {
   const f = FROZEN[name];
   if (!f || !len) return null;
-  if (u < f.u0) return ((u % len) + len) % len;            // pre-launch (practice fallback): legacy
+  const pinned = pinnedIdx(name);
+  const pool = [];
+  for (let i = 0; i < len; i++) if (!pinned.has(i)) pool.push(i);
+  const n = pool.length || len;
+  const at = j => pool[((j % n) + n) % n];
+  if (u < f.u0) return at(u);            // pre-launch (practice fallback): legacy
   const k = u - f.u0;
-  if (k < f.idx.length) return f.idx[k] < len ? f.idx[k] : k % len;
-  const used = new Set(f.idx), fresh = [];
-  for (let i = 0; i < len; i++) if (!used.has(i)) fresh.push(i);
+  if (k < f.idx.length) return f.idx[k] < len && !pinned.has(f.idx[k]) ? f.idx[k] : at(k);
+  const used = new Set(f.idx);
+  const fresh = pool.filter(i => !used.has(i));
   const j = k - f.idx.length;
-  return j < fresh.length ? fresh[j] : (j - fresh.length) % len;
+  return j < fresh.length ? fresh[j] : at(j - fresh.length);
 }
 // Past-date stability (SPEC): word unit 4151 spans Oct 29 – Nov 2. The Nov 1 remap changed that unit's
 // oddOneOut/anagram, so days before Nov 1 (20758) keep the as-played indexes (oo 2, an 4).
@@ -210,11 +228,22 @@ function esLocalize(set) {
 }
 function getDailySet(dayKey) {
   const d = dayOfKey(dayKey), w = Math.floor(d / WORD_GAMES.length);
-  return esLocalize({ day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
+  const set = { day: d, worldRush: sched("worldRush", C.worldRush, d), history: sched("history", C.history, d), sports: sched("sports", C.sports, d),
     // Word formats rotate daily (period 5); each format's list advances once per 5-day cycle: w = floor(day / 5).
     wordGame: pick(WORD_GAMES, d), wordFlip: sched("wordFlip", C.wordFlip, w), wordBridge: sched("wordBridge", C.wordBridge, w),
     connections: sched("connections", C.connections, w), oddOneOut: sched("oddOneOut", C.oddOneOut, w, d),
-    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) });
+    anagram: sched("anagram", window.ANAGRAM_SETS, w, d), thinkFast: sched("thinkFast", C.thinkFast, d) };
+  // A date can pin one category to a list index. Every other date keeps the frozen schedule.
+  const spec = typeof window !== "undefined" && window.DAY_OVERRIDES && window.DAY_OVERRIDES[dayKey];
+  if (spec && typeof spec === "object") {
+    for (const name of Object.keys(spec)) {
+      const key = name === "anagrams" ? "anagram" : name;
+      const list = key === "anagram" ? window.ANAGRAM_SETS : (window.CONTENT && window.CONTENT[key]);
+      const idx = spec[name];
+      if (Array.isArray(list) && Number.isInteger(idx) && idx >= 0 && idx < list.length) set[key] = list[idx];
+    }
+  }
+  return esLocalize(set);
 }
 // Practice replays a random PAST daily (launch .. yesterday) so it never spoils today
 // or a future day. Before there are past days it falls back to a pre-launch day.
@@ -287,7 +316,7 @@ function screen(title, sub) {
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
   const cat = session && CATS[session.scores.length];
   const head = h("header", { class: "game-head" },
-    h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Daily Dose", " · ", (session.scores.length + 1) + "/5"),
+    h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Daily Dose", " · ", session.key === "demo" ? ((session.demoAt || 0) + 1) + "/" + ((window.TYPE_DEMO || []).length || 1) : (session.scores.length + 1) + "/5"),
     h("h2", {}, title), sub ? h("p", { class: "muted" }, sub) : null,
     catScoreChip());
   const body = h("section", { class: "game-body" });
@@ -699,8 +728,14 @@ function worldRush() {
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? tr("Next pin →") : tr("Geography Q →"), step < 2 ? doPin : doMC);
+      nextBtn(bar, step < 2 ? tr("Next pin →") : (set.pair ? tr("Next question →") : tr("Geography Q →")), step < 2 ? doPin : doThird);
     }
+  };
+  const doThird = () => { if (set.pair) doPair(); else doMC(); };
+  const doPair = () => {
+    const q = set.pair && set.pair.type ? set.pair : Object.assign({ type: "pair" }, set.pair || {});
+    const body = screen("🌎 " + tr("World Rush"), tr("{0} · {1} pts", pairLabel(q.prompt || "Pair"), 100));
+    pairQuestion(body, q, 100, 8, pts => { total += pts; track(total); log.push(pts); catDone(body, total, log.join("/")); });
   };
   const doMC = () => {
     const body = screen("🌎 " + tr("World Rush"), tr("Geography question · 100 pts"));
@@ -735,8 +770,16 @@ function history() {
   const rounds = [{ ...set.r1, secs: 45, max: 400 }, { ...set.r2, secs: 45, max: 600 }];
   let total = 0, r = 0; const log = [];
   const R = rng(session.day * 7 + 3);
+  const kindOf = rd => {
+    const t = rd && rd.type;
+    if (t === "pair" || t === "reveal" || t === "mc") return t;
+    if (t === "text" || t === "typed") return "text";
+    return "timeline";
+  };
   const play = () => {
     const rd = rounds[r];
+    const kind = kindOf(rd);
+    if (kind !== "timeline") return playRound(rd, kind);
     const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, rd.theme, rd.max));
     // Instructions follow the layout: stacked cards (≤560px, same breakpoint as the CSS) read top → bottom, a row reads left → right.
     body.append(h("p", { class: "prompt" }, tr("Drag the cards into order — "),
@@ -838,6 +881,19 @@ function history() {
       if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, tr("Round 2 →"), play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
+  function playRound(rd, kind) {
+    const label = rd.theme || (kind === "mc" || kind === "text" ? pairLabel(rd.q) : pairLabel(rd.prompt)) || "";
+    const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, label, rd.max));
+    const after = pts => {
+      total += pts; log.push(pts); track(total); r++;
+      if (r < 2) nextBtn(actionBar(body), tr("Round 2 →"), play);
+      else catDone(body, total, log.join("/"));
+    };
+    if (kind === "pair") pairQuestion(body, rd, rd.max, 8, after);
+    else if (kind === "reveal") revealQuestion(body, rd, rd.max, rd.secs, after);
+    else if (kind === "mc") mcQuestion(body, rd.q, rd.options, rd.a, rd.max, rd.secs, after);
+    else textQuestion(body, rd.q, rd.answers || [], rd.max, rd.secs, after, null, (rd.answers && rd.answers[0]) || "", rd.explain, rd, { timeoutZero: true });
+  }
   play();
 }
 
@@ -861,17 +917,48 @@ function artBox(cls, id, alt, keepPlaceholder) {
 }
 function sportsArt(id, alt) { return artBox("tf-svg sports-chart", id, alt || "Sports illustration"); }
 // Q3 team-path: order nicknames first→last. Vertical chips, drag / ▲▼ / tap-to-swap / arrow keys.
+function localizedText(value) {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const en = typeof value.en === "string" ? value.en.trim() : "";
+    const es = typeof value.es === "string" ? value.es.trim() : "";
+    return LANG === "es" ? (es || en) : (en || es);
+  }
+  return "";
+}
+function questionHint(q, fallback) {
+  const custom = localizedText(q && q.hint);
+  if (custom) return typeof q.hint === "string" ? tr(custom) : custom;
+  return tr(fallback);
+}
+function pairLabel(value) {
+  if (value && typeof value === "object") return localizedText(value);
+  return value == null ? "" : tr(String(value));
+}
+function pairRoundSeconds(q, fallback) {
+  const n = Number(q && q.roundSeconds);
+  if (Number.isFinite(n) && n > 0) return n;
+  const f = Number(fallback);
+  return Number.isFinite(f) && f > 0 ? f : 8;
+}
+function flipPack(raw) {
+  const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.words) ? raw.words : []);
+  const n = Number(raw && raw.timerSec);
+  return { list, secs: Number.isFinite(n) && n > 0 ? n : 60 };
+}
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
   const n = items.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, tr("Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.")));
+  const orderFallback = "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.";
+  body.append(h("p", { class: "drag-hint" }, questionHint(q, orderFallback)));
   let order = seededOrder(n, session.key + "|order|" + q.q);
   if (order.every((v, i) => v === i)) order = seededOrder(n, session.key + "|order|" + q.q + "|reshuffle");
   if (order.every((v, i) => v === i) && n > 1) { const o = order.slice(); [o[0], o[n - 1]] = [o[n - 1], o[0]]; order = o; }
   let locked = false, sel = null;
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
-  const list = h("div", { class: "order-list", role: "list", "aria-label": "Teams in career order, first at top" });
+  const customHint = localizedText(q && q.hint);
+  const list = h("div", { class: "order-list", role: "list", "aria-label": customHint ? questionHint(q, orderFallback) : "Teams in career order, first at top" });
   const wrap = h("div", { class: "order-wrap" },
     h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
@@ -1052,7 +1139,7 @@ function matchQuestion(body, q, value, seconds, done) {
   const pairs = (q.pairs || []).slice(); // pairs[i] = right-index for left[i]
   const n = left.length;
   body.append(h("p", { class: "prompt" }, q.q));
-  body.append(h("p", { class: "drag-hint" }, tr("Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
+  body.append(h("p", { class: "drag-hint" }, questionHint(q, "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   // rightOrder[pos] = original right index at display position
   let rightOrder = seededOrder(n, session.key + "|match-r|" + q.q);
@@ -1187,6 +1274,304 @@ function matchQuestion(body, q, value, seconds, done) {
   }
   render();
 }
+// Pair, reveal, and slider. Usable from any category that plays a question object.
+// Timeout scores only what was locked: tapped pair rounds, a correct reveal, or a locked slider. Otherwise 0.
+// No Skip: these use the category timer, same as Sports and Brain Teaser.
+function typeHead(body) { return body.parentNode && body.parentNode.querySelector(".game-head"); }
+function typeDiff(q) {
+  const name = { easy: "Easy", medium: "Medium", hard: "Hard" }[q && q.difficulty];
+  return name ? h("p", { class: "q-diff" }, tr(name)) : null;
+}
+function typeExplain(body, q) { if (q && q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); }
+function playNewType(body, q, value, seconds, done, pairFallback) {
+  if (!q || (q.type !== "pair" && q.type !== "reveal" && q.type !== "slider")) return false;
+  if (q.type === "pair") pairQuestion(body, q, value, pairFallback != null ? pairFallback : 8, done);
+  else if (q.type === "reveal") revealQuestion(body, q, value, seconds, done);
+  else sliderQuestion(body, q, value, seconds, done);
+  return true;
+}
+function pairQuestion(body, q, value, seconds, done) {
+  const rounds = Array.isArray(q.rounds) ? q.rounds : [];
+  const n = rounds.length;
+  let i = 0, correct = 0, over = false, awaiting = false;
+  body.append(typeDiff(q));
+  body.append(h("p", { class: "prompt" }, pairLabel(q.prompt || "")));
+  const meta = h("p", { class: "pair-meta" });
+  const cards = h("div", { class: "pair-cards" });
+  const note = h("p", { class: "pair-note" });
+  body.append(meta, cards, note);
+  const bar = actionBar(body);
+  const roundSecs = pairRoundSeconds(q, seconds);
+  let roundTimer = null;
+  function stopRoundTimer() {
+    if (roundTimer) { roundTimer.stop(); roundTimer = null; }
+    const head = typeHead(body);
+    if (head) head.querySelectorAll(".timer").forEach(n => n.remove());
+  }
+  function armRoundTimer() {
+    stopRoundTimer();
+    if (roundSecs > 0) roundTimer = Timer(roundSecs, () => lockRound(null, true), typeHead(body));
+  }
+  const scoreNow = () => { if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(window.Answers.pairScore(correct, n, value)); } };
+  function render() {
+    const r = rounds[i];
+    awaiting = false;
+    meta.textContent = tr("Round {0} of {1}", i + 1, n);
+    note.textContent = "";
+    note.className = "pair-note";
+    cards.replaceChildren();
+    bar.replaceChildren();
+    ["left", "right"].forEach(side => {
+      const b = h("button", { type: "button", class: "opt pair-card", "data-side": side }, pairLabel(r[side]));
+      b.onclick = () => lockRound(side, false);
+      cards.append(b);
+    });
+    armRoundTimer();
+  }
+  function lockRound(side, timedOut) {
+    if (over || awaiting) return;
+    awaiting = true;
+    stopRoundTimer();
+    const r = rounds[i];
+    const ok = !timedOut && side === r.correct;
+    if (ok) correct++;
+    [...cards.children].forEach(b => {
+      b.disabled = true;
+      if (b.dataset.side === r.correct) b.classList.add("right");
+      else if (!timedOut && b.dataset.side === side) b.classList.add("wrong");
+    });
+    const revealed = pairLabel(r.note) || tr("Answer: {0}", pairLabel(r[r.correct]));
+    note.textContent = timedOut ? tr("Time's up. ") + revealed : (pairLabel(r.note) || (ok ? tr("Correct") : tr("Answer: {0}", pairLabel(r[r.correct]))));
+    note.classList.add(ok ? "good" : "bad");
+    scoreNow();
+    const last = i >= n - 1;
+    const b = h("button", { type: "button", class: "btn primary big" }, last ? tr("See score") : tr("Next round →"));
+    b.onclick = () => { if (last) finish(false); else { i++; render(); } };
+    bar.replaceChildren(b);
+  }
+  function finish(timedOut) {
+    if (over) return;
+    over = true;
+    stopRoundTimer();
+    [...cards.querySelectorAll("button")].forEach(b => { b.disabled = true; });
+    bar.replaceChildren();
+    const pts = window.Answers.pairScore(correct, n, value);
+    const msg = (timedOut ? tr("Time's up. ") : "") + tr("{0} of {1} rounds. +{2}", correct, n, pts);
+    feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
+    typeExplain(body, q);
+    done(pts);
+  }
+  if (!n) { finish(false); return; }
+  render();
+}
+function revealQuestion(body, q, value, seconds, done) {
+  const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
+  const parts = window.Answers.splitAccept(q.accept);
+  const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
+  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
+  let shown = 1, over = false;
+  body.append(typeDiff(q));
+  body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  const list = h("div", { class: "reveal-clues" });
+  body.append(list);
+  const input = h("input", { class: "txt", placeholder: tr("Type your answer"), autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Type your answer") });
+  const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); submit(); } }, input, h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
+  body.append(form);
+  const bar = actionBar(body);
+  const next = h("button", { type: "button", class: "btn big" }, tr("Next clue"));
+  next.onclick = () => advance();
+  bar.append(next);
+  const timer = seconds ? Timer(seconds, () => end(0, true), typeHead(body)) : null;
+  function draw() {
+    list.replaceChildren();
+    clues.slice(0, shown).forEach((c, n) => list.append(h("p", { class: "reveal-clue" }, h("b", {}, tr("Clue {0} of {1}", n + 1, clues.length)), " ", c)));
+    next.hidden = shown >= clues.length;
+  }
+  function advance() {
+    if (over || shown >= clues.length) return;
+    shown++;
+    input.value = "";
+    draw();
+    input.focus();
+  }
+  function submit() {
+    if (over) return;
+    if (!input.value.trim()) { input.classList.remove("shake"); void input.offsetWidth; input.classList.add("shake"); return; }
+    const ok = window.Answers.checkAnswer(input.value, [q.answer], opts);
+    if (ok) return end(shown, false);
+    if (shown < clues.length) return advance();
+    end(0, false);
+  }
+  function end(stage, timedOut) {
+    if (over) return;
+    over = true;
+    timer && timer.stop();
+    input.disabled = true;
+    form.querySelector("button")?.remove();
+    next.remove();
+    const pts = window.Answers.revealScore(stage, value);
+    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(pts); }
+    const ans = q.answer || "";
+    const msg = timedOut ? tr("Time's up. Answer: {0}. +0", ans) : stage ? tr("Correct on clue {0}. +{1}", stage, pts) : tr("Answer: {0}. +0", ans);
+    feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
+    typeExplain(body, q);
+    done(pts);
+  }
+  draw();
+  setTimeout(() => input.focus(), 50);
+}
+function sliderSnap(n, min, max, step) {
+  const s = step > 0 ? step : 1;
+  const clamped = Math.min(max, Math.max(min, n));
+  const k = Math.round((clamped - min) / s);
+  return Math.min(max, Math.max(min, +(min + k * s).toFixed(6)));
+}
+function sliderArt(q) {
+  if (typeof q.marbles === "number" && window.marbleJar) {
+    const jar = window.marbleJar(q.marbles);
+    if (!jar) return null;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", jar.jar.view);
+    svg.setAttribute("class", "jar-svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", tr("A jar of marbles"));
+    const glass = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    glass.setAttribute("d", jar.jar.d);
+    glass.setAttribute("class", "jar-glass");
+    svg.append(glass);
+    const colors = ["#E8582A", "#1F2C7A", "#F2C230", "#2E9B57", "#C0262D"];
+    jar.pts.forEach((p, i) => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", jar.r * 0.86);
+      c.setAttribute("fill", colors[i % colors.length]);
+      svg.append(c);
+    });
+    return svg;
+  }
+  if (typeof q.image === "string" && q.image.trim()) return h("img", { class: "slider-photo", src: q.image, alt: "" });
+  return null;
+}
+function sliderQuestion(body, q, value, seconds, done) {
+  const min = q.min, max = q.max, step = q.step > 0 ? q.step : 1;
+  const tol = q.tolerance == null ? 0 : q.tolerance;
+  const percent = q.scale === "percent";
+  const perPct = q.per_pct == null ? 20 : q.per_pct;
+  let valueNow = window.Answers.sliderStart(min, max, step);
+  let over = false;
+  const art = sliderArt(q);
+  body.append(typeDiff(q));
+  body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  if (art) body.append(h("div", { class: "slider-art" }, art));
+  const unit = q.unit ? h("span", { class: "slider-unit" }, tr(q.unit)) : null;
+  const val = h("b", { class: "slider-val" }, String(valueNow));
+  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": q.prompt || tr("Your answer") });
+  const typed = q.typed ? h("input", { class: "txt slider-type", type: "number", inputmode: "numeric", min: String(min), max: String(max), step: String(step), value: String(valueNow), "aria-label": tr("Type a number") }) : null;
+  const show = n => {
+    if (!Number.isFinite(n)) return;
+    valueNow = sliderSnap(n, min, max, step);
+    range.value = String(valueNow);
+    val.textContent = String(valueNow);
+    if (typed && document.activeElement !== typed) typed.value = String(valueNow);
+  };
+  range.oninput = () => show(+range.value);
+  if (typed) typed.oninput = () => { if (typed.value === "" || typed.value === "-") return; show(+typed.value); };
+  const nudges = h("div", { class: "nudge-row" }, [-10, -1, 1, 10].map(d => {
+    const b = h("button", { type: "button", class: "btn nudge", "aria-label": (d > 0 ? "+" : "") + d }, (d > 0 ? "+" : "") + d);
+    b.onclick = () => { if (!over) show(valueNow + d); };
+    return b;
+  }));
+  const hint = percent
+    ? tr("Each 1% off costs {0} points.", perPct) + (tol > 0 ? " " + tr("Full points within {0}.", tol) : "")
+    : tr("Each 1 off costs {0} points.", q.per_unit) + (tol > 0 ? " " + tr("Full points within {0}.", tol) : "");
+  body.append(h("p", { class: "slider-readout" }, val, unit), range, nudges);
+  if (typed) body.append(h("label", { class: "slider-type-row" }, tr("Or type a number"), typed));
+  body.append(h("p", { class: "muted slider-hint" }, hint));
+  const bar = actionBar(body);
+  const lock = h("button", { type: "button", class: "btn primary big" }, tr("Lock in"));
+  lock.onclick = () => finish(false);
+  bar.append(lock);
+  const timer = seconds ? Timer(seconds, () => finish(true), typeHead(body)) : null;
+  function finish(timedOut) {
+    if (over) return;
+    over = true;
+    timer && timer.stop();
+    range.disabled = true;
+    if (typed) typed.disabled = true;
+    nudges.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    lock.remove();
+    const guess = timedOut ? null : valueNow;
+    const scoreOpts = { scale: q.scale, per_unit: q.per_unit, per_pct: q.per_pct, tolerance: q.tolerance };
+    const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, scoreOpts);
+    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(pts); }
+    const off = guess == null ? null : Math.abs(guess - q.answer);
+    const shown = String(q.answer) + (q.unit ? " " + tr(q.unit) : "");
+    const pct = guess == null || !q.answer ? null : off / Math.abs(q.answer) * 100;
+    const numText = n => Math.abs(n - Math.round(n)) < 1e-6 ? String(Math.round(n)) : String(Math.round(n * 10) / 10);
+    let msg;
+    if (timedOut) msg = tr("Time's up. Answer: {0}. +0", shown);
+    else if (off === 0) msg = tr("Exact. Answer: {0}. +{1}", shown, pts);
+    else if (!percent && tol > 0 && off <= tol) msg = tr("Within range. Answer: {0}. +{1}", shown, pts);
+    else if (percent && tol > 0 && pct <= tol) msg = tr("Within range. Answer: {0}. +{1}", shown, pts);
+    else if (percent) msg = tr("Off by {0}%. +{1}", numText(pct), pts);
+    else msg = tr("Off by {0}. Answer: {1}. +{2}", numText(off), shown, pts);
+    feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
+    typeExplain(body, q);
+    done(pts);
+  }
+}
+function runSlotDemo() {
+  const demo = window.SLOT_DEMO || {};
+  const shot = (location.search.match(/[?&]shot=(world|warp|mc|order|orderhint|match|matchhint|secs|think|emoji|flip)\b/) || [])[1] || "world";
+  session.practice = true;
+  session.inProgress = shot === "warp" || shot === "mc" || shot === "secs" ? 1 : shot === "world" ? 0 : shot === "think" || shot === "emoji" ? 4 : shot === "flip" ? 3 : 2;
+  session.partial = 0;
+  session.partialCat = session.inProgress;
+  session.scores = shot === "world" ? [] : shot === "warp" || shot === "mc" || shot === "secs" ? [0] : shot === "think" || shot === "emoji" ? [0, 0, 0, 0] : shot === "flip" ? [0, 0, 0] : [0, 0];
+  const q = { order: demo.order, orderhint: demo.orderHint, match: demo.match, matchhint: demo.matchHint }[shot];
+  if (shot === "world") session.set = Object.assign({}, session.set, { worldRush: demo.world });
+  else if (shot === "warp") session.set = Object.assign({}, session.set, { history: demo.history });
+  else if (shot === "mc") session.set = Object.assign({}, session.set, { history: demo.historyOther });
+  else if (shot === "secs") session.set = Object.assign({}, session.set, { history: { r1: demo.timed, r2: demo.history.r2 } });
+  else if (shot === "think") session.set = Object.assign({}, session.set, { thinkFast: [demo.thinkPair, { q: "Type belief.", answers: ["belief"] }] });
+  else if (shot === "emoji") session.set = Object.assign({}, session.set, { thinkFast: (window.EMOJI_DEMO || [])[0] });
+  else if (shot === "flip") session.set = Object.assign({}, session.set, { wordFlip: demo.flip });
+  else session.set = Object.assign({}, session.set, { sports: [q, q, q] });
+  if (shot === "warp" || shot === "mc" || shot === "secs") history();
+  else if (shot === "world") worldRush();
+  else if (shot === "think" || shot === "emoji") thinkFast();
+  else if (shot === "flip") wordFlip();
+  else sports();
+}
+function runTypeDemo() {
+  const list = (window.TYPE_DEMO || []).slice();
+  const shot = (location.search.match(/[?&]shot=(pair|reveal|slider)\b/) || [])[1];
+  let i = 0;
+  if (shot) { const j = list.findIndex(q => q.type === shot); if (j >= 0) i = j; }
+  const ask = () => {
+    if (!list.length) return;
+    const q = list[i];
+    session.demoAt = i;
+    session.inProgress = 0;
+    session.partial = 0;
+    const value = q.points || 300;
+    const body = screen("✦ " + tr("Type demo"), tr("Example {0} of {1} · {2} pts", i + 1, list.length, value));
+    const next = pts => {
+      session.scores.push(pts);
+      session.inProgress = null;
+      i++;
+      if (i < list.length) nextBtn(actionBar(body), tr("Next example →"), ask);
+      else {
+        session.demoAt = list.length - 1;
+        const doneBody = screen(tr("Type demo"), tr("Practice"));
+        const total = session.scores.reduce((a, b) => a + b, 0);
+        doneBody.append(h("p", { class: "prompt" }, tr("Demo complete")), h("p", { class: "slider-val" }, fmt(total)), h("p", { class: "muted" }, tr("This practice demo is not saved.")));
+      }
+    };
+    if (!playNewType(body, q, value, 45, next)) next(0);
+  };
+  ask();
+}
+
 function sports() {
   const qs = session.set.sports, vals = [250, 350, 400], labels = ["Easy", tr("Medium"), "Hard"];
   let total = 0, i = 0; const log = [];
@@ -1196,7 +1581,8 @@ function sports() {
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
     const t = q.type || "text";
-    if (t === "order") orderQuestion(body, q, vals[i], SPORTS_SECONDS, after);
+    if (playNewType(body, q, vals[i], SPORTS_SECONDS, after)) { /* pair, reveal, or slider */ }
+    else if (t === "order") orderQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "bracket") bracketQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "match") matchQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after, { timeoutZero: true });
@@ -1231,7 +1617,7 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
     skipBar.querySelector(".skip-btn")?.remove();
     if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
     if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
-    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, q: src && typeof src.q === "string" ? src.q : "" })
+    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
     feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);
@@ -1249,8 +1635,8 @@ function flipAccept(word, guess, dict) {
   return guess === word || flipFold(guess) === flipFold(word) || (sorted(guess) === sorted(word) && dict && dict.has(guess));
 }
 function wordFlip() {
-  const list = session.set.wordFlip, R = rng(session.day);
-  const body = screen("📝 Unscramble", "6 words · 60 seconds");
+  const packed = flipPack(session.set.wordFlip), list = packed.list, flipSecs = packed.secs, R = rng(session.day);
+  const body = screen("📝 Unscramble", "6 words · " + flipSecs + " seconds");
   let i = 0, total = 0, over = false, busy = false, built = [];
   // Any dictionary word using exactly the same letters also counts (e.g. LISTEN for SILENT).
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
@@ -1297,7 +1683,7 @@ function wordFlip() {
     return false;
   };
   body.append(h("p", { class: "kbd-tip" }, "⌨️ Type letters on your keyboard · Backspace to undo"));
-  const timer = Timer(60, end, body.parentNode.querySelector(".game-head"));
+  const timer = Timer(flipSecs, end, body.parentNode.querySelector(".game-head"));
   load();
 }
 
@@ -1526,6 +1912,13 @@ function guessQuestion(body, q, value, seconds, done, gq) {
     done(pts);
   }
 }
+function emojiQuestion(body, q, value, seconds, done) {
+  body.append(h("p", { class: "emoji-rebus" }, q.emoji || ""));
+  const answers = [].concat(q.answers || [], q.answer ? [q.answer] : []).filter(a => a != null && String(a).trim());
+  const parts = window.Answers.splitAccept(q.accept);
+  const src = Object.assign({}, q, { aliases: [].concat(q.aliases || [], parts.aliases), given: [].concat(q.given || [], parts.given), exactOnly: q.exactOnly });
+  textQuestion(body, pairLabel(q.prompt || q.q || "What word do these emojis spell?"), answers, value, seconds, done, null, answers[0] || "", q.explain, src, { timeoutZero: true });
+}
 function thinkFast() {
   const qs = session.set.thinkFast.map(normPuzzle), vals = [400, 600];
   let total = 0, i = 0; const log = [];
@@ -1535,7 +1928,9 @@ function thinkFast() {
     const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), tr("Final puzzle →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
-    if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
+    if (q.type === "emoji" || q.type === "emoji-rebus" || q.kind === "emoji-rebus") emojiQuestion(body, q, vals[i], TBD.think, next);
+    else if (playNewType(body, q, vals[i], TBD.think, next, 20)) { /* pair uses 20s per round; reveal and slider keep the category timer */ }
+    else if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
       mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); next(pts); },
@@ -2091,7 +2486,7 @@ function fitScreen() {
     return;
   }
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
-  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
+  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
   // nov2a: prompt text must stay >= 16px after zoom; if that still overflows, the card scrolls (fit-scroll) instead.
@@ -2124,8 +2519,16 @@ syncClock();
 // skip practice sessions, so daily progress, stats and streaks are never touched.
 window.BCDaily = Object.freeze({ getDailySet, keyOf, dayOfKey, todayKey: () => keyOf(zoneDay(now())), gameNumber, wordGames: WORD_GAMES.map(w => ({ ...w })) });
 const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) || [])[1];
+const DEMO_PREVIEW = /[?&]preview=demo\b/.test(location.search);
+const SLOT_PREVIEW = /[?&]preview=slots\b/.test(location.search);
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
-else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
+else if (SLOT_PREVIEW) {
+  session = newSession(true); session.key = "demo"; session.day = dayOfKey(LAUNCH_DATE); session.scores = [];
+  document.title = "Slot demo — Daily Dose"; runSlotDemo();
+} else if (DEMO_PREVIEW) {
+  session = newSession(true); session.key = "demo"; session.day = dayOfKey(LAUNCH_DATE); session.scores = [];
+  document.title = "Type demo — Daily Dose"; runTypeDemo();
+} else if (PREVIEW_KEY && !isNaN(dayOfKey(PREVIEW_KEY))) {
   session = newSession(true); session.key = PREVIEW_KEY; session.day = dayOfKey(PREVIEW_KEY); session.set = getDailySet(PREVIEW_KEY);
   document.title = "Preview " + PREVIEW_KEY + " — Daily Dose"; window.BCPreview = Object.freeze({ key: PREVIEW_KEY, cat: () => session.scores.length }); runNext();
 } else home();

@@ -37,6 +37,22 @@ t("bret without allowlist", A.checkAnswer("Bret", favreA, { aliases: favreO.alia
 t("hakeem still not a given name", A.checkAnswer("Hakeem", ["hakeem olajuwon", "olajuwon"], { person: true, q: "Who?" }), false);
 t("karl still not a given name", A.checkAnswer("Karl", ["karl malone", "malone"], { person: true, q: "Who?" }), false);
 t("brandi still rejected", A.checkAnswer("Brandi", ["chastain", "brandi chastain"], { wrong: ["brandi"], q: "Fill in her surname." }), false);
+// Florence Griffith Joyner and Jackie Joyner-Kersee share the surname, so a bare "joyner" is not Flo-Jo.
+const flo = ["florence griffith joyner", "flo-jo", "flo jo"];
+const floQ = { person: true, q: "Who is this?" };
+t("joyner is ambiguous", A.AMBIGUOUS_SURNAMES.has("joyner"), true);
+["joyner", "Joyner", "JOYNER", "Joyner!"].forEach(s => t("bare joyner rejected " + s, A.checkAnswer(s, flo, floQ), false));
+["Jackie Joyner-Kersee", "jackie joyner kersee", "joyner-kersee", "kersee"].forEach(s => t("other joyner rejected " + s, A.checkAnswer(s, flo, floQ), false));
+["Florence Griffith Joyner", "Florence Griffith-Joyner", "Flo-Jo", "Flo Jo", "flojo"].forEach(s => t("flo-jo still accepted " + s, A.checkAnswer(s, flo, floQ), true));
+const joynerAccept = A.splitAccept(["joyner"]);
+t("listed accept joyner", A.checkAnswer("joyner", flo, Object.assign({}, floQ, joynerAccept)), true);
+const aliExact = { aliases: ["Muhammad"], exactOnly: ["Muhammad"], q: "Who is this?" };
+t("exactOnly muhammad", A.checkAnswer("Muhammad", ["Muhammad Ali"], aliExact), true);
+t("muhamma is not Muhammad", A.checkAnswer("muhamma", ["Muhammad Ali"], aliExact), false);
+t("given cassius", A.checkAnswer("Cassius", ["Cassius Clay"], { aliases: ["Cassius"], given: ["Cassius"], q: "Who is this?" }), true);
+t("cassiu is not Cassius", A.checkAnswer("cassiu", ["Cassius Clay"], { aliases: ["Cassius"], given: ["Cassius"], q: "Who is this?" }), false);
+t("exactOnly willie", A.checkAnswer("Willie", ["Willie Mays"], { aliases: ["Willie"], exactOnly: ["Willie"], q: "Who is this?" }), true);
+t("willi is not Willie", A.checkAnswer("willi", ["Willie Mays"], { aliases: ["Willie"], exactOnly: ["Willie"], q: "Who is this?" }), false);
 A.setLang("es");
 ["Brett", "Bret", "Farve", "Fávre", "Brett Favre"].forEach(s => t("es favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
 ["brent", "rodgers", "packers", "", "asdf"].forEach(s => t("es favre reject " + s, A.checkAnswer(s, favreA, favreO), false));

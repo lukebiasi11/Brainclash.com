@@ -107,6 +107,106 @@ window.CONTENT = {
     {"pins":[{"name":"Copenhagen, Denmark","lat":55.68,"lon":12.57},{"name":"Miami, USA","lat":25.77,"lon":-80.19}],"mc":{"q":"The Great Barrier Reef lies off the coast of which country?","options":["Indonesia","Philippines","Australia","New Zealand"],"a":2}},
     {"pins":[{"name":"Venice, Italy","lat":45.44,"lon":12.34},{"name":"Kyoto, Japan","lat":35.01,"lon":135.77}],"mc":{"q":"Mont Blanc, the highest peak in the Alps, sits on the border of Italy and which country?","options":["Switzerland","France","Austria","Germany"],"a":1}},
     {"pins":[{"name":"Barcelona, Spain","lat":41.38,"lon":2.18},{"name":"Washington, D.C., USA","lat":38.9,"lon":-77.02}],"mc":{"q":"Which continent has the most countries?","options":["Asia","Europe","Africa","South America"],"a":2}}
+  ,
+    {
+      "pins": [
+        {
+          "name": "Machu Picchu, Peru",
+          "lat": -13.16,
+          "lon": -72.55
+        },
+        {
+          "name": "Jerusalem",
+          "lat": 31.78,
+          "lon": 35.22
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is bigger by area?",
+          "es": "¿Cuál tiene mayor superficie?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Alaska",
+              "es": "Alaska"
+            },
+            "right": {
+              "en": "Texas",
+              "es": "Texas"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Alaska 1.72 million km2 vs Texas 0.70 million km2.",
+              "es": "Alaska: 1,72 millones de km². Texas: 0,70 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "India",
+              "es": "India"
+            },
+            "right": {
+              "en": "Canada",
+              "es": "Canadá"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Canada 9.98 million km2 vs India 3.29 million km2.",
+              "es": "Canadá: 9,98 millones de km². India: 3,29 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "California",
+              "es": "California"
+            },
+            "right": {
+              "en": "Texas",
+              "es": "Texas"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Texas 695,660 km2 vs California 423,970 km2.",
+              "es": "Texas: 695.660 km². California: 423.970 km²."
+            }
+          },
+          {
+            "left": {
+              "en": "Greenland",
+              "es": "Groenlandia"
+            },
+            "right": {
+              "en": "Mexico",
+              "es": "México"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Greenland 2.17 million km2 vs Mexico 1.97 million km2.",
+              "es": "Groenlandia: 2,17 millones de km². México: 1,97 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "Australia",
+              "es": "Australia"
+            },
+            "right": {
+              "en": "The Sahara Desert",
+              "es": "El desierto del Sahara"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Sahara 9.2 million km2 vs Australia 7.69 million km2.",
+              "es": "El Sahara: 9,2 millones de km². Australia: 7,69 millones de km²."
+            }
+          }
+        ],
+        "explain": "Areas from Wikipedia: Alaska 1,717,856; Texas 695,660; Canada 9,984,670; India 3,287,263; California 423,970; Greenland 2,166,086; Mexico 1,972,550; Sahara 9,200,000; Australia 7,688,287 (all km2)."
+      }
+    }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
   // Each event: ["emoji", "Event name", year, "image id"] (image id optional; emoji is the fallback)
@@ -190,6 +290,64 @@ window.CONTENT = {
     {"r1":{"theme":"Americana","events":[["🦬","Yellowstone becomes the first national park",1872],["🛣️","Route 66 established",1926],["🏰","Disneyland opens",1955],["🌉","St. Louis Gateway Arch completed",1965]]},"r2":{"theme":"New nations","events":[["🍁","Canada becomes a country (Confederation)",1867],["🦘","Australia federates",1901],["☘️","Irish Free State founded",1922],["🇯🇲","Jamaica gains independence",1962],["🇸🇸","South Sudan gains independence",2011]]}},
     {"r1":{"theme":"Sky discoveries","events":[["🔭","Uranus discovered",1781],["🪐","Neptune discovered",1846],["❄️","Pluto discovered",1930],["📉","Pluto reclassified as a dwarf planet",2006]]},"r2":{"theme":"Books that changed minds","events":[["💰","Adam Smith's The Wealth of Nations",1776],["📕","The Communist Manifesto",1848],["📔","The Diary of Anne Frank published",1947],["🐦","Rachel Carson's Silent Spring",1962],["🌌","Hawking's A Brief History of Time",1988]]}},
     {"r1":{"theme":"Superhero & cartoon debuts","events":[["🦇","Batman debuts",1939],["🕷️","Spider-Man debuts",1962],["🐢","Teenage Mutant Ninja Turtles debut",1984],["🟢","Shrek released",2001]]},"r2":{"theme":"Great buildings","events":[["🏛️","Parthenon construction begins",-447],["🏟️","Colosseum inaugurated",80],["⛪","Notre-Dame de Paris construction begins",1163],["🗼","Leaning Tower of Pisa construction begins",1173],["⛪","St. Peter's Basilica completed",1626]]}}
+  ,
+    {
+      "r1": {
+        "theme": "American events",
+        "events": [
+          [
+            "🚣",
+            "The Erie Canal opens",
+            1825
+          ],
+          [
+            "❄️",
+            "The US buys Alaska from Russia",
+            1867
+          ],
+          [
+            "🌋",
+            "Mount St. Helens erupts",
+            1980
+          ],
+          [
+            "🌀",
+            "Hurricane Katrina hits the Gulf Coast",
+            2005
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Great journeys",
+        "events": [
+          [
+            "🐘",
+            "Hannibal crosses the Alps with his army",
+            -218
+          ],
+          [
+            "🚢",
+            "Zheng He sets sail on his first treasure voyage",
+            1405
+          ],
+          [
+            "🌍",
+            "Magellan's expedition completes the first trip around the world",
+            1522
+          ],
+          [
+            "📰",
+            "Nellie Bly finishes her race around the world in 72 days",
+            1890
+          ],
+          [
+            "🛶",
+            "The Kon-Tiki raft sets sail across the Pacific",
+            1947
+          ]
+        ]
+      }
+    }
   ],
   // ---------- 3. SPORTS IQ ----------
   // img = optional image id; visual (emoji) is the fallback
@@ -255,6 +413,145 @@ window.CONTENT = {
     [{"type":"mc","kind":"which-first","q":"Which happened first?","options":["The first WrestleMania","Tony Hawk lands skateboarding's first \"900\""],"a":0,"explain":"WrestleMania I was in 1985; Hawk's 900 was in 1999."},{"type":"text","kind":"jersey-number","visual":true,"img":"sports-m01-d12-q2","q":"No. 13 — Miami Dolphins quarterback with the lightning-quick release. Who?","answers":["dan marino","marino"],"aliases":["danny marino"],"wrong":["dan","dolphins","miami"],"explain":"Dan Marino; the Dolphins retired his No. 13."},{"type":"bracket","kind":"bracket","round":"Super Bowl VII (January 1973)","q":"This game capped the NFL's only perfect season. Who won Super Bowl VII?","matchup":["Redskins","Dolphins"],"a":1,"explain":"Miami beat Washington 14–7 to finish 17–0."}],
     [{"type":"text","kind":"fill","q":"A \"hole in one\" happens in which sport?","answers":["golf"],"aliases":["mini golf","minigolf"],"wrong":["hole","one","billiards","pool"],"explain":"A hole in one is a golf shot that goes straight into the cup from the tee."},{"type":"text","kind":"stat-chart","visual":true,"img":"sports-m01-d13-q2","q":"This bar shows 755 career home runs — the MLB record for 33 years, set by the Braves slugger who passed Babe Ruth. Who?","answers":["hank aaron","aaron"],"aliases":["henry aaron","hammerin hank"],"wrong":["babe ruth","ruth","hank"],"explain":"Hank Aaron's 755 stood as the record until 2007."},{"type":"match","kind":"match-records","q":"Match each Olympian to their feat.","left":["Florence Griffith Joyner","Michael Johnson","Jackie Joyner-Kersee","Greg Louganis"],"right":["Hit his head on the board, still won gold (1988)","Won the 200 m and 400 m at one Olympics","Heptathlon and long jump golds at Seoul 1988","100 m in 10.49 seconds"],"pairs":[3,1,2,0],"explain":"Flo-Jo ran 10.49 (1988); Johnson won the 200/400 double in Atlanta 1996; Joyner-Kersee won heptathlon and long jump gold in 1988; Louganis struck his head in Seoul and still won."}],
     [{"type":"guess","kind":"year-guess","q":"In what year did the United States host the men's FIFA World Cup?","answer":1994,"unit":"year","exactYear":true,"explain":"USA '94: June 17 – July 17, 1994."},{"type":"text","kind":"moment","visual":true,"img":"sports-m01-d14-q2","q":"Diagram: January 1982 NFC Championship, 49ers vs Cowboys — a quarterback rolls right and lofts a pass to Dwight Clark leaping in the back of the end zone (\"The Catch\"). Who threw it?","answers":["joe montana","montana"],"aliases":["joey montana"],"wrong":["joe","dwight clark","clark"],"explain":"Joe Montana's 6-yard TD pass to Dwight Clark beat Dallas 28–27."},{"type":"order","kind":"team-path","q":"Put Dennis Rodman's NBA teams in order, first to last.","items":["Pistons","Spurs","Bulls","Lakers","Mavericks"],"explain":"Detroit Pistons → San Antonio Spurs → Chicago Bulls → Los Angeles Lakers → Dallas Mavericks."}]
+  ,
+    [
+      {
+        "type": "pair",
+        "visual": "🏈",
+        "prompt": {
+          "en": "Over or Under? Pick the true side.",
+          "es": "¿Más de o menos de? Elige la verdadera."
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Tom Brady won OVER 5 Super Bowls",
+              "es": "Tom Brady ganó MÁS DE 5 Super Bowls"
+            },
+            "right": {
+              "en": "Tom Brady won UNDER 5 Super Bowls",
+              "es": "Tom Brady ganó MENOS DE 5 Super Bowls"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Brady won 7 Super Bowls.",
+              "es": "Brady ganó 7 Super Bowls."
+            }
+          },
+          {
+            "left": {
+              "en": "Joe Montana won OVER 5 Super Bowls",
+              "es": "Joe Montana ganó MÁS DE 5 Super Bowls"
+            },
+            "right": {
+              "en": "Joe Montana won UNDER 5 Super Bowls",
+              "es": "Joe Montana ganó MENOS DE 5 Super Bowls"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Montana won 4 Super Bowls, all with the 49ers.",
+              "es": "Montana ganó 4 Super Bowls, todos con los 49ers."
+            }
+          },
+          {
+            "left": {
+              "en": "Emmitt Smith ran for OVER 17,000 career yards",
+              "es": "Emmitt Smith corrió para MÁS DE 17,000 yardas en su carrera"
+            },
+            "right": {
+              "en": "Emmitt Smith ran for UNDER 17,000 career yards",
+              "es": "Emmitt Smith corrió para MENOS DE 17,000 yardas en su carrera"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Smith retired with 18,355 rushing yards.",
+              "es": "Smith se retiró con 18.355 yardas por tierra."
+            }
+          },
+          {
+            "left": {
+              "en": "Barry Sanders ran for OVER 16,000 career yards",
+              "es": "Barry Sanders corrió para MÁS DE 16,000 yardas en su carrera"
+            },
+            "right": {
+              "en": "Barry Sanders ran for UNDER 16,000 career yards",
+              "es": "Barry Sanders corrió para MENOS DE 16,000 yardas en su carrera"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Sanders retired after 10 seasons with 15,269 yards.",
+              "es": "Sanders se retiró tras 10 temporadas con 15.269 yardas."
+            }
+          },
+          {
+            "left": {
+              "en": "Dan Marino threw for OVER 5,000 yards in 1984",
+              "es": "Dan Marino lanzó para MÁS DE 5,000 yardas en 1984"
+            },
+            "right": {
+              "en": "Dan Marino threw for UNDER 5,000 yards in 1984",
+              "es": "Dan Marino lanzó para MENOS DE 5,000 yardas en 1984"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Marino threw for 5,084 yards in 1984.",
+              "es": "Marino lanzó para 5.084 yardas en 1984."
+            }
+          }
+        ],
+        "explain": "All figures are career or single-season totals for retired players."
+      },
+      {
+        "type": "text",
+        "kind": "fill",
+        "visual": "🏈",
+        "q": "Which NFL team's rowdy end-zone fans are known as the \"Dawg Pound\"?",
+        "answers": [
+          "cleveland browns",
+          "browns",
+          "the browns"
+        ],
+        "aliases": [
+          "cleveland brown"
+        ],
+        "wrong": [
+          "cleveland",
+          "dogs",
+          "bengals"
+        ],
+        "noSurname": true,
+        "explain": "The Dawg Pound is the end-zone bleacher section where Cleveland Browns fans gather."
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "visual": "🏈",
+        "q": "Match each NFL legend to the team he is best known for.",
+        "left": [
+          "Dan Marino",
+          "Barry Sanders",
+          "Joe Namath",
+          "Terry Bradshaw"
+        ],
+        "right": [
+          "New York Jets",
+          "Detroit Lions",
+          "Pittsburgh Steelers",
+          "Miami Dolphins"
+        ],
+        "pairs": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "hint": {
+          "en": "Tap a legend, then the team he is best known for, to pair them.",
+          "es": "Toca a una leyenda y luego el equipo con el que más se le identifica para emparejarlos."
+        },
+        "explain": "Marino: Dolphins. Sanders: Lions. Namath: Jets. Bradshaw: Steelers."
+      }
+    ]
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
   // Word Flip hint types: "definition", "synonym", "antonym", "riddle"
@@ -497,5 +794,45 @@ window.CONTENT = {
     [{"cat":"thinking","kind":"math","q":"Half of a number is 8 more than a quarter of it. What is the number?","answers":["32","thirty two"],"aliases":["thirtytwo","thirty-two"],"wrong":["16","8","24"],"explain":"Half minus a quarter is a quarter, so a quarter is 8 and the number is 32. Check: 16 = 8 + 8"},{"cat":"fun","kind":"riddle","q":"I have hands but I can't clap, and a face but I can't smile. What am I?","answers":["clock","a clock"],"aliases":["clocks","the clock","watch","a watch","wristwatch","wall clock","alarm clock","clock face"],"wrong":["lock","cloak"],"explain":"A clock (a watch works too)"}],
     [{"cat":"thinking","kind":"sequence","q":"What comes next? 1, 2, 3, 6, 11, 20, ___","answers":["37","thirty seven"],"aliases":["thirtyseven","thirty-seven"],"wrong":["31","33","39"],"explain":"Each term is the sum of the three before it: 6 + 11 + 20 = 37"},{"cat":"fun","type":"guess","kind":"guesstimate","q":"Guesstimate: add up the days in every month that has 31 days. What is the total?","answer":217,"unit":"days","explain":"Seven months have 31 days (Jan, Mar, May, Jul, Aug, Oct, Dec): 7 × 31 = 217"}],
     [{"cat":"thinking","kind":"logic","q":"You have 9 coins that look the same, but one is lighter. Using a balance scale, what is the fewest weighings that always finds the light coin?","answers":["2","two"],"aliases":["2 weighings","two weighings","2 times","twice"],"wrong":["3","1","4","8"],"explain":"Weigh 3 against 3. The lighter side holds it, or it is in the 3 left off. Then weigh 1 against 1 from that group the same way"},{"cat":"fun","kind":"riddle","q":"I have a ring but no finger, and I can call but I have no voice. What am I?","answers":["phone","a phone","telephone","a telephone"],"aliases":["phones","the phone","cell phone","cellphone","mobile phone","mobile","smartphone"],"explain":"A phone"}]
+  ,
+    [
+      {
+        "cat": "thinking",
+        "kind": "logic",
+        "q": "Sam says: \"Tia is lying.\" Tia says: \"Uma is lying.\" Uma says: \"Sam and Tia are both lying.\" Exactly one of the three is telling the truth. Who?",
+        "answers": [
+          "tia"
+        ],
+        "aliases": [
+          "tia is telling the truth",
+          "it is tia",
+          "its tia",
+          "tia is truthful"
+        ],
+        "wrong": [
+          "sam",
+          "uma"
+        ],
+        "noSurname": true,
+        "explain": "If Sam were truthful, Tia would be lying, which makes Uma truthful too: two truth-tellers, impossible. If Uma were truthful, Sam would be lying, so Tia would be truthful: again two. Only Tia works: Sam and Uma are then both lying, exactly as Tia says Uma is."
+      },
+      {
+        "cat": "fun",
+        "type": "mc",
+        "kind": "illusion",
+        "img": "illusion-07",
+        "q": "Which labeled segment on the right continues the diagonal line from the left?",
+        "options": [
+          "Segment A",
+          "Segment B",
+          "Segment C"
+        ],
+        "a": 1,
+        "explain": "Segment B lines up exactly with the line on the left. The gray bar fools your eye into shifting the line (Poggendorff illusion)."
+      }
+    ]
   ]
 };
+// 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
+window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
+window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};

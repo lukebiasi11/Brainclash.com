@@ -1157,3 +1157,32 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .privacy-card .lang-toggle{margin:8px 0 0}
 .privacy-updated{color:#8b93a7;font-size:13px;font-weight:800}
 .privacy-card a{color:#1F2C7A;font-weight:800}
+
+/* Pair, reveal, and slider. Tap targets stay at least 44px. Cards stack so 360px doesn't overflow sideways. */
+.q-diff{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.pair-meta{margin:0 0 4px;font-weight:800}
+.pair-cards{display:flex;flex-direction:column;gap:10px}
+.pair-cards .opt,body.in-game .pair-cards .opt{min-height:72px;padding:12px 16px;font-size:20px;text-align:center;display:flex;align-items:center;justify-content:center}
+@media (max-height:700px){body.in-game .pair-cards .opt{min-height:72px;font-size:18px}}
+.pair-note{min-height:0;margin:8px 0 0;font-weight:800}
+.pair-note.good{color:#0B4D27}
+.pair-note.bad{color:#9f1239}
+.reveal-clues{display:flex;flex-direction:column;gap:8px}
+.reveal-clue{margin:0;padding:12px 14px;border:2px solid var(--ink-bc,#1F2C7A);border-radius:14px;background:var(--cream,#fff);font-weight:700;line-height:1.35}
+.reveal-clue b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.slider-readout{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:4px 0}
+.slider-val{font-size:42px;line-height:1}
+.slider-unit{font-weight:800}
+.slider-range,body.in-game .slider-range{display:block;width:100%;height:44px;min-height:44px;margin:4px 0 8px;background:transparent;accent-color:#E8582A;-webkit-appearance:none;appearance:none}
+.slider-range::-webkit-slider-runnable-track{height:8px;background:#1F2C7A;border-radius:8px}
+.slider-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:44px;height:44px;margin-top:-18px;border-radius:50%;background:#E8582A;border:2px solid #120B2E}
+.nudge-row{display:flex;gap:8px}
+.nudge-row .nudge,body.in-game .nudge-row .nudge{flex:1 1 0;min-width:44px;min-height:44px;height:44px;padding:8px 0}
+.slider-hint{margin-top:6px}
+.slider-art{display:flex;justify-content:center;margin:0 0 6px}
+.jar-svg{width:min(168px,62%);height:auto;display:block}
+.jar-glass{fill:rgba(255,255,255,.35);stroke:#120B2E;stroke-width:3}
+.slider-photo{display:block;max-width:100%;max-height:150px;margin:0 auto;object-fit:contain}
+.slider-type-row{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:13px;margin-top:6px}
+.slider-type{min-height:44px;width:100%}
+.emoji-rebus{font-size:72px;line-height:1.15;text-align:center;margin:8px 0 4px;letter-spacing:.04em}

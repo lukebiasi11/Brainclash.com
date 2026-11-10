@@ -4,7 +4,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, ".."), errs = [];
 const win = {};
-for (const f of ["content.js", "anagrams.js"]) {
+for (const f of ["content.js", "anagrams.js", "demo-types.js"]) {
   try { vm.runInNewContext(fs.readFileSync(path.join(root, f), "utf8"), { window: win }, { filename: f }); }
   catch (e) { errs.push(`${f}: SYNTAX ERROR — ${e.message}${e.stack ? " (" + (e.stack.split("\n")[0]) + ")" : ""}`); }
 }
@@ -16,22 +16,113 @@ if (fs.existsSync(samplesPath)) {
 const C = win.CONTENT, A = win.ANAGRAM_SETS;
 const E = (where, msg) => errs.push(`${where}: ${msg}`);
 const str = v => typeof v === "string" && v.trim() !== "";
+const textOrI18n = v => str(v) || (!!v && typeof v === "object" && !Array.isArray(v) && (str(v.en) || str(v.es)));
+const hintOk = textOrI18n;
 const list = (v, n) => Array.isArray(v) && (n == null || v.length === n);
 const mc = (w, o) => { if (!str(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
-const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
-if (C) {
-  bank("worldRush", (w, d) => {
-    if (!list(d.pins, 2)) E(w, "needs exactly 2 pins");
-    else d.pins.forEach((p, j) => { if (!str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
-    if (!d.mc) E(w, "missing mc"); else mc(w + " mc", d.mc); if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
+const DIFFS = new Set(["easy", "medium", "hard"]);
+const typeMeta = (w, q) => {
+  if (q.difficulty != null && !DIFFS.has(q.difficulty)) E(w, "difficulty must be easy, medium, or hard");
+  if (q.explain != null && !str(q.explain)) E(w, "explain must be text");
+};
+const pairQ = (w, q) => {
+  typeMeta(w, q);
+  if (!textOrI18n(q.prompt)) E(w, "missing prompt");
+  if (!list(q.rounds, 5)) return E(w, "rounds must be exactly 5");
+  q.rounds.forEach((r, i) => {
+    const ww = w + " round " + (i + 1);
+    if (!r || !textOrI18n(r.left) || !textOrI18n(r.right)) E(ww, "needs left and right text");
+    if (r.correct !== "left" && r.correct !== "right") E(ww, 'correct must be "left" or "right"');
+    if (r.note != null && !textOrI18n(r.note)) E(ww, "note must be text");
   });
-  bank("history", (w, d) => [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
-    const x = d[r]; if (!x) return E(w, `missing ${r}`);
-    if (!str(x.theme)) E(`${w} ${r}`, "missing theme");
-    if (!list(x.events, n)) return E(`${w} ${r}`, `needs exactly ${n} events`);
-    x.events.forEach((e, j) => { if (!((list(e, 3) || (list(e, 4) && str(e[3]))) && str(e[0]) && str(e[1]) && Number.isFinite(e[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
-    const ys = x.events.map(e => e[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
-  }));
+  if (q.roundSeconds != null && !(typeof q.roundSeconds === "number" && isFinite(q.roundSeconds) && q.roundSeconds > 0)) E(w, "roundSeconds must be a number of seconds");
+};
+const revealQ = (w, q) => {
+  typeMeta(w, q);
+  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!list(q.clues, 3) || !q.clues.every(str)) E(w, "clues must be exactly 3 strings, easiest last");
+  if (!str(q.answer)) E(w, "missing answer");
+  if (!list(q.accept) || !q.accept.length || !q.accept.every(str)) E(w, "accept must be a non-empty list of text");
+  if (q.given != null && !(list(q.given) && q.given.every(str))) E(w, "given must be a list of text");
+  if (q.exactOnly != null && !(list(q.exactOnly) && q.exactOnly.every(str))) E(w, "exactOnly must be a list of text");
+};
+const sliderQ = (w, q) => {
+  typeMeta(w, q);
+  if (!str(q.prompt)) E(w, "missing prompt");
+  ["min", "max", "step", "answer"].forEach(k => { if (typeof q[k] !== "number" || !isFinite(q[k])) E(w, k + " must be a finite number"); });
+  if (!(q.max > q.min)) E(w, "max must be greater than min");
+  if (!(q.step > 0)) E(w, "step must be > 0");
+  if (typeof q.answer === "number" && (q.answer < q.min || q.answer > q.max)) E(w, "answer must be between min and max");
+  else if (typeof q.answer === "number" && q.step > 0 && Math.abs((q.answer - q.min) / q.step - Math.round((q.answer - q.min) / q.step)) > 1e-6) E(w, "answer must land on a step");
+  if (q.unit != null && !str(q.unit)) E(w, "unit must be text");
+  if (q.image != null && !str(q.image)) E(w, "image must be a local asset path");
+  if (q.typed != null && typeof q.typed !== "boolean") E(w, "typed must be true or false");
+  if (q.scale != null && q.scale !== "unit" && q.scale !== "percent") E(w, 'scale must be "unit" or "percent"');
+  if (q.falloff != null) E(w, "falloff is not used; set per_unit, or scale percent with per_pct");
+  if (q.tolerance != null && !(typeof q.tolerance === "number" && isFinite(q.tolerance) && q.tolerance >= 0)) E(w, "tolerance must be a number >= 0");
+  if (q.per_unit != null && !(typeof q.per_unit === "number" && isFinite(q.per_unit) && q.per_unit >= 0)) E(w, "per_unit must be a number >= 0");
+  if (q.per_pct != null && !(typeof q.per_pct === "number" && isFinite(q.per_pct) && q.per_pct >= 0)) E(w, "per_pct must be a number >= 0");
+  if (q.scale === "percent") { if (q.answer === 0) E(w, "percent scale needs a non-zero answer"); }
+  else if (!(typeof q.per_unit === "number" && q.per_unit > 0)) E(w, "per_unit is required unless scale is percent");
+  const start = q.min + (q.max - q.min) / 2;
+  const stepN = q.step > 0 ? q.step : 1;
+  const snapped = Math.min(q.max, Math.max(q.min, q.min + Math.round((start - q.min) / stepN) * stepN));
+  if (typeof q.answer === "number" && Math.abs(q.answer - snapped) <= 0.1 * Math.max(Math.abs(snapped), 1)) E(w, "answer is within 10% of the slider start, which gives the answer away");
+};
+const bank = (k, fn) => { const b = C && C[k]; if (!list(b) || !b.length) return E(k, "must be a non-empty list"); b.forEach((it, i) => { try { fn(`${k} day ${i + 1}`, it); } catch (e) { E(`${k} day ${i + 1}`, "malformed — " + e.message); } }); };
+let checkWorldDay = () => ["content.js: window.CONTENT not found"];
+let checkHistoryDay = checkWorldDay;
+let checkSportsQuestion = checkWorldDay;
+if (C) {
+  const capture = fn => {
+    const start = errs.length;
+    fn();
+    const mine = errs.slice(start);
+    errs.length = start;
+    return mine;
+  };
+  checkWorldDay = (w, d) => capture(() => {
+    if (!d || typeof d !== "object") return E(w, "malformed");
+    if (!list(d.pins, 2)) E(w, "needs exactly 2 pins");
+    else d.pins.forEach((p, j) => { if (!p || !str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(p && typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(p && typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
+    const hasMc = d.mc != null, hasPair = d.pair != null;
+    if (d.reveal != null || d.slider != null || d.type === "reveal" || d.type === "slider" || (d.mc && (d.mc.type === "reveal" || d.mc.type === "slider" || d.mc.type === "pair"))) E(w, "the third question is multiple choice or a pair. Reveal and slider are not used, and a pair does not replace the pins");
+    if (d.type === "pair" && !hasPair) E(w, "put the pair on the pair field so it does not replace the two pins");
+    if (hasMc && hasPair) E(w, "the third slot is one question: multiple choice or a pair, not both");
+    else if (!hasMc && !hasPair) E(w, "missing the third question (multiple choice or a pair)");
+    else if (hasPair) {
+      if (d.pair.type != null && d.pair.type !== "pair") E(w + " pair", 'type must be "pair"');
+      pairQ(w + " pair", d.pair);
+    } else {
+      if (d.mc.type != null && d.mc.type !== "mc") E(w + " mc", 'type must be "mc"');
+      mc(w + " mc", d.mc);
+      if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
+    }
+  });
+  checkHistoryDay = (w, d) => capture(() => {
+    if (!d || typeof d !== "object") return E(w, "malformed");
+    if (d.type === "slider" || d.slider != null) E(w, "slider is not allowed in Time Warp; the timeline style stays");
+    [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
+      const x = d[r]; if (!x) return E(w, `missing ${r}`);
+      const t = x.type;
+      if (t === "slider") return E(w, "slider is not allowed in Time Warp; the timeline style stays");
+      if (t === "pair") return pairQ(`${w} ${r}`, x);
+      if (t === "reveal") return revealQ(`${w} ${r}`, x);
+      if (t === "mc") return mc(`${w} ${r}`, x);
+      if (t === "text" || t === "typed") {
+        if (!str(x.q)) E(`${w} ${r}`, "missing q");
+        if (!list(x.answers) || !x.answers.length || !x.answers.every(str)) E(`${w} ${r}`, "answers must be a list of text");
+        return;
+      }
+      if (t != null && t !== "timeline") return E(`${w} ${r}`, "type must be timeline, mc, text, pair, or reveal");
+      if (!str(x.theme)) E(`${w} ${r}`, "missing theme");
+      if (!list(x.events, n)) return E(`${w} ${r}`, `needs exactly ${n} events`);
+      x.events.forEach((ev, j) => { if (!((list(ev, 3) || (list(ev, 4) && str(ev[3]))) && str(ev[0]) && str(ev[1]) && Number.isFinite(ev[2]))) E(`${w} ${r} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
+      const ys = x.events.map(ev => ev[2]); if (new Set(ys).size !== ys.length) E(`${w} ${r}`, "two events share a year (order would be ambiguous)");
+    });
+  });
+  bank("worldRush", (w, d) => { checkWorldDay(w, d).forEach(msg => errs.push(msg)); });
+  bank("history", (w, d) => { checkHistoryDay(w, d).forEach(msg => errs.push(msg)); });
   const SPORTS_TEXT_KINDS = new Set(["fill", "stat-chart", "moment", "color-swatch", "jersey-number", "common-teammate"]);
   const sportsQ = (ww, q) => {
     const t = q.type || "text";
@@ -49,6 +140,7 @@ if (C) {
         if (q.aliases && !(list(q.aliases) && q.aliases.every(str))) E(ww, "aliases must be a list of text");
       } else if (!list(q.answers) || !q.answers.length || !q.answers.every(str)) E(ww, "answers must be a list of text");
       if (q.given && !(list(q.given) && q.given.length && q.given.every(str))) E(ww, "given must be a list of text");
+      if (q.exactOnly && !(list(q.exactOnly) && q.exactOnly.length && q.exactOnly.every(str))) E(ww, "exactOnly must be a list of text");
       if (q.kind && !SPORTS_TEXT_KINDS.has(q.kind)) E(ww, "unknown text kind " + q.kind);
       if (q.kind && q.kind !== "fill" && q.kind !== "common-teammate" && !str(q.img)) E(ww, q.kind + " needs img");
     } else if (t === "guess") {
@@ -59,6 +151,7 @@ if (C) {
       if (q.yearBand != null && !(typeof q.yearBand === "number" && q.yearBand >= 0)) E(ww, "yearBand must be a non-negative number");
     } else if (t === "order") {
       if (!str(q.q)) E(ww, "missing q");
+      if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
       if (q.kind && q.kind !== "team-path") E(ww, "unknown order kind " + q.kind);
       if (!list(q.items) || q.items.length < 3 || q.items.length > 5 || !q.items.every(str)) E(ww, "items must be 3–5 nickname strings");
       else if (new Set(q.items.map(x => x.toLowerCase())).size !== q.items.length) E(ww, "duplicate nicknames in items (return stints need an explicit prompt rule)");
@@ -68,15 +161,20 @@ if (C) {
       const m = q.matchup || q.options;
       if (!list(m, 2) || !m.every(str)) E(ww, "matchup must be two nickname strings");
       if (!(Number.isInteger(q.a) && q.a >= 0 && q.a <= 1)) E(ww, "a must be 0 or 1 (winner index)");
-    } else if (t === "match") {
+    } else if (t === "pair") pairQ(ww, q);
+    else if (t === "reveal") revealQ(ww, q);
+    else if (t === "slider") sliderQ(ww, q);
+    else if (t === "match") {
       if (!str(q.q)) E(ww, "missing q");
+      if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
       if (q.kind && q.kind !== "match-records") E(ww, "unknown match kind " + q.kind);
       if (!list(q.left, 4) || !q.left.every(str)) E(ww, "left must be 4 athlete strings");
       if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");
       if (!list(q.pairs, 4) || !q.pairs.every(p => Number.isInteger(p) && p >= 0 && p < 4)) E(ww, "pairs must be 4 ints 0–3 (right index per left)");
       else if (new Set(q.pairs).size !== 4) E(ww, "pairs must be a permutation of 0–3");
-    } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", or "match"');
+    } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", "match", "pair", "reveal", or "slider"');
   };
+  checkSportsQuestion = (w, q) => capture(() => sportsQ(w, q));
   bank("sports", (w, d) => { if (!list(d, 3)) return E(w, "needs exactly 3 questions"); d.forEach((q, j) => sportsQ(`${w} Q${j + 1}`, q)); });
   // Optional Sports rework draft samples (fixtures only — not live content)
   if (win.SPORTS_REWORK_SAMPLES) {
@@ -103,13 +201,23 @@ if (C) {
   // Think Fast (SPEC §5): typed (legacy) | type:"guess" {answer:number, unit?} | type:"mc" {options, a, kind?, img?} | Designer alias type:"illusion" {svg, options, a}.
   // When puzzles carry kind/cat: day = [thinking (math|sequence|logic), fun (guesstimate|illusion|riddle)], and no kind repeats in a slot on consecutive days.
   const TF_THINK = ["math", "sequence", "logic"], TF_FUN = ["guesstimate", "illusion", "riddle"];
-  let tfPrev = null;
+  let tfPrev = null, tfI = 0;
+  const pinnedTf = new Set();
+  Object.values(win.DAY_OVERRIDES || {}).forEach(s => { if (s && Number.isInteger(s.thinkFast)) pinnedTf.add(s.thinkFast); });
   bank("thinkFast", (w, d) => {
     if (!list(d, 2)) return E(w, "needs exactly 2 puzzles");
     d.forEach((q, j) => {
-      const ww = `${w} puzzle ${j + 1}`; if (!str(q.q)) E(ww, "missing q");
-      const t = q.type || "text";
-      if (t === "guess") { if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs a numeric answer"); if (q.unit != null && !str(q.unit)) E(ww, "unit must be text"); }
+      const ww = `${w} puzzle ${j + 1}`;       const t = q.type || "text";
+      if (t === "pair" || t === "reveal" || t === "slider") {
+        if (t === "pair") pairQ(ww, q); else if (t === "reveal") revealQ(ww, q); else sliderQ(ww, q);
+      } else if (t === "emoji" || t === "emoji-rebus") {
+        if (!str(q.emoji)) E(ww, "emoji rebus needs an emoji string");
+        const ans = [].concat(q.answers || [], q.answer == null ? [] : [q.answer]);
+        if (!ans.length || !ans.every(str)) E(ww, "emoji rebus needs answers");
+        if (q.prompt != null && !textOrI18n(q.prompt)) E(ww, "prompt must be text or {en, es}");
+        if (q.accept != null && !(list(q.accept) && q.accept.every(str))) E(ww, "accept must be a list of text");
+      } else if (!str(q.q)) E(ww, "missing q");
+      else if (t === "guess") { if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs a numeric answer"); if (q.unit != null && !str(q.unit)) E(ww, "unit must be text"); }
       else if (t === "mc" || t === "illusion") {
         if (!list(q.options) || q.options.length < 2 || !q.options.every(str)) E(ww, "options must be 2+ strings");
         else if (!Number.isInteger(q.a) || q.a < 0 || q.a >= q.options.length) E(ww, "a must index options");
@@ -122,13 +230,40 @@ if (C) {
       if (kind && (j === 0 ? !TF_THINK.includes(kind) : !TF_FUN.includes(kind))) E(ww, `slot ${j + 1} must be a ${j === 0 ? "thinking" : "fun"} kind (got ${kind})`);
     });
     const kinds = d.map(q => q.kind || (q.type === "illusion" ? "illusion" : null));
-    if (tfPrev && kinds.every(Boolean) && tfPrev.every(Boolean)) kinds.forEach((k, j) => { if (k === tfPrev[j]) E(w, `${k} repeats from the previous day`); });
+    // A pinned day is not played beside the previous bank entry, so that entry is not the previous day.
+    if (tfPrev && !pinnedTf.has(tfI) && kinds.every(Boolean) && tfPrev.every(Boolean)) kinds.forEach((k, j) => { if (k === tfPrev[j]) E(w, `${k} repeats from the previous day`); });
     tfPrev = kinds;
+    tfI++;
   });
 } else if (!errs.length) E("content.js", "window.CONTENT not found");
 if (A) {
   const sets = Object.values(A); if (!sets.length) E("anagrams.js", "no sets");
   sets.forEach((s, i) => { const w = `anagrams set ${i + 1} (${s.letters})`; if (!/^[A-Z]{6}$/.test(s.letters || "")) E(w, "letters must be 6 CAPITALS"); if (!list(s.valid) || !s.valid.length) E(w, "valid list empty"); if (!list(s.common) || !s.common.length) E(w, "common list empty"); else { const v = new Set(s.valid); s.common.forEach(c => { if (!v.has(c)) E(w, `common word "${c}" not in valid list`); }); } });
 } else if (!errs.some(e => e.startsWith("anagrams"))) E("anagrams.js", "window.ANAGRAM_SETS not found");
-if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
-console.log("✅ OK — content.js and anagrams.js look good.");
+const demo = win.TYPE_DEMO;
+if (!list(demo) || !demo.length) E("demo-types.js", "window.TYPE_DEMO must be a non-empty list");
+else {
+  const seen = { pair: 0, reveal: 0, slider: 0 };
+  demo.forEach((q, i) => {
+    const w = "TYPE_DEMO " + (i + 1);
+    if (!q || !seen.hasOwnProperty(q.type)) return E(w, "type must be pair, reveal, or slider");
+    seen[q.type]++;
+    if (q.type === "pair") pairQ(w, q); else if (q.type === "reveal") revealQ(w, q); else sliderQ(w, q);
+  });
+  Object.entries(seen).forEach(([k, n]) => { if (!n) E("TYPE_DEMO", "needs at least one " + k); });
+}
+const emojiDays = win.EMOJI_DEMO;
+if (!list(emojiDays, 2)) E("EMOJI_DEMO", "needs the belief and corndog sample days");
+else emojiDays.forEach((day, i) => {
+  const w = "EMOJI_DEMO day " + (i + 1);
+  if (!list(day, 2)) return E(w, "needs exactly 2 puzzles");
+  const q = day[0];
+  if (!q || (q.type !== "emoji" && q.type !== "emoji-rebus")) E(w, "first puzzle must be an emoji rebus");
+  else if (!str(q.emoji) || !list(q.answers) || !q.answers.every(str)) E(w, "emoji rebus needs an emoji string and answers");
+  else if (q.prompt != null && !textOrI18n(q.prompt)) E(w, "prompt must be text or {en, es}");
+});
+if (require.main === module) {
+  if (errs.length) { console.log(`❌ ${errs.length} problem(s):\n - ` + errs.join("\n - ")); process.exit(1); }
+  console.log("✅ OK — content.js and anagrams.js look good.");
+}
+module.exports = { checkWorldDay, checkHistoryDay, checkSportsQuestion };
