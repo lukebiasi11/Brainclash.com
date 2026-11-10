@@ -1,6 +1,7 @@
 /* Daily field client. Talks only to field-compare, and only when
    FIELD_COMPARE_ENABLED is true. Practice, preview, and admin never post.
-   A failure resolves to a quiet result. It does not throw, log, or write dg- history. */
+   A failure resolves to a quiet result. It does not throw, log, or rewrite a saved score.
+   The posted flag lives in dg-field-meta, separate from dg-YYYY-MM-DD results. */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -75,8 +76,39 @@
     if (status !== 200 || body.ok === false || body.comparison_available !== true) return quiet(reason || err || "unavailable");
     const avg = Number(body.rest_average);
     const cats = Array.isArray(body.rest_category_average) ? body.rest_category_average.map(Number) : null;
+    const bins = Array.isArray(body.score_bins) ? body.score_bins.map(Number) : null;
+    const catBins = Array.isArray(body.category_bins) ? body.category_bins.map(row => Array.isArray(row) ? row.map(Number) : []) : null;
+    const catAbove = Array.isArray(body.category_at_or_above) ? body.category_at_or_above.map(Number) : null;
+    const ten = row => Array.isArray(row) && row.length === 10 && row.every(n => Number.isFinite(n));
     if (!Number.isFinite(avg) || !cats || cats.length !== 5 || cats.some(n => !Number.isFinite(n))) return quiet("unavailable");
-    return { state: "ready", reason: "ok", restAverage: avg, restCategoryAverage: cats, restFinishes: body.rest_finishes };
+    if (!ten(bins) || !catBins || catBins.length !== 5 || !catBins.every(ten)) return quiet("unavailable");
+    if (!catAbove || catAbove.length !== 5 || catAbove.some(n => !Number.isFinite(n))) return quiet("unavailable");
+    const above = body.others_at_or_above == null ? null : Number(body.others_at_or_above);
+    if (above != null && !Number.isFinite(above)) return quiet("unavailable");
+    return {
+      state: "ready",
+      reason: "ok",
+      restAverage: avg,
+      restCategoryAverage: cats,
+      restFinishes: Number(body.rest_finishes),
+      scoreBins: bins,
+      categoryBins: catBins,
+      othersAtOrAbove: above,
+      categoryAtOrAbove: catAbove
+    };
+  }
+
+  function percentile(above, others) {
+    if (above == null || !Number.isFinite(Number(above)) || !Number.isFinite(Number(others)) || Number(others) <= 0) return null;
+    return Math.round(100 * Number(above) / Number(others));
+  }
+  function scoreBin(total) {
+    if (!Number.isFinite(Number(total))) return 0;
+    return Math.min(9, Math.max(0, Math.floor(Number(total) / 500)));
+  }
+  function categoryBin(score) {
+    if (!Number.isFinite(Number(score))) return 0;
+    return Math.min(9, Math.max(0, Math.floor(Number(score) / 100)));
   }
 
   function fieldStorage() {
@@ -204,12 +236,97 @@
     return call("day", session, null);
   }
 
+  function metaAll() {
+    try {
+      const raw = root.localStorage && root.localStorage.getItem("dg-field-meta");
+      const o = raw ? JSON.parse(raw) : {};
+      return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+    } catch (e) { return {}; }
+  }
+  function metaWrite(o) {
+    try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
+  }
+  async function rawCall(op, session, scores) {
+    const timerBox = { id: null };
+    try {
+      const c = cfg();
+      const day = session && session.key;
+      const runId = runIdFor(day);
+      if (!runId || !validDay(day)) return { ok: false, error: "invalid" };
+      const token = await tokenFor();
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      const headers = { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" };
+      const init = { method: "POST", headers: headers, body: JSON.stringify(op === "finish" ? { runId: runId, day: day, scores: scores } : { runId: runId, day: day }) };
+      if (ctrl) init.signal = ctrl.signal;
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/field-compare/" + op, init);
+      const text = await res.text();
+      let body = {};
+      try { body = text ? JSON.parse(text) : {}; } catch (e) { body = {}; }
+      return { ok: res.status === 200 && body.ok === true, error: body.error || "", idempotent: body.idempotent === true };
+    } catch (e) {
+      return { ok: false, error: "network" };
+    } finally {
+      if (timerBox.id) clearTimeout(timerBox.id);
+    }
+  }
+  const fills = new Map();
+  function backfillToday(session, today) {
+    const why = blocked(session);
+    if (why) return Promise.resolve({ ok: false, reason: why });
+    if (!session || session.practice === true || !validDay(session.key) || session.key !== today) return Promise.resolve({ ok: false, reason: "not_today" });
+    const scores = wireScores(session.scores);
+    if (!scores) return Promise.resolve({ ok: false, reason: "scores" });
+    const key = session.key;
+    if (fills.has(key)) return fills.get(key);
+    const job = (async () => {
+      const meta = metaAll();
+      const row = meta[key] && typeof meta[key] === "object" ? meta[key] : {};
+      if (row.posted === true) return { ok: true, skipped: true };
+      const runId = runIds.get(key) || row.runId || uuid();
+      if (!runId) return { ok: false, reason: "id" };
+      runIds.set(key, runId);
+      meta[key] = { runId: runId, posted: false };
+      metaWrite(meta);
+      const started = await rawCall("start", session, null);
+      if (!started.ok) return { ok: false, reason: started.error || "network" };
+      const finished = await rawCall("finish", session, scores);
+      if (finished.ok || finished.error === "player_day_exists") {
+        const next = metaAll();
+        next[key] = { runId: runId, posted: true };
+        metaWrite(next);
+        return { ok: true, idempotent: finished.idempotent === true || finished.error === "player_day_exists" };
+      }
+      return { ok: false, reason: finished.error || "network" };
+    })();
+    fills.set(key, job);
+    job.then(() => { fills.delete(key); }, () => { fills.delete(key); });
+    return job;
+  }
+  function watch(fn) {
+    const run = () => { try { if (root.document && root.document.visibilityState === "hidden") return; fn(); } catch (e) {} };
+    const onFocus = () => run();
+    if (root.addEventListener) root.addEventListener("focus", onFocus);
+    if (root.document && root.document.addEventListener) root.document.addEventListener("visibilitychange", onFocus);
+    const id = setInterval(run, 300000);
+    return function stop() {
+      clearInterval(id);
+      if (root.removeEventListener) root.removeEventListener("focus", onFocus);
+      if (root.document && root.document.removeEventListener) root.document.removeEventListener("visibilitychange", onFocus);
+    };
+  }
+
   return {
     blocked: blocked,
     onPlay: onPlay,
     onFinish: onFinish,
     dayFor: dayFor,
+    backfillToday: backfillToday,
+    watch: watch,
     interpret: interpret,
+    percentile: percentile,
+    scoreBin: scoreBin,
+    categoryBin: categoryBin,
     wireScores: wireScores,
     fieldStorage: fieldStorage,
     storagePrefix: STORAGE_PREFIX

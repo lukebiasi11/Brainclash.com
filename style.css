@@ -706,10 +706,11 @@ body{background:transparent}
   .hero:not(.small) .logo::after{left:1.1111em;top:.5em;width:.6667em;height:1em} /* 270-70, 150-60, 120 */
 }
 /* ===== subcategory label, variant A (permanent; shows when c.sub is supplied) ===== */
-.path .step .nm{display:flex;flex-direction:column;justify-content:center;align-self:center;line-height:1.05;padding-top:3px}
-.path .step .nm small{display:block;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(18,11,46,.75);opacity:1;line-height:1.1;margin:5px 0 0}
+.path .step .nm{display:flex;flex-direction:column;justify-content:center;align-self:center;line-height:1.05;padding-top:3px;min-width:0}
+.path .step .nm small{display:block;min-width:0;max-width:100%;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(18,11,46,.75);opacity:1;line-height:1.1;margin:5px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .path .step .nm small:empty{display:none}
 .path .step .ic,.path .step .pts{align-self:center}
+.path .step .pts{flex-shrink:0}
 /* 2:09pm: hide the duplicate nav brand on home (big wordmark present); BETA stays, so the bar keeps its height */
 body:has(.hero:not(.small)) nav.top .brand{visibility:hidden;pointer-events:none}
 body:has(.hero:not(.small)) nav.top{justify-content:flex-end}
@@ -984,59 +985,101 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 }
 @media (max-width: 480px), (max-height: 520px) {
   #app:has(> .cta) > .hero { order: 1; }
-  #app:has(> .cta) > .lang-toggle { order: 2; }
   #app:has(> .cta) > .path { order: 3; }
   #app:has(> .cta) > .cta { order: 4; display: flex; flex-direction: column; align-items: stretch; }
-  #app:has(> .cta) > .rules { order: 5; }
   #app:has(> .cta) > .btn.ghost { order: 6; }
+  /* How it works sits under Play, fully below the first phone screen. */
+  #app:has(> .cta) > .rules { order: 8; margin-top: 56px; }
   #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
   #app:has(> .cta) > .cta > p:first-child { order: 1; }
   #app:has(> .cta) > .cta #countdown { order: 2; }
   #app:has(> .cta) > .cta .score-graph { order: 3; }
   .rules summary { min-height: 44px; display: flex; align-items: center; }
-  .cta .btn.primary.big { font-size: 30px; gap: 8px; padding: 0 8px; height: 56px; min-height: 52px; }
-  .cta .btn.primary.big::before { flex-basis: 24px; width: 24px; height: 24px; }
-  .cta .btn.primary.big.long { font-size: 22px; }
-  .cta .btn.primary.big.long::before { flex-basis: 20px; width: 20px; height: 20px; }
+  .cta .btn.primary.big { font-size: 34px; gap: 10px; padding: 0 10px; height: 72px; min-height: 64px; }
+  .cta .btn.primary.big::before { flex-basis: 28px; width: 28px; height: 28px; }
+  .cta .btn.primary.big.long { font-size: 26px; }
+  .cta .btn.primary.big.long::before { flex-basis: 24px; width: 24px; height: 24px; }
 }
 @media (max-width: 340px) {
   .cta .btn.primary.big { font-size: 24px; }
   .cta .btn.primary.big.long { font-size: 18px; }
 }
 @media (max-width: 480px), (max-height: 520px) {
-  body:has(.hero:not(.small)) nav.top { padding: 4px 12px; }
+  body:has(.hero:not(.small)) nav.top { min-height: 44px; padding: 0 10px 0 2px; align-items: center; }
   body:has(.hero:not(.small)) nav.top .brand { display: none; }
-  .hero:not(.small) { padding: 0 2px; --fw: 156px; }
-  .hero:not(.small) .logo { font-size: 52px; margin-bottom: 0; line-height: .82; }
-  .hero:not(.small)::after { margin-top: 2px; margin-bottom: 0; }
-  .hero .tag { margin: 0 0 2px; font-size: 13.5px; line-height: 1.2; }
-  .hero .tag + .date { margin-top: 1px; }
-  .date { font-size: 12px; padding: 1px 6px; }
-  .lang-toggle { margin: 3px auto 1px; box-shadow: 3px 3px 0 var(--ink-bc); }
-  .lang-btn { min-height: 44px; padding: 6px 12px; }
-  .path { gap: 2px; margin: 3px 0 2px; }
-  .path .step { min-height: 0; padding: 1px 8px; transform: none; }
+  /* Language sits in the header edge: words only, 44px hit target, no center card. */
+  #app:has(> .cta) > .lang-toggle {
+    position: absolute; top: 0; left: 2px; z-index: 6; margin: 0; width: auto;
+    border: 0; box-shadow: none; background: transparent; gap: 0;
+  }
+  #app:has(> .cta) .lang-btn {
+    min-width: 44px; min-height: 44px; padding: 12px 7px 8px; font-size: 13px; font-weight: 800;
+    line-height: 1; background: transparent; color: var(--ink-bc); box-shadow: none;
+  }
+  #app:has(> .cta) .lang-btn.on {
+    background: transparent; color: var(--ink-bc);
+    text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px;
+  }
+  #app:has(> .cta) .lang-btn:focus-visible { outline: 2px solid var(--ink-bc); outline-offset: -4px; }
+  .hero:not(.small) { padding: 2px 2px 0; --fw: 210px; }
+  .hero:not(.small) .logo { font-size: 68px; margin-bottom: 4px; line-height: .82; }
+  .hero:not(.small)::after { margin-top: 8px; margin-bottom: 2px; }
+  .hero .tag { margin: 2px 0 4px; font-size: 14.5px; line-height: 1.25; }
+  .hero .tag + .date { margin-top: 4px; }
+  .date { font-size: 13px; padding: 1px 8px; line-height: 1.15; }
+  .path { gap: 4px; margin: 8px 0 6px; }
+  .path .step { min-height: 38px; padding: 3px 12px; transform: none; }
   .path .step .nm { padding-top: 0; }
-  .path .step .nm b { font-size: 15px; line-height: 1; }
-  .path .step .nm small { font-size: 10.5px; line-height: 1.15; margin: 1px 0 0; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 18px; }
-  .cta { margin: 0 0 4px; }
-  .cta .btn.primary.big { margin: 2px 0 4px; }
-  .cta #countdown { margin: 0; line-height: 1.1; font-size: 12.5px; }
+  .path .step .nm b { font-size: 16px; line-height: 1.05; }
+  .path .step .nm small { font-size: 11px; line-height: 1.15; margin: 1px 0 0; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .path .step .ic::before, .path .step .ic .ico-fb { font-size: 20px; }
+  .cta { margin: 4px 0 8px; }
+  .cta .btn.primary.big { margin: 6px 0 6px; }
+  .cta #countdown { margin: 8px 0 0; line-height: 1.1; font-size: 12.5px; position: relative; z-index: 2; }
   #app:has(> .cta) > .cta > p:first-child { margin: 2px 0 0; font-size: 12.5px; line-height: 1.2; }
 }
-/* Taller phones have room for a larger wordmark, fighters, and Play button. */
+/* Phones only: center the painted fighters, and pull the right glove in until its gap to the VS matches the left glove. */
+@media (max-width: 480px) {
+  .hero:not(.small) { --vs-clear: calc(18px - var(--fw) * 0.0308); }
+  .hero:not(.small)::after {
+    margin-left: calc((100% - (var(--fw) + var(--fshift) + var(--vs-clear))) / 2);
+  }
+}
+/* 568–600px: larger name and brains, rows only a little shorter, Start still on screen. */
+@media (max-width: 480px) and (max-height: 640px) {
+  .hero:not(.small) { --fw: 176px; padding-top: 0; }
+  .hero:not(.small) .logo { font-size: 66px; margin-bottom: 0; }
+  .hero:not(.small)::after { margin-top: 0; margin-bottom: 0; }
+  .hero .tag { margin: 0; font-size: 14px; line-height: 1.05; }
+  .hero .tag + .date { margin-top: 1px; }
+  .path { gap: 0; margin: 0; }
+  .path .step { min-height: 40px; padding: 3px 12px; }
+  .path .step .nm b { font-size: 16px; }
+  .cta { margin: 0; padding-top: 0; }
+  .cta .btn.primary.big { height: 70px; min-height: 68px; font-size: 34px; margin: 0; }
+  .cta .btn.primary.big.long { font-size: 22px; }
+}
+/* Taller phones: the name and brains lead; rows stay a step under the prior 44px. */
 @media (max-width: 480px) and (min-height: 720px) {
-  .hero:not(.small) { --fw: 240px; }
-  .hero:not(.small) .logo { font-size: 78px; margin-bottom: 4px; }
-  .hero .tag { font-size: 15px; line-height: 1.25; }
-  .path { gap: 4px; margin-top: 6px; }
-  .path .step { min-height: 44px; padding: 4px 10px; }
+  .hero:not(.small) { --fw: 288px; }
+  .hero:not(.small) .logo { font-size: 100px; margin-bottom: 4px; }
+  .hero:not(.small)::after { margin-top: 2px; }
+  .hero .tag { font-size: 16px; line-height: 1.25; }
+  .path { gap: 0; margin-top: 0; }
+  .path .step { min-height: 44px; padding: 4px 12px; }
   .path .step .nm b { font-size: 17px; }
   .path .step .nm small { font-size: 11.5px; }
-  .cta .btn.primary.big { height: 72px; min-height: 64px; font-size: 34px; }
+  .cta .btn.primary.big { height: 80px; min-height: 76px; font-size: 38px; letter-spacing: 0; }
   .cta .btn.primary.big.long { font-size: 26px; }
   .cta #countdown { font-size: 14px; }
+}
+/* Tall phones have room under Practice mode, so open the hero instead of stacking it. */
+@media (max-width: 480px) and (min-height: 800px) {
+  .hero:not(.small) .logo { margin-bottom: 12px; }
+  .hero .tag { margin-bottom: 0; }
+  .hero .tag + .date { margin-top: 12px; }
+  .hero:not(.small)::after { margin-top: 12px; margin-bottom: 12px; }
+  .path { margin-top: 0; }
 }
 
 /* Results: Graph 1 stays collection-off. Graph 2 is the local editorial history line. */
@@ -1088,9 +1131,23 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 @media (prefers-reduced-motion:reduce){.g1-card svg,.g2-card svg{transition:none}}
 .g1-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px!important;color:#5c6578;font-size:12px;font-weight:800}
 .g1-legend i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px;vertical-align:-1px}
-.g1-legend .you{background:#E8582A}
-.g1-legend .rest{background:#1F2C7A}
+.g1-legend .you{background:#E8774A}
+.g1-legend .rest{background:#5B7FE0}
 .g1-quiet{color:#5c6578;font-size:14px;font-weight:700;line-height:1.4;margin-top:8px!important}
+.g1-quiet:empty,.g1-strip:empty,.g1-plot:empty,.g1-legend:empty,.g1-footrow:empty{display:none}
+.g1-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#f3f4f7;border-radius:14px;padding:12px 8px;margin-top:12px}
+.g1-strip div{min-width:0;text-align:center}
+.g1-strip span{display:block;color:#6d7589;font-size:11px;font-weight:700;line-height:1.2}
+.g1-strip b{display:block;margin-top:4px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#14182e;line-height:1}
+.g1-cat-pick{display:block;width:100%;margin-top:10px;min-height:44px;border-radius:12px;border:1px solid #d5d9e2;background:#fff;color:#14182e;font-weight:800;font-size:14px;padding:0 10px}
+.g1-cat-pick[hidden]{display:none}
+.g1-hist{grid-template-columns:1fr}
+.g1-ylab{font-size:11px;font-weight:800;color:#8b93a7;line-height:1.2;margin:2px 0 4px}
+.g1-footrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:12px}
+.g1-footrow b{font-size:14px;font-weight:800;color:#14182e}
+.g1-delta{font-size:13px;font-weight:800;white-space:nowrap}
+.g1-delta.up{color:#1f8a4c}
+.g1-delta.down{color:#c43838}
 .g1-privacy{color:#1F2C7A;font-weight:800}
 .privacy-page{max-width:640px;margin:18px auto 32px;padding:0 16px}
 .privacy-card{background:#fff;color:#14182e;border:1px solid #eceff4;border-radius:22px;padding:18px 16px 16px;box-shadow:0 10px 28px rgba(20,24,45,.08)}

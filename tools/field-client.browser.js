@@ -82,8 +82,19 @@ async function openPage(port, url, seed, viewport) {
   return cdp;
 }
 async function shot(cdp, name, sel) {
-  const box = await evalJson(cdp, `(() => { const e = document.querySelector(${JSON.stringify(sel || "#results-g1")}); e.scrollIntoView({ block: 'start' }); const r = e.getBoundingClientRect(); return { x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height }; })()`);
+  const box = await evalJson(cdp, `(() => { const e = document.querySelector(${JSON.stringify(sel || "#results-g1")}); const r = e.getBoundingClientRect(); return { x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height }; })()`);
   const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: Math.max(0, box.x), y: Math.max(0, box.y), width: Math.max(1, Math.ceil(box.w)), height: Math.max(1, Math.min(3200, Math.ceil(box.h))), scale: 1 } }, 30000);
+  const file = path.join(SHOTS, name);
+  fs.writeFileSync(file, Buffer.from(img.data, "base64"));
+  console.log("wrote", file);
+  return file;
+}
+const frame = { width: 390, height: 844, deviceScaleFactor: 1, mobile: true };
+async function shotFrame(cdp, name) {
+  await cdp.send("Emulation.setDeviceMetricsOverride", frame);
+  await evalJson(cdp, `new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))`);
+  const box = await evalJson(cdp, `(() => { const e = document.getElementById('results-g1'); const r = e.getBoundingClientRect(); return { y: Math.max(0, r.top + scrollY), h: r.height }; })()`);
+  const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: box.y, width: 390, height: 844, scale: 1 } }, 30000);
   const file = path.join(SHOTS, name);
   fs.writeFileSync(file, Buffer.from(img.data, "base64"));
   console.log("wrote", file);
@@ -94,7 +105,7 @@ function snapExpr() {
 }
 function sameStore(before, after) {
   const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
-  for (const k of keys) if (before[k] !== after[k]) return k;
+  for (const k of keys) if (k !== "dg-field-meta" && before[k] !== after[k]) return k;
   return null;
 }
 const phone = { width: 360, height: 740, deviceScaleFactor: 2, mobile: true };
@@ -120,7 +131,8 @@ const install = `(() => {
     below: { status: 200, body: { ok: true, comparison_available: false, reason: "below_threshold", rest_finishes: 2 } },
     rate: { status: 429, body: { ok: false, error: "rate_limited" } },
     origin: { status: 403, body: { ok: false, error: "origin_denied" } },
-    ready: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 17, minimum: 13, maximum: 4999, histogram: [8, 8, 8, 8, 8], players: [{ id: "player-secret", total: 42 }], rest_average: 2410.5, rest_category_average: [480, 510, 390, 620, 410.5] } }
+    ready: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 100, minimum: 13, maximum: 4999, histogram: [8, 8, 8, 8, 8], players: [{ id: "player-secret", total: 42 }], rest_average: 3112, rest_category_average: [480, 510, 390, 620, 411], others_at_or_above: 39, category_at_or_above: [22, 30, 18, 40, 25], score_bins: [2, 4, 8, 14, 18, 20, 16, 10, 6, 2], category_bins: [[4, 6, 10, 12, 16, 14, 12, 18, 6, 2], [2, 4, 8, 14, 18, 20, 16, 10, 6, 2], [6, 8, 12, 16, 14, 12, 10, 8, 8, 6], [1, 3, 7, 11, 15, 19, 17, 13, 9, 5], [5, 7, 9, 11, 13, 15, 13, 11, 9, 7]] } },
+    under: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 100, rest_average: 4000, rest_category_average: [900, 900, 900, 900, 900], others_at_or_above: 80, category_at_or_above: [80, 80, 80, 80, 80], score_bins: [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], category_bins: [[20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0]] } }
   };
   window.fetch = (url, opts) => {
     const u = String(url);
@@ -192,7 +204,7 @@ const YOU = [700, 680, 660, 640, 680];
     }
     async function show(cdp, mode, scores, practice) {
       await evalJson(cdp, "window.__calls=[]; window.__fieldMode=" + JSON.stringify(mode) + "; window.FIELD_COMPARE_ENABLED=true; DGTest.openResults('2026-11-09'," + JSON.stringify(scores || YOU) + (practice ? ",{practice:true}" : "") + ")");
-      return evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const g1 = document.getElementById('results-g1'); const st = g1 && g1.getAttribute('data-g1-state'); if (st && st !== 'pending') resolve({ state: st, reason: g1.getAttribute('data-g1-reason'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), calls: window.__calls, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, w: document.documentElement.clientWidth }); else if (Date.now() - start > 4000) resolve({ state: st || 'timeout', text: g1 ? g1.textContent : '' }); else setTimeout(tick, 30); }; tick(); })`);
+      return evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const g1 = document.getElementById('results-g1'); const st = g1 && g1.getAttribute('data-g1-state'); if (st && st !== 'pending') resolve({ state: st, reason: g1.getAttribute('data-g1-reason'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, svg: g1.querySelectorAll('svg').length, bars: g1.querySelectorAll('.g1-bin').length, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), delta: g1.getAttribute('data-delta'), bin: g1.getAttribute('data-bin'), calls: window.__calls, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, w: document.documentElement.clientWidth }); else if (Date.now() - start > 4000) resolve({ state: st || 'timeout', text: g1 ? g1.textContent : '', calls: window.__calls || [] }); else setTimeout(tick, 30); }; tick(); })`);
     }
 
     {
@@ -207,12 +219,12 @@ const YOU = [700, 680, 660, 640, 680];
     }
 
     const modes = [
-      ["throw", "network", "Not enough players yet today"],
-      ["503", "collection_off", "Not enough players yet today"],
-      ["threshold", "threshold_unresolved", "Not enough players yet today"],
-      ["below", "below_threshold", "Not enough players yet today"],
-      ["rate", "rate_limited", "Not enough players yet today"],
-      ["origin", "origin_denied", "Not enough players yet today"]
+      ["throw", "network", "No other results yet"],
+      ["503", "collection_off", "No other results yet"],
+      ["threshold", "threshold_unresolved", "No other results yet"],
+      ["below", "below_threshold", "No other results yet"],
+      ["rate", "rate_limited", "No other results yet"],
+      ["origin", "origin_denied", "No other results yet"]
     ];
     {
       const cdp = await armed(null);
@@ -220,52 +232,50 @@ const YOU = [700, 680, 660, 640, 680];
       for (const [mode, reason, copy] of modes) {
         cdp.errors.length = 0; cdp.logs.length = 0;
         const info = await show(cdp, mode, YOU, false);
-        if (info.state !== "quiet" || info.reason !== reason || info.text.indexOf(copy) < 0 || info.rects !== 0) fail("fallback " + mode, info); else pass("fallback " + mode);
+        if (info.state !== "quiet" || info.reason !== reason || info.text.indexOf(copy) < 0 || info.svg !== 0 || info.bars !== 0) fail("fallback " + mode, info); else pass("fallback " + mode);
         if (cdp.errors.length || cdp.logs.length) fail("console " + mode, cdp.errors.concat(cdp.logs)); else pass("no console errors " + mode);
       }
       const after = await evalJson(cdp, snapExpr());
-      if (sameStore(before, after)) fail("failure storage", sameStore(before, after)); else pass("failure paths leave localStorage untouched");
-      await shot(cdp, "g1_fallback_en_mobile_whole.png");
-      pass("shot g1_fallback_en_mobile.png");
+      if (sameStore(before, after)) fail("failure storage", sameStore(before, after)); else pass("failure paths leave saved scores untouched");
       await closePage(cdp);
     }
     {
       const cdp = await armed("es");
       const info = await show(cdp, "below", YOU, false);
-      if (info.state !== "quiet" || info.text.indexOf("Todavía no hay suficientes jugadores hoy") < 0) fail("es fallback", info.text); else pass("es fallback copy");
+      if (info.state !== "quiet" || info.svg !== 0 || info.text.indexOf("Todavía no hay otros resultados") < 0) fail("es fallback", info.text); else pass("es fallback copy");
       if (cdp.errors.length || cdp.logs.length) fail("es fallback console", cdp.errors.concat(cdp.logs)); else pass("es fallback no console errors");
-      await shot(cdp, "g1_fallback_es_mobile_whole.png");
-      pass("shot g1_fallback_es_mobile.png");
       await closePage(cdp);
     }
     {
       const cdp = await armed(null);
       const before = await evalJson(cdp, snapExpr());
       const info = await show(cdp, "ready", YOU, false);
-      const hidden = /player-secret|\b17\b|4,999|4999|\bminimum\b|\bmaximum\b|2,410\.5|2410\.5/.test(info.text);
-      if (info.state !== "ready" || info.rects !== 2 || info.you !== "3360" || info.rest !== "2411" || !/3,360/.test(info.text) || !/2,411/.test(info.text) || hidden) fail("populated total", info); else pass("populated total bars use whole grouped scores");
-      if (hidden) fail("g1 hides the field size", info.text); else pass("g1 shows no player count, min, max, or per-player row");
+      const hidden = /player-secret|4,999|4999|\bminimum\b|\bmaximum\b|2,410\.5|2410\.5/.test(info.text);
+      const bars = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return [...g1.querySelectorAll('.g1-bin')].map(p => p.getAttribute('data-count') + (p.getAttribute('data-you') === '1' ? p.getAttribute('fill') : '')); })()`);
+      if (info.state !== "ready" || info.bars !== 10 || info.svg !== 1 || info.you !== "3360" || info.rest !== "3112" || info.percentile !== "39" || info.delta !== "248" || info.bin !== "6" || !/Today's Competition/.test(info.text) || !/November 9/.test(info.text) || !/Top 39%/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/not including yours/.test(info.text) || bars.join(",") !== "2,4,8,14,18,20,16#E8774A,10,6,2" || hidden) fail("populated total", { info, bars }); else pass("populated total shows bins, average, and percentile");
+      if (hidden) fail("g1 hides identities", info.text); else pass("g1 shows bin counts and no per-player row");
       if (info.w !== 360 || info.overflow > 1) fail("populated width", info); else pass("populated mobile width");
-      const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { mode: g1.getAttribute('data-g1-mode'), rects: g1.querySelectorAll('rect').length, names: [...g1.querySelectorAll('.g1-cat-name')].map(li => li.textContent), nums: [...g1.querySelectorAll('.g1-cat-nums')].map(li => li.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), tenths: /2,410\\.5|2410\\.5|410\\.5|player-secret|4999|\\b17\\b/.test(g1.textContent) }; })()`);
-      if (cat.mode !== "category" || cat.rects !== 10 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser" || cat.nums.join("|") !== "700 · 480|680 · 510|660 · 390|640 · 620|680 · 411" || cat.tenths) fail("category toggle", cat); else pass("category toggle uses whole grouped scores");
+      const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); const bars = [...g1.querySelectorAll('.g1-bin')]; return { mode: g1.getAttribute('data-g1-mode'), bars: bars.length, youBar: bars.filter(p => p.getAttribute('data-you') === '1').map(p => p.getAttribute('data-count') + ':' + p.getAttribute('fill')).join(','), names: [...g1.querySelectorAll('#g1-cat option')].map(o => o.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), bin: g1.getAttribute('data-bin'), svg: g1.querySelectorAll('svg').length, tenths: /410\\.5|player-secret|4999|\\bminimum\\b/.test(g1.textContent) }; })()`);
+      if (cat.mode !== "category" || cat.bars !== 10 || cat.svg !== 1 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.percentile !== "22" || cat.bin !== "7" || cat.youBar !== "18:#E8774A" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser" || cat.tenths) fail("category toggle", cat); else pass("category histogram uses that category's bins");
       await evalJson(cdp, "document.querySelector('[data-g1-view=total]').click()");
-      if (sameStore(before, await evalJson(cdp, snapExpr()))) fail("populated storage", "changed"); else pass("populated storage untouched");
+      const again = await show(cdp, "ready", YOU, false);
+      const posts = (info.calls || []).filter(c => c.method === "POST").map(c => c.url.split("/field-compare/")[1]);
+      const againPosts = (again.calls || []).filter(c => c.method === "POST");
+      if (posts.join(",") !== "start,finish" || againPosts.length) fail("backfill once", { posts, again: againPosts }); else pass("today's results post start then finish once");
+      if (sameStore(before, await evalJson(cdp, snapExpr()))) fail("populated storage", sameStore(before, await evalJson(cdp, snapExpr()))); else pass("populated scores stay unchanged");
+      const meta = await evalJson(cdp, "localStorage.getItem('dg-field-meta')");
+      if (!meta || JSON.parse(meta)["2026-11-09"].posted !== true) fail("posted flag", meta); else pass("posted flag is outside the score record");
       if (cdp.errors.length || cdp.logs.length) fail("populated console", cdp.errors.concat(cdp.logs)); else pass("populated no console errors");
-      const posts = info.calls.filter(c => c.method === "POST");
-      if (posts.length) fail("results view posted", posts); else pass("results view only reads the day");
-      await shot(cdp, "g1_populated_en_mobile_whole.png");
-      pass("shot g1_populated_en_mobile.png");
       await closePage(cdp);
     }
     {
       const cdp = await armed("es");
       const info = await show(cdp, "ready", YOU, false);
-      if (info.state !== "ready" || info.rects !== 2 || !/Los demás/.test(info.text) || !/Privacidad/.test(info.text) || !/3,360/.test(info.text) || !/2,411/.test(info.text) || /2,410\.5|2410\.5/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
-      const cat = await evalJson(cdp, `(() => { document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { names: [...g1.querySelectorAll('.g1-cat-name')].map(li => li.textContent).join('|'), nums: [...g1.querySelectorAll('.g1-cat-nums')].map(li => li.textContent).join('|') }; })()`);
-      if (cat.names !== "Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos" || cat.nums !== "700 · 480|680 · 510|660 · 390|640 · 620|680 · 411") fail("es categories", cat); else pass("es category names and whole scores");
-      await evalJson(cdp, "document.querySelector('[data-g1-view=total]').click()");
-      await shot(cdp, "g1_populated_es_mobile_whole.png");
-      pass("shot g1_populated_es_mobile.png");
+      if (info.state !== "ready" || info.bars !== 10 || !/La competencia de hoy/.test(info.text) || !/Puntaje total/.test(info.text) || !/Top 39%/.test(info.text) || !/Privacidad/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || /player-secret|4999/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
+      const cat = await evalJson(cdp, `(() => { document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { names: [...g1.querySelectorAll('#g1-cat option')].map(o => o.textContent).join('|'), you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest') }; })()`);
+      if (cat.names !== "Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos" || cat.you !== "700" || cat.rest !== "480") fail("es categories", cat); else pass("es category names and whole scores");
+      const under = await show(cdp, "under", YOU, false);
+      if (under.state !== "ready" || under.delta !== "-640" || !/vs el promedio/.test(under.text) || !/[\u2212-]640/.test(under.text)) fail("below average", under.text); else pass("below average uses a minus");
       await closePage(cdp);
     }
 
@@ -287,6 +297,35 @@ const YOU = [700, 680, 660, 640, 680];
       await closePage(cdp);
     }
 
+    async function framed(lang, mode, view) {
+      const cdp = await page("/index.html?dgtest", lang, frame);
+      await evalJson(cdp, install);
+      await show(cdp, mode, YOU, false);
+      if (view === "category") await evalJson(cdp, "document.querySelector('[data-g1-view=category]').click()");
+      return cdp;
+    }
+    {
+      const total = await framed(null, "ready", "total");
+      await shotFrame(total, "g1_hist_total_en_390.png");
+      await evalJson(total, "document.querySelector('[data-g1-view=category]').click()");
+      await shotFrame(total, "g1_hist_category_en_390.png");
+      await closePage(total);
+      const empty = await framed(null, "below", "total");
+      const quiet = await evalJson(empty, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-g1-state'), svg: g1.querySelectorAll('svg').length, text: g1.textContent }; })()`);
+      if (quiet.state !== "quiet" || quiet.svg !== 0 || quiet.text.indexOf("No other results yet") < 0) fail("empty frame", quiet); else pass("empty frame has no axes");
+      await shotFrame(empty, "g1_hist_empty_en_390.png");
+      await closePage(empty);
+      const totalEs = await framed("es", "ready", "total");
+      await shotFrame(totalEs, "g1_hist_total_es_390.png");
+      await evalJson(totalEs, "document.querySelector('[data-g1-view=category]').click()");
+      await shotFrame(totalEs, "g1_hist_category_es_390.png");
+      await closePage(totalEs);
+      const emptyEs = await framed("es", "below", "total");
+      await shotFrame(emptyEs, "g1_hist_empty_es_390.png");
+      await closePage(emptyEs);
+      pass("six 390x844 histogram screenshots");
+    }
+
     {
       const cdp = await page("/admin.html", null, phone);
       const reqs = cdp.reqs.filter(r => /field-compare|field-config|supabase\.co|jsdelivr/i.test(r.url) || r.method === "POST");
@@ -301,11 +340,9 @@ const YOU = [700, 680, 660, 640, 680];
       await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelectorAll('a[href^="mailto:"]').length >= 2) resolve(true); else if (Date.now() - start > 4000) resolve(false); else setTimeout(tick, 30); }; tick(); })`);
       const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^="mailto:"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText), anon: /anonymous/i.test(document.body.innerText) }; })()`);
       if (en.title !== "Daily comparison" || !/Last updated: November 9, 2026/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || !/To delete your scores, email thedailydosetrivia@gmail.com/.test(en.text) || en.placeholder || en.draft || en.anon || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
-      await shot(cdp, "privacy_notice_en_mobile_email.png", "#privacy");
       await evalJson(cdp, "document.querySelector('[data-lang=es]').click()");
       const es = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === 'Comparación diaria') { const text = document.body.innerText; resolve({ title: t.textContent, text, mail: [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href')), placeholder: text.indexOf('OPERATOR_CONTACT') >= 0, draft: /Borrador pendiente/.test(text), anon: /anónim/i.test(text) }); } else if (Date.now()-start>4000) resolve({ title: t && t.textContent, text: '' }); else setTimeout(tick, 40); }; tick(); })`);
       if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización:/.test(es.text) || !/menores de 13/.test(es.text) || !/Para borrar tus puntajes, escribe a thedailydosetrivia@gmail.com/.test(es.text) || es.placeholder || es.draft || es.anon || (es.mail || []).length < 2 || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
-      await shot(cdp, "privacy_notice_es_mobile_email.png", "#privacy");
       if (cdp.reqs.some(r => /field-compare|supabase\.co/.test(r.url))) fail("privacy network", cdp.reqs.filter(r => /field-compare|supabase/.test(r.url))); else pass("privacy page makes no field calls");
     }
 

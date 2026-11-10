@@ -11,7 +11,7 @@
   const ES = {
     // categories / word games
     "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos",
-    "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Juegos de palabras", "Logic": "Lógica",
+    "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Palabras", "Logic": "Lógica",
     "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden",
     "3 questions · easy → hard": "3 preguntas · de fácil a difícil", "2 brain-benders · one shot each": "2 acertijos · un solo intento cada uno",
     "Unscramble": "Descifra", "Word Bridge": "Puente de Palabras", "Clusters": "Grupos", "Imposter": "Impostor", "Anagram Rush": "Anagramas Exprés",
@@ -58,6 +58,12 @@
     "No scores are plotted while collection is off.": "No se grafica ningún puntaje mientras la recolección está apagada.",
     "Collection stays off. This view does not download scores or send results. Counts would be completed games, not verified players.": "La recolección sigue apagada. Esta vista no descarga puntajes ni envía resultados. El conteo sería de juegos terminados, no de jugadores verificados.",
     "Not enough players yet today": "Todavía no hay suficientes jugadores hoy",
+    "Today's Competition": "La competencia de hoy", "Total Score": "Puntaje total", "By Category": "Por categoría",
+    "Player average": "Promedio de los jugadores", "Percentile": "Percentil", "Top {0}%": "Top {0}%",
+    "Your score range": "Tu rango de puntaje", "Other completed games": "Otros juegos terminados",
+    "No other results yet": "Todavía no hay otros resultados", "vs average": "vs el promedio",
+    "↑ Number of completed games": "↑ Número de juegos terminados",
+    "These bars count today's completed games, not including yours.": "Estas barras cuentan los juegos terminados de hoy, sin incluir el tuyo.",
     "You": "Tú", "Everyone else": "Los demás", "You and everyone else": "Tú y los demás",
     "You {0}. Everyone else {1}.": "Tú {0}. Los demás {1}.",
     "You and everyone else by category": "Tú y los demás por categoría",
@@ -98,6 +104,8 @@
     "Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds.": "Ordena 9 palabras en 3 grupos de 3. Los grupos valen 300, 300 y 400. Tres errores terminan la ronda. 90 segundos.",
     "8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds.": "8 grupos de cuatro palabras: toca la que no pertenece. 4 medios (100 pts) y luego 4 difíciles (150 pts). 60 segundos.",
     "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.": "Este juego es en inglés. Forma todas las palabras de 3 a 6 letras que puedas con 6 letras en 60 segundos. 3 letras = 10, 4 = 25, 5 = 50, 6 = 100. Los errores no restan.",
+    "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 92.5% of the common-word points. No penalty for wrong guesses.":
+      "Este juego es en inglés. Forma palabras de 3 a 6 letras con 6 letras en 60 segundos. 3 letras = 10, 4 = 30, 5 = 70, 6 = 150. Los 1,000 puntos piden cerca del 92.5% de los puntos de las palabras comunes. Los errores no restan.",
     "Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.": "Dos acertijos de 400 y 600 puntos, {0} segundos cada uno. Tienes UN solo intento por acertijo: piensa antes de confirmar.",
     "Category score": "Puntaje de la categoría", "Flag": "Bandera", "See final results": "Ver resultados finales", "Next: {0} →": "Siguiente: {0} →", "Score ": "Puntaje ", "/1,000 pts": "/1,000 pts", "Practice": "Práctica", "Skip": "Saltar", "Skip →": "Saltar →",
     "Leave this game? Progress in the current category is lost.": "¿Salir del juego? Se perderá el progreso de la categoría actual.",

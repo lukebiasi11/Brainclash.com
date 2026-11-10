@@ -81,10 +81,14 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ];
   failures.forEach(([input, reason]) => t("quiet " + reason, FC.interpret(input), { state: "quiet", reason: reason }));
 
-  const readyBody = { ok: true, comparison_available: true, reason: "ok", rest_average: 1500, rest_category_average: [100, 200, 300, 400, 500], rest_finishes: 4 };
+  const one = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+  const readyBody = { ok: true, comparison_available: true, reason: "ok", rest_average: 1500, rest_category_average: [100, 200, 300, 400, 500], rest_finishes: 4, score_bins: one.slice(), category_bins: [one.slice(), one.slice(), one.slice(), one.slice(), one.slice()], others_at_or_above: 1, category_at_or_above: [1, 1, 1, 1, 1] };
   const ready = FC.interpret({ status: 200, body: readyBody });
-  t("ready shape", [ready.state, ready.restAverage, ready.restCategoryAverage], ["ready", 1500, [100, 200, 300, 400, 500]]);
+  t("ready shape", [ready.state, ready.restAverage, ready.restCategoryAverage, ready.scoreBins.join(","), ready.othersAtOrAbove], ["ready", 1500, [100, 200, 300, 400, 500], one.join(","), 1]);
   t("ready without numbers stays quiet", FC.interpret({ status: 200, body: { ok: true, comparison_available: true, rest_average: 1, rest_category_average: [1, 2, 3] } }).state, "quiet");
+  t("ready without bins stays quiet", FC.interpret({ status: 200, body: { ok: true, comparison_available: true, rest_average: 1500, rest_category_average: [100, 200, 300, 400, 500], rest_finishes: 4 } }).state, "quiet");
+  t("percentile", [FC.percentile(39, 100), FC.percentile(0, 4), FC.percentile(1, 1), FC.percentile(null, 4)], [39, 0, 100, null]);
+  t("score bins", [FC.scoreBin(0), FC.scoreBin(3360), FC.scoreBin(4999), FC.scoreBin(5000), FC.categoryBin(700), FC.categoryBin(1000)], [0, 6, 9, 9, 7, 9]);
 
   const raw = [1.2, 0, 1000, 4, 5];
   const wired = FC.wireScores(raw);
@@ -137,6 +141,49 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const down = await FC.dayFor({ key: "2026-11-07", practice: false, scores: scores });
   t("network error is quiet", down, { state: "quiet", reason: "network" });
 
+  const saved = JSON.stringify({ key: "2026-11-09", practice: false, counted: true, scores: [700, 680, 660, 640, 680] });
+  bag["dg-2026-11-09"] = saved;
+  const fillPosts = [];
+  global.fetch = async (url, init) => {
+    fillPosts.push({ url: String(url), method: init && init.method, body: init && init.body || "" });
+    const op = String(url).split("/field-compare/")[1] || "";
+    const body = op.indexOf("day") === 0 ? readyBody : { ok: true, idempotent: fillPosts.filter(p => p.url === String(url)).length > 1 };
+    return { status: 200, async text() { return JSON.stringify(body); } };
+  };
+  const today = { key: "2026-11-09", practice: false, scores: [700, 680, 660, 640, 680] };
+  const first = await FC.backfillToday(today, "2026-11-09");
+  const second = await FC.backfillToday(today, "2026-11-09");
+  const fillPaths = fillPosts.map(p => p.method + " " + p.url.split("/field-compare/")[1]);
+  t("backfill posts start then finish once", [first.ok, second.skipped, fillPaths.join(",")], [true, true, "POST start,POST finish"]);
+  ok("backfill keeps the same run id", JSON.parse(fillPosts[0].body).runId === JSON.parse(fillPosts[1].body).runId);
+  t("backfill finish uses the stored scores", JSON.parse(fillPosts[1].body).scores, [700, 680, 660, 640, 680]);
+  ok("backfill does not rewrite the saved result", bag["dg-2026-11-09"] === saved);
+  ok("posted flag is separate from the score", JSON.parse(bag["dg-field-meta"])["2026-11-09"].posted === true);
+  const beforePractice = fillPosts.length;
+  const practice = await FC.backfillToday({ key: "2026-11-09", practice: true, scores: today.scores }, "2026-11-09");
+  global.location = { pathname: "/admin.html", search: "" };
+  const adminFill = await FC.backfillToday(today, "2026-11-09");
+  global.location = { pathname: "/index.html", search: "?preview=2026-11-09" };
+  const previewFill = await FC.backfillToday({ key: "2026-11-09", practice: false, scores: today.scores }, "2026-11-09");
+  global.location = { pathname: "/index.html", search: "" };
+  const otherDay = await FC.backfillToday({ key: "2026-11-08", practice: false, scores: today.scores }, "2026-11-09");
+  t("practice admin preview and other days do not post", [practice.reason, adminFill.reason, previewFill.reason, otherDay.reason, fillPosts.length], ["practice", "admin", "preview", "not_today", beforePractice]);
+  const latePosts = [];
+  global.fetch = async (url, init) => {
+    latePosts.push(String(url));
+    const finish = String(url).indexOf("/finish") >= 0;
+    const body = finish ? { ok: false, error: "player_day_exists" } : { ok: true, idempotent: false };
+    return { status: 200, async text() { return JSON.stringify(body); } };
+  };
+  const late = await FC.backfillToday({ key: "2026-11-05", practice: false, scores: today.scores }, "2026-11-05");
+  const lateAgain = await FC.backfillToday({ key: "2026-11-05", practice: false, scores: today.scores }, "2026-11-05");
+  t("an existing day is marked posted without another finish", [late.ok, late.idempotent, lateAgain.skipped, latePosts.length], [true, true, true, 2]);
+  ok("saved result still unchanged", bag["dg-2026-11-09"] === saved);
+  let ticks = 0;
+  const stopWatch = FC.watch(() => { ticks++; });
+  stopWatch();
+  ok("refresh timer stops", ticks === 0 && /setInterval\(run, 300000\)/.test(fs.readFileSync(path.join(root, "field-compare.js"), "utf8")));
+
   const notice = fs.readFileSync(path.join(root, "docs", "privacy-notice-draft.md"), "utf8");
   const i18n = fs.readFileSync(path.join(root, "i18n.js"), "utf8");
   const enBits = [
@@ -171,12 +218,13 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("docs header stays a lawyer draft", notice.startsWith("# Daily Dose daily comparison — privacy notice (draft)") && notice.includes("Draft pending the lawyer's review."));
   ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
   ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
-  ok("quiet copy is translated", i18n.includes("Not enough players yet today") && i18n.includes("Todavía no hay suficientes jugadores hoy"));
+  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Todavía no hay otros resultados"));
+  ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "These bars count today's completed games, not including yours."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1live1") && indexHtml.includes("field-compare.js?v=g1field1"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1live1") && indexHtml.includes("field-compare.js?v=g1hist1"));
   ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1live1"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
   ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1live1"'));
