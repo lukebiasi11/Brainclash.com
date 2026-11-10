@@ -209,7 +209,59 @@ window.CONTENT_ES = {
   null,
   null,
   null
- ],
+ ,
+    {
+      "pins": [
+        {
+          "name": "Machu Picchu, Perú",
+          "lat": -13.16,
+          "lon": -72.55
+        },
+        {
+          "name": "Jerusalén",
+          "lat": 31.78,
+          "lon": 35.22
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": "¿Cuál tiene mayor superficie?",
+        "rounds": [
+          {
+            "left": "Alaska",
+            "right": "Texas",
+            "correct": "left",
+            "note": "Alaska: 1,72 millones de km². Texas: 0,70 millones de km²."
+          },
+          {
+            "left": "India",
+            "right": "Canadá",
+            "correct": "right",
+            "note": "Canadá: 9,98 millones de km². India: 3,29 millones de km²."
+          },
+          {
+            "left": "California",
+            "right": "Texas",
+            "correct": "right",
+            "note": "Texas: 695.660 km². California: 423.970 km²."
+          },
+          {
+            "left": "Groenlandia",
+            "right": "México",
+            "correct": "left",
+            "note": "Groenlandia: 2,17 millones de km². México: 1,97 millones de km²."
+          },
+          {
+            "left": "Australia",
+            "right": "El desierto del Sahara",
+            "correct": "right",
+            "note": "El Sahara: 9,2 millones de km². Australia: 7,69 millones de km²."
+          }
+        ],
+        "explain": "Superficies de Wikipedia: Alaska 1.717.856; Texas 695.660; Canadá 9.984.670; India 3.287.263; California 423.970; Groenlandia 2.166.086; México 1.972.550; Sahara 9.200.000; Australia 7.688.287 (todas en km²)."
+      }
+    }
+  ],
  "history": [
   null,
   null,
@@ -649,7 +701,65 @@ window.CONTENT_ES = {
   null,
   null,
   null
- ],
+ ,
+    {
+      "r1": {
+        "theme": "Hechos de Estados Unidos",
+        "events": [
+          [
+            null,
+            "Se inaugura el Canal Erie",
+            null
+          ],
+          [
+            null,
+            "EE. UU. le compra Alaska a Rusia",
+            null
+          ],
+          [
+            null,
+            "Hace erupción el monte St. Helens",
+            null
+          ],
+          [
+            null,
+            "El huracán Katrina azota la costa del Golfo",
+            null
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Grandes viajes",
+        "events": [
+          [
+            null,
+            "Aníbal cruza los Alpes con su ejército",
+            null
+          ],
+          [
+            null,
+            "Zheng He zarpa en su primer viaje del tesoro",
+            null
+          ],
+          [
+            null,
+            "La expedición de Magallanes completa la primera vuelta al mundo",
+            null
+          ],
+          [
+            null,
+            "Nellie Bly termina su carrera alrededor del mundo en 72 días",
+            null
+          ],
+          [
+            null,
+            "La balsa Kon-Tiki zarpa para cruzar el Pacífico",
+            null
+          ]
+        ]
+      }
+    }
+  ],
  "sports": [
   null,
   null,
@@ -1079,7 +1189,95 @@ window.CONTENT_ES = {
   null,
   null,
   null
- ],
+ ,
+    [
+      {
+        "type": "pair",
+        "visual": "🏈",
+        "prompt": "¿Más de o menos de? Elige la verdadera.",
+        "rounds": [
+          {
+            "left": "Tom Brady ganó MÁS DE 5 Super Bowls",
+            "right": "Tom Brady ganó MENOS DE 5 Super Bowls",
+            "correct": "left",
+            "note": "Brady ganó 7 Super Bowls."
+          },
+          {
+            "left": "Joe Montana ganó MÁS DE 5 Super Bowls",
+            "right": "Joe Montana ganó MENOS DE 5 Super Bowls",
+            "correct": "right",
+            "note": "Montana ganó 4 Super Bowls, todos con los 49ers."
+          },
+          {
+            "left": "Emmitt Smith corrió para MÁS DE 17,000 yardas en su carrera",
+            "right": "Emmitt Smith corrió para MENOS DE 17,000 yardas en su carrera",
+            "correct": "left",
+            "note": "Smith se retiró con 18.355 yardas por tierra."
+          },
+          {
+            "left": "Barry Sanders corrió para MÁS DE 16,000 yardas en su carrera",
+            "right": "Barry Sanders corrió para MENOS DE 16,000 yardas en su carrera",
+            "correct": "right",
+            "note": "Sanders se retiró tras 10 temporadas con 15.269 yardas."
+          },
+          {
+            "left": "Dan Marino lanzó para MÁS DE 5,000 yardas en 1984",
+            "right": "Dan Marino lanzó para MENOS DE 5,000 yardas en 1984",
+            "correct": "left",
+            "note": "Marino lanzó para 5.084 yardas en 1984."
+          }
+        ],
+        "explain": "Todas las cifras son totales de carrera o de una temporada de jugadores retirados."
+      },
+      {
+        "type": "text",
+        "kind": "fill",
+        "visual": "🏈",
+        "q": "¿De qué equipo de la NFL son los ruidosos aficionados de la zona de anotación conocidos como el \"Dawg Pound\"?",
+        "answers": [
+          "cleveland browns",
+          "browns",
+          "the browns"
+        ],
+        "aliases": [
+          "cleveland brown"
+        ],
+        "wrong": [
+          "cleveland",
+          "dogs",
+          "bengals"
+        ],
+        "noSurname": true,
+        "explain": "El Dawg Pound es la grada de la zona de anotación donde se reúnen los aficionados de los Cleveland Browns."
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "visual": "🏈",
+        "q": "Relaciona a cada leyenda de la NFL con el equipo por el que es más conocido.",
+        "left": [
+          "Dan Marino",
+          "Barry Sanders",
+          "Joe Namath",
+          "Terry Bradshaw"
+        ],
+        "right": [
+          "Jets de Nueva York",
+          "Leones de Detroit",
+          "Acereros de Pittsburgh",
+          "Delfines de Miami"
+        ],
+        "pairs": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "hint": "Toca a una leyenda y luego el equipo con el que más se le identifica para emparejarlos.",
+        "explain": "Marino: Dolphins. Sanders: Lions. Namath: Jets. Bradshaw: Steelers."
+      }
+    ]
+  ],
  "thinkFast": [
   null,
   null,
@@ -1444,7 +1642,44 @@ window.CONTENT_ES = {
     "explain": "Un teléfono"
    }
   ]
- ],
+ ,
+    [
+      {
+        "cat": "thinking",
+        "kind": "logic",
+        "q": "Sam dice: \"Tia miente.\" Tia dice: \"Uma miente.\" Uma dice: \"Sam y Tia mienten los dos.\" Exactamente uno de los tres dice la verdad. ¿Quién?",
+        "answers": [
+          "tia"
+        ],
+        "aliases": [
+          "tia is telling the truth",
+          "it is tia",
+          "its tia",
+          "tia is truthful"
+        ],
+        "wrong": [
+          "sam",
+          "uma"
+        ],
+        "noSurname": true,
+        "explain": "Si Sam dijera la verdad, Tia mentiría y Uma también diría la verdad: dos personas sinceras, imposible. Si Uma dijera la verdad, Sam mentiría y Tia diría la verdad: otra vez dos. Solo funciona Tia: Sam y Uma mienten, tal como Tia dice que Uma miente."
+      },
+      {
+        "cat": "fun",
+        "type": "mc",
+        "kind": "illusion",
+        "img": "illusion-07",
+        "q": "¿Qué segmento etiquetado a la derecha continúa la línea diagonal de la izquierda?",
+        "options": [
+          "Segmento A",
+          "Segmento B",
+          "Segmento C"
+        ],
+        "a": 1,
+        "explain": "El segmento B se alinea exactamente con la línea de la izquierda. La barra gris engaña al ojo y parece desplazar la línea (ilusión de Poggendorff)."
+      }
+    ]
+  ],
  "wordFlip": [
   null,
   null,

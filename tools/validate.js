@@ -201,7 +201,9 @@ if (C) {
   // Think Fast (SPEC §5): typed (legacy) | type:"guess" {answer:number, unit?} | type:"mc" {options, a, kind?, img?} | Designer alias type:"illusion" {svg, options, a}.
   // When puzzles carry kind/cat: day = [thinking (math|sequence|logic), fun (guesstimate|illusion|riddle)], and no kind repeats in a slot on consecutive days.
   const TF_THINK = ["math", "sequence", "logic"], TF_FUN = ["guesstimate", "illusion", "riddle"];
-  let tfPrev = null;
+  let tfPrev = null, tfI = 0;
+  const pinnedTf = new Set();
+  Object.values(win.DAY_OVERRIDES || {}).forEach(s => { if (s && Number.isInteger(s.thinkFast)) pinnedTf.add(s.thinkFast); });
   bank("thinkFast", (w, d) => {
     if (!list(d, 2)) return E(w, "needs exactly 2 puzzles");
     d.forEach((q, j) => {
@@ -228,8 +230,10 @@ if (C) {
       if (kind && (j === 0 ? !TF_THINK.includes(kind) : !TF_FUN.includes(kind))) E(ww, `slot ${j + 1} must be a ${j === 0 ? "thinking" : "fun"} kind (got ${kind})`);
     });
     const kinds = d.map(q => q.kind || (q.type === "illusion" ? "illusion" : null));
-    if (tfPrev && kinds.every(Boolean) && tfPrev.every(Boolean)) kinds.forEach((k, j) => { if (k === tfPrev[j]) E(w, `${k} repeats from the previous day`); });
+    // A pinned day is not played beside the previous bank entry, so that entry is not the previous day.
+    if (tfPrev && !pinnedTf.has(tfI) && kinds.every(Boolean) && tfPrev.every(Boolean)) kinds.forEach((k, j) => { if (k === tfPrev[j]) E(w, `${k} repeats from the previous day`); });
     tfPrev = kinds;
+    tfI++;
   });
 } else if (!errs.length) E("content.js", "window.CONTENT not found");
 if (A) {

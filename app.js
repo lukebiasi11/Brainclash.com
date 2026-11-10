@@ -174,16 +174,34 @@ const FROZEN = {
   oddOneOut: { u0: 4149, idx: [0,1,9,10,5] },
   anagram: { u0: 4149, idx: [2,3,7,8,9] }
 };
+// Indexes named by DAY_OVERRIDES are already scheduled. They stay out of the fresh queue and the wrap
+// so appending a pinned day does not move any other date.
+function pinnedIdx(name) {
+  const out = new Set();
+  const all = typeof window !== "undefined" && window.DAY_OVERRIDES;
+  if (!all) return out;
+  for (const spec of Object.values(all)) {
+    if (!spec || typeof spec !== "object") continue;
+    const idx = spec[name] != null ? spec[name] : (name === "anagram" ? spec.anagrams : undefined);
+    if (Number.isInteger(idx)) out.add(idx);
+  }
+  return out;
+}
 function schedIdx(name, len, u) {
   const f = FROZEN[name];
   if (!f || !len) return null;
-  if (u < f.u0) return ((u % len) + len) % len;            // pre-launch (practice fallback): legacy
+  const pinned = pinnedIdx(name);
+  const pool = [];
+  for (let i = 0; i < len; i++) if (!pinned.has(i)) pool.push(i);
+  const n = pool.length || len;
+  const at = j => pool[((j % n) + n) % n];
+  if (u < f.u0) return at(u);            // pre-launch (practice fallback): legacy
   const k = u - f.u0;
-  if (k < f.idx.length) return f.idx[k] < len ? f.idx[k] : k % len;
-  const used = new Set(f.idx), fresh = [];
-  for (let i = 0; i < len; i++) if (!used.has(i)) fresh.push(i);
+  if (k < f.idx.length) return f.idx[k] < len && !pinned.has(f.idx[k]) ? f.idx[k] : at(k);
+  const used = new Set(f.idx);
+  const fresh = pool.filter(i => !used.has(i));
   const j = k - f.idx.length;
-  return j < fresh.length ? fresh[j] : (j - fresh.length) % len;
+  return j < fresh.length ? fresh[j] : at(j - fresh.length);
 }
 // Past-date stability (SPEC): word unit 4151 spans Oct 29 – Nov 2. The Nov 1 remap changed that unit's
 // oddOneOut/anagram, so days before Nov 1 (20758) keep the as-played indexes (oo 2, an 4).
