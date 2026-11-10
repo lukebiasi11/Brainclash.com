@@ -453,7 +453,9 @@ function introText(id) {
       bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
       conn: tr("Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds."),
       odd: tr("8 sets of four words — tap the one that doesn't belong. 4 medium (100 pts) then 4 hard (150 pts). 60 seconds."),
-      anag: tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.") },
+      anag: (window.Answers && Answers.anagramStrict(session.key)
+        ? tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 92.5% of the common-word points. No penalty for wrong guesses.")
+        : tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.")) },
     think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
@@ -1413,9 +1415,11 @@ function oddOneOut() {
 
 function anagramRush() {
   const set = session.set.anagram;
-  const valid = new Set(set.valid), PTS = { 3: 10, 4: 25, 5: 50, 6: 100 };
-  // Behind-the-scenes conversion (NOT finalized in spec): 1,000 = 60% of the raw points available from common words.
-  const target = 0.6 * set.common.reduce((a, w) => a + PTS[w.length], 0);
+  const valid = new Set(set.valid);
+  const strict = window.Answers && Answers.anagramStrict(session.key);
+  const ptsOf = w => window.Answers.anagramPoints(w.length, strict);
+  const commonRaw = window.Answers.anagramCommonRaw(set.common, strict);
+  const shown = raw => window.Answers.anagramScore(raw, commonRaw, strict);
   const body = screen("📝 " + tr("Anagram Rush"), tr("6 letters · 60 seconds"));
   let letters = shuffle(set.letters.split(""), rng(session.day)), built = [], found = [], raw = 0, over = false;
   const scoreEl = h("div", { class: "raw" }), cur = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), list = h("div", { class: "found" });
@@ -1431,11 +1435,11 @@ function anagramRush() {
   scoreEl.append(tr("Score "), scoreB, tr("/1,000 pts"), scoreRest);
   let shownFound = 0;
   const draw = () => {
-    scoreB.textContent = Math.min(1000, Math.round(raw / target * 1000)); scoreRest.textContent = tr("{0} words · {1} raw", found.length, raw);
+    scoreB.textContent = shown(raw); scoreRest.textContent = tr("{0} words · {1} raw", found.length, raw);
     slotEls.forEach((el, k) => { const on = built[k] != null; el.className = "slot" + (on ? " on" : ""); el.textContent = on ? letters[built[k]] : ""; });
     if (tileEls.length !== letters.length || tileEls.some((b, k) => b.textContent !== letters[k])) buildTiles();
     tileEls.forEach((b, k) => { b.disabled = built.includes(k); });
-    while (shownFound < found.length) { const w = found[found.length - 1 - shownFound]; list.prepend(h("span", { class: "chip" }, w.toUpperCase() + " +" + PTS[w.length])); shownFound++; }
+    while (shownFound < found.length) { const w = found[found.length - 1 - shownFound]; list.prepend(h("span", { class: "chip" }, w.toUpperCase() + " +" + ptsOf(w))); shownFound++; }
   };
   // Fixed-height feedback line: text changes in place, no element insert/remove, no full-screen flash (layout never shifts).
   const fbSlot = h("div", { class: "an-fb", "aria-live": "polite" });
@@ -1445,7 +1449,7 @@ function anagramRush() {
     if (over) return; w = w.toLowerCase().trim(); built = [];
     if (w.length < 3) { draw(); return; }
     if (found.includes(w)) flash(tr("Already found"), null);
-    else if (valid.has(w)) { found.unshift(w); raw += PTS[w.length]; track(Math.min(1000, Math.round(raw / target * 1000))); flash("+" + PTS[w.length], true); }
+    else if (valid.has(w)) { found.unshift(w); raw += ptsOf(w); track(shown(raw)); flash("+" + ptsOf(w), true); }
     else flash(tr("Not a word"), false);
     draw();
   };
@@ -1455,7 +1459,7 @@ function anagramRush() {
     body.append(h("p", { class: "muted" }, tr("Missed words: ") + (missed.length ? missed.map(w => w.toUpperCase()).join(", ") : tr("none — wow!"))));
     // ONE number everywhere: the converted /1,000 score is what the header shows, what is banked and what the total sums.
     body.append(h("p", { class: "muted" }, `${found.length} word${found.length === 1 ? "" : "s"} · ${fmt(raw)} raw points`));
-    catDone(body, Math.min(1000, Math.round(raw / target * 1000)), "anag raw " + raw);
+    catDone(body, shown(raw), "anag raw " + raw);
   };
   onKey = e => {
     if (over) return false;

@@ -283,6 +283,29 @@
     const g = Math.round(guess), a = Math.round(answer);
     return Math.abs(g - a) <= band ? max : 0;
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES };
+  // Anagram Rush. Through 2026-11-09, 1,000 = 60% of the common-word raw total
+  // at 10/25/50/100. From 2026-11-10, longer words weigh more and 1,000 = 92.5%
+  // of the common-word raw total. Saved games are numbers already stored; this
+  // only runs when a day is played.
+  const ANAGRAM_STRICT_FROM = "2026-11-10";
+  const ANAGRAM_OLD = { 3: 10, 4: 25, 5: 50, 6: 100 };
+  const ANAGRAM_NEW = { 3: 10, 4: 30, 5: 70, 6: 150, 7: 250 };
+  function anagramStrict(day) { return typeof day === "string" && day >= ANAGRAM_STRICT_FROM; }
+  function anagramPoints(len, strict) {
+    const n = len | 0;
+    if (n < 3) return 0;
+    if (n >= 7) return strict ? ANAGRAM_NEW[7] : 0;
+    return (strict ? ANAGRAM_NEW : ANAGRAM_OLD)[n] || 0;
+  }
+  function anagramCommonRaw(words, strict) {
+    return [].concat(words || []).reduce((sum, w) => sum + anagramPoints(String(w).length, strict), 0);
+  }
+  function anagramScore(raw, commonRaw, strict) {
+    const share = strict ? 0.925 : 0.6;
+    const target = share * Number(commonRaw);
+    if (!(target > 0) || !Number.isFinite(raw)) return 0;
+    return Math.min(1000, Math.max(0, Math.round(raw / target * 1000)));
+  }
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);
