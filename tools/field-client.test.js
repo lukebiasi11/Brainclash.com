@@ -219,7 +219,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
   ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
   ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Todavía no hay otros resultados"));
-  ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "These bars count today's completed games, not including yours."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
+  ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "Blue bars count other completed games. The orange bar includes yours."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");

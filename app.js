@@ -2120,9 +2120,11 @@ function g1OnSection() {
     const total = youScores.reduce((a, b) => a + b, 0);
     const you = mode === "total" ? total : youScores[cat];
     const avg = mode === "total" ? snap.restAverage : snap.restCategoryAverage[cat];
-    const bins = mode === "total" ? snap.scoreBins : snap.categoryBins[cat];
     const above = mode === "total" ? snap.othersAtOrAbove : snap.categoryAtOrAbove[cat];
     const ownBin = mode === "total" ? g1Bin(total, 500) : g1Bin(youScores[cat], 100);
+    // The server bins count other games only. Add this game to its own bin so the orange bar has height.
+    const bins = (mode === "total" ? snap.scoreBins : snap.categoryBins[cat]).slice();
+    bins[ownBin] += 1;
     const pct = g1Percent(above, snap.restFinishes);
     const delta = Math.round(you - avg);
     section.setAttribute("data-you", String(Math.round(you)));
@@ -2150,7 +2152,7 @@ function g1OnSection() {
       h("b", {}, tr("Your score") + ": " + fmt(you)),
       h("span", { class: "g1-delta " + (delta < 0 ? "down" : "up") }, sign + fmt(shown) + " " + tr("vs average"))
     );
-    note.textContent = tr("These bars count today's completed games, not including yours.");
+    note.textContent = tr("Blue bars count other completed games. The orange bar includes yours.");
   };
   totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
   catBtn.addEventListener("click", () => { mode = "category"; paint(); });
