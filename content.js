@@ -36,8 +36,7 @@
    Scoring rules live in app.js — no need to touch it for content.
    ===================================================================== */
 // Banff National Park, Alberta — simplified outer legislative boundary.
-// Attach as `area` on the 2026-11-15 World Q1 pin (center 51.5, -116.0):
-//   area: window.BANFF_NATIONAL_PARK_AREA
+// Attached as `area` on the 2026-11-15 World Q1 pin (center 51.5, -116.0).
 // Source: Natural Resources Canada, Canada Lands Survey System, "National Parks
 // and National Park Reserves of Canada Legislative Boundaries" (Open Government
 // Licence), https://open.canada.ca/data/en/dataset/9e1507cd-f25c-4c64-995b-6563bf9d65bd
@@ -361,7 +360,8 @@ window.CONTENT = {
           "name": "Banff National Park, Alberta, Canada",
           "lat": 51.5,
           "lon": -116.0,
-          "explain": "Banff National Park, founded in 1885, is Canada's first national park (about 6,641 km²), in the Rocky Mountains of Alberta."
+          "explain": "Banff National Park, founded in 1885, is Canada's first national park (about 6,641 km²), in the Rocky Mountains of Alberta.",
+          "area": window.BANFF_NATIONAL_PARK_AREA
         },
         {
           "name": "Istanbul, Türkiye",

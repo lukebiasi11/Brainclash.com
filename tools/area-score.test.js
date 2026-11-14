@@ -83,8 +83,15 @@ let banffPins = 0;
 (win.CONTENT.worldRush || []).forEach(day => (day.pins || []).forEach(p => {
   if (!p || !/banff/i.test(p.name || "")) return;
   banffPins++;
-  t("Banff pin carries the area", JSON.stringify(p.area), JSON.stringify(AREA));
+  t("Banff pin carries the area", p.area === AREA, true);
 }));
+const scheduledIdx = win.DAY_OVERRIDES && win.DAY_OVERRIDES["2026-11-15"] && win.DAY_OVERRIDES["2026-11-15"].worldRush;
+const scheduled = Number.isInteger(scheduledIdx) ? win.CONTENT.worldRush[scheduledIdx] : null;
+t("2026-11-15 Q1 is Banff", !!(scheduled && /banff/i.test(scheduled.pins[0].name)), true);
+t("2026-11-15 Q1 uses the boundary", !!(scheduled && scheduled.pins[0].area === AREA), true);
+vm.runInNewContext(fs.readFileSync(path.join(root, "content.es.js"), "utf8"), { window: win });
+const esPin = win.CONTENT_ES && win.CONTENT_ES.worldRush && win.CONTENT_ES.worldRush[scheduledIdx] && win.CONTENT_ES.worldRush[scheduledIdx].pins[0];
+t("Spanish Banff pin does not replace the boundary", !esPin || esPin.area == null || esPin.area === AREA, true);
 
 console.log("samples", JSON.stringify({
   inside: 450,
