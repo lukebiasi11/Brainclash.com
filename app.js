@@ -556,7 +556,12 @@ function globeMap(el, onPick) {
     ctx.beginPath(); path(land); ctx.fillStyle = C.land; ctx.fill(); ctx.lineWidth = 0.8; ctx.strokeStyle = C.coast; ctx.stroke();
     ctx.beginPath(); path(borders); ctx.lineWidth = 0.7; ctx.strokeStyle = C.border; ctx.stroke();
     ctx.beginPath(); path(sphere); ctx.lineWidth = 2; ctx.strokeStyle = C.rim; ctx.stroke(); }
-    if (guess && target) { ctx.beginPath(); path({ type: "LineString", coordinates: [[guess.lon, guess.lat], [target.lon, target.lat]] });
+    if (target && target.area) { const poly = areaPolygon(target.area); if (poly) {
+      ctx.beginPath(); path(poly); ctx.fillStyle = "rgba(242,194,48,0.20)"; ctx.fill();
+      ctx.lineJoin = "round"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(31,44,122,0.45)"; ctx.stroke();
+      ctx.lineWidth = 1.75; ctx.strokeStyle = "rgba(255,246,232,0.95)"; ctx.stroke(); } }
+    const anchor = guess && target ? pinLineEnd(guess, target) : null;
+    if (guess && anchor) { ctx.beginPath(); path({ type: "LineString", coordinates: [[guess.lon, guess.lat], [anchor.lon, anchor.lat]] });
       ctx.setLineDash([7, 6]); ctx.lineWidth = 3; ctx.strokeStyle = C.arc; ctx.stroke(); ctx.setLineDash([]); }
     if (target) dot(target, C.target, 7);
     if (guess) dot(guess, C.guess, 6.5);
@@ -639,13 +644,28 @@ function globeMap(el, onPick) {
       anim = t < 1 ? requestAnimationFrame(step) : null; };
     anim = requestAnimationFrame(step);
   }
+  // Point pins keep the old framing. An area pin fits the ring, and an outside guess, on screen.
+  function frameReveal(t, g) {
+    if (!(t && t.area && areaRing(t.area).length >= 3)) {
+      let c = [t.lon, t.lat], kk = Math.max(k, 1.6);
+      if (g) { c = d3.geoInterpolate([g.lon, g.lat], [t.lon, t.lat])(0.5);
+        const half = d3.geoDistance([g.lon, g.lat], [t.lon, t.lat]) / 2; // both points within ~70% of the radius
+        kk = Math.max(K_MIN, Math.min(4, 0.7 / Math.max(Math.sin(Math.min(half, Math.PI / 2 - 0.05)), 0.12))); if (half > 1.2) kk = K_MIN; }
+      return { c, kk };
+    }
+    const inside = g && pinResult(g, t).inside;
+    const c = !g || inside ? [t.lon, t.lat] : d3.geoInterpolate([g.lon, g.lat], [t.lon, t.lat])(0.5);
+    let maxD = 0;
+    t.area.forEach(p => { maxD = Math.max(maxD, d3.geoDistance(c, [p[1], p[0]])); });
+    if (g && !inside) maxD = Math.max(maxD, d3.geoDistance(c, [g.lon, g.lat]));
+    const ang = Math.min(Math.max(maxD, 0.004) * 1.28, Math.PI / 2 - 0.05);
+    if (ang > 1.2) return { c, kk: K_MIN };
+    return { c, kk: Math.max(K_MIN, Math.min(K_MAX, 0.70 / Math.max(Math.sin(ang), 0.01))) };
+  }
   const api = { reveal(t, g) {
     locked = true; target = t; cv.setAttribute("aria-label", "Globe showing the answer: " + t.name);
-    let c = [t.lon, t.lat], kk = Math.max(k, 1.6);
-    if (g) { c = d3.geoInterpolate([g.lon, g.lat], [t.lon, t.lat])(0.5);
-      const half = d3.geoDistance([g.lon, g.lat], [t.lon, t.lat]) / 2; // both points within ~70% of the radius
-      kk = Math.max(K_MIN, Math.min(4, 0.7 / Math.max(Math.sin(Math.min(half, Math.PI / 2 - 0.05)), 0.12))); if (half > 1.2) kk = K_MIN; }
-    flyTo([-c[0], -c[1]], kk);
+    const framed = frameReveal(t, g);
+    flyTo([-framed.c[0], -framed.c[1]], framed.kk);
   },
     aim() { if (!locked && !guess) pickAt(W / 2, H / 2); return guess; }, touched: () => touched,
     // test hooks
@@ -679,7 +699,24 @@ function svgMap(el, onPick) {
     const g = { lon: Math.max(-180, Math.min(180, p.x / 1000 * 360 - 180)), lat: Math.max(-90, Math.min(90, 90 - p.y / 500 * 180)) };
     marks.innerHTML = ""; draw(g, "guess"); onPick(g);
   });
-  return { reveal(t, g) { locked = true; draw(t, "target"); if (g) { const [x1, y1] = toXY(g), [x2, y2] = toXY(t); const l = document.createElementNS(NS, "line"); Object.entries({ x1, y1, x2, y2, class: "dist" }).forEach(([k, v]) => l.setAttribute(k, v)); marks.prepend(l); } } };
+  return { reveal(t, g) {
+    locked = true;
+    const ring = t && t.area ? areaRing(t.area) : [];
+    if (ring.length >= 3) {
+      const poly = document.createElementNS(NS, "polygon");
+      poly.setAttribute("points", ring.map(p => toXY(p).join(",")).join(" "));
+      poly.setAttribute("class", "area");
+      marks.insertBefore(poly, marks.firstChild);
+    }
+    draw(t, "target");
+    const end = g ? pinLineEnd(g, t) : null;
+    if (g && end) {
+      const [x1, y1] = toXY(g), [x2, y2] = toXY(end);
+      const l = document.createElementNS(NS, "line");
+      Object.entries({ x1, y1, x2, y2, class: "dist" }).forEach(([k, v]) => l.setAttribute(k, v));
+      marks.insertBefore(l, marks.querySelector(".guess") || marks.querySelector(".target"));
+    }
+  } };
 }
 
 // ---------- 1. World Rush ----------
@@ -689,8 +726,91 @@ function haversine(a, b) {
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
+// area is [[lat, lon], ...] for one ring. Edges are short great-circle arcs (a park, not a hemisphere).
+function areaRing(area) {
+  if (!Array.isArray(area)) return [];
+  const ring = [];
+  for (const p of area) {
+    if (!p || p.length < 2) continue;
+    const lat = +p[0], lon = +p[1];
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const prev = ring[ring.length - 1];
+    if (prev && prev.lat === lat && prev.lon === lon) continue;
+    ring.push({ lat, lon });
+  }
+  if (ring.length >= 2 && ring[0].lat === ring[ring.length - 1].lat && ring[0].lon === ring[ring.length - 1].lon) ring.pop();
+  return ring;
+}
+function pointInRing(p, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const yi = ring[i].lat, yj = ring[j].lat, xi = ring[i].lon, xj = ring[j].lon;
+    if ((yi > p.lat) !== (yj > p.lat) && p.lon < (xj - xi) * (p.lat - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function toVec(p) {
+  const lat = p.lat * Math.PI / 180, lon = p.lon * Math.PI / 180, cl = Math.cos(lat);
+  return [cl * Math.cos(lon), cl * Math.sin(lon), Math.sin(lat)];
+}
+function nearestOnSegment(p, a, b) {
+  const P = toVec(p), A = toVec(a), B = toVec(b);
+  const N = [A[1] * B[2] - A[2] * B[1], A[2] * B[0] - A[0] * B[2], A[0] * B[1] - A[1] * B[0]];
+  const nL = Math.hypot(N[0], N[1], N[2]);
+  const nearer = () => haversine(p, a) <= haversine(p, b) ? { lat: a.lat, lon: a.lon } : { lat: b.lat, lon: b.lon };
+  if (nL < 1e-14) return nearer();
+  const Nn = [N[0] / nL, N[1] / nL, N[2] / nL];
+  const drop = P[0] * Nn[0] + P[1] * Nn[1] + P[2] * Nn[2];
+  const pr = [P[0] - Nn[0] * drop, P[1] - Nn[1] * drop, P[2] - Nn[2] * drop];
+  const pL = Math.hypot(pr[0], pr[1], pr[2]);
+  if (pL < 1e-14) return nearer();
+  const G = [pr[0] / pL, pr[1] / pL, pr[2] / pL];
+  const along = (X, Y) => {
+    const c0 = X[1] * Y[2] - X[2] * Y[1], c1 = X[2] * Y[0] - X[0] * Y[2], c2 = X[0] * Y[1] - X[1] * Y[0];
+    return c0 * Nn[0] + c1 * Nn[1] + c2 * Nn[2];
+  };
+  if (along(A, G) < -1e-9 || along(G, B) < -1e-9) return nearer();
+  return { lat: Math.asin(Math.max(-1, Math.min(1, G[2]))) * 180 / Math.PI, lon: Math.atan2(G[1], G[0]) * 180 / Math.PI };
+}
+function nearestOnRing(p, ring) {
+  let best = ring[0], bd = Infinity;
+  for (let i = 0; i < ring.length; i++) {
+    const q = nearestOnSegment(p, ring[i], ring[(i + 1) % ring.length]);
+    const d = haversine(p, q);
+    if (d < bd) { bd = d; best = q; }
+  }
+  return best;
+}
+function areaPolygon(area) {
+  const ring = areaRing(area);
+  if (ring.length < 3) return null;
+  const coords = ring.map(p => [p.lon, p.lat]);
+  coords.push(coords[0]);
+  return { type: "Polygon", coordinates: [coords] };
+}
+// Inside an area (or on its boundary) is 0 km. Outside uses the nearest boundary point, not the pin center.
+function pinResult(guess, target) {
+  const ring = target && target.area ? areaRing(target.area) : [];
+  if (ring.length < 3) {
+    const d = haversine(guess, target);
+    return { km: d, pts: pinPoints(d), inside: false, nearest: { lat: target.lat, lon: target.lon } };
+  }
+  const nearest = nearestOnRing(guess, ring);
+  const edgeKm = haversine(guess, nearest);
+  if (edgeKm < 1e-4 || pointInRing(guess, ring)) return { km: 0, pts: pinPoints(0), inside: true, nearest };
+  return { km: edgeKm, pts: pinPoints(edgeKm), inside: false, nearest };
+}
+// Map line ends at the point the score used. Inside an area there is no away-line.
+function pinLineEnd(guess, target) {
+  if (!guess || !target) return null;
+  if (target.area && areaRing(target.area).length >= 3) {
+    const r = pinResult(guess, target);
+    return r.inside ? null : r.nearest;
+  }
+  return { lat: target.lat, lon: target.lon };
+}
 const pinPoints = d => Math.round(450 * Math.max(0, 1 - d / 4000));
-window.DGScore = Object.freeze({ haversine, pinPoints }); // pure scoring helpers (read-only, for tests)
+window.DGScore = Object.freeze({ haversine, pinPoints, pinResult }); // pure scoring helpers (read-only, for tests)
 function worldRush() {
   const set = session.set.worldRush;
   let total = 0, step = 0; const log = [];
@@ -721,8 +841,8 @@ function worldRush() {
       locked = true; timer.stop(); btn.remove();
       let pts = 0, msg;
       if (guess) {
-        const d = haversine(guess, target); pts = pinPoints(d);
-        msg = `${fmt(d)} km away → +${pts}`;
+        const r = pinResult(guess, target); pts = r.pts;
+        msg = tr("{0} km away → +{1}", fmt(r.km), pts);
       } else msg = "Time's up — no pin placed → +0";
       api.reveal(target, guess);
       total += pts; log.push(pts); track(total);

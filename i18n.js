@@ -112,7 +112,7 @@
     "{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.": "{0} quedó registrada con {1} pts: saliste a mitad de ronda, así que no se puede repetir.", "That category": "Esa categoría",
     // world rush
     "Pin {0} of 2 · up to 450 pts": "Pin {0} de 2 · hasta 450 pts", "Where is ": "¿Dónde está ", "?": "?", "Spin to put the ✛ on your guess, then Lock in": "Gira para poner la ✛ sobre tu respuesta y confirma",
-    "Time's up — no pin placed → +0": "Se acabó el tiempo: no pusiste pin → +0", "Next pin →": "Siguiente pin →", "Geography Q →": "Pregunta de geografía →", "Geography question · 100 pts": "Pregunta de geografía · 100 pts",
+    "Time's up — no pin placed → +0": "Se acabó el tiempo: no pusiste pin → +0", "{0} km away → +{1}": "A {0} km → +{1}", "Next pin →": "Siguiente pin →", "Geography Q →": "Pregunta de geografía →", "Geography question · 100 pts": "Pregunta de geografía · 100 pts",
     "📍 Lock in pin": "📍 Confirmar pin", "Lock in": "Confirmar", "Lock in order": "Confirmar orden", "Lock in pairs": "Confirmar parejas",
     // feedback
     "Correct! +{0}": "¡Correcto! +{0}", "Skipped. +0": "Saltada. +0", "Time's up. +0": "Se acabó el tiempo. +0", "Not quite. +0": "Casi. +0",
