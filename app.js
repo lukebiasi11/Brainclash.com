@@ -262,11 +262,19 @@ function newSession(practice) {
   return s;
 }
 // Records points earned so far in the current category (used if the page reloads).
+// The argument is the absolute category partial, not the latest question by itself.
 function track(pts) {
   if (!session || session.inProgress == null) return;
   const gain = Math.round(pts - (session.partial || 0));
   session.partial = pts; session.partialCat = session.inProgress; save(); liveTotal();
   if (gain > 0) scorePop(gain);
+}
+// Points already banked earlier in this category. A later question (pair rounds, reveal, slider)
+// must add these: track() replaces the partial with whatever it is given.
+function bankedPartial() {
+  if (!session || session.inProgress == null) return 0;
+  const n = Number(session.partial);
+  return Number.isFinite(n) ? Math.round(n) : 0;
 }
 // Celebration: "+N" floats up from the header score and the number bumps (CSS, ~600 ms, no layout shift).
 function scorePop(gain) {
@@ -1305,6 +1313,7 @@ function pairQuestion(body, q, value, seconds, done) {
   const bar = actionBar(body);
   const roundSecs = pairRoundSeconds(q, seconds);
   let roundTimer = null;
+  const banked = bankedPartial();
   function stopRoundTimer() {
     if (roundTimer) { roundTimer.stop(); roundTimer = null; }
     const head = typeHead(body);
@@ -1314,7 +1323,7 @@ function pairQuestion(body, q, value, seconds, done) {
     stopRoundTimer();
     if (roundSecs > 0) roundTimer = Timer(roundSecs, () => lockRound(null, true), typeHead(body));
   }
-  const scoreNow = () => { if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(window.Answers.pairScore(correct, n, value)); } };
+  const scoreNow = () => { if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + window.Answers.pairScore(correct, n, value)); } };
   function render() {
     const r = rounds[i];
     awaiting = false;
@@ -1372,6 +1381,7 @@ function revealQuestion(body, q, value, seconds, done) {
   const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
   const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
   let shown = 1, over = false;
+  const banked = bankedPartial();
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
   const list = h("div", { class: "reveal-clues" });
@@ -1412,7 +1422,7 @@ function revealQuestion(body, q, value, seconds, done) {
     form.querySelector("button")?.remove();
     next.remove();
     const pts = window.Answers.revealScore(stage, value);
-    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(pts); }
+    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + pts); }
     const ans = q.answer || "";
     const msg = timedOut ? tr("Time's up. Answer: {0}. +0", ans) : stage ? tr("Correct on clue {0}. +{1}", stage, pts) : tr("Answer: {0}. +0", ans);
     feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
@@ -1460,6 +1470,7 @@ function sliderQuestion(body, q, value, seconds, done) {
   const perPct = q.per_pct == null ? 20 : q.per_pct;
   let valueNow = window.Answers.sliderStart(min, max, step);
   let over = false;
+  const banked = bankedPartial();
   const art = sliderArt(q);
   const sliderDiff = typeDiff(q); if (sliderDiff) body.append(sliderDiff);
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
@@ -1504,7 +1515,7 @@ function sliderQuestion(body, q, value, seconds, done) {
     const guess = timedOut ? null : valueNow;
     const scoreOpts = { scale: q.scale, per_unit: q.per_unit, per_pct: q.per_pct, tolerance: q.tolerance };
     const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, scoreOpts);
-    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(pts); }
+    if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + pts); }
     const off = guess == null ? null : Math.abs(guess - q.answer);
     const shown = String(q.answer) + (q.unit ? " " + tr(q.unit) : "");
     const pct = guess == null || !q.answer ? null : off / Math.abs(q.answer) * 100;
@@ -1518,8 +1529,31 @@ function sliderQuestion(body, q, value, seconds, done) {
     else msg = tr("Off by {0}. Answer: {1}. +{2}", numText(off), shown, pts);
     feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
     typeExplain(body, q);
+    liftGuesstimateTail(body);
     done(pts);
   }
+}
+// 375x667 only: the jelly-bean explain sits on the bottom edge, under the lock/action strip.
+// Other phone widths and desktop already clear that line, so leave them alone.
+function liftGuesstimateTail(body) {
+  const line = body.querySelector(":scope > .tf-explain");
+  if (!line) return;
+  const place = () => {
+    if (innerWidth !== 375 || innerHeight !== 667 || !line.isConnected) return;
+    const r = line.getBoundingClientRect();
+    if (r.height < 1 || r.bottom <= innerHeight - 12) return;
+    const art = body.querySelector(":scope > .slider-art");
+    const img = art && art.querySelector("img");
+    if (img) {
+      const over = Math.ceil(r.bottom - (innerHeight - 16));
+      const ih = img.getBoundingClientRect().height;
+      if (ih > 48) img.style.maxHeight = Math.max(48, ih - over) + "px";
+    }
+    body.classList.add("fit-scroll");
+    line.style.scrollMarginBottom = "16px";
+    requestAnimationFrame(() => { if (line.isConnected && line.getBoundingClientRect().bottom > innerHeight - 8) line.scrollIntoView({ block: "end" }); });
+  };
+  requestAnimationFrame(place);
 }
 function runSlotDemo() {
   const demo = window.SLOT_DEMO || {};
