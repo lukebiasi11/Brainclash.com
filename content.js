@@ -211,9 +211,9 @@ window.CONTENT = {
     {
       "pins": [
         {
-          "name": "Grand Canyon (South Rim), Arizona, USA",
-          "lat": 36.06,
-          "lon": -112.11
+          "name": "Key West, Florida, USA",
+          "lat": 24.56,
+          "lon": -81.78
         },
         {
           "name": "New Orleans, Louisiana, USA",
@@ -230,81 +230,81 @@ window.CONTENT = {
         "rounds": [
           {
             "left": {
-              "en": "Chicago",
-              "es": "Chicago"
+              "en": "Jacksonville",
+              "es": "Jacksonville"
             },
             "right": {
-              "en": "Miami",
-              "es": "Miami"
-            },
-            "correct": "left",
-            "note": {
-              "en": "Chicago 41.9°N vs Miami 25.8°N.",
-              "es": "Chicago: 41,9°N. Miami: 25,8°N."
-            }
-          },
-          {
-            "left": {
-              "en": "Honolulu",
-              "es": "Honolulu"
-            },
-            "right": {
-              "en": "Anchorage",
-              "es": "Anchorage"
+              "en": "Winnipeg",
+              "es": "Winnipeg"
             },
             "correct": "right",
             "note": {
-              "en": "Anchorage 61.2°N vs Honolulu 21.3°N.",
-              "es": "Anchorage: 61,2°N. Honolulu: 21,3°N."
+              "en": "Winnipeg 49.9°N vs Jacksonville 30.3°N.",
+              "es": "Winnipeg: 49,9°N. Jacksonville: 30,3°N."
             }
           },
           {
             "left": {
-              "en": "London",
-              "es": "Londres"
+              "en": "Bangkok",
+              "es": "Bangkok"
             },
             "right": {
-              "en": "Madrid",
-              "es": "Madrid"
+              "en": "Brisbane",
+              "es": "Brisbane"
             },
             "correct": "left",
             "note": {
-              "en": "London 51.5°N vs Madrid 40.4°N.",
-              "es": "Londres: 51,5°N. Madrid: 40,4°N."
+              "en": "Bangkok 13.8°N vs Brisbane 27.5°S (south of the equator).",
+              "es": "Bangkok: 13,8°N. Brisbane: 27,5°S (al sur del ecuador)."
             }
           },
           {
             "left": {
-              "en": "Boston",
-              "es": "Boston"
+              "en": "Taipei",
+              "es": "Taipéi"
             },
             "right": {
-              "en": "Seattle",
-              "es": "Seattle"
+              "en": "Tel Aviv",
+              "es": "Tel Aviv"
             },
             "correct": "right",
             "note": {
-              "en": "Seattle 47.6°N vs Boston 42.4°N.",
-              "es": "Seattle: 47,6°N. Boston: 42,4°N."
+              "en": "Tel Aviv 32.1°N vs Taipei 25.0°N.",
+              "es": "Tel Aviv: 32,1°N. Taipéi: 25,0°N."
             }
           },
           {
             "left": {
-              "en": "Rome",
-              "es": "Roma"
+              "en": "Halifax",
+              "es": "Halifax"
             },
             "right": {
-              "en": "New York City",
-              "es": "Nueva York"
+              "en": "Milwaukee",
+              "es": "Milwaukee"
             },
             "correct": "left",
             "note": {
-              "en": "Rome 41.9°N vs New York City 40.7°N.",
-              "es": "Roma: 41,9°N. Nueva York: 40,7°N."
+              "en": "Halifax 44.6°N vs Milwaukee 43.1°N.",
+              "es": "Halifax: 44,6°N. Milwaukee: 43,1°N."
+            }
+          },
+          {
+            "left": {
+              "en": "Baghdad",
+              "es": "Bagdad"
+            },
+            "right": {
+              "en": "Albuquerque",
+              "es": "Albuquerque"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Albuquerque 35.1°N vs Baghdad 33.3°N.",
+              "es": "Albuquerque: 35,1°N. Bagdad: 33,3°N."
             }
           }
         ],
-        "explain": "Latitudes from Wikipedia city pages. Rome is north of New York City."
+        "explain": "Latitudes from Wikipedia city pages. Surprise: Albuquerque is farther north than Baghdad, and Halifax is farther north than Milwaukee."
       }
     },
     {
@@ -1030,16 +1030,16 @@ window.CONTENT = {
     [
       {
         "type": "mc",
-        "visual": "🏀",
-        "q": "In the 1996 movie Space Jam, which basketball legend teams up with Bugs Bunny and the Looney Tunes?",
+        "visual": "🏈",
+        "q": "Which NFL star co-hosts the hit podcast \"New Heights\" with his older brother, Jason?",
         "options": [
-          "Michael Jordan",
-          "Kobe Bryant",
-          "Shaquille O'Neal",
-          "Magic Johnson"
+          "Aaron Rodgers",
+          "Travis Kelce",
+          "Josh Allen",
+          "Joe Burrow"
         ],
-        "a": 0,
-        "explain": "Michael Jordan stars as himself in Space Jam (1996)."
+        "a": 1,
+        "explain": "Travis Kelce, an NFL tight end, hosts New Heights with his older brother Jason, a former NFL center. The brothers grew up in Cleveland Heights, Ohio, which gave the show its name."
       },
       {
         "type": "reveal",
@@ -1340,9 +1340,9 @@ window.CONTENT = {
 ,
     [
       [
-        "WORK",
-        "MAT",
-        "PLACE"
+        "PEA",
+        "CRACKER",
+        "NUT"
       ],
       [
         "MICRO",
@@ -1360,9 +1360,9 @@ window.CONTENT = {
         "GUARD"
       ],
       [
-        "COUNT",
-        "TOWN",
-        "DOWN"
+        "BULL",
+        "TONE",
+        "RING"
       ],
       [
         "WEEK",

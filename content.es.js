@@ -265,9 +265,9 @@ window.CONTENT_ES = {
   {
     "pins": [
       {
-        "name": "Gran Cañón (borde sur), Arizona, EE. UU.",
-        "lat": 36.06,
-        "lon": -112.11
+        "name": "Cayo Hueso (Key West), Florida, EE. UU.",
+        "lat": 24.56,
+        "lon": -81.78
       },
       {
         "name": "Nueva Orleans, Luisiana, EE. UU.",
@@ -280,37 +280,37 @@ window.CONTENT_ES = {
       "prompt": "¿Cuál está más al NORTE?",
       "rounds": [
         {
-          "left": "Chicago",
-          "right": "Miami",
-          "correct": "left",
-          "note": "Chicago: 41,9°N. Miami: 25,8°N."
-        },
-        {
-          "left": "Honolulu",
-          "right": "Anchorage",
+          "left": "Jacksonville",
+          "right": "Winnipeg",
           "correct": "right",
-          "note": "Anchorage: 61,2°N. Honolulu: 21,3°N."
+          "note": "Winnipeg: 49,9°N. Jacksonville: 30,3°N."
         },
         {
-          "left": "Londres",
-          "right": "Madrid",
+          "left": "Bangkok",
+          "right": "Brisbane",
           "correct": "left",
-          "note": "Londres: 51,5°N. Madrid: 40,4°N."
+          "note": "Bangkok: 13,8°N. Brisbane: 27,5°S (al sur del ecuador)."
         },
         {
-          "left": "Boston",
-          "right": "Seattle",
+          "left": "Taipéi",
+          "right": "Tel Aviv",
           "correct": "right",
-          "note": "Seattle: 47,6°N. Boston: 42,4°N."
+          "note": "Tel Aviv: 32,1°N. Taipéi: 25,0°N."
         },
         {
-          "left": "Roma",
-          "right": "Nueva York",
+          "left": "Halifax",
+          "right": "Milwaukee",
           "correct": "left",
-          "note": "Roma: 41,9°N. Nueva York: 40,7°N."
+          "note": "Halifax: 44,6°N. Milwaukee: 43,1°N."
+        },
+        {
+          "left": "Bagdad",
+          "right": "Albuquerque",
+          "correct": "right",
+          "note": "Albuquerque: 35,1°N. Bagdad: 33,3°N."
         }
       ],
-      "explain": "Latitudes de las páginas de Wikipedia de cada ciudad. Roma está al norte de Nueva York."
+      "explain": "Latitudes de las páginas de Wikipedia de cada ciudad. Sorpresa: Albuquerque está más al norte que Bagdad, y Halifax está más al norte que Milwaukee."
     }
   },
   {
@@ -1613,16 +1613,16 @@ window.CONTENT_ES = {
   [
     {
       "type": "mc",
-      "visual": "🏀",
-      "q": "En la película Space Jam de 1996, ¿qué leyenda del básquetbol forma equipo con Bugs Bunny y los Looney Tunes?",
+      "visual": "🏈",
+      "q": "¿Qué estrella de la NFL copresenta el popular pódcast «New Heights» con su hermano mayor, Jason?",
       "options": [
-        "Michael Jordan",
-        "Kobe Bryant",
-        "Shaquille O'Neal",
-        "Magic Johnson"
+        "Aaron Rodgers",
+        "Travis Kelce",
+        "Josh Allen",
+        "Joe Burrow"
       ],
-      "a": 0,
-      "explain": "Michael Jordan se interpreta a sí mismo en Space Jam (1996)."
+      "a": 1,
+      "explain": "Travis Kelce, ala cerrada de la NFL, presenta New Heights con su hermano mayor Jason, excentro de la NFL. Los hermanos crecieron en Cleveland Heights, Ohio, de ahí el nombre del programa."
     },
     {
       "type": "reveal",
