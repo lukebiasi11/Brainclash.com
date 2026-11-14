@@ -1564,13 +1564,18 @@ window.CONTENT_ES = {
         "answers": [
           "cleveland browns",
           "browns",
-          "the browns"
+          "the browns",
+          "cleveland"
         ],
         "aliases": [
-          "cleveland brown"
+          "cleveland brown",
+          "cleavland",
+          "cleavland browns",
+          "browns cleveland",
+          "browns de cleveland",
+          "browns de cleavland"
         ],
         "wrong": [
-          "cleveland",
           "dogs",
           "bengals"
         ],
