@@ -1294,7 +1294,7 @@ function pairQuestion(body, q, value, seconds, done) {
   const rounds = Array.isArray(q.rounds) ? q.rounds : [];
   const n = rounds.length;
   let i = 0, correct = 0, over = false, awaiting = false;
-  body.append(typeDiff(q));
+  const pairDiff = typeDiff(q); if (pairDiff) body.append(pairDiff);
   body.append(h("p", { class: "prompt" }, pairLabel(q.prompt || "")));
   const meta = h("p", { class: "pair-meta" });
   const cards = h("div", { class: "pair-cards" });
@@ -1370,7 +1370,7 @@ function revealQuestion(body, q, value, seconds, done) {
   const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
   const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
   let shown = 1, over = false;
-  body.append(typeDiff(q));
+  const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
   const list = h("div", { class: "reveal-clues" });
   body.append(list);
@@ -1459,7 +1459,7 @@ function sliderQuestion(body, q, value, seconds, done) {
   let valueNow = window.Answers.sliderStart(min, max, step);
   let over = false;
   const art = sliderArt(q);
-  body.append(typeDiff(q));
+  const sliderDiff = typeDiff(q); if (sliderDiff) body.append(sliderDiff);
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
   if (art) body.append(h("div", { class: "slider-art" }, art));
   const unit = q.unit ? h("span", { class: "slider-unit" }, tr(q.unit)) : null;
