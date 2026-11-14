@@ -145,6 +145,42 @@ eq(d9.wordBridge[1].slice(0, 3), ["RAIN", "BOX", "CHECK"], "Nov 9 bridge round 2
 eq(d9.wordBridge[1][3], "DROP", "Nov 9 bridge round 2 also accepts DROP");
 eq(d11.oddOneOut[3].words, ["MADE", "PAID", "SAID", "LAID"], "Nov 11 sound round words unchanged");
 eq(d11.oddOneOut[3].odd, 2, "Nov 11 sound round still marks SAID");
+function sportsQ(bit) {
+  for (const day of C.sports) for (const q of day || []) if (q && q.q && q.q.indexOf(bit) >= 0) return q;
+  throw new Error("missing " + bit);
+}
+const teamChecks = [
+  ["Arlington, TX", ["Dallas", "Cowboys", "Dallas Cowboys", "dalls", "the cowboys"], ["bengals"]],
+  ["27 World Series", ["New York", "Yankees", "New York Yankees", "newyork", "yanks"], ["Mets", "ny"]],
+  ["Fenway Park", ["Boston", "Red Sox", "Boston Red Sox", "bostn", "redsox"], ["Celtics", "sox"]],
+  ["Super Bowl I", ["Green Bay", "Packers", "Green Bay Packers", "greenbay"], ["bay"]],
+  ["pirate flag", ["Tampa", "Tampa Bay", "Buccaneers", "Bucs", "bucaneers"], ["pirates"]],
+  ["plays in Minneapolis", ["Minnesota", "Vikings", "Minnesota Vikings", "minessota", "minesota"], ["Minneapolis"]],
+  ["Old English", ["Detroit", "Tigers", "Detroit Tigers", "detriot"], ["lions"]],
+  ["plays in Boston", ["Celtics", "Boston Celtics"], ["Boston"]],
+  ["plays in Los Angeles, once led", ["Lakers", "Los Angeles Lakers"], ["Los Angeles"]],
+  ["plays in Montreal", ["Canadiens", "Habs"], ["Montreal"]],
+  ["plays in Pittsburgh", ["Steelers"], ["Pittsburgh"]],
+  ["Wrigley Field", ["Cubs", "Chicago Cubs", "Cubbies"], ["Chicago"]],
+  ["Chavez Ravine", ["Dodgers", "Los Angeles Dodgers"], ["Los Angeles", "Angels"]],
+  ["plays in Indianapolis", ["Colts", "Indianapolis Colts", "Indy Colts"], ["Indianapolis"]],
+  ["lightning bolt", ["Chargers", "San Diego Chargers", "LA Chargers"], ["Los Angeles", "San Diego"]],
+  ["from Detroit", ["Red Wings", "Detroit Red Wings"], ["Detroit"]],
+  ["Alberta's capital", ["Oilers", "Edmonton Oilers"], ["Edmonton"]],
+  ["from Toronto", ["Maple Leafs", "Toronto Maple Leafs"], ["Toronto"]],
+  ["Orlando team", ["Magic", "Orlando Magic"], ["Orlando"]]
+];
+teamChecks.forEach(([bit, yes, no]) => {
+  const q = sportsQ(bit);
+  yes.forEach(s => check(q, s, true));
+  no.forEach(s => check(q, s, false));
+});
+const dawg = day("2026-11-12").sports[1];
+["Cleveland", "Browns", "Cleveland Browns", "the Browns", "clevland", "cleaveland", "cleavland", "cleavland browns", "brownes", "Browns Cleveland"].forEach(s => check(dawg, s, true));
+["dogs", "bengals", "dawg pound", "cavs", "Cleveland Cavaliers"].forEach(s => check(dawg, s, false));
+const dawgEs = E.sports[C.sports.indexOf(day("2026-11-12").sports)][1];
+["Cleveland", "Browns", "Cleveland Browns", "cleavland", "Browns de Cleveland", "los browns", "browns de cleavland"].forEach(s => check(dawgEs, s, true));
+["dogs", "bengals", "perros"].forEach(s => check(dawgEs, s, false));
 console.log("Existing parser notes (not changed): letter Q is rejected for queue; bare Jackson, Brandi, Orlando, Karl, and you are rejected.");
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
