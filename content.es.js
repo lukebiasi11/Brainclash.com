@@ -873,10 +873,10 @@ window.CONTENT_ES = {
     ],
     "aliases": [
      "redwings",
-     "alas rojas"
+     "alas rojas",
+     "detroit"
     ],
     "wrong": [
-     "detroit",
      "pistons",
      "tigers",
      "lions",
@@ -1086,10 +1086,10 @@ window.CONTENT_ES = {
     ],
     "aliases": [
      "oiler",
-     "petroleros"
+     "petroleros",
+     "edmonton"
     ],
     "wrong": [
-     "edmonton",
      "flames",
      "calgary flames",
      "azul",
@@ -1240,10 +1240,13 @@ window.CONTENT_ES = {
           "the browns"
         ],
         "aliases": [
-          "cleveland brown"
+          "cleveland brown",
+          "cleveland",
+          "cleavland",
+          "cleavland browns",
+          "browns de cleveland"
         ],
         "wrong": [
-          "cleveland",
           "dogs",
           "bengals"
         ],

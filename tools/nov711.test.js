@@ -117,6 +117,8 @@ eq(d11.thinkFast[1].answers, ["monday"], "Nov 11 Monday answer kept");
 eq(day("2026-11-06").sports[0].q, "In what year did Atlanta host the Summer Olympics?", "Nov 6 sports untouched");
 eq(day("2026-11-12").sports[0].type, "pair", "Nov 12 sports Q1 is the approved pair");
 eq(day("2026-11-12").sports[0].prompt.en, "Over or Under? Pick the true side.", "Nov 12 sports Q1 prompt");
+const dawg = day("2026-11-12").sports[1];
+const dawgEs = win.CONTENT_ES.sports[46][1];
 
 function opts(q) { return { aliases: q.aliases, wrong: q.wrong, noSurname: q.noSurname, textOnly: q.textOnly, person: q.person, given: q.given, q: q.q }; }
 function check(q, input, exp) {
@@ -126,7 +128,7 @@ function check(q, input, exp) {
 [["Bo Jackson", true], ["bo", true], ["Vincent Jackson", true], ["Vincent Bo Jackson", true], ["Jackson", false], ["Deion Sanders", false]].forEach(([i, e]) => check(d9.sports[2], i, e));
 [["queue", true], ["a queue", true], ["the word queue", true], ["Q", false], ["cue", false], ["line", false]].forEach(([i, e]) => check(d9.thinkFast[1], i, e));
 [["Chastain", true], ["Brandi Chastain", true], ["Brandy Chastain", true], ["Brandi", false], ["Mia Hamm", false]].forEach(([i, e]) => check(d10.sports[1], i, e));
-[["Magic", true], ["Orlando Magic", true], ["Orlando", false], ["Knicks", false]].forEach(([i, e]) => check(d10.sports[2], i, e));
+[["Magic", true], ["Orlando Magic", true], ["Orlando", true], ["Orlnado", true], ["Knicks", false]].forEach(([i, e]) => check(d10.sports[2], i, e));
 [["54", true], ["fifty four", true], ["fifty-four", true], ["seat 54", true], ["45", false], ["9", false]].forEach(([i, e]) => check(d10.thinkFast[0], i, e));
 [["120", true], ["one hundred twenty", true], ["one hundred and twenty", true], ["120 orders", true], ["120 ways", true], ["5", false]].forEach(([i, e]) => check(d10.thinkFast[1], i, e));
 [["Karl Malone", true], ["Malone", true], ["Carl Malone", true], ["Karl", false], ["Moses Malone", false], ["Dirk Nowitzki", false]].forEach(([i, e]) => check(d11.sports[2], i, e));
@@ -135,6 +137,8 @@ check(d11.thinkFast[1], "Monday", true);
 check(d8.sports[2], "opponent", true);
 check(d8.sports[2], "your opponent", true);
 check(d8.sports[2], "you", false);
+[["Cleveland", true], ["Browns", true], ["Cleveland Browns", true], ["the Browns", true], ["Cleavland", true], ["Cleavland Browns", true], ["Clevland", true], ["dogs", false], ["bengals", false], ["Cavaliers", false]].forEach(([i, e]) => check(dawg, i, e));
+[["Cleveland", true], ["Browns de Cleveland", true], ["Cleavland", true], ["dogs", false], ["bengals", false]].forEach(([i, e]) => check(dawgEs, i, e));
 
 const E = win.CONTENT_ES;
 t(E.sports[40] == null && E.sports[41] == null && E.sports[42] == null, "no new Spanish sports for Nov 9–11");
@@ -145,6 +149,6 @@ eq(d9.wordBridge[1].slice(0, 3), ["RAIN", "BOX", "CHECK"], "Nov 9 bridge round 2
 eq(d9.wordBridge[1][3], "DROP", "Nov 9 bridge round 2 also accepts DROP");
 eq(d11.oddOneOut[3].words, ["MADE", "PAID", "SAID", "LAID"], "Nov 11 sound round words unchanged");
 eq(d11.oddOneOut[3].odd, 2, "Nov 11 sound round still marks SAID");
-console.log("Existing parser notes (not changed): letter Q is rejected for queue; bare Jackson, Brandi, Orlando, Karl, and you are rejected.");
+console.log("Existing parser notes (not changed): letter Q is rejected for queue; bare Jackson, Brandi, Karl, and you are rejected.");
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
