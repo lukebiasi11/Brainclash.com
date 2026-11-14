@@ -63,7 +63,7 @@
     "Your score range": "Tu rango de puntaje", "Other completed games": "Otros juegos terminados",
     "No other results yet": "Todavía no hay otros resultados", "vs average": "vs el promedio",
     "↑ Number of completed games": "↑ Número de juegos terminados",
-    "These bars count today's completed games, not including yours.": "Estas barras cuentan los juegos terminados de hoy, sin incluir el tuyo.",
+    "Blue bars are other completed games. The orange bar includes your game.": "Las barras azules son otros juegos terminados. La barra naranja incluye tu juego.",
     "You": "Tú", "Everyone else": "Los demás", "You and everyone else": "Tú y los demás",
     "You {0}. Everyone else {1}.": "Tú {0}. Los demás {1}.",
     "You and everyone else by category": "Tú y los demás por categoría",

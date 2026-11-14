@@ -132,7 +132,9 @@ const install = `(() => {
     rate: { status: 429, body: { ok: false, error: "rate_limited" } },
     origin: { status: 403, body: { ok: false, error: "origin_denied" } },
     ready: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 100, minimum: 13, maximum: 4999, histogram: [8, 8, 8, 8, 8], players: [{ id: "player-secret", total: 42 }], rest_average: 3112, rest_category_average: [480, 510, 390, 620, 411], others_at_or_above: 39, category_at_or_above: [22, 30, 18, 40, 25], score_bins: [2, 4, 8, 14, 18, 20, 16, 10, 6, 2], category_bins: [[4, 6, 10, 12, 16, 14, 12, 18, 6, 2], [2, 4, 8, 14, 18, 20, 16, 10, 6, 2], [6, 8, 12, 16, 14, 12, 10, 8, 8, 6], [1, 3, 7, 11, 15, 19, 17, 13, 9, 5], [5, 7, 9, 11, 13, 15, 13, 11, 9, 7]] } },
-    under: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 100, rest_average: 4000, rest_category_average: [900, 900, 900, 900, 900], others_at_or_above: 80, category_at_or_above: [80, 80, 80, 80, 80], score_bins: [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], category_bins: [[20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0]] } }
+    under: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 100, rest_average: 4000, rest_category_average: [900, 900, 900, 900, 900], others_at_or_above: 80, category_at_or_above: [80, 80, 80, 80, 80], score_bins: [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], category_bins: [[20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0], [20, 20, 20, 10, 10, 8, 6, 4, 2, 0]] } },
+    // Player total 3360 lands in bin 6, which no other game occupies.
+    solo: { status: 200, body: { ok: true, comparison_available: true, reason: "ok", rest_finishes: 24, rest_average: 1583, rest_category_average: [400, 360, 310, 280, 233], others_at_or_above: 1, category_at_or_above: [3, 4, 5, 6, 7], score_bins: [2, 4, 6, 5, 4, 2, 0, 1, 0, 0], category_bins: [[0, 1, 2, 4, 6, 5, 3, 2, 1, 0], [1, 2, 3, 4, 5, 3, 2, 2, 1, 1], [2, 3, 4, 4, 3, 3, 2, 2, 1, 0], [1, 2, 4, 5, 4, 3, 2, 2, 1, 0], [0, 2, 3, 5, 6, 4, 2, 1, 1, 0]] } }
   };
   window.fetch = (url, opts) => {
     const u = String(url);
@@ -252,11 +254,11 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await show(cdp, "ready", YOU, false);
       const hidden = /player-secret|4,999|4999|\bminimum\b|\bmaximum\b|2,410\.5|2410\.5/.test(info.text);
       const bars = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return [...g1.querySelectorAll('.g1-bin')].map(p => p.getAttribute('data-count') + (p.getAttribute('data-you') === '1' ? p.getAttribute('fill') : '')); })()`);
-      if (info.state !== "ready" || info.bars !== 10 || info.svg !== 1 || info.you !== "3360" || info.rest !== "3112" || info.percentile !== "39" || info.delta !== "248" || info.bin !== "6" || !/Today's Competition/.test(info.text) || !/November 9/.test(info.text) || !/Top 39%/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/not including yours/.test(info.text) || bars.join(",") !== "2,4,8,14,18,20,16#E8774A,10,6,2" || hidden) fail("populated total", { info, bars }); else pass("populated total shows bins, average, and percentile");
+      if (info.state !== "ready" || info.bars !== 10 || info.svg !== 1 || info.you !== "3360" || info.rest !== "3112" || info.percentile !== "39" || info.delta !== "248" || info.bin !== "6" || !/Today's Competition/.test(info.text) || !/November 9/.test(info.text) || !/Top 39%/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/orange bar includes your game/.test(info.text) || bars.join(",") !== "2,4,8,14,18,20,17#E8774A,10,6,2" || hidden) fail("populated total", { info, bars }); else pass("populated total shows bins, average, and percentile");
       if (hidden) fail("g1 hides identities", info.text); else pass("g1 shows bin counts and no per-player row");
       if (info.w !== 360 || info.overflow > 1) fail("populated width", info); else pass("populated mobile width");
       const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); const bars = [...g1.querySelectorAll('.g1-bin')]; return { mode: g1.getAttribute('data-g1-mode'), bars: bars.length, youBar: bars.filter(p => p.getAttribute('data-you') === '1').map(p => p.getAttribute('data-count') + ':' + p.getAttribute('fill')).join(','), names: [...g1.querySelectorAll('#g1-cat option')].map(o => o.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), bin: g1.getAttribute('data-bin'), svg: g1.querySelectorAll('svg').length, tenths: /410\\.5|player-secret|4999|\\bminimum\\b/.test(g1.textContent) }; })()`);
-      if (cat.mode !== "category" || cat.bars !== 10 || cat.svg !== 1 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.percentile !== "22" || cat.bin !== "7" || cat.youBar !== "18:#E8774A" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser" || cat.tenths) fail("category toggle", cat); else pass("category histogram uses that category's bins");
+      if (cat.mode !== "category" || cat.bars !== 10 || cat.svg !== 1 || cat.calls !== 0 || cat.you !== "700" || cat.rest !== "480" || cat.percentile !== "22" || cat.bin !== "7" || cat.youBar !== "19:#E8774A" || cat.names.join("|") !== "World Rush|Time Warp|MVP|Word Nerd|Brain Teaser" || cat.tenths) fail("category toggle", cat); else pass("category histogram uses that category's bins");
       await evalJson(cdp, "document.querySelector('[data-g1-view=total]').click()");
       const again = await show(cdp, "ready", YOU, false);
       const posts = (info.calls || []).filter(c => c.method === "POST").map(c => c.url.split("/field-compare/")[1]);
@@ -271,7 +273,7 @@ const YOU = [700, 680, 660, 640, 680];
     {
       const cdp = await armed("es");
       const info = await show(cdp, "ready", YOU, false);
-      if (info.state !== "ready" || info.bars !== 10 || !/La competencia de hoy/.test(info.text) || !/Puntaje total/.test(info.text) || !/Top 39%/.test(info.text) || !/Privacidad/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || /player-secret|4999/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
+      if (info.state !== "ready" || info.bars !== 10 || !/La competencia de hoy/.test(info.text) || !/Puntaje total/.test(info.text) || !/Top 39%/.test(info.text) || !/Privacidad/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/barra naranja incluye tu juego/.test(info.text) || /player-secret|4999/.test(info.text)) fail("es populated", info.text); else pass("es populated copy");
       const cat = await evalJson(cdp, `(() => { document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); return { names: [...g1.querySelectorAll('#g1-cat option')].map(o => o.textContent).join('|'), you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest') }; })()`);
       if (cat.names !== "Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos" || cat.you !== "700" || cat.rest !== "480") fail("es categories", cat); else pass("es category names and whole scores");
       const under = await show(cdp, "under", YOU, false);
@@ -324,6 +326,23 @@ const YOU = [700, 680, 660, 640, 680];
       await shotFrame(emptyEs, "g1_hist_empty_es_390.png");
       await closePage(emptyEs);
       pass("six 390x844 histogram screenshots");
+    }
+    {
+      const alone = await framed(null, "solo", "total");
+      const info = await evalJson(alone, `(() => { const g1 = document.getElementById('results-g1'); const bars = [...g1.querySelectorAll('.g1-bin')]; const you = bars.find(p => p.getAttribute('data-you') === '1'); return { state: g1.getAttribute('data-g1-state'), you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), bin: g1.getAttribute('data-bin'), count: you && you.getAttribute('data-count'), fill: you && you.getAttribute('fill'), flat: you && you.getAttribute('fill') === 'none', counts: bars.map(p => p.getAttribute('data-count')).join(','), text: g1.textContent }; })()`);
+      if (info.state !== "ready" || info.you !== "3360" || info.rest !== "1583" || info.percentile !== "4" || info.bin !== "6" || info.count !== "1" || info.fill !== "#E8774A" || info.flat || info.counts !== "2,4,6,5,4,2,1,1,0,0" || !/Top 4%/.test(info.text)) fail("alone in bin", info); else pass("alone in bin draws a one-game orange bar");
+      await shotFrame(alone, "g1_you_alone_en_390.png");
+      await evalJson(alone, "document.querySelector('[data-g1-view=category]').click()");
+      const cat = await evalJson(alone, `(() => { const g1 = document.getElementById('results-g1'); const you = [...g1.querySelectorAll('.g1-bin')].find(p => p.getAttribute('data-you') === '1'); return { bin: g1.getAttribute('data-bin'), count: you && you.getAttribute('data-count'), percentile: g1.getAttribute('data-percentile'), you: g1.getAttribute('data-you') }; })()`);
+      if (cat.bin !== "7" || cat.count !== "3" || cat.you !== "700" || cat.percentile !== "13") fail("shared category bin", cat); else pass("category bin still adds only this game");
+      await shotFrame(alone, "g1_you_shared_en_390.png");
+      await closePage(alone);
+      const aloneEs = await framed("es", "solo", "total");
+      const es = await evalJson(aloneEs, `(() => { const g1 = document.getElementById('results-g1'); const you = [...g1.querySelectorAll('.g1-bin')].find(p => p.getAttribute('data-you') === '1'); return { count: you && you.getAttribute('data-count'), flat: you && you.getAttribute('fill') === 'none', text: g1.textContent, percentile: g1.getAttribute('data-percentile') }; })()`);
+      if (es.count !== "1" || es.flat || es.percentile !== "4" || !/barra naranja incluye tu juego/.test(es.text) || !/Top 4%/.test(es.text)) fail("es alone in bin", es); else pass("es alone in bin");
+      await shotFrame(aloneEs, "g1_you_alone_es_390.png");
+      await closePage(aloneEs);
+      pass("390x844 alone-in-bin screenshots");
     }
 
     {
