@@ -355,29 +355,41 @@
     }
     return { aliases, given };
   }
-  // Anagram Rush. Through 2026-11-09, 1,000 = 60% of the common-word raw total
-  // at 10/25/50/100. From 2026-11-10, longer words weigh more and 1,000 = 92.5%
-  // of the common-word raw total. Saved games are numbers already stored; this
-  // only runs when a day is played.
+  // Anagram Rush. Saved games are numbers already stored; this only runs when a day is played.
+  // Through 2026-11-09: 10/25/50/100, and 1,000 = 60% of the common-word raw total.
+  // 2026-11-10 through 2026-11-16: 10/30/70/150/250, and 1,000 = 92.5%.
+  // From 2026-11-17 (the next Anagram Rush day): same weights, and 1,000 = 75%.
   const ANAGRAM_STRICT_FROM = "2026-11-10";
+  const ANAGRAM_EASIER_FROM = "2026-11-17";
   const ANAGRAM_OLD = { 3: 10, 4: 25, 5: 50, 6: 100 };
   const ANAGRAM_NEW = { 3: 10, 4: 30, 5: 70, 6: 150, 7: 250 };
-  function anagramStrict(day) { return typeof day === "string" && day >= ANAGRAM_STRICT_FROM; }
-  function anagramPoints(len, strict) {
+  const ANAGRAM_CAP = { old: 0.6, strict: 0.925, ease: 0.75 };
+  function anagramEra(day) {
+    if (typeof day !== "string" || day < ANAGRAM_STRICT_FROM) return "old";
+    if (day < ANAGRAM_EASIER_FROM) return "strict";
+    return "ease";
+  }
+  function anagramStrict(day) { return anagramEra(day) === "strict"; }
+  function anagramMode(flag) {
+    if (flag === "old" || flag === "strict" || flag === "ease") return flag;
+    return flag ? "strict" : "old";
+  }
+  function anagramPoints(len, flag) {
+    const mode = anagramMode(flag);
     const n = len | 0;
     if (n < 3) return 0;
-    if (n >= 7) return strict ? ANAGRAM_NEW[7] : 0;
-    return (strict ? ANAGRAM_NEW : ANAGRAM_OLD)[n] || 0;
+    if (n >= 7) return mode === "old" ? 0 : ANAGRAM_NEW[7];
+    return (mode === "old" ? ANAGRAM_OLD : ANAGRAM_NEW)[n] || 0;
   }
-  function anagramCommonRaw(words, strict) {
-    return [].concat(words || []).reduce((sum, w) => sum + anagramPoints(String(w).length, strict), 0);
+  function anagramCommonRaw(words, flag) {
+    return [].concat(words || []).reduce((sum, w) => sum + anagramPoints(String(w).length, flag), 0);
   }
-  function anagramScore(raw, commonRaw, strict) {
-    const share = strict ? 0.925 : 0.6;
+  function anagramScore(raw, commonRaw, flag) {
+    const share = ANAGRAM_CAP[anagramMode(flag)];
     const target = share * Number(commonRaw);
     if (!(target > 0) || !Number.isFinite(raw)) return 0;
     return Math.min(1000, Math.max(0, Math.round(raw / target * 1000)));
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_EASIER_FROM, ANAGRAM_OLD, ANAGRAM_NEW, ANAGRAM_CAP, anagramEra, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);

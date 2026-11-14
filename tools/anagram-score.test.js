@@ -1,5 +1,6 @@
 // Anagram Rush scoring. Days before 2026-11-10 keep 10/25/50/100 and a 60% cap.
-// From that date, longer words weigh more and 1,000 needs 92.5% of the common raw total.
+// From that date through 2026-11-16, longer words weigh more and 1,000 needs 92.5% of the common raw total.
+// From 2026-11-17 the weights stay and 1,000 needs 75%.
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const A = require("../answers.js");
 const root = path.join(__dirname, "..");
@@ -11,7 +12,11 @@ const t = (name, got, exp) => { if (got !== exp) { bad++; console.log("FAIL", na
 
 t("nov 9 stays old", A.anagramStrict("2026-11-09"), false);
 t("nov 10 is new", A.anagramStrict("2026-11-10"), true);
+t("nov 16 stays strict", A.anagramEra("2026-11-16"), "strict");
+t("nov 17 is easier", A.anagramEra("2026-11-17"), "ease");
+t("nov 17 is not the strict era", A.anagramStrict("2026-11-17"), false);
 t("nov 7 replay stays old", A.anagramStrict("2026-11-07"), false);
+t("nov 12 replay stays strict", A.anagramEra("2026-11-12"), "strict");
 t("old 3", A.anagramPoints(3, false), 10);
 t("old 6", A.anagramPoints(6, false), 100);
 t("old 7 unused", A.anagramPoints(7, false), 0);
@@ -25,6 +30,13 @@ t("old full at 60% raw", A.anagramScore(60, 100, false), 1000);
 t("new not full at 60% raw", A.anagramScore(60, 100, true), 649);
 t("new full at 92.5% raw", A.anagramScore(92.5, 100, true), 1000);
 t("new 90% raw", A.anagramScore(90, 100, true), 973);
+t("ease 4", A.anagramPoints(4, "ease"), 30);
+t("ease 6", A.anagramPoints(6, "ease"), 150);
+t("ease 7", A.anagramPoints(7, "ease"), 250);
+t("ease full at 75% raw", A.anagramScore(75, 100, "ease"), 1000);
+t("ease 60% raw", A.anagramScore(60, 100, "ease"), 800);
+t("ease not full at 60% raw", A.anagramScore(60, 100, "ease") < 1000, true);
+t("strict day still uses 92.5", A.anagramScore(60, 100, "strict"), 649);
 
 function take(words, pct, longFirst) {
   const sorted = words.slice().sort((a, b) => longFirst ? b.length - a.length || a.localeCompare(b) : a.length - b.length || a.localeCompare(b));
