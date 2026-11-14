@@ -20,6 +20,9 @@
 
    SECTIONS (in game order):
      worldRush   – 2 map pins (name + lat/lon from Google Maps) + 1 multiple choice
+                   Optional pin.area = [[lat, lon], ...] (a simple ring). Inside that
+                   polygon scores the full 450; outside, distance is to the nearest
+                   point on the ring. Omit area and the pin stays a single point.
      history     – r1 = 4 events, r2 = 5 events: ["emoji", "Event name", year]
                    (use a negative year for BC, e.g. -44 = 44 BC)
      sports      – 3 questions: easy (250), medium (350), hard (400)
@@ -32,6 +35,51 @@
    Anagram Rush letter sets live in anagrams.js (generated from a dictionary).
    Scoring rules live in app.js — no need to touch it for content.
    ===================================================================== */
+// Banff National Park, Alberta — simplified outer legislative boundary.
+// Attach as `area` on the 2026-11-15 World Q1 pin (center 51.5, -116.0):
+//   area: window.BANFF_NATIONAL_PARK_AREA
+// Source: Natural Resources Canada, Canada Lands Survey System, "National Parks
+// and National Park Reserves of Canada Legislative Boundaries" (Open Government
+// Licence), https://open.canada.ca/data/en/dataset/9e1507cd-f25c-4c64-995b-6563bf9d65bd
+// Feature BANFF NATIONAL PARK OF CANADA (adminAreaId BANF, NID 72996237ba3411d892e2),
+// WGS84. Outer ring only (86,601 vertices), resampled every 0.6 km and
+// Douglas–Peucker simplified at 4 km to 33 vertices. Surveyed inholdings under
+// 0.1 km² around the Lake Louise townsite are omitted, so the town stays inside.
+window.BANFF_NATIONAL_PARK_AREA = [
+  [52.2668, -117.1838],
+  [52.1807, -117.2003],
+  [52.1848, -117.3129],
+  [52.0751, -117.3062],
+  [51.8885, -117.0123],
+  [51.7093, -116.9199],
+  [51.7060, -116.8133],
+  [51.8046, -116.7510],
+  [51.8044, -116.6633],
+  [51.6611, -116.5954],
+  [51.4561, -116.2857],
+  [51.3110, -116.2666],
+  [51.2192, -116.0065],
+  [51.1268, -116.0107],
+  [51.0761, -115.7552],
+  [50.8975, -115.5670],
+  [50.8386, -115.6373],
+  [50.7243, -115.3420],
+  [50.8635, -115.4516],
+  [50.9158, -115.3621],
+  [51.1237, -115.4685],
+  [51.1647, -115.2776],
+  [51.2613, -115.1651],
+  [51.3304, -115.4880],
+  [51.5644, -115.4990],
+  [51.7630, -115.8180],
+  [51.7505, -115.9156],
+  [51.8518, -115.9359],
+  [51.9177, -116.0849],
+  [51.7887, -116.3203],
+  [51.8143, -116.5086],
+  [52.0561, -116.7065],
+  [52.2643, -117.1750]
+];
 window.CONTENT = {
   // ---------- 1. WORLD RUSH ----------
   worldRush: [
