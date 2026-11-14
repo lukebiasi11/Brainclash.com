@@ -81,5 +81,50 @@ for (let d = dayOf("2026-11-10"); d < dayOf("2026-11-20"); d++) {
 console.log("next Anagram Rush on or after Nov 10:", next);
 t("next rush", next, "2026-11-12");
 
+t("nov 12 stays strict", A.anagramMode("2026-11-12"), "strict");
+t("nov 16 stays strict", A.anagramMode("2026-11-16"), "strict");
+t("nov 17 eases the cap", A.anagramMode("2026-11-17"), "eased");
+t("eased is not the strict flag", A.anagramStrict("2026-11-17"), false);
+t("eased weights match strict", [3, 4, 5, 6, 7].map(n => A.anagramPoints(n, "eased")).join(","), "10,30,70,150,250");
+t("eased full at 80% raw", A.anagramScore(80, 100, "eased"), 1000);
+t("eased 60% raw sits between old and strict", A.anagramScore(60, 100, "eased"), 750);
+
+const profiles = {
+  weak: { 3: 0.8, 4: 0.35, 5: 0.1, 6: 0 },
+  average: { 3: 0.95, 4: 0.65, 5: 0.35, 6: 0.15 },
+  strong: { 3: 1, 4: 0.9, 5: 0.65, 6: 0.4 }
+};
+function foundFor(set, profile) {
+  const by = {};
+  set.common.forEach(w => { (by[w.length] || (by[w.length] = [])).push(w); });
+  const out = [];
+  Object.keys(by).forEach(len => {
+    const arr = by[len].slice().sort();
+    out.push(...arr.slice(0, Math.round(arr.length * (profile[len] || 0))));
+  });
+  return out;
+}
+function played(set, found, mode) {
+  return A.anagramScore(A.anagramCommonRaw(found, mode), A.anagramCommonRaw(set.common, mode), mode);
+}
+// Nov 2, Nov 7, and Nov 12 sets (anagram indexes 7, 8, and 12). Same found words, scored three ways.
+const pastSets = [["2026-11-02", 7, "MARKET"], ["2026-11-07", 8, "TRAVEL"], ["2026-11-12", 12, "STABLE"]];
+pastSets.forEach(([day, idx, letters]) => {
+  const set = sets[idx];
+  t(day + " letters", set && set.letters, letters);
+  Object.keys(profiles).forEach(name => {
+    const found = foundFor(set, profiles[name]);
+    const oldS = played(set, found, false);
+    const strictS = played(set, found, true);
+    const easedS = played(set, found, "eased");
+    t(day + " " + name + " eased between old and strict", easedS >= strictS && easedS <= oldS, true);
+    console.log([day, letters, name, "old", oldS, "eased80", easedS, "strict", strictS].join(" "));
+  });
+});
+t("strong on TRAVEL does not max under the eased cap", played(sets[8], foundFor(sets[8], profiles.strong), "eased") < 1000, true);
+const appSrc = fs.readFileSync(path.join(root, "app.js"), "utf8");
+t("rush scores with the day mode", appSrc.includes("Answers.anagramMode(session.key)"), true);
+t("eased intro is translated", fs.readFileSync(path.join(root, "i18n.js"), "utf8").includes("cerca del 80%"), true);
+
 console.log(bad ? bad + " failures" : "anagram-score.test.js: all pass");
 process.exit(bad ? 1 : 0);
