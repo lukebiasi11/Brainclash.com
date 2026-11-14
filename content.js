@@ -207,6 +207,305 @@ window.CONTENT = {
         "explain": "Areas from Wikipedia: Alaska 1,717,856; Texas 695,660; Canada 9,984,670; India 3,287,263; California 423,970; Greenland 2,166,086; Mexico 1,972,550; Sahara 9,200,000; Australia 7,688,287 (all km2)."
       }
     }
+,
+    {
+      "pins": [
+        {
+          "name": "Grand Canyon (South Rim), Arizona, USA",
+          "lat": 36.06,
+          "lon": -112.11
+        },
+        {
+          "name": "New Orleans, Louisiana, USA",
+          "lat": 29.95,
+          "lon": -90.07
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is farther NORTH?",
+          "es": "¿Cuál está más al NORTE?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Chicago",
+              "es": "Chicago"
+            },
+            "right": {
+              "en": "Miami",
+              "es": "Miami"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Chicago 41.9°N vs Miami 25.8°N.",
+              "es": "Chicago: 41,9°N. Miami: 25,8°N."
+            }
+          },
+          {
+            "left": {
+              "en": "Honolulu",
+              "es": "Honolulu"
+            },
+            "right": {
+              "en": "Anchorage",
+              "es": "Anchorage"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Anchorage 61.2°N vs Honolulu 21.3°N.",
+              "es": "Anchorage: 61,2°N. Honolulu: 21,3°N."
+            }
+          },
+          {
+            "left": {
+              "en": "London",
+              "es": "Londres"
+            },
+            "right": {
+              "en": "Madrid",
+              "es": "Madrid"
+            },
+            "correct": "left",
+            "note": {
+              "en": "London 51.5°N vs Madrid 40.4°N.",
+              "es": "Londres: 51,5°N. Madrid: 40,4°N."
+            }
+          },
+          {
+            "left": {
+              "en": "Boston",
+              "es": "Boston"
+            },
+            "right": {
+              "en": "Seattle",
+              "es": "Seattle"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Seattle 47.6°N vs Boston 42.4°N.",
+              "es": "Seattle: 47,6°N. Boston: 42,4°N."
+            }
+          },
+          {
+            "left": {
+              "en": "Rome",
+              "es": "Roma"
+            },
+            "right": {
+              "en": "New York City",
+              "es": "Nueva York"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Rome 41.9°N vs New York City 40.7°N.",
+              "es": "Roma: 41,9°N. Nueva York: 40,7°N."
+            }
+          }
+        ],
+        "explain": "Latitudes from Wikipedia city pages. Rome is north of New York City."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Banff National Park, Alberta, Canada",
+          "lat": 51.5,
+          "lon": -116.0,
+          "explain": "Banff National Park, founded in 1885, is Canada's first national park (about 6,641 km²), in the Rocky Mountains of Alberta."
+        },
+        {
+          "name": "Istanbul, Türkiye",
+          "lat": 41.01,
+          "lon": 28.96
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is larger by area?",
+          "es": "¿Cuál es más grande por superficie?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Canada",
+              "es": "Canadá"
+            },
+            "right": {
+              "en": "Italy",
+              "es": "Italia"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Canada: about 9.98 million km². Italy: about 0.30 million km².",
+              "es": "Canadá: unos 9,98 millones de km². Italia: unos 0,30 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "Germany",
+              "es": "Alemania"
+            },
+            "right": {
+              "en": "Mexico",
+              "es": "México"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Mexico: about 1.96 million km². Germany: about 0.36 million km².",
+              "es": "México: unos 1,96 millones de km². Alemania: unos 0,36 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "India",
+              "es": "India"
+            },
+            "right": {
+              "en": "Egypt",
+              "es": "Egipto"
+            },
+            "correct": "left",
+            "note": {
+              "en": "India: about 3.29 million km². Egypt: about 1.00 million km².",
+              "es": "India: unos 3,29 millones de km². Egipto: unos 1,00 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "Spain",
+              "es": "España"
+            },
+            "right": {
+              "en": "Argentina",
+              "es": "Argentina"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Argentina: about 2.78 million km². Spain: about 0.51 million km².",
+              "es": "Argentina: unos 2,78 millones de km². España: unos 0,51 millones de km²."
+            }
+          },
+          {
+            "left": {
+              "en": "Australia",
+              "es": "Australia"
+            },
+            "right": {
+              "en": "Saudi Arabia",
+              "es": "Arabia Saudita"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Australia: about 7.69 million km². Saudi Arabia: about 2.15 million km².",
+              "es": "Australia: unos 7,69 millones de km². Arabia Saudita: unos 2,15 millones de km²."
+            }
+          }
+        ],
+        "explain": "Total area of countries (Wikipedia, List of countries and dependencies by area). Every pair differs by at least 3x, so it can be reasoned out from common knowledge."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Angkor Wat, Cambodia",
+          "lat": 13.41,
+          "lon": 103.87
+        },
+        {
+          "name": "Nairobi, Kenya",
+          "lat": -1.29,
+          "lon": 36.82
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which has more people?",
+          "es": "¿Cuál tiene más habitantes?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "India",
+              "es": "India"
+            },
+            "right": {
+              "en": "The United States",
+              "es": "Estados Unidos"
+            },
+            "correct": "left",
+            "note": {
+              "en": "India: about 1.4 billion. US: about 342 million (2025 estimate).",
+              "es": "India: unos 1.400 millones. EE. UU.: unos 342 millones (estimación de 2025)."
+            }
+          },
+          {
+            "left": {
+              "en": "Mexico",
+              "es": "México"
+            },
+            "right": {
+              "en": "Brazil",
+              "es": "Brasil"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Brazil: over 214 million. Mexico: about 131 million (2025).",
+              "es": "Brasil: más de 214 millones. México: unos 131 millones (2025)."
+            }
+          },
+          {
+            "left": {
+              "en": "Australia",
+              "es": "Australia"
+            },
+            "right": {
+              "en": "Canada",
+              "es": "Canadá"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Canada: over 41 million. Australia: about 29 million.",
+              "es": "Canadá: más de 41 millones. Australia: unos 29 millones."
+            }
+          },
+          {
+            "left": {
+              "en": "Japan",
+              "es": "Japón"
+            },
+            "right": {
+              "en": "Germany",
+              "es": "Alemania"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Japan: about 123 million. Germany: over 83 million.",
+              "es": "Japón: unos 123 millones. Alemania: más de 83 millones."
+            }
+          },
+          {
+            "left": {
+              "en": "The United Kingdom",
+              "es": "Reino Unido"
+            },
+            "right": {
+              "en": "Ethiopia",
+              "es": "Etiopía"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Ethiopia: about 138 million. UK: about 69 million.",
+              "es": "Etiopía: unos 138 millones. Reino Unido: unos 69 millones."
+            }
+          }
+        ],
+        "explain": "Latest Wikipedia country figures (2025-2026 estimates; India per UN estimates)."
+      }
+    }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
   // Each event: ["emoji", "Event name", year, "image id"] (image id optional; emoji is the fallback)
@@ -344,6 +643,178 @@ window.CONTENT = {
             "🛶",
             "The Kon-Tiki raft sets sail across the Pacific",
             1947
+          ]
+        ]
+      }
+    }
+,
+    {
+      "r1": {
+        "theme": "Fun favorites",
+        "events": [
+          [
+            "🚗",
+            "Ford introduces the Mustang",
+            1964
+          ],
+          [
+            "📺",
+            "The sports network ESPN launches",
+            1979
+          ],
+          [
+            "🎤",
+            "The Fresh Prince of Bel-Air premieres on NBC",
+            1990
+          ],
+          [
+            "🪖",
+            "The Mandalorian premieres",
+            2019
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Famous firsts and big moments",
+        "events": [
+          [
+            "🦸",
+            "Wonder Woman debuts in All Star Comics",
+            1941
+          ],
+          [
+            "🛒",
+            "Sam Walton opens the first Walmart in Rogers, Arkansas",
+            1962
+          ],
+          [
+            "🐸",
+            "The Muppet Show premieres",
+            1976
+          ],
+          [
+            "📡",
+            "Cartoon Network launches",
+            1992
+          ],
+          [
+            "🏈",
+            "The Patriots beat the Falcons in Super Bowl LI after the biggest comeback in Super Bowl history",
+            2017
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Brands and fun favorites",
+        "events": [
+          [
+            "🧃",
+            "Edwin Perkins creates Kool-Aid",
+            1927
+          ],
+          [
+            "🥡",
+            "Earl Tupper introduces Tupperware",
+            1946
+          ],
+          [
+            "❓",
+            "Jeopardy! premieres on NBC",
+            1964
+          ],
+          [
+            "🐦",
+            "Angry Birds is released",
+            2009
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Fun firsts and crazes",
+        "events": [
+          [
+            "🎢",
+            "The Switchback Railway, Coney Island's first roller coaster, opens",
+            1884
+          ],
+          [
+            "🧚",
+            "Peter Pan premieres on stage in London",
+            1904
+          ],
+          [
+            "🟠",
+            "Gatorade is developed at the University of Florida",
+            1965
+          ],
+          [
+            "🔤",
+            "Wheel of Fortune premieres on NBC",
+            1975
+          ],
+          [
+            "👻",
+            "Snapchat launches",
+            2011
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "American milestones",
+        "events": [
+          [
+            "🌭",
+            "Nathan's Famous opens as a hot dog stand on Coney Island",
+            1916
+          ],
+          [
+            "🏫",
+            "The Little Rock Nine enroll at Central High School",
+            1957
+          ],
+          [
+            "📼",
+            "The first Blockbuster Video store opens in Dallas",
+            1985
+          ],
+          [
+            "📱",
+            "Apple introduces the first iPad",
+            2010
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "American snapshots",
+        "events": [
+          [
+            "📖",
+            "Mark Twain publishes The Adventures of Tom Sawyer",
+            1876
+          ],
+          [
+            "⛏️",
+            "Gold is discovered in the Klondike",
+            1896
+          ],
+          [
+            "🤧",
+            "Kleenex is first sold, as a cold-cream remover",
+            1924
+          ],
+          [
+            "⚖️",
+            "Supreme Court rules segregated public schools unconstitutional",
+            1954
+          ],
+          [
+            "🧸",
+            "Tickle Me Elmo becomes the must-have holiday toy",
+            1996
           ]
         ]
       }
@@ -552,6 +1023,286 @@ window.CONTENT = {
         "explain": "Marino: Dolphins. Sanders: Lions. Namath: Jets. Bradshaw: Steelers."
       }
     ]
+,
+    [
+      {
+        "type": "mc",
+        "visual": "🏀",
+        "q": "In the 1996 movie Space Jam, which basketball legend teams up with Bugs Bunny and the Looney Tunes?",
+        "options": [
+          "Michael Jordan",
+          "Kobe Bryant",
+          "Shaquille O'Neal",
+          "Magic Johnson"
+        ],
+        "a": 0,
+        "explain": "Michael Jordan stars as himself in Space Jam (1996)."
+      },
+      {
+        "type": "reveal",
+        "visual": "🥊",
+        "prompt": "Name this boxing legend.",
+        "clues": [
+          "At 18 he won Olympic gold in the light heavyweight division at the 1960 Rome Games.",
+          "In 1974 he beat George Foreman in the \"Rumble in the Jungle\" to win back the heavyweight title.",
+          "Louisville, Kentucky's three-time heavyweight champion, famous for \"float like a butterfly, sting like a bee.\""
+        ],
+        "answer": "Muhammad Ali",
+        "accept": [
+          "Muhammad Ali",
+          "Ali",
+          "Cassius Clay",
+          "Clay",
+          "Mohammed Ali",
+          "Mohamed Ali",
+          "Muhammed Ali",
+          "Cassius Marcellus Clay",
+          "Cassius Marcellus Clay Jr.",
+          "Muhammad",
+          "Cassius",
+          "The Greatest"
+        ],
+        "exactOnly": [
+          "Muhammad",
+          "Cassius"
+        ],
+        "explain": "Ali (born Cassius Clay) won 1960 Olympic gold, beat George Foreman in 1974 and won the heavyweight title three times."
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "visual": "🏅",
+        "q": "Match each sports star to his famous nickname.",
+        "left": [
+          "Shaun White",
+          "Rafael Nadal",
+          "Giannis Antetokounmpo",
+          "Dale Earnhardt Sr."
+        ],
+        "right": [
+          "The Greek Freak",
+          "The Intimidator",
+          "The Flying Tomato",
+          "The King of Clay"
+        ],
+        "pairs": [
+          2,
+          3,
+          0,
+          1
+        ],
+        "hint": {
+          "en": "Tap a legend, then his famous nickname, to pair them.",
+          "es": "Toca a una leyenda y luego su famoso apodo para emparejarlos."
+        },
+        "explain": "White: The Flying Tomato (snowboarding). Nadal: The King of Clay (tennis). Antetokounmpo: The Greek Freak (basketball). Earnhardt Sr.: The Intimidator (NASCAR)."
+      }
+    ],
+    [
+      {
+        "type": "mc",
+        "visual": "🏀",
+        "q": "Which team selected French star Victor Wembanyama with the No. 1 pick in the 2023 NBA Draft?",
+        "options": [
+          "San Antonio Spurs",
+          "Charlotte Hornets",
+          "Houston Rockets",
+          "Detroit Pistons"
+        ],
+        "a": 0,
+        "explain": "The San Antonio Spurs took Victor Wembanyama first overall in the 2023 NBA Draft (June 22, 2023). The Hornets picked second, the Rockets fourth and the Pistons fifth."
+      },
+      {
+        "type": "reveal",
+        "visual": "🏈",
+        "prompt": "Name this football star.",
+        "clues": [
+          "He was the 10th overall pick in the 2017 NFL draft out of Texas Tech, where he led the nation in passing yards as a junior.",
+          "He was named Super Bowl MVP after winning Super Bowl LIV, becoming the youngest quarterback to earn that honor.",
+          "A Kansas City Chiefs quarterback who also won Super Bowls in February 2023 and February 2024."
+        ],
+        "answer": "Patrick Mahomes",
+        "accept": [
+          "Patrick Mahomes",
+          "Mahomes",
+          "Patrick",
+          "Patrick Mahomes II",
+          "Patrick Mahome",
+          "Patrick Mahommes",
+          "Patrick Mahomez",
+          "Patrik Mahomes",
+          "Mahommes",
+          "Mahomes Patrick"
+        ],
+        "exactOnly": [
+          "Patrick"
+        ],
+        "hint": {
+          "en": "Hint: the Kansas City Chiefs quarterback.",
+          "es": "Pista: el mariscal de campo de los Kansas City Chiefs."
+        },
+        "explain": "Mahomes was picked 10th overall in 2017 (Texas Tech, Sammy Baugh Trophy as a junior), won Super Bowl LIV and its MVP award, and led the Chiefs to Super Bowl wins in Feb 2023 and Feb 2024."
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "visual": "🏅",
+        "q": "Put these Summer Olympics host cities in order, earliest Games first.",
+        "items": [
+          "Los Angeles",
+          "Barcelona",
+          "Sydney",
+          "Beijing",
+          "Rio"
+        ],
+        "hint": {
+          "en": "Drag the host cities into order, earliest Games at the top.",
+          "es": "Arrastra las ciudades anfitrionas en orden, los Juegos más antiguos arriba."
+        },
+        "explain": "Los Angeles (1984), Barcelona (1992), Sydney (2000), Beijing (2008), Rio (2016)."
+      }
+    ],
+    [
+      {
+        "visual": "🏒",
+        "type": "pair",
+        "prompt": {
+          "en": "Over or Under? Pick the true side.",
+          "es": "¿Más de o menos de? Elige la verdadera."
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "The Montreal Canadiens have won OVER 20 Stanley Cups",
+              "es": "Los Montreal Canadiens han ganado MÁS DE 20 Copas Stanley"
+            },
+            "right": {
+              "en": "The Montreal Canadiens have won UNDER 20 Stanley Cups",
+              "es": "Los Montreal Canadiens han ganado MENOS DE 20 Copas Stanley"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Montreal has won 24 Cups, the most of any franchise.",
+              "es": "Montreal ha ganado 24 Copas, más que cualquier otra franquicia."
+            }
+          },
+          {
+            "left": {
+              "en": "Wayne Gretzky scored OVER 800 career NHL goals",
+              "es": "Wayne Gretzky anotó MÁS DE 800 goles en su carrera en la NHL"
+            },
+            "right": {
+              "en": "Wayne Gretzky scored UNDER 800 career NHL goals",
+              "es": "Wayne Gretzky anotó MENOS DE 800 goles en su carrera en la NHL"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Gretzky scored 894 goals.",
+              "es": "Gretzky anotó 894 goles."
+            }
+          },
+          {
+            "left": {
+              "en": "The Detroit Red Wings have won OVER 12 Stanley Cups",
+              "es": "Los Detroit Red Wings han ganado MÁS DE 12 Copas Stanley"
+            },
+            "right": {
+              "en": "The Detroit Red Wings have won UNDER 12 Stanley Cups",
+              "es": "Los Detroit Red Wings han ganado MENOS DE 12 Copas Stanley"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Detroit has won 11 Cups.",
+              "es": "Detroit ha ganado 11 Copas."
+            }
+          },
+          {
+            "left": {
+              "en": "Mario Lemieux scored OVER 700 career NHL goals",
+              "es": "Mario Lemieux anotó MÁS DE 700 goles en su carrera en la NHL"
+            },
+            "right": {
+              "en": "Mario Lemieux scored UNDER 700 career NHL goals",
+              "es": "Mario Lemieux anotó MENOS DE 700 goles en su carrera en la NHL"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Lemieux retired with 690 goals.",
+              "es": "Lemieux se retiró con 690 goles."
+            }
+          },
+          {
+            "left": {
+              "en": "Wayne Gretzky had OVER 200 points in 1985-86",
+              "es": "Wayne Gretzky tuvo MÁS DE 200 puntos en 1985-86"
+            },
+            "right": {
+              "en": "Wayne Gretzky had UNDER 200 points in 1985-86",
+              "es": "Wayne Gretzky tuvo MENOS DE 200 puntos en 1985-86"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Gretzky set the single-season record with 215 points.",
+              "es": "Gretzky impuso el récord de una temporada con 215 puntos."
+            }
+          }
+        ],
+        "explain": "All figures for retired players or franchise history; Red Wings count verified at source."
+      },
+      {
+        "type": "reveal",
+        "visual": "🏒",
+        "prompt": "Name this hockey star.",
+        "clues": [
+          "Born in Moscow, he was the first overall pick in the 2004 NHL Draft.",
+          "He won the Stanley Cup and the Conn Smythe Trophy with the Washington Capitals in 2018.",
+          "In April 2025 he passed Wayne Gretzky's all-time NHL career record of 894 goals."
+        ],
+        "answer": "Alex Ovechkin",
+        "accept": [
+          "Alex Ovechkin",
+          "Alexander Ovechkin",
+          "Ovechkin",
+          "Alex",
+          "Alexander",
+          "Ovi",
+          "Alex Ovechkine",
+          "Alexander Ovechkine",
+          "Alex Ovetchkin",
+          "Alex Ovechkn",
+          "Alex Ovechkinn",
+          "Aleksandr Ovechkin",
+          "Ovechkin Alex"
+        ],
+        "exactOnly": [
+          "Alex",
+          "Alexander",
+          "Ovi"
+        ],
+        "hint": {
+          "en": "Hint: the Washington Capitals' goal-scoring star.",
+          "es": "Pista: la estrella goleadora de los Washington Capitals."
+        },
+        "explain": "Alex Ovechkin was the first overall pick in 2004, won the 2018 Stanley Cup and Conn Smythe Trophy with the Capitals, and passed Wayne Gretzky's career goals record in April 2025."
+      },
+      {
+        "type": "mc",
+        "visual": "🏒",
+        "q": "What is the name of the machine that resurfaces the ice between periods?",
+        "options": [
+          "Zamboni",
+          "Snowcat",
+          "Iceliner",
+          "Glidemaster"
+        ],
+        "a": 0,
+        "hint": {
+          "en": "Hint: it is named after the man who invented it in 1949.",
+          "es": "Pista: lleva el nombre del hombre que la inventó en 1949."
+        },
+        "explain": "The Zamboni, invented by Frank Zamboni in 1949, is the machine that cleans and resurfaces the ice at rinks. Snowcat is a snow-grooming vehicle, and Iceliner and Glidemaster are invented names, not ice-resurfacer brands."
+      }
+    ]
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
   // Word Flip hint types: "definition", "synonym", "antonym", "riddle"
@@ -583,6 +1334,39 @@ window.CONTENT = {
     // ---- APPENDED Word Nerd week 2 (staged 2026-10-28) ----
     [["BIRD","TUB","BATH"],["PINE","SAUCE","APPLE"],["SCARE","BAR","CROW"],["TOWN","SCHOOL","HOME"],["SOUND","SUIT","TRACK"],["NECK","BREAKER","TIE"]],
     [["NEWS","CLIP","PAPER"],["RAIN","BOX","CHECK","DROP"],["QUICK","PIT","SAND"],["WING","TOE","TIP"],["BUS","WATCH","STOP"],["SPACE","WRECK","SHIP"]]
+,
+    [
+      [
+        "WORK",
+        "MAT",
+        "PLACE"
+      ],
+      [
+        "MICRO",
+        "LENGTH",
+        "WAVE"
+      ],
+      [
+        "EVER",
+        "HOUSE",
+        "GREEN"
+      ],
+      [
+        "SAFE",
+        "RAIL",
+        "GUARD"
+      ],
+      [
+        "COUNT",
+        "TOWN",
+        "DOWN"
+      ],
+      [
+        "WEEK",
+        "POINT",
+        "END"
+      ]
+    ]
   ],
   connections: [
     { groups: [ { name: "Card games", words: ["POKER", "RUMMY", "BRIDGE"], pts: 300 }, { name: "Planets", words: ["JUPITER", "VENUS", "SATURN"], pts: 300 }, { name: "Chocolate bars", words: ["SNICKERS", "TWIX", "MILKY WAY"], pts: 400 } ] },
@@ -597,6 +1381,38 @@ window.CONTENT = {
     // ---- APPENDED Word Nerd week 2 (staged 2026-10-28) ----
     {"groups":[{"name":"Ocean animals","words":["SHARK","SEAL","WALRUS"],"pts":300},{"name":"NBA team names","words":["HEAT","MAGIC","JAZZ"],"pts":300},{"name":"___fish","words":["STAR","SWORD","GOLD"],"pts":400}]},
     {"groups":[{"name":"___ bank","words":["RIVER","MEMORY","PIGGY"],"pts":300},{"name":"___ jacket","words":["DUST","LIFE","STRAIT"],"pts":300},{"name":"Things with teeth","words":["COMB","ZIPPER","GEAR"],"pts":400}]}
+,
+    {
+      "groups": [
+        {
+          "name": "Things with a neck",
+          "words": [
+            "SHIRT",
+            "VASE",
+            "FLASK"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Things with a face",
+          "words": [
+            "CLOCK",
+            "CLIFF",
+            "DICE"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Things with a bridge",
+          "words": [
+            "NOSE",
+            "GLASSES",
+            "SONG"
+          ],
+          "pts": 400
+        }
+      ]
+    }
   ],
   oddOneOut: [
     [ { words: ["Mercury", "Venus", "Pluto", "Mars"], odd: 2, why: "Pluto isn't a planet (others are planets)" },
@@ -682,6 +1498,89 @@ window.CONTENT = {
       {"words":["Brass","Zinc","Nickel","Tin"],"odd":0,"why":"Brass is an alloy (others are chemical elements)"},
       {"words":["Lima","Havana","Quito","Bogotá"],"odd":1,"why":"Havana isn't in South America (others are South American capitals)"},
       {"words":["Waltz","Foxtrot","Rumba","Sonnet"],"odd":3,"why":"Sonnet is a poem (others are dances)"}]
+,
+    [
+      {
+        "words": [
+          "Poodle",
+          "Beagle",
+          "Siamese",
+          "Husky"
+        ],
+        "odd": 2,
+        "why": "Siamese is a cat breed; the others are dog breeds"
+      },
+      {
+        "words": [
+          "Beetle",
+          "Spider",
+          "Scorpion",
+          "Tick"
+        ],
+        "odd": 0,
+        "why": "A beetle has six legs (an insect); the others have eight (arachnids)"
+      },
+      {
+        "words": [
+          "Tricycle",
+          "Bicycle",
+          "Moped",
+          "Motorcycle"
+        ],
+        "odd": 0,
+        "why": "A tricycle has three wheels; the others have two"
+      },
+      {
+        "words": [
+          "Elbow",
+          "Rib",
+          "Knee",
+          "Wrist"
+        ],
+        "odd": 1,
+        "why": "A rib is a bone; the others are joints"
+      },
+      {
+        "words": [
+          "Equilateral",
+          "Isosceles",
+          "Scalene",
+          "Parallelogram"
+        ],
+        "odd": 3,
+        "why": "A parallelogram has four sides; the others are types of triangle"
+      },
+      {
+        "words": [
+          "Furlong",
+          "Watt",
+          "Volt",
+          "Ohm"
+        ],
+        "odd": 0,
+        "why": "A furlong isn't an SI unit; watt, volt and ohm are all SI units named after scientists"
+      },
+      {
+        "words": [
+          "Erie",
+          "Superior",
+          "Huron",
+          "Titicaca"
+        ],
+        "odd": 3,
+        "why": "Lake Titicaca is in South America; the others are Great Lakes"
+      },
+      {
+        "words": [
+          "Planck",
+          "Newton",
+          "Einstein",
+          "Bohr"
+        ],
+        "odd": 1,
+        "why": "Newton lived before the Nobel Prizes began (1901); the others won the Nobel Prize in Physics"
+      }
+    ]
   ],
   // ---------- 5. THINK FAST ----------
   thinkFast: [
@@ -831,8 +1730,144 @@ window.CONTENT = {
         "explain": "Segment B lines up exactly with the line on the left. The gray bar fools your eye into shifting the line (Poggendorff illusion)."
       }
     ]
+,
+    [
+      {
+        "cat": "thinking",
+        "kind": "logic",
+        "q": "Priya, Ben and Zoe each own exactly one pet: a cat, a dog or a parrot. Priya does not own the dog. Ben owns neither the cat nor the dog. Who owns the dog?",
+        "answers": [
+          "zoe"
+        ],
+        "aliases": [
+          "zoe owns the dog",
+          "it is zoe",
+          "its zoe",
+          "zoe tiene el perro",
+          "es zoe"
+        ],
+        "wrong": [
+          "priya",
+          "ben"
+        ],
+        "noSurname": true,
+        "explain": "Ben owns neither the cat nor the dog, so Ben has the parrot. Priya cannot have the dog, so Priya has the cat, which leaves the dog for Zoe."
+      },
+      {
+        "cat": "fun",
+        "type": "slider",
+        "kind": "guesstimate",
+        "prompt": "Guesstimate: how many jelly beans are in the jar?",
+        "min": 20,
+        "max": 120,
+        "step": 1,
+        "answer": 57,
+        "unit": "jelly beans",
+        "scale": "percent",
+        "per_pct": 5,
+        "typed": true,
+        "image": "assets/tf-n14-jellybeans.jpg",
+        "explain": "There are exactly 57 jelly beans."
+      }
+    ],
+    [
+      {
+        "cat": "thinking",
+        "kind": "logic",
+        "q": "On an island, knights always tell the truth and knaves always lie. Alex says: \"Blake is a knave.\" Blake says: \"Alex and I are the same type.\" Is Alex a knight or a knave?",
+        "answers": [
+          "knight",
+          "a knight",
+          "alex is a knight",
+          "alex is the knight",
+          "caballero",
+          "un caballero",
+          "alex es un caballero",
+          "alex es caballero"
+        ],
+        "aliases": [
+          "the knight"
+        ],
+        "wrong": [
+          "knave",
+          "a knave",
+          "alex is a knave",
+          "bribon",
+          "bribón",
+          "un bribon",
+          "un bribón",
+          "alex es un bribon",
+          "alex es un bribón"
+        ],
+        "noSurname": true,
+        "explain": "Suppose Alex were a knave: then Blake is NOT a knave, so Blake is a knight, and Blake's claim that they are the same type would be false, which a knight cannot say. So Alex is a knight, which makes Blake a knave; Blake's false claim (they are the same type) fits a knave."
+      },
+      {
+        "cat": "fun",
+        "kind": "riddle",
+        "q": "What begins with the letter E, ends with the letter E, but usually contains only one letter?",
+        "answers": [
+          "envelope",
+          "an envelope"
+        ],
+        "aliases": [
+          "the envelope",
+          "envelopes",
+          "a envelope",
+          "sobre",
+          "un sobre",
+          "el sobre"
+        ],
+        "wrong": [
+          "eye",
+          "eagle",
+          "elephant",
+          "eraser",
+          "ojo",
+          "aguila",
+          "águila",
+          "elefante"
+        ],
+        "explain": "An envelope begins and ends with E, and it usually holds just one letter (a piece of mail)."
+      }
+    ],
+    [
+      {
+        "cat": "thinking",
+        "type": "mc",
+        "kind": "logic",
+        "q": "Which number is the odd one out?",
+        "options": [
+          "64",
+          "27",
+          "125",
+          "36",
+          "8"
+        ],
+        "a": 3,
+        "explain": "64, 27, 125 and 8 are perfect cubes (4×4×4, 3×3×3, 5×5×5, 2×2×2). 36 is not a cube."
+      },
+      {
+        "cat": "fun",
+        "type": "mc",
+        "kind": "illusion",
+        "img": "illusion-09",
+        "q": "Are the gray lines between the rows of tiles straight and parallel, or do they slope?",
+        "options": [
+          "They slope toward each other in wedges",
+          "They are all perfectly straight and parallel",
+          "They bend into curves"
+        ],
+        "a": 1,
+        "explain": "Every gray line is perfectly horizontal and parallel. The shifted rows of tiles make them look tilted (café wall illusion)."
+      }
+    ]
   ]
 };
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
+// 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
+window.DAY_OVERRIDES["2026-11-14"] = {"worldRush":47,"history":47,"sports":47,"thinkFast":49,"wordBridge":11};
+window.DAY_OVERRIDES["2026-11-15"] = {"worldRush":48,"history":48,"sports":48,"thinkFast":50,"connections":11};
+window.DAY_OVERRIDES["2026-11-16"] = {"worldRush":49,"history":49,"sports":49,"thinkFast":51,"oddOneOut":11};
