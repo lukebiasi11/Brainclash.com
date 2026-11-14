@@ -30,7 +30,7 @@ const F = `2026-10-23 anag 3 13 13 13 0 0 0 0 2|2026-10-24 flip 4 14 14 14 1 1 1
 2026-10-31 conn 8 3 3 3 2 2 2 2 4|2026-11-01 odd 41 32 32 32 2 2 2 9 7|2026-11-02 anag 42 33 33 33 2 2 2 9 7|2026-11-03 flip 43 34 34 34 9 9 9 10 8
 2026-11-04 bridge 44 35 35 35 9 9 9 10 8|2026-11-05 conn 45 36 36 36 9 9 9 10 8|2026-11-06 odd 46 37 37 37 9 9 9 10 8|2026-11-07 anag 47 38 38 38 9 9 9 10 8
 2026-11-08 flip 19 39 39 39 10 10 10 5 9|2026-11-09 bridge 20 40 40 40 10 10 10 5 9|2026-11-10 conn 21 41 41 41 10 10 10 5 9|2026-11-11 odd 22 42 42 42 10 10 10 5 9
-2026-11-12 anag 48 46 46 46 10 10 10 5 12|2026-11-13 flip 24 44 44 44 5 5 5 2 0|2026-11-14 bridge 25 45 45 45 5 5 5 2 0`;
+2026-11-12 anag 48 46 46 46 10 10 10 5 12|2026-11-13 flip 24 44 44 44 5 5 5 2 0|2026-11-14 bridge 49 47 47 47 5 11 5 2 0`;
 const R = load(), T = table(R, "2026-10-23", "2026-11-14");
 for (const line of F.split(/[|\n]/)) {
   const [k, wg, ...n] = line.trim().split(/\s+/), row = T[k], cols = ["tf", "wr", "hi", "sp", "wf", "wb", "cn", "oo", "an"];
@@ -62,13 +62,13 @@ for (const k in LISTS) {
   t(moved === 0, `${k}: appending moved ${moved} of ${checked} scheduled dates`);
 }
 const plain = load();
-const scheduled = plain.win.CONTENT.thinkFast.indexOf(plain.getDailySet("2026-11-16").thinkFast);
+const scheduled = plain.win.CONTENT.thinkFast.indexOf(plain.getDailySet("2026-11-18").thinkFast);
 const other = scheduled === 0 ? 1 : 0;
-const pinned = load(w => { w.DAY_OVERRIDES = { "2026-11-16": { thinkFast: other } }; });
+const pinned = load(w => { w.DAY_OVERRIDES = Object.assign({}, w.DAY_OVERRIDES, { "2026-11-18": { thinkFast: other } }); });
 const idx = (R, day, key) => R.win.CONTENT[key].indexOf(R.getDailySet(day)[key]);
-t(idx(plain, "2026-11-15", "thinkFast") === idx(pinned, "2026-11-15", "thinkFast"), "a date without an override keeps its thinkFast index");
-t(idx(plain, "2026-11-17", "thinkFast") === idx(pinned, "2026-11-17", "thinkFast"), "the following date is not shifted");
-t(idx(pinned, "2026-11-16", "thinkFast") === other, "2026-11-16 thinkFast uses the override index");
-t(idx(plain, "2026-11-16", "sports") === idx(pinned, "2026-11-16", "sports"), "the override does not move another category");
-t(idx(plain, "2026-11-16", "worldRush") === idx(pinned, "2026-11-16", "worldRush"), "worldRush stays on the frozen schedule");
+t(idx(plain, "2026-11-17", "thinkFast") === idx(pinned, "2026-11-17", "thinkFast"), "a date without an override keeps its thinkFast index");
+t(idx(plain, "2026-11-19", "thinkFast") === idx(pinned, "2026-11-19", "thinkFast"), "the following date is not shifted");
+t(idx(pinned, "2026-11-18", "thinkFast") === other, "2026-11-18 thinkFast uses the override index");
+t(idx(plain, "2026-11-18", "sports") === idx(pinned, "2026-11-18", "sports"), "the override does not move another category");
+t(idx(plain, "2026-11-18", "worldRush") === idx(pinned, "2026-11-18", "worldRush"), "worldRush stays on the frozen schedule");
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

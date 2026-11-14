@@ -261,6 +261,161 @@ window.CONTENT_ES = {
         "explain": "Superficies de Wikipedia: Alaska 1.717.856; Texas 695.660; Canadá 9.984.670; India 3.287.263; California 423.970; Groenlandia 2.166.086; México 1.972.550; Sahara 9.200.000; Australia 7.688.287 (todas en km²)."
       }
     }
+,
+  {
+    "pins": [
+      {
+        "name": "Gran Cañón (borde sur), Arizona, EE. UU.",
+        "lat": 36.06,
+        "lon": -112.11
+      },
+      {
+        "name": "Nueva Orleans, Luisiana, EE. UU.",
+        "lat": 29.95,
+        "lon": -90.07
+      }
+    ],
+    "pair": {
+      "type": "pair",
+      "prompt": "¿Cuál está más al NORTE?",
+      "rounds": [
+        {
+          "left": "Chicago",
+          "right": "Miami",
+          "correct": "left",
+          "note": "Chicago: 41,9°N. Miami: 25,8°N."
+        },
+        {
+          "left": "Honolulu",
+          "right": "Anchorage",
+          "correct": "right",
+          "note": "Anchorage: 61,2°N. Honolulu: 21,3°N."
+        },
+        {
+          "left": "Londres",
+          "right": "Madrid",
+          "correct": "left",
+          "note": "Londres: 51,5°N. Madrid: 40,4°N."
+        },
+        {
+          "left": "Boston",
+          "right": "Seattle",
+          "correct": "right",
+          "note": "Seattle: 47,6°N. Boston: 42,4°N."
+        },
+        {
+          "left": "Roma",
+          "right": "Nueva York",
+          "correct": "left",
+          "note": "Roma: 41,9°N. Nueva York: 40,7°N."
+        }
+      ],
+      "explain": "Latitudes de las páginas de Wikipedia de cada ciudad. Roma está al norte de Nueva York."
+    }
+  },
+  {
+    "pins": [
+      {
+        "name": "Parque Nacional Banff, Alberta, Canadá",
+        "lat": 51.5,
+        "lon": -116.0,
+        "explain": "El Parque Nacional Banff, fundado en 1885, es el primer parque nacional de Canadá (unos 6.641 km²), en las Montañas Rocosas de Alberta."
+      },
+      {
+        "name": "Estambul, Turquía",
+        "lat": 41.01,
+        "lon": 28.96
+      }
+    ],
+    "pair": {
+      "type": "pair",
+      "prompt": "¿Cuál es más grande por superficie?",
+      "rounds": [
+        {
+          "left": "Canadá",
+          "right": "Italia",
+          "correct": "left",
+          "note": "Canadá: unos 9,98 millones de km². Italia: unos 0,30 millones de km²."
+        },
+        {
+          "left": "Alemania",
+          "right": "México",
+          "correct": "right",
+          "note": "México: unos 1,96 millones de km². Alemania: unos 0,36 millones de km²."
+        },
+        {
+          "left": "India",
+          "right": "Egipto",
+          "correct": "left",
+          "note": "India: unos 3,29 millones de km². Egipto: unos 1,00 millones de km²."
+        },
+        {
+          "left": "España",
+          "right": "Argentina",
+          "correct": "right",
+          "note": "Argentina: unos 2,78 millones de km². España: unos 0,51 millones de km²."
+        },
+        {
+          "left": "Australia",
+          "right": "Arabia Saudita",
+          "correct": "left",
+          "note": "Australia: unos 7,69 millones de km². Arabia Saudita: unos 2,15 millones de km²."
+        }
+      ],
+      "explain": "Superficie total de los países (Wikipedia, lista de países por superficie). Cada par se diferencia por al menos 3 veces, así que se puede razonar con conocimientos generales."
+    }
+  },
+  {
+    "pins": [
+      {
+        "name": "Angkor Wat, Camboya",
+        "lat": 13.41,
+        "lon": 103.87
+      },
+      {
+        "name": "Nairobi, Kenia",
+        "lat": -1.29,
+        "lon": 36.82
+      }
+    ],
+    "pair": {
+      "type": "pair",
+      "prompt": "¿Cuál tiene más habitantes?",
+      "rounds": [
+        {
+          "left": "India",
+          "right": "Estados Unidos",
+          "correct": "left",
+          "note": "India: unos 1.400 millones. EE. UU.: unos 342 millones (estimación de 2025)."
+        },
+        {
+          "left": "México",
+          "right": "Brasil",
+          "correct": "right",
+          "note": "Brasil: más de 214 millones. México: unos 131 millones (2025)."
+        },
+        {
+          "left": "Australia",
+          "right": "Canadá",
+          "correct": "right",
+          "note": "Canadá: más de 41 millones. Australia: unos 29 millones."
+        },
+        {
+          "left": "Japón",
+          "right": "Alemania",
+          "correct": "left",
+          "note": "Japón: unos 123 millones. Alemania: más de 83 millones."
+        },
+        {
+          "left": "Reino Unido",
+          "right": "Etiopía",
+          "correct": "right",
+          "note": "Etiopía: unos 138 millones. Reino Unido: unos 69 millones."
+        }
+      ],
+      "explain": "Cifras más recientes de Wikipedia (estimaciones de 2025-2026; India según estimaciones de la ONU)."
+    }
+  }
   ],
  "history": [
   null,
@@ -759,6 +914,178 @@ window.CONTENT_ES = {
         ]
       }
     }
+,
+  {
+    "r1": {
+      "theme": "Favoritos divertidos",
+      "events": [
+        [
+          null,
+          "Ford presenta el Mustang",
+          null
+        ],
+        [
+          null,
+          "Se lanza la cadena deportiva ESPN",
+          null
+        ],
+        [
+          null,
+          "Se estrena El príncipe del rap en NBC",
+          null
+        ],
+        [
+          null,
+          "Se estrena The Mandalorian",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Famosas primeras veces y grandes momentos",
+      "events": [
+        [
+          null,
+          "La Mujer Maravilla debuta en All Star Comics",
+          null
+        ],
+        [
+          null,
+          "Sam Walton abre el primer Walmart en Rogers, Arkansas",
+          null
+        ],
+        [
+          null,
+          "Se estrena El Show de los Muppets",
+          null
+        ],
+        [
+          null,
+          "Se lanza Cartoon Network",
+          null
+        ],
+        [
+          null,
+          "Los Patriots vencen a los Falcons en el Super Bowl LI tras la mayor remontada de su historia",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Marcas y favoritos divertidos",
+      "events": [
+        [
+          null,
+          "Edwin Perkins crea Kool-Aid",
+          null
+        ],
+        [
+          null,
+          "Earl Tupper presenta Tupperware",
+          null
+        ],
+        [
+          null,
+          "Se estrena Jeopardy! en NBC",
+          null
+        ],
+        [
+          null,
+          "Sale Angry Birds",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Primeras veces y modas divertidas",
+      "events": [
+        [
+          null,
+          "Abre el Switchback Railway, la primera montaña rusa de Coney Island",
+          null
+        ],
+        [
+          null,
+          "Peter Pan se estrena en el teatro en Londres",
+          null
+        ],
+        [
+          null,
+          "Se crea Gatorade en la Universidad de Florida",
+          null
+        ],
+        [
+          null,
+          "Se estrena La rueda de la fortuna (Wheel of Fortune) en NBC",
+          null
+        ],
+        [
+          null,
+          "Se lanza Snapchat",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Hitos de Estados Unidos",
+      "events": [
+        [
+          null,
+          "Nathan's Famous abre como puesto de hot dogs en Coney Island",
+          null
+        ],
+        [
+          null,
+          "Los Nueve de Little Rock ingresan a la Escuela Secundaria Central de Little Rock",
+          null
+        ],
+        [
+          null,
+          "Abre en Dallas la primera tienda de Blockbuster Video",
+          null
+        ],
+        [
+          null,
+          "Apple presenta el primer iPad",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Instantáneas de Estados Unidos",
+      "events": [
+        [
+          null,
+          "Mark Twain publica Las aventuras de Tom Sawyer",
+          null
+        ],
+        [
+          null,
+          "Se descubre oro en el Klondike",
+          null
+        ],
+        [
+          null,
+          "Kleenex sale a la venta por primera vez, como desmaquillante",
+          null
+        ],
+        [
+          null,
+          "La Corte Suprema declara inconstitucionales las escuelas públicas segregadas",
+          null
+        ],
+        [
+          null,
+          "Tickle Me Elmo se vuelve el juguete más buscado de las fiestas",
+          null
+        ]
+      ]
+    }
+  }
   ],
  "sports": [
   null,
@@ -1277,6 +1604,223 @@ window.CONTENT_ES = {
         "explain": "Marino: Dolphins. Sanders: Lions. Namath: Jets. Bradshaw: Steelers."
       }
     ]
+,
+  [
+    {
+      "type": "mc",
+      "visual": "🏀",
+      "q": "En la película Space Jam de 1996, ¿qué leyenda del básquetbol forma equipo con Bugs Bunny y los Looney Tunes?",
+      "options": [
+        "Michael Jordan",
+        "Kobe Bryant",
+        "Shaquille O'Neal",
+        "Magic Johnson"
+      ],
+      "a": 0,
+      "explain": "Michael Jordan se interpreta a sí mismo en Space Jam (1996)."
+    },
+    {
+      "type": "reveal",
+      "visual": "🥊",
+      "prompt": "Nombra a esta leyenda del boxeo.",
+      "clues": [
+        "A los 18 años ganó el oro olímpico en peso semipesado en los Juegos de Roma 1960.",
+        "En 1974 venció a George Foreman en el \"Rumble in the Jungle\" y recuperó el título de peso pesado.",
+        "El tricampeón de peso pesado de Louisville, Kentucky, famoso por \"flota como mariposa, pica como abeja\"."
+      ],
+      "answer": "Muhammad Ali",
+      "accept": [
+        "Muhammad Ali",
+        "Ali",
+        "Cassius Clay",
+        "Clay",
+        "Mohammed Ali",
+        "Mohamed Ali",
+        "Muhammed Ali",
+        "Cassius Marcellus Clay",
+        "Cassius Marcellus Clay Jr.",
+        "Muhammad",
+        "Cassius",
+        "The Greatest"
+      ],
+      "exactOnly": [
+        "Muhammad",
+        "Cassius"
+      ],
+      "explain": "Ali (nacido Cassius Clay) ganó el oro olímpico en 1960, venció a George Foreman en 1974 y fue campeón de peso pesado tres veces."
+    },
+    {
+      "type": "match",
+      "kind": "match-records",
+      "visual": "🏅",
+      "q": "Relaciona a cada estrella del deporte con su famoso apodo.",
+      "left": [
+        "Shaun White",
+        "Rafael Nadal",
+        "Giannis Antetokounmpo",
+        "Dale Earnhardt Sr."
+      ],
+      "right": [
+        "El Freak Griego",
+        "El Intimidador",
+        "El Tomate Volador",
+        "El Rey de la Tierra Batida"
+      ],
+      "pairs": [
+        2,
+        3,
+        0,
+        1
+      ],
+      "hint": "Toca a una leyenda y luego su famoso apodo para emparejarlos.",
+      "explain": "White: El Tomate Volador (snowboard). Nadal: El Rey de la Tierra Batida (tenis). Antetokounmpo: El Freak Griego (básquetbol). Earnhardt Sr.: El Intimidador (NASCAR)."
+    }
+  ],
+  [
+    {
+      "type": "mc",
+      "visual": "🏀",
+      "q": "¿Qué equipo eligió a la estrella francesa Victor Wembanyama con la primera selección del Draft de la NBA de 2023?",
+      "options": [
+        "Spurs de San Antonio",
+        "Hornets de Charlotte",
+        "Rockets de Houston",
+        "Pistons de Detroit"
+      ],
+      "a": 0,
+      "explain": "Los Spurs de San Antonio eligieron a Victor Wembanyama en el primer lugar del Draft de la NBA de 2023 (22 de junio de 2023). Los Hornets eligieron segundo, los Rockets cuarto y los Pistons quinto."
+    },
+    {
+      "type": "reveal",
+      "visual": "🏈",
+      "prompt": "Nombra a esta estrella del fútbol americano.",
+      "clues": [
+        "Fue la décima selección global del draft de la NFL de 2017, salido de Texas Tech, donde lideró al país en yardas de pase en su año júnior.",
+        "Fue nombrado MVP del Super Bowl tras ganar el Super Bowl LIV y se convirtió en el mariscal de campo más joven en lograrlo.",
+        "Mariscal de campo de los Kansas City Chiefs que también ganó Super Bowls en febrero de 2023 y febrero de 2024."
+      ],
+      "answer": "Patrick Mahomes",
+      "accept": [
+        "Patrick Mahomes",
+        "Mahomes",
+        "Patrick",
+        "Patrick Mahomes II",
+        "Patrick Mahome",
+        "Patrick Mahommes",
+        "Patrick Mahomez",
+        "Patrik Mahomes",
+        "Mahommes",
+        "Mahomes Patrick"
+      ],
+      "exactOnly": [
+        "Patrick"
+      ],
+      "hint": "Pista: el mariscal de campo de los Kansas City Chiefs.",
+      "explain": "Mahomes fue la décima selección de 2017 (Texas Tech, trofeo Sammy Baugh en su año júnior), ganó el Super Bowl LIV y su MVP, y llevó a los Chiefs a ganar el Super Bowl en febrero de 2023 y febrero de 2024."
+    },
+    {
+      "type": "order",
+      "kind": "team-path",
+      "visual": "🏅",
+      "q": "Ordena estas ciudades sede de los Juegos Olímpicos de verano, los más antiguos primero.",
+      "items": [
+        "Los Ángeles",
+        "Barcelona",
+        "Sídney",
+        "Pekín",
+        "Río"
+      ],
+      "hint": "Arrastra las ciudades anfitrionas en orden, los Juegos más antiguos arriba.",
+      "explain": "Los Ángeles (1984), Barcelona (1992), Sídney (2000), Pekín (2008), Río (2016)."
+    }
+  ],
+  [
+    {
+      "visual": "🏒",
+      "type": "pair",
+      "prompt": "¿Más de o menos de? Elige la verdadera.",
+      "rounds": [
+        {
+          "left": "Los Montreal Canadiens han ganado MÁS DE 20 Copas Stanley",
+          "right": "Los Montreal Canadiens han ganado MENOS DE 20 Copas Stanley",
+          "correct": "left",
+          "note": "Montreal ha ganado 24 Copas, más que cualquier otra franquicia."
+        },
+        {
+          "left": "Wayne Gretzky anotó MÁS DE 800 goles en su carrera en la NHL",
+          "right": "Wayne Gretzky anotó MENOS DE 800 goles en su carrera en la NHL",
+          "correct": "left",
+          "note": "Gretzky anotó 894 goles."
+        },
+        {
+          "left": "Los Detroit Red Wings han ganado MÁS DE 12 Copas Stanley",
+          "right": "Los Detroit Red Wings han ganado MENOS DE 12 Copas Stanley",
+          "correct": "right",
+          "note": "Detroit ha ganado 11 Copas."
+        },
+        {
+          "left": "Mario Lemieux anotó MÁS DE 700 goles en su carrera en la NHL",
+          "right": "Mario Lemieux anotó MENOS DE 700 goles en su carrera en la NHL",
+          "correct": "right",
+          "note": "Lemieux se retiró con 690 goles."
+        },
+        {
+          "left": "Wayne Gretzky tuvo MÁS DE 200 puntos en 1985-86",
+          "right": "Wayne Gretzky tuvo MENOS DE 200 puntos en 1985-86",
+          "correct": "left",
+          "note": "Gretzky impuso el récord de una temporada con 215 puntos."
+        }
+      ],
+      "explain": "Todas las cifras son de jugadores retirados o de la historia de la franquicia."
+    },
+    {
+      "type": "reveal",
+      "visual": "🏒",
+      "prompt": "Nombra a esta estrella del hockey.",
+      "clues": [
+        "Nacido en Moscú, fue la primera selección global del Draft de la NHL de 2004.",
+        "Ganó la Copa Stanley y el Trofeo Conn Smythe con los Washington Capitals en 2018.",
+        "En abril de 2025 superó el récord histórico de Wayne Gretzky de 894 goles en la NHL."
+      ],
+      "answer": "Alex Ovechkin",
+      "accept": [
+        "Alex Ovechkin",
+        "Alexander Ovechkin",
+        "Ovechkin",
+        "Alex",
+        "Alexander",
+        "Ovi",
+        "Alex Ovechkine",
+        "Alexander Ovechkine",
+        "Alex Ovetchkin",
+        "Alex Ovechkn",
+        "Alex Ovechkinn",
+        "Aleksandr Ovechkin",
+        "Ovechkin Alex"
+      ],
+      "exactOnly": [
+        "Alex",
+        "Alexander",
+        "Ovi"
+      ],
+      "hint": "Pista: la estrella goleadora de los Washington Capitals.",
+      "explain": "Alex Ovechkin fue la primera selección de 2004, ganó la Copa Stanley de 2018 y el Trofeo Conn Smythe con los Capitals, y superó el récord de goles de Wayne Gretzky en abril de 2025."
+    },
+    {
+      "type": "mc",
+      "visual": "🏒",
+      "q": "¿Cómo se llama la máquina que repara el hielo entre los periodos?",
+      "options": [
+        "Zamboni",
+        "Snowcat",
+        "Iceliner",
+        "Glidemaster"
+      ],
+      "a": 0,
+      "hint": "Pista: lleva el nombre del hombre que la inventó en 1949.",
+      "explain": "La Zamboni, inventada por Frank Zamboni en 1949, es la máquina que limpia y repara el hielo de las pistas. El snowcat es un vehículo para aplanar nieve, e Iceliner y Glidemaster son nombres inventados, no marcas de máquinas para el hielo."
+    }
+  ]
   ],
  "thinkFast": [
   null,
@@ -1679,6 +2223,138 @@ window.CONTENT_ES = {
         "explain": "El segmento B se alinea exactamente con la línea de la izquierda. La barra gris engaña al ojo y parece desplazar la línea (ilusión de Poggendorff)."
       }
     ]
+,
+  [
+    {
+      "cat": "thinking",
+      "kind": "logic",
+      "q": "Priya, Ben y Zoe tienen exactamente una mascota cada uno: un gato, un perro o un loro. Priya no tiene el perro. Ben no tiene ni el gato ni el perro. ¿Quién tiene el perro?",
+      "answers": [
+        "zoe",
+        "zoe tiene el perro",
+        "es zoe",
+        "zoe owns the dog",
+        "it is zoe",
+        "its zoe"
+      ],
+      "aliases": [
+        "la respuesta es zoe"
+      ],
+      "wrong": [
+        "priya",
+        "ben"
+      ],
+      "noSurname": true,
+      "explain": "Ben no tiene ni el gato ni el perro, así que Ben tiene el loro. Priya no puede tener el perro, así que Priya tiene el gato y el perro es de Zoe."
+    },
+    {
+      "cat": "fun",
+      "type": "slider",
+      "kind": "guesstimate",
+      "prompt": "Estima: ¿cuántos jelly beans hay en el frasco?",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "answer": 57,
+      "unit": "jelly beans",
+      "scale": "percent",
+      "per_pct": 5,
+      "typed": true,
+      "image": "assets/tf-n14-jellybeans.jpg",
+      "explain": "Hay exactamente 57 jelly beans."
+    }
+  ],
+  [
+    {
+      "cat": "thinking",
+      "kind": "logic",
+      "q": "En una isla, los caballeros siempre dicen la verdad y los bribones siempre mienten. Alex dice: \"Blake es un bribón.\" Blake dice: \"Alex y yo somos del mismo tipo.\" ¿Alex es caballero o bribón?",
+      "answers": [
+        "caballero",
+        "un caballero",
+        "alex es un caballero",
+        "alex es caballero",
+        "knight",
+        "a knight",
+        "alex is a knight",
+        "alex is the knight"
+      ],
+      "aliases": [
+        "el caballero"
+      ],
+      "wrong": [
+        "bribón",
+        "bribon",
+        "un bribón",
+        "un bribon",
+        "alex es un bribón",
+        "knave",
+        "a knave",
+        "alex is a knave"
+      ],
+      "noSurname": true,
+      "explain": "Si Alex fuera un bribón, Blake no lo sería, así que Blake sería caballero, y su frase de que son del mismo tipo sería falsa, algo que un caballero no puede decir. Entonces Alex es caballero, Blake es bribón, y la frase falsa de Blake encaja con un bribón."
+    },
+    {
+      "cat": "fun",
+      "kind": "riddle",
+      "q": "¿Qué palabra en inglés empieza con E, termina con E y normalmente contiene una sola carta?",
+      "answers": [
+        "envelope",
+        "an envelope",
+        "sobre",
+        "un sobre",
+        "el sobre"
+      ],
+      "aliases": [
+        "the envelope",
+        "envelopes",
+        "a envelope"
+      ],
+      "wrong": [
+        "eye",
+        "eagle",
+        "elephant",
+        "eraser",
+        "ojo",
+        "aguila",
+        "águila",
+        "elefante"
+      ],
+      "explain": "Envelope empieza y termina con E, y normalmente contiene una sola carta. En español es un sobre."
+    }
+  ],
+  [
+    {
+      "cat": "thinking",
+      "type": "mc",
+      "kind": "logic",
+      "q": "¿Qué número es el que no encaja?",
+      "options": [
+        "64",
+        "27",
+        "125",
+        "36",
+        "8"
+      ],
+      "a": 3,
+      "explain": "64, 27, 125 y 8 son cubos perfectos (4×4×4, 3×3×3, 5×5×5, 2×2×2). 36 no es un cubo."
+    },
+    {
+      "cat": "fun",
+      "type": "mc",
+      "kind": "illusion",
+      "img": "illusion-09",
+      "q": "¿Las líneas grises entre las filas de baldosas son rectas y paralelas, o se inclinan?",
+      "options": [
+        "Se inclinan una hacia la otra en cuñas",
+        "Son todas perfectamente rectas y paralelas",
+        "Se curvan"
+      ],
+      "a": 1,
+      "explain": "Cada línea gris es perfectamente horizontal y paralela. Las filas de baldosas desplazadas las hacen ver inclinadas (ilusión de la pared del café)."
+    }
+  ]
   ],
  "wordFlip": [
   null,
@@ -1796,7 +2472,38 @@ window.CONTENT_ES = {
     }
    ]
   },
-  null
+  null,
+  {
+    "groups": [
+      {
+        "name": "Cosas con cuello",
+        "words": [
+          "CAMISA",
+          "JARRÓN",
+          "FRASCO"
+        ],
+        "pts": 300
+      },
+      {
+        "name": "Cosas con cara",
+        "words": [
+          "RELOJ",
+          "ACANTILADO",
+          "DADO"
+        ],
+        "pts": 300
+      },
+      {
+        "name": "Cosas con puente",
+        "words": [
+          "NARIZ",
+          "LENTES",
+          "CANCIÓN"
+        ],
+        "pts": 400
+      }
+    ]
+  }
  ],
  "oddOneOut": [
   null,
@@ -1890,6 +2597,88 @@ window.CONTENT_ES = {
     "odd": 2,
     "why": "El soneto es un poema (los demás son bailes)"
    }
+  ],
+  [
+    {
+      "words": [
+        "Caniche",
+        "Beagle",
+        "Siamés",
+        "Husky"
+      ],
+      "odd": 2,
+      "why": "El siamés es una raza de gato; los demás son razas de perro"
+    },
+    {
+      "words": [
+        "Escarabajo",
+        "Araña",
+        "Escorpión",
+        "Garrapata"
+      ],
+      "odd": 0,
+      "why": "El escarabajo tiene seis patas (es un insecto); los demás tienen ocho (arácnidos)"
+    },
+    {
+      "words": [
+        "Triciclo",
+        "Bicicleta",
+        "Ciclomotor",
+        "Motocicleta"
+      ],
+      "odd": 0,
+      "why": "El triciclo tiene tres ruedas; los demás tienen dos"
+    },
+    {
+      "words": [
+        "Codo",
+        "Costilla",
+        "Rodilla",
+        "Muñeca"
+      ],
+      "odd": 1,
+      "why": "La costilla es un hueso; los demás son articulaciones"
+    },
+    {
+      "words": [
+        "Equilátero",
+        "Isósceles",
+        "Escaleno",
+        "Paralelogramo"
+      ],
+      "odd": 3,
+      "why": "El paralelogramo tiene cuatro lados; los demás son tipos de triángulo"
+    },
+    {
+      "words": [
+        "Furlong",
+        "Vatio",
+        "Voltio",
+        "Ohmio"
+      ],
+      "odd": 0,
+      "why": "El furlong no es una unidad del SI; el vatio, el voltio y el ohmio sí lo son y llevan el nombre de científicos"
+    },
+    {
+      "words": [
+        "Erie",
+        "Superior",
+        "Hurón",
+        "Titicaca"
+      ],
+      "odd": 3,
+      "why": "El lago Titicaca está en Sudamérica; los demás son Grandes Lagos"
+    },
+    {
+      "words": [
+        "Planck",
+        "Newton",
+        "Einstein",
+        "Bohr"
+      ],
+      "odd": 1,
+      "why": "Newton vivió antes de que existieran los Premios Nobel (1901); los demás ganaron el Nobel de Física"
+    }
   ]
  ]
 };

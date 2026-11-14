@@ -70,9 +70,9 @@ t("exactOnly still blocks a fragment", A.checkAnswer("muhamma", ["Muhammad Ali"]
 t("given still blocks brent", A.checkAnswer("brent", ["Favre"], { aliases: ["Brett"], given: ["Brett"], q: "Who?" }), false);
 
 const content = fs.readFileSync(path.join(root, "content.js"), "utf8") + fs.readFileSync(path.join(root, "content.es.js"), "utf8");
-t("live pairs are the Nov 12 world and sports questions in both languages", (content.match(/"type"\s*:\s*"pair"/g) || []).length, 4);
-t("live content has no reveal", /"type"\s*:\s*"reveal"/.test(content), false);
-t("live content has no slider", /"type"\s*:\s*"slider"/.test(content), false);
+t("live pairs are Nov 12 plus Nov 14-16 world and sports questions in both languages", (content.match(/"type"\s*:\s*"pair"/g) || []).length, 12);
+t("live reveals are the Nov 14-16 sports questions in both languages", (content.match(/"type"\s*:\s*"reveal"/g) || []).length, 6);
+t("live sliders are the Nov 14 jelly-bean question in both languages", (content.match(/"type"\s*:\s*"slider"/g) || []).length, 2);
 
 const win = {};
 vm.runInNewContext(fs.readFileSync(path.join(root, "demo-types.js"), "utf8"), { window: win });
