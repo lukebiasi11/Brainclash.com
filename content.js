@@ -505,6 +505,33 @@ window.CONTENT = {
         ],
         "explain": "Latest Wikipedia country figures (2025-2026 estimates; India per UN estimates)."
       }
+    },
+    {
+      "pins": [
+        {
+          "name": "Crater Lake, Oregon, USA",
+          "lat": 42.95,
+          "lon": -122.1
+        },
+        {
+          "name": "Neuschwanstein Castle, Germany",
+          "lat": 47.56,
+          "lon": 10.75
+        }
+      ],
+      "mc": {
+        "q": "This is just a fragment of one country's flag. Which country's flag is it?",
+        "options": [
+          "India",
+          "Niger",
+          "Bangladesh",
+          "Sri Lanka"
+        ],
+        "a": 0,
+        "difficulty": "medium",
+        "explain": "The blue 24-spoke wheel (Ashoka Chakra) sits in the center of India's white band.",
+        "img": "flag-fragment-n17"
+      }
     }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -815,6 +842,63 @@ window.CONTENT = {
             "🧸",
             "Tickle Me Elmo becomes the must-have holiday toy",
             1996
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "American history",
+        "events": [
+          [
+            "👖",
+            "Levi Strauss and Jacob Davis receive a patent for blue jeans",
+            1873
+          ],
+          [
+            "🇺🇸",
+            "The Pledge of Allegiance is first recited by schoolchildren",
+            1892
+          ],
+          [
+            "🕊️",
+            "World War II ends",
+            1945
+          ],
+          [
+            "🌎",
+            "The first Earth Day is held",
+            1970
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Turning points",
+        "events": [
+          [
+            "💥",
+            "The Gunpowder Plot against Parliament",
+            1605
+          ],
+          [
+            "☠️",
+            "The Great Plague of London begins",
+            1665
+          ],
+          [
+            "📜",
+            "Treaty of Paris ends the American Revolutionary War",
+            1783
+          ],
+          [
+            "🌋",
+            "Mount Tambora erupts",
+            1815
+          ],
+          [
+            "👑",
+            "The German Empire is proclaimed",
+            1871
           ]
         ]
       }
@@ -1304,6 +1388,77 @@ window.CONTENT = {
           "es": "Pista: lleva el nombre del hombre que la inventó en 1949."
         },
         "explain": "The Zamboni, invented by Frank Zamboni in 1949, is the machine that cleans and resurfaces the ice at rinks. Snowcat is a snow-grooming vehicle, and Iceliner and Glidemaster are invented names, not ice-resurfacer brands."
+      }
+    ],
+    [
+      {
+        "type": "mc",
+        "q": "Which sweet treat, served with cream, is a famous tradition at the Wimbledon tennis tournament?",
+        "options": [
+          "Strawberries",
+          "Raspberries",
+          "Blueberries",
+          "Cherries"
+        ],
+        "a": 0,
+        "difficulty": "easy",
+        "hint": {
+          "en": "Hint: it is red, sweet, and fans eat it with cream while watching on the grass courts.",
+          "es": "Pista: es roja, dulce y los aficionados la comen con crema mientras ven los partidos en las canchas de césped."
+        },
+        "explain": "Strawberries and cream is the classic Wimbledon snack; fans eat tens of thousands of portions each year."
+      },
+      {
+        "type": "mc",
+        "q": "Which tennis star won the 2022 US Open at age 19 and became the youngest man ever ranked world No. 1?",
+        "options": [
+          "Daniil Medvedev",
+          "Stefanos Tsitsipas",
+          "Carlos Alcaraz",
+          "Alexander Zverev"
+        ],
+        "a": 2,
+        "difficulty": "easy",
+        "explain": "Carlos Alcaraz of Spain won the 2022 US Open at 19 and became the youngest man ever to be ranked world No. 1 (September 2022).",
+        "es": {
+          "q": "¿Qué estrella del tenis ganó el US Open de 2022 a los 19 años y se convirtió en el hombre más joven en ser número 1 del mundo?",
+          "options": [
+            "Daniil Medvedev",
+            "Stefanos Tsitsipas",
+            "Carlos Alcaraz",
+            "Alexander Zverev"
+          ],
+          "explain": "Carlos Alcaraz, de España, ganó el US Open de 2022 a los 19 años y se convirtió en el hombre más joven en llegar al número 1 del mundo (septiembre de 2022)."
+        }
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "q": "Match each tennis star to the country they play or played for.",
+        "left": [
+          "Maria Sharapova",
+          "Andy Murray",
+          "Jannik Sinner",
+          "Ash Barty"
+        ],
+        "right": [
+          "Italy",
+          "Russia",
+          "Australia",
+          "Great Britain"
+        ],
+        "pairs": [
+          1,
+          3,
+          0,
+          2
+        ],
+        "difficulty": "medium",
+        "explain": "Sharapova: Russia. Murray: Great Britain. Sinner: Italy. Barty: Australia.",
+        "hint": {
+          "en": "Tap a tennis star, then the country she or he plays or played for, to pair them.",
+          "es": "Toca a una estrella del tenis y luego el país al que representa o representó para emparejarlos."
+        }
       }
     ]
   ],
@@ -1864,13 +2019,62 @@ window.CONTENT = {
         "a": 1,
         "explain": "Every gray line is perfectly horizontal and parallel. The shifted rows of tiles make them look tilted (café wall illusion)."
       }
+    ],
+    [
+      {
+        "cat": "thinking",
+        "kind": "logic",
+        "q": "Three friends are each either honest (always tells the truth) or a liar (always lies). Kit says: \"Roz is a liar.\" Roz says: \"Sal is a liar.\" Sal says: \"Kit and Roz are both honest.\" Who is honest?",
+        "answers": [
+          "roz",
+          "roz es honesta",
+          "roz dice la verdad",
+          "es roz"
+        ],
+        "aliases": [
+          "roz is honest",
+          "roz is the honest one",
+          "roz tells the truth",
+          "roz is telling the truth",
+          "roz is truthful",
+          "it is roz",
+          "its roz",
+          "roz es la honesta",
+          "roz es sincera",
+          "la honesta es roz"
+        ],
+        "wrong": [
+          "kit",
+          "sal"
+        ],
+        "noSurname": true,
+        "explain": "Step 1: suppose Sal is honest. Then Kit and Roz are both honest. But honest Kit says Roz is a liar, which would be false. That is impossible, so Sal is a liar. Step 2: Roz says Sal is a liar, and that is true, so Roz is honest. Step 3: Kit says Roz is a liar, which is false, so Kit is a liar too. Check: Sal's claim that Kit and Roz are both honest is false, as a liar's claim should be. Only Roz is honest."
+      },
+      {
+        "cat": "fun",
+        "type": "slider",
+        "kind": "guesstimate",
+        "prompt": "Guesstimate: how many marbles are in the jar?",
+        "min": 10,
+        "max": 90,
+        "step": 1,
+        "answer": 38,
+        "unit": "marbles",
+        "scale": "percent",
+        "per_pct": 5,
+        "typed": true,
+        "image": "assets/tf-n17-marbles.jpg",
+        "explain": "There are exactly 38 marbles."
+      }
     ]
   ]
 };
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
+// 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
 window.DAY_OVERRIDES["2026-11-14"] = {"worldRush":47,"history":47,"sports":47,"thinkFast":49,"wordBridge":11};
 window.DAY_OVERRIDES["2026-11-15"] = {"worldRush":48,"history":48,"sports":48,"thinkFast":50,"connections":11};
 window.DAY_OVERRIDES["2026-11-16"] = {"worldRush":49,"history":49,"sports":49,"thinkFast":51,"oddOneOut":11};
+window.DAY_OVERRIDES["2026-11-17"] = {"worldRush":50,"history":50,"sports":50,"thinkFast":52,"anagram":13};

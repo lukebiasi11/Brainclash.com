@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js and i18n at v=nov17d, style.css at v=nov17c, and English and Spanish content at v=nov14b.
+// New HTML must request answers at v=nov17a, app.js and i18n at v=nov17d, style.css at v=nov17c, and English and Spanish content at v=nov17e.
 // nov17d is after #75's nov17c on app.js and i18n. style.css stays nov17c.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
@@ -9,7 +9,7 @@ const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const APP_V = "nov17d";
-const CONTENT_V = "nov14b";
+const CONTENT_V = "nov17e";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
