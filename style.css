@@ -1186,3 +1186,9 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .slider-type-row{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:13px;margin-top:6px}
 .slider-type{min-height:44px;width:100%}
 .emoji-rebus{font-size:72px;line-height:1.15;text-align:center;margin:8px 0 4px;letter-spacing:.04em}
+/* 375x667 guesstimate: once the answer is revealed, shorten the jar so "There are exactly 57 jelly beans."
+   clears the bottom edge. Exact viewport so 360, 390, and desktop keep their current fit. */
+@media (width: 375px) and (height: 667px) {
+  body.in-game .game-body:has(.slider-range):has(> .tf-explain) .slider-photo { max-height: 78px; }
+  body.in-game .game-body:has(.slider-range):has(> .tf-explain) { padding-bottom: 20px; }
+}
