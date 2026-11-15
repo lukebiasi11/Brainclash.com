@@ -9,7 +9,7 @@
     "cat-word": f("cat-word"), "cat-brain": f("cat-brain"),
     // flags
     "flag-south-korea": f("flag-south-korea"), "flag-nigeria": f("flag-nigeria"), "flag-portugal": f("flag-portugal"),
-    "flag-brazil": f("flag-brazil"), "flag-colombia": f("flag-colombia"), "flag-argentina": f("flag-argentina"), "flag-japan": f("flag-japan"), "flag-canada": f("flag-canada"), "flag-fragment-n17": f("flag-fragment-n17")
+    "flag-brazil": f("flag-brazil"), "flag-colombia": f("flag-colombia"), "flag-argentina": f("flag-argentina"), "flag-japan": f("flag-japan"), "flag-canada": f("flag-canada"), "flag-fragment-n17": f("flag-fragment-n17"), "flag-n20": f("flag-n20")
   };
   // sports: sports-d<day>-q<n>  (one reusable SVG per sport, all 32 days of content.js C.sports)
   [

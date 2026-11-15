@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Flag">
+<rect width="900" height="600" fill="#fff"/>
+<rect x="0" y="0.0000" width="900" height="66.6667" fill="#0D5EAF"/>
+<rect x="0" y="133.3333" width="900" height="66.6667" fill="#0D5EAF"/>
+<rect x="0" y="266.6667" width="900" height="66.6667" fill="#0D5EAF"/>
+<rect x="0" y="400.0000" width="900" height="66.6667" fill="#0D5EAF"/>
+<rect x="0" y="533.3333" width="900" height="66.6667" fill="#0D5EAF"/>
+<rect x="0" y="0" width="333.3333" height="333.3333" fill="#0D5EAF"/>
+<rect x="0" y="133.3333" width="333.3333" height="66.6667" fill="#fff"/>
+<rect x="133.3333" y="0" width="66.6667" height="333.3333" fill="#fff"/>
+</svg>

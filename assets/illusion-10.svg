@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Two horizontal bars, the top one divided by extra tick marks and the bottom one plain">
+<rect width="400" height="240" fill="#fff"/>
+<g fill="#222">
+<rect x="50" y="70" width="300" height="6"/>
+<rect x="50" y="170" width="300" height="6"/>
+<rect x="50" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="82.89" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="115.78" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="148.67" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="181.56" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="214.44" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="247.33" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="280.22" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="313.11" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="346" y="50" width="4" height="46" fill="#F28C28"/>
+<rect x="50" y="150" width="4" height="46" fill="#F28C28"/>
+<rect x="346" y="150" width="4" height="46" fill="#F28C28"/>
+</g></svg>

@@ -416,6 +416,143 @@ window.CONTENT_ES = {
       "explain": "Cifras más recientes de Wikipedia (estimaciones de 2025-2026; India según estimaciones de la ONU)."
     }
   },
+  null,
+  {
+    "pair": {
+      "prompt": "¿Más de o menos de? Elige la verdadera.",
+      "rounds": [
+        {
+          "left": "El lago Superior abarca MÁS DE 30,000 millas cuadradas",
+          "right": "El lago Superior abarca MENOS DE 30,000 millas cuadradas"
+        },
+        {
+          "left": "El río Misisipi mide MÁS DE 3,000 millas de largo",
+          "right": "El río Misisipi mide MENOS DE 3,000 millas de largo"
+        },
+        {
+          "left": "El lago Míchigan abarca MÁS DE 20,000 millas cuadradas",
+          "right": "El lago Míchigan abarca MENOS DE 20,000 millas cuadradas"
+        },
+        {
+          "left": "El río Loira (el de Juana de Arco) mide MÁS DE 600 millas de largo",
+          "right": "El río Loira (el de Juana de Arco) mide MENOS DE 600 millas de largo"
+        },
+        {
+          "left": "El río Sena mide MÁS DE 500 millas de largo",
+          "right": "El río Sena mide MENOS DE 500 millas de largo"
+        }
+      ]
+    }
+  },
+  {
+    "pair": {
+      "prompt": "¿Cuál tiene más habitantes?",
+      "rounds": [
+        {
+          "left": "Nueva York (solo la ciudad)",
+          "right": "Los Ángeles (solo la ciudad)"
+        },
+        {
+          "left": "Texas",
+          "right": "California"
+        },
+        {
+          "left": "Pensilvania",
+          "right": "Florida"
+        },
+        {
+          "left": "Chicago (solo la ciudad)",
+          "right": "Filadelfia (solo la ciudad)"
+        },
+        {
+          "left": "Madrid (solo la ciudad)",
+          "right": "Berlín (solo la ciudad)"
+        }
+      ]
+    }
+  },
+  null,
+  {
+    "pair": {
+      "prompt": "¿Cuál es más alto?",
+      "rounds": [
+        {
+          "left": "Un elefante africano",
+          "right": "Una jirafa"
+        },
+        {
+          "left": "Un aro de baloncesto",
+          "right": "La red de voleibol masculino (borde superior)"
+        },
+        {
+          "left": "El monte Ararat",
+          "right": "El monte Rainier"
+        },
+        {
+          "left": "El monte Whitney",
+          "right": "Denali"
+        },
+        {
+          "left": "La Tokyo Skytree",
+          "right": "La Torre CN"
+        }
+      ]
+    }
+  },
+  {
+    "pair": {
+      "prompt": "¿Cuál se terminó o abrió primero?",
+      "rounds": [
+        {
+          "left": "El metro de Londres",
+          "right": "El metro de París"
+        },
+        {
+          "left": "La basílica del Sagrado Corazón (París)",
+          "right": "El Tower Bridge (Londres)"
+        },
+        {
+          "left": "El Arco del Triunfo (París)",
+          "right": "La Columna de Nelson (Londres)"
+        },
+        {
+          "left": "La ópera Palais Garnier (París)",
+          "right": "El Royal Albert Hall (Londres)"
+        },
+        {
+          "left": "La catedral de San Pablo (Londres)",
+          "right": "El Panteón (París)"
+        }
+      ]
+    }
+  },
+  {
+    "pair": {
+      "prompt": "¿Cuál está a MAYOR altitud?",
+      "rounds": [
+        {
+          "left": "Santa Fe, Nuevo México (la capital estatal más alta de EE. UU.)",
+          "right": "Cusco, Perú"
+        },
+        {
+          "left": "Pikes Peak (Colorado)",
+          "right": "El monte Hood (Oregón)"
+        },
+        {
+          "left": "El monte Olimpo (Grecia)",
+          "right": "El Aconcagua (Argentina)"
+        },
+        {
+          "left": "Badwater Basin, Valle de la Muerte",
+          "right": "La orilla del Mar Muerto"
+        },
+        {
+          "left": "Ben Nevis (Escocia)",
+          "right": "El monte Washington (Nuevo Hampshire)"
+        }
+      ]
+    }
+  },
   null
   ],
  "history": [
@@ -1139,6 +1276,405 @@ window.CONTENT_ES = {
         [
           null,
           "Se proclama el Imperio alemán",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Mujeres que hicieron historia",
+      "events": [
+        [
+          null,
+          "Helen Keller aprende la palabra «agua» con su maestra Anne Sullivan",
+          null
+        ],
+        [
+          null,
+          "Marie Curie es la primera mujer en ganar un Premio Nobel",
+          null
+        ],
+        [
+          null,
+          "El programa de Oprah Winfrey comienza a emitirse a nivel nacional",
+          null
+        ],
+        [
+          null,
+          "Hillary Clinton es la primera mujer nominada a la presidencia por un partido importante",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Pioneras a través de los siglos",
+      "events": [
+        [
+          null,
+          "Muere Cleopatra, la última reina de Egipto",
+          null
+        ],
+        [
+          null,
+          "Catalina la Grande asume el trono de Rusia",
+          null
+        ],
+        [
+          null,
+          "Harriet Tubman escapa de la esclavitud",
+          null
+        ],
+        [
+          null,
+          "Wilma Rudolph gana tres medallas de oro olímpicas en Roma",
+          null
+        ],
+        [
+          null,
+          "Malala Yousafzai gana el Premio Nobel de la Paz",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Cine y televisión",
+      "events": [
+        [
+          null,
+          "Se estrena Los Picapiedra, la primera serie animada en horario estelar",
+          null
+        ],
+        [
+          null,
+          "Se estrena Willy Wonka y la fábrica de chocolate",
+          null
+        ],
+        [
+          null,
+          "Se estrena Mi pobre angelito",
+          null
+        ],
+        [
+          null,
+          "Se estrena Los juegos del hambre en los cines",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Historia de la pantalla",
+      "events": [
+        [
+          null,
+          "Se estrena Lo que el viento se llevó",
+          null
+        ],
+        [
+          null,
+          "Se estrena «Scooby-Doo, ¿dónde estás?»",
+          null
+        ],
+        [
+          null,
+          "Se estrena Los Cazafantasmas",
+          null
+        ],
+        [
+          null,
+          "Bob Esponja debuta en Nickelodeon",
+          null
+        ],
+        [
+          null,
+          "Se estrena Pantera Negra",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Botanas y bebidas",
+      "events": [
+        [
+          null,
+          "Se presentan las galletas Oreo",
+          null
+        ],
+        [
+          null,
+          "Se presentan los Twinkies",
+          null
+        ],
+        [
+          null,
+          "Se presenta la Big Mac",
+          null
+        ],
+        [
+          null,
+          "Starbucks comienza a vender el Pumpkin Spice Latte",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Inauguraciones famosas",
+      "events": [
+        [
+          null,
+          "John Adams se convierte en el primer presidente en vivir en la Casa Blanca",
+          null
+        ],
+        [
+          null,
+          "Colocan el remate en la cima del Monumento a Washington",
+          null
+        ],
+        [
+          null,
+          "Se inaugura el Monumento a Lincoln",
+          null
+        ],
+        [
+          null,
+          "Se inaugura el puente de la bahía de Sídney",
+          null
+        ],
+        [
+          null,
+          "Se completa el muro de la presa de las Tres Gargantas",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Escenarios y sonidos",
+      "events": [
+        [
+          null,
+          "Abre sus puertas el Carnegie Hall en Nueva York",
+          null
+        ],
+        [
+          null,
+          "Se inaugura el Radio City Music Hall en Nueva York",
+          null
+        ],
+        [
+          null,
+          "Berry Gordy funda Tamla Records, que se convierte en Motown",
+          null
+        ],
+        [
+          null,
+          "Se inaugura en Cleveland el museo del Salón de la Fama del Rock and Roll",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Juguetes y aparatos",
+      "events": [
+        [
+          null,
+          "El Sr. Cara de Papa sale a la venta",
+          null
+        ],
+        [
+          null,
+          "Mattel presenta Hot Wheels",
+          null
+        ],
+        [
+          null,
+          "Coleco produce las primeras muñecas Cabbage Patch Kids",
+          null
+        ],
+        [
+          null,
+          "Sale a la venta el Furby",
+          null
+        ],
+        [
+          null,
+          "Sale a la venta la Nintendo Switch",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Rivales y enfrentamientos",
+      "events": [
+        [
+          null,
+          "Seabiscuit vence a War Admiral en su carrera mano a mano",
+          null
+        ],
+        [
+          null,
+          "El Correcaminos y el Coyote se persiguen por primera vez en un corto de Looney Tunes",
+          null
+        ],
+        [
+          null,
+          "Coca-Cola lanza la New Coke para frenar el avance de Pepsi",
+          null
+        ],
+        [
+          null,
+          "Los anuncios «Get a Mac» de Apple enfrentan a una Mac contra una PC",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Favoritos de la cultura pop",
+      "events": [
+        [
+          null,
+          "Tom y Jerry aparecen por primera vez en pantalla",
+          null
+        ],
+        [
+          null,
+          "Play-Doh sale a la venta como juguete",
+          null
+        ],
+        [
+          null,
+          "La Cajita Feliz (Happy Meal) llega a todo Estados Unidos",
+          null
+        ],
+        [
+          null,
+          "Los Teletubbies llegan a la televisión",
+          null
+        ],
+        [
+          null,
+          "Arranca la locura del baile de «Gangnam Style»",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Juegos y deportes",
+      "events": [
+        [
+          null,
+          "James Naismith inventa el básquetbol",
+          null
+        ],
+        [
+          null,
+          "El equipo que luego será los Harlem Globetrotters empieza a jugar en Chicago",
+          null
+        ],
+        [
+          null,
+          "Nace la NBA, entonces llamada Basketball Association of America",
+          null
+        ],
+        [
+          null,
+          "ESPN celebra los primeros X Games, entonces llamados Extreme Games",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Grandes momentos de la historia",
+      "events": [
+        [
+          null,
+          "Pedro el Grande funda San Petersburgo",
+          null
+        ],
+        [
+          null,
+          "El rey Luis XVI es ejecutado en la guillotina en París",
+          null
+        ],
+        [
+          null,
+          "Se inaugura la Gran Exposición en el Palacio de Cristal de Londres",
+          null
+        ],
+        [
+          null,
+          "Se libra la Batalla de Inglaterra",
+          null
+        ],
+        [
+          null,
+          "Alemania se reunifica",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Los orígenes de Acción de Gracias",
+      "events": [
+        [
+          null,
+          "El banquete de cosecha de los Peregrinos en Plymouth",
+          null
+        ],
+        [
+          null,
+          "El presidente George Washington emite la primera proclamación de Acción de Gracias bajo la Constitución",
+          null
+        ],
+        [
+          null,
+          "Abraham Lincoln proclama un día nacional de Acción de Gracias",
+          null
+        ],
+        [
+          null,
+          "Macy's realiza su primer Desfile del Día de Acción de Gracias",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Acción de Gracias en la época moderna",
+      "events": [
+        [
+          null,
+          "Acción de Gracias se fija el cuarto jueves de noviembre",
+          null
+        ],
+        [
+          null,
+          "Swanson vende el primer «TV dinner», una cena congelada de pavo de Acción de Gracias",
+          null
+        ],
+        [
+          null,
+          "Se transmite por primera vez «Un Día de Acción de Gracias de Charlie Brown»",
+          null
+        ],
+        [
+          null,
+          "Se realiza el primer indulto presidencial formal a un pavo",
+          null
+        ],
+        [
+          null,
+          "NBC comienza a transmitir el National Dog Show el Día de Acción de Gracias",
           null
         ]
       ]
@@ -1907,6 +2443,158 @@ window.CONTENT_ES = {
     {
       "hint": "Toca a una estrella del tenis y luego el país al que representa o representó para emparejarlos."
     }
+  ],
+  [
+    {
+      "prompt": "¿Cuál ocurrió primero?",
+      "rounds": [
+        {
+          "left": "Kathrine Switzer corre el Maratón de Boston como participante oficial",
+          "right": "El Título IX se convierte en ley"
+        },
+        {
+          "left": "El fútbol femenino se juega por primera vez en los Juegos Olímpicos",
+          "right": "El maratón femenino se corre por primera vez en los Juegos Olímpicos"
+        },
+        {
+          "left": "La WNBA juega su primera temporada",
+          "right": "La NWSL juega su primera temporada"
+        },
+        {
+          "left": "El boxeo femenino debuta en los Juegos Olímpicos de Verano",
+          "right": "El hockey sobre hielo femenino debuta en los Juegos Olímpicos de Invierno"
+        },
+        {
+          "left": "El salto con pértiga femenino debuta en los Juegos Olímpicos",
+          "right": "El salto de esquí femenino debuta en los Juegos Olímpicos"
+        }
+      ]
+    },
+    null,
+    {
+      "hint": "Arrastra a las atletas en orden según su primera medalla de oro olímpica, la más antigua arriba."
+    }
+  ],
+  [
+    null,
+    {
+      "prompt": "Identifica a esta estrella del fútbol americano.",
+      "explain": "Ray Lewis jugó las 17 temporadas de su carrera en la NFL con los Ravens, fue Jugador Defensivo del Año y MVP del Super Bowl XXXV en la temporada 2000, ganó un segundo Super Bowl en su último partido (2013) y fue elegido para el Salón de la Fama del Fútbol Americano Profesional en 2018.",
+      "clues": [
+        "Jugó de linebacker en la Universidad de Miami antes de que los Ravens lo eligieran en la primera ronda del draft de la NFL de 1996.",
+        "Pasó sus 17 temporadas en la NFL con los Ravens, fue 13 veces al Pro Bowl y en 2000 fue Jugador Defensivo del Año y MVP del Super Bowl XXXV.",
+        "Considerado el mejor linebacker central en la historia de la NFL, entró al Salón de la Fama del Fútbol Americano Profesional en 2018."
+      ]
+    },
+    {
+      "hint": "Arrastra a los mariscales de campo en orden según su primer Super Bowl ganado, el más antiguo arriba."
+    }
+  ],
+  [
+    {
+      "prompt": "¿Cuál ocurrió primero?",
+      "rounds": [
+        {
+          "left": "El snowboard debuta en los Juegos Olímpicos de Invierno",
+          "right": "El skateboarding debuta en los Juegos Olímpicos de Verano"
+        },
+        {
+          "left": "El triatlón debuta en los Juegos Olímpicos de Verano",
+          "right": "El voleibol de playa se convierte en deporte olímpico oficial"
+        },
+        {
+          "left": "El breaking (breakdance) debuta en los Juegos Olímpicos",
+          "right": "El surf debuta en los Juegos Olímpicos"
+        },
+        {
+          "left": "Eddie the Eagle salta en esquí en los Juegos Olímpicos de Invierno de Calgary",
+          "right": "El Dream Team juega sus primeros Juegos Olímpicos"
+        },
+        {
+          "left": "El golf regresa a los Juegos Olímpicos después de 112 años",
+          "right": "El tenis regresa a los Juegos Olímpicos como deporte con medallas"
+        }
+      ]
+    },
+    {
+      "q": "¿Qué ciudad fue sede de los Juegos Olímpicos de Verano de 2012, en cuya ceremonia de apertura James Bond escoltó a la Reina?",
+      "options": [
+        "Glasgow",
+        "Londres",
+        "Múnich",
+        "Liverpool"
+      ],
+      "explain": "Londres fue sede de los Juegos Olímpicos de Verano de 2012. La ceremonia de apertura incluyó un sketch en video con Daniel Craig como James Bond escoltando a la reina Isabel II."
+    },
+    {
+      "hint": "Toca a una leyenda olímpica y luego el deporte para emparejarlos."
+    }
+  ],
+  [
+    null,
+    null,
+    {
+      "hint": "Arrastra las carreras en el orden en que se corren, la primera arriba."
+    }
+  ],
+  [
+    null,
+    {
+      "prompt": "Identifica a esta estrella del fútbol americano.",
+      "explain": "Michael Strahan jugó 15 temporadas en la NFL con los New York Giants, ganó el Super Bowl XLII en febrero de 2008, entró al Salón de la Fama del Fútbol Americano Profesional en 2014 y más tarde copresentó Good Morning America y Live! with Kelly and Michael.",
+      "clues": [
+        "Pasó las 15 temporadas de su carrera en la NFL con un equipo de Nueva York y ganó un Super Bowl en su última temporada.",
+        "Fue incluido en el Salón de la Fama del Fútbol Americano Profesional en 2014 como uno de los grandes especialistas en presionar al mariscal de campo.",
+        "Después de retirarse se convirtió en estrella de la televisión y copresentó Good Morning America, de ABC."
+      ]
+    },
+    null
+  ],
+  [
+    {
+      "prompt": "¿Más de o menos de? Elige la verdadera.",
+      "rounds": [
+        {
+          "left": "Nick Saban ganó MÁS DE 6 campeonatos nacionales como entrenador en jefe",
+          "right": "Nick Saban ganó MENOS DE 6 campeonatos nacionales como entrenador en jefe"
+        },
+        {
+          "left": "El Michigan Stadium tiene capacidad para MÁS DE 120,000 aficionados",
+          "right": "El Michigan Stadium tiene capacidad para MENOS DE 120,000 aficionados"
+        },
+        {
+          "left": "Archie Griffin ganó MÁS DE 1 Trofeo Heisman",
+          "right": "Archie Griffin ganó exactamente 1 Trofeo Heisman"
+        },
+        {
+          "left": "Bear Bryant ganó MÁS DE 6 campeonatos nacionales con Alabama",
+          "right": "Bear Bryant ganó 6 o menos campeonatos nacionales con Alabama"
+        },
+        {
+          "left": "El juego Army-Navy se ha jugado MÁS DE 120 veces",
+          "right": "El juego Army-Navy se ha jugado MENOS DE 120 veces"
+        }
+      ]
+    },
+    null,
+    {
+      "hint": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
+    }
+  ],
+  [
+    null,
+    null,
+    {
+      "q": "Ordena a estas estrellas del deporte por año de nacimiento, de la más veterana a la más joven.",
+      "explain": "Pippen nació en 1965, Mayweather en 1977, Morgan en 1989 y Mbappé en 1998.",
+      "items": [
+        "Scottie Pippen",
+        "Floyd Mayweather",
+        "Alex Morgan",
+        "Kylian Mbappé"
+      ],
+      "hint": "Arrastra a las estrellas en orden por año de nacimiento, la más veterana arriba."
+    }
   ]
   ],
  "thinkFast": [
@@ -2473,6 +3161,108 @@ window.CONTENT_ES = {
       "explain": "Paso 1: si Sal fuera honesto, Kit y Roz dirían la verdad. Pero Kit diría que Roz miente, y eso sería falso: imposible. Entonces Sal miente. Paso 2: Roz dice que Sal miente, y es cierto, así que Roz es honesta. Paso 3: Kit dice que Roz miente, y eso es falso, así que Kit también miente. Comprobación: lo que dice Sal es falso, como corresponde a un mentiroso. Solo Roz es honesta."
     },
     null
+  ],
+  [
+    {
+      "q": "En un puesto de cometas, todas las cometas son rojas, amarillas o rosas. Ninguna cometa amarilla está a la venta. Toda cometa rosa cuelga del gancho alto. La cometa de Pip está a la venta y no cuelga del gancho alto. ¿De qué color es la cometa de Pip?",
+      "answers": [
+        "red",
+        "roja",
+        "rojo",
+        "es roja",
+        "la cometa es roja"
+      ],
+      "aliases": [
+        "its red",
+        "it is red",
+        "red kite",
+        "pips kite is red",
+        "pip's kite is red",
+        "la roja",
+        "de color rojo",
+        "color rojo",
+        "es de color rojo"
+      ],
+      "wrong": [
+        "yellow",
+        "pink",
+        "amarilla",
+        "amarillo",
+        "rosa",
+        "rosada"
+      ],
+      "explain": "Empieza con los tres colores posibles: roja, amarilla, rosa. La cometa de Pip está a la venta y ninguna amarilla se vende, así que no es amarilla. No cuelga del gancho alto y toda cometa rosa cuelga de ahí, así que no es rosa. Solo queda la roja."
+    },
+    null
+  ],
+  null,
+  [
+    {
+      "q": "¿Cuál es el animal nacional oficial de Escocia?",
+      "options": [
+        "Lobo",
+        "Monstruo del lago Ness",
+        "Espada",
+        "Unicornio"
+      ],
+      "a": 3,
+      "explain": "El unicornio. El animal nacional oficial de Escocia es una criatura mítica, que aparece en el escudo real escocés."
+    },
+    null
+  ],
+  [
+    {
+      "q": "Cuatro de estos pertenecen al mismo reino biológico. ¿Cuál no?",
+      "options": [
+        "Seta",
+        "Trufa",
+        "Levadura",
+        "Moho",
+        "Musgo"
+      ],
+      "a": 4,
+      "explain": "El musgo es una planta. Las setas, las trufas, la levadura y el moho son hongos, un reino propio: la levadura es un hongo unicelular, la trufa es un hongo que crece bajo tierra y el moho también es un hongo, aunque se parezca al musgo."
+    },
+    null
+  ],
+  null,
+  null,
+  [
+    null,
+    {
+      "q": "En inglés me llamo igual que un país, y casi siempre me sirven relleno. ¿Qué ave soy?",
+      "answers": [
+        "turkey",
+        "pavo",
+        "un pavo",
+        "el pavo"
+      ],
+      "aliases": [
+        "a turkey",
+        "the turkey",
+        "turkeys",
+        "turky",
+        "turkey bird",
+        "pavos",
+        "guajolote",
+        "chompipe"
+      ],
+      "wrong": [
+        "chicken",
+        "duck",
+        "goose",
+        "canary",
+        "peacock",
+        "pheasant",
+        "pollo",
+        "pato",
+        "ganso",
+        "canario",
+        "pavo real",
+        "faisán"
+      ],
+      "explain": "Un pavo. En inglés se llama turkey, igual que el país Turquía (Turkey), y a menudo se asa relleno."
+    }
   ]
   ],
  "wordFlip": [
@@ -2549,6 +3339,9 @@ window.CONTENT_ES = {
     "Un peso pesado que descansa junto a mares helados."
    ]
   ]
+,
+  null,
+  null
  ],
  "connections": [
   null,
@@ -2622,7 +3415,8 @@ window.CONTENT_ES = {
         "pts": 400
       }
     ]
-  }
+  },
+  null
  ],
  "oddOneOut": [
   null,
@@ -2798,6 +3592,7 @@ window.CONTENT_ES = {
       "odd": 1,
       "why": "Newton vivió antes de que existieran los Premios Nobel (1901); los demás ganaron el Nobel de Física"
     }
-  ]
+  ],
+  null
  ]
 };

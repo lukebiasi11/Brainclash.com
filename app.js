@@ -1993,7 +1993,7 @@ function thinkFast() {
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
       mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); next(pts); },
         q.img || q.kind === "illusion" ? puzzleArt(q.img) : null, pin);
-    } else textQuestion(body, q.q, q.answers, vals[i], TBD.think, next, null, q.answers[0], q.explain, q);
+    } else textQuestion(body, q.q, q.answers, vals[i], TBD.think, next, q.img ? puzzleArt(q.img) : null, q.answers[0], q.explain, q);
   };
   ask();
 }
