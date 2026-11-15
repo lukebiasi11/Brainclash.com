@@ -415,7 +415,8 @@ window.CONTENT_ES = {
       ],
       "explain": "Cifras más recientes de Wikipedia (estimaciones de 2025-2026; India según estimaciones de la ONU)."
     }
-  }
+  },
+  null
   ],
  "history": [
   null,
@@ -1081,6 +1082,63 @@ window.CONTENT_ES = {
         [
           null,
           "Tickle Me Elmo se vuelve el juguete más buscado de las fiestas",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Historia de Estados Unidos",
+      "events": [
+        [
+          null,
+          "Levi Strauss y Jacob Davis reciben la patente de los jeans",
+          null
+        ],
+        [
+          null,
+          "Los escolares recitan por primera vez el Juramento a la Bandera",
+          null
+        ],
+        [
+          null,
+          "Termina la Segunda Guerra Mundial",
+          null
+        ],
+        [
+          null,
+          "Se celebra el primer Día de la Tierra",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Puntos de inflexión",
+      "events": [
+        [
+          null,
+          "La Conspiración de la Pólvora contra el Parlamento",
+          null
+        ],
+        [
+          null,
+          "Comienza la Gran Plaga de Londres",
+          null
+        ],
+        [
+          null,
+          "El Tratado de París pone fin a la Guerra de Independencia de EE. UU.",
+          null
+        ],
+        [
+          null,
+          "Hace erupción el monte Tambora",
+          null
+        ],
+        [
+          null,
+          "Se proclama el Imperio alemán",
           null
         ]
       ]
@@ -1825,6 +1883,30 @@ window.CONTENT_ES = {
       "hint": "Pista: lleva el nombre del hombre que la inventó en 1949.",
       "explain": "La Zamboni, inventada por Frank Zamboni en 1949, es la máquina que limpia y repara el hielo de las pistas. El snowcat es un vehículo para aplanar nieve, e Iceliner y Glidemaster son nombres inventados, no marcas de máquinas para el hielo."
     }
+  ],
+  [
+    {
+      "options": [
+        "Fresas",
+        "Frambuesas",
+        "Arándanos",
+        "Cerezas"
+      ],
+      "hint": "Pista: es roja, dulce y los aficionados la comen con crema mientras ven los partidos en las canchas de césped."
+    },
+    {
+      "q": "¿Qué estrella del tenis ganó el US Open de 2022 a los 19 años y se convirtió en el hombre más joven en ser número 1 del mundo?",
+      "options": [
+        "Daniil Medvedev",
+        "Stefanos Tsitsipas",
+        "Carlos Alcaraz",
+        "Alexander Zverev"
+      ],
+      "explain": "Carlos Alcaraz, de España, ganó el US Open de 2022 a los 19 años y se convirtió en el hombre más joven en llegar al número 1 del mundo (septiembre de 2022)."
+    },
+    {
+      "hint": "Toca a una estrella del tenis y luego el país al que representa o representó para emparejarlos."
+    }
   ]
   ],
  "thinkFast": [
@@ -2359,6 +2441,38 @@ window.CONTENT_ES = {
       "a": 1,
       "explain": "Cada línea gris es perfectamente horizontal y paralela. Las filas de baldosas desplazadas las hacen ver inclinadas (ilusión de la pared del café)."
     }
+  ],
+  [
+    {
+      "cat": "thinking",
+      "kind": "logic",
+      "q": "Tres amigos son honestos (siempre dicen la verdad) o mentirosos (siempre mienten). Kit dice: \"Roz miente.\" Roz dice: \"Sal miente.\" Sal dice: \"Kit y Roz dicen la verdad.\" ¿Quién es honesto?",
+      "answers": [
+        "roz",
+        "roz es honesta",
+        "roz dice la verdad",
+        "es roz"
+      ],
+      "aliases": [
+        "roz is honest",
+        "roz is the honest one",
+        "roz tells the truth",
+        "roz is telling the truth",
+        "roz is truthful",
+        "it is roz",
+        "its roz",
+        "roz es la honesta",
+        "roz es sincera",
+        "la honesta es roz"
+      ],
+      "wrong": [
+        "kit",
+        "sal"
+      ],
+      "noSurname": true,
+      "explain": "Paso 1: si Sal fuera honesto, Kit y Roz dirían la verdad. Pero Kit diría que Roz miente, y eso sería falso: imposible. Entonces Sal miente. Paso 2: Roz dice que Sal miente, y es cierto, así que Roz es honesta. Paso 3: Kit dice que Roz miente, y eso es falso, así que Kit también miente. Comprobación: lo que dice Sal es falso, como corresponde a un mentiroso. Solo Roz es honesta."
+    },
+    null
   ]
   ],
  "wordFlip": [
