@@ -532,6 +532,480 @@ window.CONTENT = {
         "explain": "The blue 24-spoke wheel (Ashoka Chakra) sits in the center of India's white band.",
         "img": "flag-fragment-n17"
       }
+    },
+    {
+      "pins": [
+        {
+          "name": "Cappadocia, Türkiye",
+          "lat": 38.64,
+          "lon": 34.83
+        },
+        {
+          "name": "Alexandria, Egypt",
+          "lat": 31.2,
+          "lon": 29.89
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Over or Under? Pick the true side.",
+          "es": "¿Más de o menos de? Elige la verdadera."
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Lake Superior covers OVER 30,000 square miles",
+              "es": "El lago Superior abarca MÁS DE 30,000 millas cuadradas"
+            },
+            "right": {
+              "en": "Lake Superior covers UNDER 30,000 square miles",
+              "es": "El lago Superior abarca MENOS DE 30,000 millas cuadradas"
+            },
+            "correct": "left",
+            "note": "Lake Superior covers about 31,700 square miles (82,000 km²)."
+          },
+          {
+            "left": {
+              "en": "The Mississippi River is OVER 3,000 miles long",
+              "es": "El río Misisipi mide MÁS DE 3,000 millas de largo"
+            },
+            "right": {
+              "en": "The Mississippi River is UNDER 3,000 miles long",
+              "es": "El río Misisipi mide MENOS DE 3,000 millas de largo"
+            },
+            "correct": "right",
+            "note": "The Mississippi is about 2,340 miles (3,770 km) long."
+          },
+          {
+            "left": {
+              "en": "Lake Michigan covers OVER 20,000 square miles",
+              "es": "El lago Míchigan abarca MÁS DE 20,000 millas cuadradas"
+            },
+            "right": {
+              "en": "Lake Michigan covers UNDER 20,000 square miles",
+              "es": "El lago Míchigan abarca MENOS DE 20,000 millas cuadradas"
+            },
+            "correct": "left",
+            "note": "Lake Michigan covers about 22,300 square miles (57,757 km²)."
+          },
+          {
+            "left": {
+              "en": "France's Loire (Joan of Arc's river) is OVER 600 miles long",
+              "es": "El río Loira (el de Juana de Arco) mide MÁS DE 600 millas de largo"
+            },
+            "right": {
+              "en": "France's Loire (Joan of Arc's river) is UNDER 600 miles long",
+              "es": "El río Loira (el de Juana de Arco) mide MENOS DE 600 millas de largo"
+            },
+            "correct": "left",
+            "note": "The Loire is 1,006 km (625 mi) long."
+          },
+          {
+            "left": {
+              "en": "The Seine is OVER 500 miles long",
+              "es": "El río Sena mide MÁS DE 500 millas de largo"
+            },
+            "right": {
+              "en": "The Seine is UNDER 500 miles long",
+              "es": "El río Sena mide MENOS DE 500 millas de largo"
+            },
+            "correct": "right",
+            "note": "The Seine is 777 km (483 mi) long."
+          }
+        ],
+        "explain": "All numbers from Wikipedia: Lake Superior 31,700 sq mi; Mississippi 2,340 mi; Lake Michigan 22,300 sq mi; Loire 1,006 km (625 mi); Seine 777 km (483 mi). Famous rivers and lakes."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Puerto Rico (main island), Caribbean",
+          "lat": 18.22,
+          "lon": -66.5
+        },
+        {
+          "name": "Jeju Island, South Korea",
+          "lat": 33.38,
+          "lon": 126.53
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which has more people?",
+          "es": "¿Cuál tiene más habitantes?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "New York City (city proper)",
+              "es": "Nueva York (solo la ciudad)"
+            },
+            "right": {
+              "en": "Los Angeles (city proper)",
+              "es": "Los Ángeles (solo la ciudad)"
+            },
+            "correct": "left",
+            "note": "NYC: about 8.6 million (2026 est.). LA: 3.9 million (2020 census)."
+          },
+          {
+            "left": {
+              "en": "Texas",
+              "es": "Texas"
+            },
+            "right": {
+              "en": "California",
+              "es": "California"
+            },
+            "correct": "right",
+            "note": "California: 39.5 million vs Texas: 29.1 million (2020 census)."
+          },
+          {
+            "left": {
+              "en": "Pennsylvania",
+              "es": "Pensilvania"
+            },
+            "right": {
+              "en": "Florida",
+              "es": "Florida"
+            },
+            "correct": "right",
+            "note": "Florida: 21.5 million vs Pennsylvania: 13.0 million (2020 census)."
+          },
+          {
+            "left": {
+              "en": "Chicago (city proper)",
+              "es": "Chicago (solo la ciudad)"
+            },
+            "right": {
+              "en": "Philadelphia (city proper)",
+              "es": "Filadelfia (solo la ciudad)"
+            },
+            "correct": "left",
+            "note": "Chicago: 2.74 million vs Philadelphia: 1.60 million (2020 census)."
+          },
+          {
+            "left": {
+              "en": "Madrid (city proper)",
+              "es": "Madrid (solo la ciudad)"
+            },
+            "right": {
+              "en": "Berlin (city proper)",
+              "es": "Berlín (solo la ciudad)"
+            },
+            "correct": "right",
+            "note": "Berlin about 3.7 million (official, end of 2025). Madrid about 3.5 million (city proper, January 2026)."
+          }
+        ],
+        "explain": "2020 census figures and latest Wikipedia city estimates.",
+        "overlapNote": "Madrid also appears in the 11/14 World pair (London vs Madrid, latitude). Different angle (population vs latitude), so kept."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Torres del Paine, Chile",
+          "lat": -50.94,
+          "lon": -73.41
+        },
+        {
+          "name": "Redwood National Park, California, USA",
+          "lat": 41.3,
+          "lon": -124.0
+        }
+      ],
+      "mc": {
+        "type": "mc",
+        "q": "Which country's flag is this?",
+        "options": [
+          "Greece",
+          "Finland",
+          "Israel",
+          "Uruguay"
+        ],
+        "a": 0,
+        "explain": "Greece's flag has nine blue and white stripes and a white cross on a blue canton.",
+        "img": "flag-n20"
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Tahiti, French Polynesia",
+          "lat": -17.65,
+          "lon": -149.45
+        },
+        {
+          "name": "Cancún, Mexico",
+          "lat": 21.16,
+          "lon": -86.85
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is taller?",
+          "es": "¿Cuál es más alto?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "An African elephant",
+              "es": "Un elefante africano"
+            },
+            "right": {
+              "en": "A giraffe",
+              "es": "Una jirafa"
+            },
+            "correct": "right",
+            "note": "The giraffe is the tallest living land animal; an elephant's shoulder height is about 3 to 3.4 m."
+          },
+          {
+            "left": {
+              "en": "A basketball hoop (rim)",
+              "es": "Un aro de baloncesto"
+            },
+            "right": {
+              "en": "A men's volleyball net (top)",
+              "es": "La red de voleibol masculino (borde superior)"
+            },
+            "correct": "left",
+            "note": "A basketball rim is 10 feet (3.05 m) above the court. The top of a men's volleyball net is 2.43 m."
+          },
+          {
+            "left": {
+              "en": "Mount Ararat",
+              "es": "El monte Ararat"
+            },
+            "right": {
+              "en": "Mount Rainier",
+              "es": "El monte Rainier"
+            },
+            "correct": "left",
+            "note": "Ararat 5,137 m vs Rainier 4,392 m."
+          },
+          {
+            "left": {
+              "en": "Mount Whitney",
+              "es": "El monte Whitney"
+            },
+            "right": {
+              "en": "Denali",
+              "es": "Denali"
+            },
+            "correct": "right",
+            "note": "Denali 6,190 m vs Mount Whitney 4,421 m."
+          },
+          {
+            "left": {
+              "en": "Tokyo Skytree",
+              "es": "La Tokyo Skytree"
+            },
+            "right": {
+              "en": "The CN Tower",
+              "es": "La Torre CN"
+            },
+            "correct": "left",
+            "note": "Tokyo Skytree 634 m vs CN Tower 553 m."
+          }
+        ],
+        "explain": "Heights from Wikipedia. Mountains are compared by height above sea level."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Okavango Delta, Botswana",
+          "lat": -19.4,
+          "lon": 22.9
+        },
+        {
+          "name": "Seychelles (Mahé), Indian Ocean",
+          "lat": -4.68,
+          "lon": 55.48
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which was finished or opened first?",
+          "es": "¿Cuál se terminó o abrió primero?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "The London Underground",
+              "es": "El metro de Londres"
+            },
+            "right": {
+              "en": "The Paris Métro",
+              "es": "El metro de París"
+            },
+            "correct": "left",
+            "note": "London Underground: Jan 1863. Paris Métro: July 1900."
+          },
+          {
+            "left": {
+              "en": "Sacré-Cœur Basilica (Paris)",
+              "es": "La basílica del Sagrado Corazón (París)"
+            },
+            "right": {
+              "en": "Tower Bridge (London)",
+              "es": "El Tower Bridge (Londres)"
+            },
+            "correct": "right",
+            "note": "Tower Bridge opened in 1894. Sacré-Cœur was completed in 1914."
+          },
+          {
+            "left": {
+              "en": "The Arc de Triomphe (Paris)",
+              "es": "El Arco del Triunfo (París)"
+            },
+            "right": {
+              "en": "Nelson's Column (London)",
+              "es": "La Columna de Nelson (Londres)"
+            },
+            "correct": "left",
+            "note": "The Arc de Triomphe was finished in 1836. Nelson's Column was finished in 1843."
+          },
+          {
+            "left": {
+              "en": "The Palais Garnier opera house (Paris)",
+              "es": "La ópera Palais Garnier (París)"
+            },
+            "right": {
+              "en": "The Royal Albert Hall (London)",
+              "es": "El Royal Albert Hall (Londres)"
+            },
+            "correct": "right",
+            "note": "The Royal Albert Hall opened in 1871. The Palais Garnier opened in 1875."
+          },
+          {
+            "left": {
+              "en": "St Paul's Cathedral (London)",
+              "es": "La catedral de San Pablo (Londres)"
+            },
+            "right": {
+              "en": "The Panthéon (Paris)",
+              "es": "El Panteón (París)"
+            },
+            "correct": "left",
+            "note": "St Paul's: completed 1710. Panthéon: completed 1790."
+          }
+        ],
+        "explain": "Dates from Wikipedia: London Underground 1863; Paris Métro 1900; Tower Bridge 1894; Sacré-Cœur 1914; Arc de Triomphe 1836; Nelson's Column 1843; Royal Albert Hall 1871; Palais Garnier 1875; St Paul's 1710; Panthéon 1790."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Zion National Park, Utah, USA",
+          "lat": 37.3,
+          "lon": -113.0
+        },
+        {
+          "name": "Glacier National Park, Montana, USA",
+          "lat": 48.76,
+          "lon": -113.79
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is HIGHER above sea level?",
+          "es": "¿Cuál está a MAYOR altitud?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Santa Fe, New Mexico (highest US state capital)",
+              "es": "Santa Fe, Nuevo México (la capital estatal más alta de EE. UU.)"
+            },
+            "right": {
+              "en": "Cusco, Peru",
+              "es": "Cusco, Perú"
+            },
+            "correct": "right",
+            "note": "Cusco is about 3,400 m above sea level. Santa Fe is about 2,133 m."
+          },
+          {
+            "left": {
+              "en": "Pikes Peak (Colorado)",
+              "es": "Pikes Peak (Colorado)"
+            },
+            "right": {
+              "en": "Mount Hood (Oregon)",
+              "es": "El monte Hood (Oregón)"
+            },
+            "correct": "left",
+            "note": "Pikes Peak 4,302 m vs Mount Hood 3,429 m."
+          },
+          {
+            "left": {
+              "en": "Mount Olympus (Greece)",
+              "es": "El monte Olimpo (Grecia)"
+            },
+            "right": {
+              "en": "Aconcagua (Argentina)",
+              "es": "El Aconcagua (Argentina)"
+            },
+            "correct": "right",
+            "note": "Aconcagua 6,961 m (highest peak outside Asia) vs Mount Olympus 2,918 m."
+          },
+          {
+            "left": {
+              "en": "Badwater Basin, Death Valley",
+              "es": "Badwater Basin, Valle de la Muerte"
+            },
+            "right": {
+              "en": "The shore of the Dead Sea",
+              "es": "La orilla del Mar Muerto"
+            },
+            "correct": "left",
+            "note": "Badwater Basin is 86 m below sea level. The Dead Sea shore is about 440 m below."
+          },
+          {
+            "left": {
+              "en": "Ben Nevis (Scotland)",
+              "es": "Ben Nevis (Escocia)"
+            },
+            "right": {
+              "en": "Mount Washington (New Hampshire)",
+              "es": "El monte Washington (Nuevo Hampshire)"
+            },
+            "correct": "right",
+            "note": "Mount Washington 1,917 m vs Ben Nevis 1,345 m."
+          }
+        ],
+        "explain": "Elevations from Wikipedia."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Plymouth Rock, Massachusetts, USA",
+          "lat": 41.96,
+          "lon": -70.66
+        },
+        {
+          "name": "Naples, Italy",
+          "lat": 40.84,
+          "lon": 14.25
+        }
+      ],
+      "mc": {
+        "type": "mc",
+        "q": "Which of these Thanksgiving table foods is native to North America?",
+        "options": [
+          "Wheat",
+          "Cranberries",
+          "Peas",
+          "Carrots"
+        ],
+        "a": 1,
+        "explain": "Cranberries are native to eastern North America. Wheat comes from Southwest Asia, peas from the Mediterranean region and southwest Asia, and carrots from Europe and Southwestern Asia."
+      }
     }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -899,6 +1373,405 @@ window.CONTENT = {
             "👑",
             "The German Empire is proclaimed",
             1871
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Women who made history",
+        "events": [
+          [
+            "💧",
+            "Helen Keller learns the word \"water\" with her teacher Anne Sullivan",
+            1887
+          ],
+          [
+            "⚛️",
+            "Marie Curie becomes the first woman to win a Nobel Prize",
+            1903
+          ],
+          [
+            "📺",
+            "The Oprah Winfrey Show goes national",
+            1986
+          ],
+          [
+            "🗳️",
+            "Hillary Clinton becomes the first woman nominated for president by a major party",
+            2016
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Trailblazers through the ages",
+        "events": [
+          [
+            "👑",
+            "Cleopatra, the last queen of Egypt, dies",
+            -30
+          ],
+          [
+            "👸",
+            "Catherine the Great takes the Russian throne",
+            1762
+          ],
+          [
+            "🚂",
+            "Harriet Tubman escapes slavery",
+            1849
+          ],
+          [
+            "🏃",
+            "Wilma Rudolph wins three Olympic gold medals in Rome",
+            1960
+          ],
+          [
+            "📚",
+            "Malala Yousafzai wins the Nobel Peace Prize",
+            2014
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Movies and TV",
+        "events": [
+          [
+            "🦴",
+            "The Flintstones premieres as the first prime-time animated series",
+            1960
+          ],
+          [
+            "🍫",
+            "Willy Wonka & the Chocolate Factory is released",
+            1971
+          ],
+          [
+            "🏠",
+            "Home Alone is released",
+            1990
+          ],
+          [
+            "🏹",
+            "The Hunger Games hits theaters",
+            2012
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Screen history",
+        "events": [
+          [
+            "🔥",
+            "Gone with the Wind is released",
+            1939
+          ],
+          [
+            "🐶",
+            "Scooby-Doo, Where Are You! premieres",
+            1969
+          ],
+          [
+            "👻",
+            "Ghostbusters is released",
+            1984
+          ],
+          [
+            "🧽",
+            "SpongeBob SquarePants debuts on Nickelodeon",
+            1999
+          ],
+          [
+            "🐆",
+            "Black Panther is released",
+            2018
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Snacks and sips",
+        "events": [
+          [
+            "🍪",
+            "Oreo cookies are introduced",
+            1912
+          ],
+          [
+            "🍰",
+            "Twinkies are introduced",
+            1930
+          ],
+          [
+            "🍔",
+            "The Big Mac is introduced",
+            1967
+          ],
+          [
+            "🎃",
+            "Starbucks starts selling the Pumpkin Spice Latte",
+            2003
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Famous openings",
+        "events": [
+          [
+            "🏡",
+            "John Adams becomes the first president to live in the White House",
+            1800
+          ],
+          [
+            "🗼",
+            "The capstone is placed atop the Washington Monument",
+            1884
+          ],
+          [
+            "🏛️",
+            "The Lincoln Memorial is dedicated",
+            1922
+          ],
+          [
+            "🌉",
+            "The Sydney Harbour Bridge opens",
+            1932
+          ],
+          [
+            "🏞️",
+            "The Three Gorges Dam wall is completed",
+            2006
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Stages and sounds",
+        "events": [
+          [
+            "🎻",
+            "Carnegie Hall opens in New York City",
+            1891
+          ],
+          [
+            "🩰",
+            "Radio City Music Hall opens in New York City",
+            1932
+          ],
+          [
+            "🎶",
+            "Berry Gordy founds Tamla Records, which becomes Motown",
+            1959
+          ],
+          [
+            "🎸",
+            "The Rock and Roll Hall of Fame museum is dedicated in Cleveland",
+            1995
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Toys and gadgets",
+        "events": [
+          [
+            "🥔",
+            "Mr. Potato Head goes on sale",
+            1952
+          ],
+          [
+            "🏎️",
+            "Mattel introduces Hot Wheels",
+            1968
+          ],
+          [
+            "🎎",
+            "Coleco produces the first Cabbage Patch Kids dolls",
+            1982
+          ],
+          [
+            "🦉",
+            "Furby is released",
+            1998
+          ],
+          [
+            "🕹️",
+            "Nintendo Switch is released",
+            2017
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Rivals and showdowns",
+        "events": [
+          [
+            "🐎",
+            "Seabiscuit beats War Admiral in their match race",
+            1938
+          ],
+          [
+            "🐦",
+            "The Road Runner and Wile E. Coyote first chase each other in a Looney Tunes cartoon",
+            1949
+          ],
+          [
+            "🥤",
+            "Coca-Cola launches New Coke to fight Pepsi's gains",
+            1985
+          ],
+          [
+            "💻",
+            "Apple's \"Get a Mac\" ads pit a Mac against a PC",
+            2006
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Pop-culture favorites",
+        "events": [
+          [
+            "🐱",
+            "Tom and Jerry first appear on screen",
+            1940
+          ],
+          [
+            "🎨",
+            "Play-Doh goes on sale as a toy",
+            1956
+          ],
+          [
+            "🍟",
+            "The Happy Meal goes national in the U.S.",
+            1979
+          ],
+          [
+            "📺",
+            "The Teletubbies arrive on TV",
+            1997
+          ],
+          [
+            "🕺",
+            "The \"Gangnam Style\" dance craze takes off",
+            2012
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Games and sports",
+        "events": [
+          [
+            "🏀",
+            "James Naismith invents basketball",
+            1891
+          ],
+          [
+            "🤹",
+            "The team that becomes the Harlem Globetrotters starts playing in Chicago",
+            1926
+          ],
+          [
+            "🏟️",
+            "The NBA is born as the Basketball Association of America",
+            1946
+          ],
+          [
+            "🛹",
+            "ESPN holds the first X Games, then called the Extreme Games",
+            1995
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "History's big moments",
+        "events": [
+          [
+            "🏰",
+            "Peter the Great founds St. Petersburg",
+            1703
+          ],
+          [
+            "👑",
+            "King Louis XVI is executed by guillotine in Paris",
+            1793
+          ],
+          [
+            "🏛️",
+            "The Great Exhibition opens in London's Crystal Palace",
+            1851
+          ],
+          [
+            "✈️",
+            "The Battle of Britain is fought",
+            1940
+          ],
+          [
+            "🇩🇪",
+            "Germany reunifies",
+            1990
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Thanksgiving roots",
+        "events": [
+          [
+            "🌽",
+            "The Pilgrims' harvest feast at Plymouth",
+            1621
+          ],
+          [
+            "📜",
+            "President George Washington issues the first Thanksgiving proclamation under the Constitution",
+            1789
+          ],
+          [
+            "🎩",
+            "Abraham Lincoln proclaims a national day of Thanksgiving",
+            1863
+          ],
+          [
+            "🎈",
+            "Macy's holds its first Thanksgiving Day Parade",
+            1924
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Thanksgiving, modern times",
+        "events": [
+          [
+            "📅",
+            "Thanksgiving is fixed on the fourth Thursday of November",
+            1941
+          ],
+          [
+            "📺",
+            "Swanson sells the first TV dinner, a Thanksgiving turkey meal",
+            1953
+          ],
+          [
+            "🐦",
+            "A Charlie Brown Thanksgiving airs for the first time",
+            1973
+          ],
+          [
+            "🦃",
+            "The first formal presidential turkey pardon",
+            1989
+          ],
+          [
+            "🐕",
+            "NBC begins airing the National Dog Show on Thanksgiving Day",
+            2002
           ]
         ]
       }
@@ -1460,6 +2333,605 @@ window.CONTENT = {
           "es": "Toca a una estrella del tenis y luego el país al que representa o representó para emparejarlos."
         }
       }
+    ],
+    [
+      {
+        "type": "pair",
+        "prompt": {
+          "en": "Which came first?",
+          "es": "¿Cuál ocurrió primero?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Kathrine Switzer runs the Boston Marathon as an official entrant",
+              "es": "Kathrine Switzer corre el Maratón de Boston como participante oficial"
+            },
+            "right": {
+              "en": "Title IX becomes law",
+              "es": "El Título IX se convierte en ley"
+            },
+            "correct": "left",
+            "note": "Switzer: 1967. Title IX: 1972."
+          },
+          {
+            "left": {
+              "en": "Women's soccer is first played at the Olympics",
+              "es": "El fútbol femenino se juega por primera vez en los Juegos Olímpicos"
+            },
+            "right": {
+              "en": "The women's marathon is first run at the Olympics",
+              "es": "El maratón femenino se corre por primera vez en los Juegos Olímpicos"
+            },
+            "correct": "right",
+            "note": "Women's Olympic marathon: 1984. Women's Olympic soccer: 1996."
+          },
+          {
+            "left": {
+              "en": "The WNBA plays its first season",
+              "es": "La WNBA juega su primera temporada"
+            },
+            "right": {
+              "en": "The NWSL plays its first season",
+              "es": "La NWSL juega su primera temporada"
+            },
+            "correct": "left",
+            "note": "WNBA: 1997. NWSL: 2013."
+          },
+          {
+            "left": {
+              "en": "Women's boxing debuts at the Summer Olympics",
+              "es": "El boxeo femenino debuta en los Juegos Olímpicos de Verano"
+            },
+            "right": {
+              "en": "Women's ice hockey debuts at the Winter Olympics",
+              "es": "El hockey sobre hielo femenino debuta en los Juegos Olímpicos de Invierno"
+            },
+            "correct": "right",
+            "note": "Women's Olympic hockey: 1998. Women's Olympic boxing: 2012."
+          },
+          {
+            "left": {
+              "en": "Women's pole vault debuts at the Olympics",
+              "es": "El salto con pértiga femenino debuta en los Juegos Olímpicos"
+            },
+            "right": {
+              "en": "Women's ski jumping debuts at the Olympics",
+              "es": "El salto de esquí femenino debuta en los Juegos Olímpicos"
+            },
+            "correct": "left",
+            "note": "Women's Olympic pole vault: 2000. Women's Olympic ski jumping: 2014."
+          }
+        ],
+        "explain": "Women's-sports milestones, one year each."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this racing driver.",
+        "clues": [
+          "In 2005 she became the first woman to lead laps at the Indianapolis 500 and finished fourth as a rookie.",
+          "In 2008 she won the Indy Japan 300, the first woman to win an IndyCar Series race.",
+          "In 2013 she became the first woman to win the pole for the NASCAR Cup Series' Daytona 500."
+        ],
+        "answer": "Danica Patrick",
+        "accept": [
+          "Danica Patrick",
+          "Patrick",
+          "Danica",
+          "Danika Patrick",
+          "Danica Patrik",
+          "Danika Patrik",
+          "Danica Sue Patrick"
+        ],
+        "explain": "Patrick led laps and finished 4th at the 2005 Indy 500, won the 2008 Indy Japan 300, and won the pole for the 2013 Daytona 500.",
+        "exactOnly": [
+          "Danica"
+        ]
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put these athletes in order of when each won her first Olympic gold medal, earliest first.",
+        "items": [
+          "Mary Lou Retton",
+          "Katie Ledecky",
+          "Mikaela Shiffrin",
+          "Simone Biles"
+        ],
+        "explain": "Retton 1984 (Los Angeles, all-around), Ledecky 2012 (London, 800 m freestyle), Shiffrin 2014 (Sochi, slalom), Biles 2016 (Rio).",
+        "hint": {
+          "en": "Drag the athletes into order by each one's first Olympic gold medal, earliest at the top.",
+          "es": "Arrastra a las atletas en orden según su primera medalla de oro olímpica, la más antigua arriba."
+        }
+      }
+    ],
+    [
+      {
+        "type": "mc",
+        "q": "In casual golf, what is a \"mulligan\"?",
+        "options": [
+          "A free do-over of a bad shot",
+          "A hole in one on a par 3",
+          "A shot played out of a sand trap",
+          "A tie after 18 holes"
+        ],
+        "a": 0,
+        "explain": "A mulligan is an informal second chance to replay a stroke; it is not allowed under the formal rules of golf."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this football star.",
+        "clues": [
+          "He played linebacker at the University of Miami before the Ravens picked him in the first round of the 1996 NFL draft.",
+          "He spent all 17 NFL seasons with the Ravens, made 13 Pro Bowls, and was 2000 Defensive Player of the Year and Super Bowl XXXV MVP.",
+          "Widely considered the greatest middle linebacker in NFL history, he entered the Pro Football Hall of Fame in 2018."
+        ],
+        "answer": "Ray Lewis",
+        "accept": [
+          "Ray Lewis",
+          "Ray",
+          "Lewis",
+          "Raymond Lewis",
+          "Ray Louis",
+          "Ray Lewiss",
+          "Ray Luis",
+          "Rey Lewis",
+          "Ray Lewes"
+        ],
+        "explain": "Ray Lewis played all 17 NFL seasons for the Ravens, was Defensive Player of the Year and Super Bowl XXXV MVP in the 2000 season, won a second Super Bowl in his final game (2013), and was voted into the Pro Football Hall of Fame in 2018.",
+        "exactOnly": [
+          "Ray",
+          "Lewis"
+        ],
+        "es": {
+          "prompt": "Identifica a esta estrella del fútbol americano.",
+          "clues": [
+            "Jugó de linebacker en la Universidad de Miami antes de que los Ravens lo eligieran en la primera ronda del draft de la NFL de 1996.",
+            "Pasó sus 17 temporadas en la NFL con los Ravens, fue 13 veces al Pro Bowl y en 2000 fue Jugador Defensivo del Año y MVP del Super Bowl XXXV.",
+            "Considerado el mejor linebacker central en la historia de la NFL, entró al Salón de la Fama del Fútbol Americano Profesional en 2018."
+          ],
+          "explain": "Ray Lewis jugó las 17 temporadas de su carrera en la NFL con los Ravens, fue Jugador Defensivo del Año y MVP del Super Bowl XXXV en la temporada 2000, ganó un segundo Super Bowl en su último partido (2013) y fue elegido para el Salón de la Fama del Fútbol Americano Profesional en 2018."
+        }
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put these quarterbacks in order of when each first won a Super Bowl, earliest first.",
+        "items": [
+          "Troy Aikman",
+          "Kurt Warner",
+          "Drew Brees",
+          "Russell Wilson"
+        ],
+        "explain": "Aikman: Super Bowl XXVII (Jan 1993, Cowboys). Warner: Super Bowl XXXIV (Jan 2000, Rams). Brees: Super Bowl XLIV (Feb 2010, Saints). Wilson: Super Bowl XLVIII (Feb 2014, Seahawks).",
+        "hint": {
+          "en": "Drag the quarterbacks into order by their first Super Bowl win, earliest at the top.",
+          "es": "Arrastra a los mariscales de campo en orden según su primer Super Bowl ganado, el más antiguo arriba."
+        }
+      }
+    ],
+    [
+      {
+        "type": "pair",
+        "prompt": {
+          "en": "Which came first?",
+          "es": "¿Cuál ocurrió primero?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Snowboarding debuts at the Winter Olympics",
+              "es": "El snowboard debuta en los Juegos Olímpicos de Invierno"
+            },
+            "right": {
+              "en": "Skateboarding debuts at the Summer Olympics",
+              "es": "El skateboarding debuta en los Juegos Olímpicos de Verano"
+            },
+            "correct": "left",
+            "note": "Snowboarding: 1998 (Nagano). Skateboarding: the 2020 Games (Tokyo, held in 2021)."
+          },
+          {
+            "left": {
+              "en": "Triathlon debuts at the Summer Olympics",
+              "es": "El triatlón debuta en los Juegos Olímpicos de Verano"
+            },
+            "right": {
+              "en": "Beach volleyball becomes an official Olympic sport",
+              "es": "El voleibol de playa se convierte en deporte olímpico oficial"
+            },
+            "correct": "right",
+            "note": "Beach volleyball: 1996. Triathlon: 2000."
+          },
+          {
+            "left": {
+              "en": "Breaking (breakdancing) debuts at the Olympics",
+              "es": "El breaking (breakdance) debuta en los Juegos Olímpicos"
+            },
+            "right": {
+              "en": "Surfing debuts at the Olympics",
+              "es": "El surf debuta en los Juegos Olímpicos"
+            },
+            "correct": "right",
+            "note": "Surfing: the 2020 Games (held in 2021). Breaking: 2024."
+          },
+          {
+            "left": {
+              "en": "Eddie the Eagle ski jumps at the Calgary Winter Olympics",
+              "es": "Eddie the Eagle salta en esquí en los Juegos Olímpicos de Invierno de Calgary"
+            },
+            "right": {
+              "en": "The Dream Team plays its first Olympics",
+              "es": "El Dream Team juega sus primeros Juegos Olímpicos"
+            },
+            "correct": "left",
+            "note": "Eddie the Eagle: 1988. Dream Team: 1992."
+          },
+          {
+            "left": {
+              "en": "Golf returns to the Olympics after 112 years",
+              "es": "El golf regresa a los Juegos Olímpicos después de 112 años"
+            },
+            "right": {
+              "en": "Tennis returns to the Olympics as a full medal sport",
+              "es": "El tenis regresa a los Juegos Olímpicos como deporte con medallas"
+            },
+            "correct": "right",
+            "note": "Tennis returned in 1988. Golf returned in 2016."
+          }
+        ],
+        "explain": "Olympic firsts and comebacks, one year each."
+      },
+      {
+        "type": "mc",
+        "q": "Which city hosted the 2012 Summer Olympics, where the opening ceremony featured James Bond escorting the Queen?",
+        "options": [
+          "Glasgow",
+          "London",
+          "Munich",
+          "Liverpool"
+        ],
+        "a": 1,
+        "explain": "London hosted the 2012 Summer Olympics. The opening ceremony included a film sketch of Daniel Craig as James Bond escorting Queen Elizabeth II.",
+        "es": {
+          "q": "¿Qué ciudad fue sede de los Juegos Olímpicos de Verano de 2012, en cuya ceremonia de apertura James Bond escoltó a la Reina?",
+          "options": [
+            "Glasgow",
+            "Londres",
+            "Múnich",
+            "Liverpool"
+          ],
+          "explain": "Londres fue sede de los Juegos Olímpicos de Verano de 2012. La ceremonia de apertura incluyó un sketch en video con Daniel Craig como James Bond escoltando a la reina Isabel II."
+        }
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "q": "Match each Olympic great to her or his sport.",
+        "left": [
+          "Lindsey Vonn",
+          "Apolo Ohno",
+          "Kristi Yamaguchi",
+          "Allyson Felix"
+        ],
+        "right": [
+          "Track and field",
+          "Figure skating",
+          "Alpine skiing",
+          "Speed skating"
+        ],
+        "pairs": [
+          2,
+          3,
+          1,
+          0
+        ],
+        "explain": "Vonn: alpine skiing (2010 downhill gold). Ohno: short-track speed skating (eight medals). Yamaguchi: figure skating (1992 gold). Felix: track and field (sprints).",
+        "hint": {
+          "en": "Tap an Olympic great, then the sport, to pair them.",
+          "es": "Toca a una leyenda olímpica y luego el deporte para emparejarlos."
+        }
+      }
+    ],
+    [
+      {
+        "type": "mc",
+        "q": "In the hit TV show \"Ted Lasso,\" an American football coach is hired to coach which sport in England?",
+        "options": [
+          "Soccer",
+          "Rugby",
+          "Cricket",
+          "Ice hockey"
+        ],
+        "a": 0,
+        "explain": "Ted Lasso coaches A.F.C. Richmond, an English soccer (football) club."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this NBA star.",
+        "clues": [
+          "He was the second overall pick in the 2007 NBA draft after one season at Texas.",
+          "He won NBA Finals MVP in both 2017 and 2018 with the Golden State Warriors.",
+          "He won the 2014 NBA MVP award and has four Olympic gold medals with Team USA."
+        ],
+        "answer": "Kevin Durant",
+        "accept": [
+          "Kevin Durant",
+          "Durant",
+          "Kevin",
+          "Kevin Wayne Durant",
+          "Kevin Durrant",
+          "Kevin Durent",
+          "Durrant",
+          "KD"
+        ],
+        "explain": "Durant went No. 2 in 2007, won Finals MVP in 2017 and 2018 with Golden State, won the 2014 MVP award, and has four Olympic golds (2012, 2016, 2020, 2024).",
+        "exactOnly": [
+          "Kevin",
+          "KD"
+        ]
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put the three Triple Crown horse races in the order they are run each spring.",
+        "items": [
+          "Kentucky Derby",
+          "Preakness Stakes",
+          "Belmont Stakes"
+        ],
+        "explain": "The Kentucky Derby is run first, then the Preakness Stakes, then the Belmont Stakes.",
+        "hint": {
+          "en": "Drag the races into the order they are run, first race at the top.",
+          "es": "Arrastra las carreras en el orden en que se corren, la primera arriba."
+        }
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "q": "Which former NFL tight end won four Super Bowls, three with the Patriots and one with the Buccaneers?",
+        "answers": [
+          "rob gronkowski",
+          "gronkowski",
+          "gronk"
+        ],
+        "explain": "Rob \"Gronk\" Gronkowski won Super Bowls XLIX, LI and LIII with the New England Patriots and Super Bowl LV with the Tampa Bay Buccaneers.",
+        "aliases": [
+          "robert gronkowski",
+          "rob gronkowsky",
+          "gronkowsky",
+          "rob gronkowsi",
+          "rob gronkoski",
+          "gronkowski rob"
+        ],
+        "wrong": [
+          "tony gonzalez",
+          "jason witten"
+        ],
+        "given": [
+          "rob"
+        ],
+        "givenNote": "exact-match only (PR61 `given`): first name, no typo tolerance"
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this football star.",
+        "clues": [
+          "He spent all 15 seasons of his NFL career with one New York team and won a Super Bowl in his final season.",
+          "He was inducted into the Pro Football Hall of Fame in 2014 as one of the great pass rushers.",
+          "After football he became a TV star, co-hosting ABC's Good Morning America."
+        ],
+        "answer": "Michael Strahan",
+        "accept": [
+          "Michael Strahan",
+          "Strahan",
+          "Michael",
+          "Mike Strahan",
+          "Mike",
+          "Michael Strahn",
+          "Michael Strahaan",
+          "Strahn",
+          "Micheal Strahan"
+        ],
+        "explain": "Michael Strahan played 15 NFL seasons for the New York Giants, won Super Bowl XLII in February 2008, entered the Pro Football Hall of Fame in 2014, and later co-hosted Good Morning America and Live! with Kelly and Michael.",
+        "exactOnly": [
+          "Michael",
+          "Mike"
+        ],
+        "es": {
+          "prompt": "Identifica a esta estrella del fútbol americano.",
+          "clues": [
+            "Pasó las 15 temporadas de su carrera en la NFL con un equipo de Nueva York y ganó un Super Bowl en su última temporada.",
+            "Fue incluido en el Salón de la Fama del Fútbol Americano Profesional en 2014 como uno de los grandes especialistas en presionar al mariscal de campo.",
+            "Después de retirarse se convirtió en estrella de la televisión y copresentó Good Morning America, de ABC."
+          ],
+          "explain": "Michael Strahan jugó 15 temporadas en la NFL con los New York Giants, ganó el Super Bowl XLII en febrero de 2008, entró al Salón de la Fama del Fútbol Americano Profesional en 2014 y más tarde copresentó Good Morning America y Live! with Kelly and Michael."
+        }
+      },
+      {
+        "type": "bracket",
+        "round": "2014 FIFA World Cup semifinal (July 8, 2014)",
+        "q": "Host Brazil faced Germany. Which team won, 7-1?",
+        "matchup": [
+          "Germany",
+          "Brazil"
+        ],
+        "a": 0,
+        "explain": "Germany beat host Brazil 7-1 in the 2014 World Cup semifinal in Belo Horizonte, then won the final 1-0 over Argentina."
+      }
+    ],
+    [
+      {
+        "type": "pair",
+        "prompt": {
+          "en": "Over or Under? Pick the true side.",
+          "es": "¿Más de o menos de? Elige la verdadera."
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Nick Saban won OVER 6 national titles as a head coach",
+              "es": "Nick Saban ganó MÁS DE 6 campeonatos nacionales como entrenador en jefe"
+            },
+            "right": {
+              "en": "Nick Saban won UNDER 6 national titles as a head coach",
+              "es": "Nick Saban ganó MENOS DE 6 campeonatos nacionales como entrenador en jefe"
+            },
+            "correct": "left",
+            "note": "Saban won seven claimed national titles (one at LSU, six at Alabama)."
+          },
+          {
+            "left": {
+              "en": "Michigan Stadium holds OVER 120,000 fans",
+              "es": "El Michigan Stadium tiene capacidad para MÁS DE 120,000 aficionados"
+            },
+            "right": {
+              "en": "Michigan Stadium holds UNDER 120,000 fans",
+              "es": "El Michigan Stadium tiene capacidad para MENOS DE 120,000 aficionados"
+            },
+            "correct": "right",
+            "note": "Official capacity is 107,601."
+          },
+          {
+            "left": {
+              "en": "Archie Griffin won OVER 1 Heisman Trophy",
+              "es": "Archie Griffin ganó MÁS DE 1 Trofeo Heisman"
+            },
+            "right": {
+              "en": "Archie Griffin won exactly 1 Heisman Trophy",
+              "es": "Archie Griffin ganó exactamente 1 Trofeo Heisman"
+            },
+            "correct": "left",
+            "note": "Griffin won two (1974, 1975), the only player to win it twice."
+          },
+          {
+            "left": {
+              "en": "Bear Bryant won OVER 6 national titles at Alabama",
+              "es": "Bear Bryant ganó MÁS DE 6 campeonatos nacionales con Alabama"
+            },
+            "right": {
+              "en": "Bear Bryant won 6 or fewer national titles at Alabama",
+              "es": "Bear Bryant ganó 6 o menos campeonatos nacionales con Alabama"
+            },
+            "correct": "right",
+            "note": "Bryant won six national championships."
+          },
+          {
+            "left": {
+              "en": "The Army-Navy Game has been played OVER 120 times",
+              "es": "El juego Army-Navy se ha jugado MÁS DE 120 veces"
+            },
+            "right": {
+              "en": "The Army-Navy Game has been played UNDER 120 times",
+              "es": "El juego Army-Navy se ha jugado MENOS DE 120 veces"
+            },
+            "correct": "left",
+            "note": "Through the 2025 meeting the series stood 64-55-7 (126 games)."
+          }
+        ],
+        "explain": "Retired coaches and players, venue capacity."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this college football legend.",
+        "clues": [
+          "A home-schooled Florida quarterback, he was a first-round pick (25th overall) of the Denver Broncos in the 2010 NFL draft.",
+          "He won two national titles at Florida (2006 and 2008).",
+          "In 2007 he became the first underclassman to win the Heisman Trophy."
+        ],
+        "answer": "Tim Tebow",
+        "accept": [
+          "Tim Tebow",
+          "Tebow",
+          "Tim",
+          "Timothy Tebow",
+          "Timmy Tebow",
+          "Tim Tebo",
+          "Tebo"
+        ],
+        "explain": "Tebow won the 2007 Heisman Trophy (first underclassman to do so), two BCS titles at Florida (2006, 2008), and was the 25th overall pick of the 2010 NFL draft by the Denver Broncos.",
+        "exactOnly": [
+          "Tim"
+        ]
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put these Heisman Trophy winners in order, earliest first.",
+        "items": [
+          "Cam Newton",
+          "Johnny Manziel",
+          "Derrick Henry",
+          "Lamar Jackson"
+        ],
+        "explain": "Newton 2010 (Auburn), Manziel 2012 (Texas A&M), Henry 2015 (Alabama), Jackson 2016 (Louisville).",
+        "hint": {
+          "en": "Drag the Heisman winners into order, earliest win at the top.",
+          "es": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
+        }
+      }
+    ],
+    [
+      {
+        "type": "mc",
+        "q": "What is the popular name for the foot races that many towns hold on Thanksgiving morning?",
+        "options": [
+          "Turkey Trot",
+          "Jingle Bell Run",
+          "Firecracker 5K",
+          "Valentine's Dash"
+        ],
+        "a": 0,
+        "explain": "Turkey trots are footraces, usually long-distance, held on or around Thanksgiving Day in the United States."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this football icon.",
+        "clues": [
+          "He won Super Bowl XI as head coach of the Oakland Raiders.",
+          "On Thanksgiving broadcasts he handed out turkey drumsticks to winners and drew plays with a telestrator.",
+          "The long-running EA football video game series carries his name."
+        ],
+        "answer": "John Madden",
+        "accept": [
+          "John Madden",
+          "Madden",
+          "John",
+          "John Earl Madden",
+          "Jon Madden",
+          "Maden"
+        ],
+        "explain": "Madden won Super Bowl XI with the Raiders, became a legendary broadcaster, and lent his name to the Madden NFL video games.",
+        "exactOnly": [
+          "John"
+        ]
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put these sports stars in order of birth year, oldest first.",
+        "items": [
+          "Scottie Pippen",
+          "Floyd Mayweather",
+          "Alex Morgan",
+          "Kylian Mbappé"
+        ],
+        "explain": "Pippen was born in 1965, Mayweather in 1977, Morgan in 1989 and Mbappé in 1998.",
+        "hint": {
+          "en": "Drag the stars into order by birth year, oldest at the top.",
+          "es": "Arrastra a las estrellas en orden por año de nacimiento, la más veterana arriba."
+        },
+        "es": {
+          "q": "Ordena a estas estrellas del deporte por año de nacimiento, de la más veterana a la más joven.",
+          "items": [
+            "Scottie Pippen",
+            "Floyd Mayweather",
+            "Alex Morgan",
+            "Kylian Mbappé"
+          ],
+          "explain": "Pippen nació en 1965, Mayweather en 1977, Morgan en 1989 y Mbappé en 1998."
+        }
+      }
     ]
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
@@ -1478,6 +2950,71 @@ window.CONTENT = {
     [["GALAXY","definition","Huge system of stars, like the Milky Way"],["SIMPLE","antonym","Opposite of complicated"],["TEAPOT","riddle","I'm short and stout, with a handle and a spout"],["WEALTHY","synonym","Rich, affluent"],["BICYCLE","definition","Two-wheeled vehicle you pedal"],["OBVIOUS","synonym","Clear, plain to see"]],
     // ---- APPENDED Word Nerd week 2 EXTRA (staged 2026-10-30, Fact Checker + Tester PASS — clear to merge (TG appending)) ----
     [["PUMPKIN","definition","A harvest favourite with a tough outer shell"],["RAINBOW","definition","A fleeting display with a full spectrum"],["GIRAFFE","definition","A spotted browser with a lofty outlook"],["PICKLE","definition","A tangy guest in a sandwich"],["CACTUS","definition","A slow grower with built-in defences"],["WALRUS","definition","A heavyweight that lounges near icy seas"]]
+,
+    [
+      [
+        "LIBRARY",
+        "riddle",
+        "I hold thousands of stories, and everyone inside whispers"
+      ],
+      [
+        "PRIVATE",
+        "antonym",
+        "Opposite of public"
+      ],
+      [
+        "MAGAZINE",
+        "definition",
+        "A glossy publication with articles and photos, issued weekly or monthly"
+      ],
+      [
+        "CALENDAR",
+        "riddle",
+        "My days are numbered, and I hang on the wall"
+      ],
+      [
+        "AMBULANCE",
+        "definition",
+        "An emergency vehicle that rushes the injured to the hospital"
+      ],
+      [
+        "LANDSCAPE",
+        "definition",
+        "A wide view of natural scenery, or a painting of one"
+      ]
+    ],
+    [
+      [
+        "BUFFALO",
+        "definition",
+        "A large shaggy grazing animal of the plains"
+      ],
+      [
+        "VINTAGE",
+        "synonym",
+        "Classic, retro, from a past era"
+      ],
+      [
+        "NECKLACE",
+        "definition",
+        "Jewelry worn around the throat"
+      ],
+      [
+        "WILDLIFE",
+        "definition",
+        "Animals living freely in nature"
+      ],
+      [
+        "WAREHOUSE",
+        "definition",
+        "A big building for storing goods"
+      ],
+      [
+        "ASTRONAUT",
+        "riddle",
+        "I wear a suit with a bubble helmet and float around outside the Earth"
+      ]
+    ]
   ],
   wordBridge: [
     [ ["HOT", "HOUSE", "DOG"], ["OVER", "PHONE", "HEAD"], ["SUN", "HOUSE", "LIGHT"], ["LAND", "DOWN", "MARK"], ["FOOT", "POINT", "BALL"], ["TOOTH", "POCKET", "PICK"] ],
@@ -1524,6 +3061,70 @@ window.CONTENT = {
         "POINT",
         "END"
       ]
+    ],
+    [
+      [
+        "KICK",
+        "SHORE",
+        "OFF"
+      ],
+      [
+        "NICK",
+        "SAKE",
+        "NAME"
+      ],
+      [
+        "CARE",
+        "STYLE",
+        "FREE"
+      ],
+      [
+        "SNAKE",
+        "TIGHT",
+        "SKIN"
+      ],
+      [
+        "COPY",
+        "FULLY",
+        "RIGHT"
+      ],
+      [
+        "GRAND",
+        "PIECE",
+        "MASTER"
+      ]
+    ],
+    [
+      [
+        "WAR",
+        "WELL",
+        "FARE"
+      ],
+      [
+        "FLOOD",
+        "KEEPER",
+        "GATE"
+      ],
+      [
+        "WEST",
+        "ROBE",
+        "WARD"
+      ],
+      [
+        "LIVE",
+        "PILE",
+        "STOCK"
+      ],
+      [
+        "SHORT",
+        "THROAT",
+        "CUT"
+      ],
+      [
+        "HIND",
+        "SEEING",
+        "SIGHT"
+      ]
     ]
   ],
   connections: [
@@ -1566,6 +3167,37 @@ window.CONTENT = {
             "NOSE",
             "GLASSES",
             "SONG"
+          ],
+          "pts": 400
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "name": "Cartoon chasers",
+          "words": [
+            "TOM",
+            "SYLVESTER",
+            "COYOTE"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Cartoon chased",
+          "words": [
+            "JERRY",
+            "TWEETY",
+            "ROADRUNNER"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Famous feuding families",
+          "words": [
+            "HATFIELDS",
+            "MCCOYS",
+            "MONTAGUES"
           ],
           "pts": 400
         }
@@ -1737,6 +3369,88 @@ window.CONTENT = {
         ],
         "odd": 1,
         "why": "Newton lived before the Nobel Prizes began (1901); the others won the Nobel Prize in Physics"
+      }
+    ],
+    [
+      {
+        "words": [
+          "Dawn",
+          "Equinox",
+          "Noon",
+          "Dusk"
+        ],
+        "odd": 1,
+        "why": "An equinox is a date in the year; the others are times of day"
+      },
+      {
+        "words": [
+          "Velvet",
+          "Corduroy",
+          "Tweed",
+          "Saffron"
+        ],
+        "odd": 3,
+        "why": "Saffron is a spice; the others are fabrics"
+      },
+      {
+        "words": [
+          "Spade",
+          "Shovel",
+          "Rake",
+          "Thimble"
+        ],
+        "odd": 3,
+        "why": "A thimble is a sewing tool; the others are garden tools"
+      },
+      {
+        "words": [
+          "Marinate",
+          "Boil",
+          "Blanch",
+          "Poach"
+        ],
+        "odd": 0,
+        "why": "Marinate uses no heat; the others cook food in hot liquid"
+      },
+      {
+        "words": [
+          "Dictionary",
+          "Thesaurus",
+          "Encyclopedia",
+          "Kaleidoscope"
+        ],
+        "odd": 3,
+        "why": "A kaleidoscope is a toy; the others are reference books"
+      },
+      {
+        "words": [
+          "Jefferson",
+          "Hamilton",
+          "Madison",
+          "Monroe"
+        ],
+        "odd": 1,
+        "why": "Alexander Hamilton was never president; the others were"
+      },
+      {
+        "words": [
+          "Thermometer",
+          "Telescope",
+          "Barometer",
+          "Anemometer"
+        ],
+        "odd": 1,
+        "why": "A telescope views stars; the others measure the weather"
+      },
+      {
+        "words": [
+          "Caterpillar",
+          "Maggot",
+          "Grub",
+          "Butterfly"
+        ],
+        "odd": 3,
+        "why": "A butterfly is an adult insect; the others are larvae"
       }
     ]
   ],
@@ -2066,15 +3780,327 @@ window.CONTENT = {
         "image": "assets/tf-n17-marbles.jpg",
         "explain": "There are exactly 38 marbles."
       }
+    ],
+    [
+      {
+        "kind": "logic",
+        "q": "At a kite stall, every kite is red, yellow or pink. No yellow kite is for sale. Every pink kite hangs on the high hook. Pip's kite is for sale and does not hang on the high hook. What color is Pip's kite?",
+        "answers": [
+          "red",
+          "roja",
+          "rojo",
+          "es roja",
+          "la cometa es roja"
+        ],
+        "aliases": [
+          "its red",
+          "it is red",
+          "red kite",
+          "pips kite is red",
+          "pip's kite is red",
+          "la roja",
+          "de color rojo",
+          "color rojo",
+          "es de color rojo"
+        ],
+        "wrong": [
+          "yellow",
+          "pink",
+          "amarilla",
+          "amarillo",
+          "rosa",
+          "rosada"
+        ],
+        "noSurname": true,
+        "explain": "Start with the three possible colors: red, yellow, pink. Pip's kite is for sale, and no yellow kite is for sale, so it is not yellow. Pip's kite is not on the high hook, and every pink kite is on the high hook, so it is not pink. Only red is left."
+      },
+      {
+        "kind": "illusion",
+        "type": "text",
+        "img": "tf-n11-sd1",
+        "q": "How many differences are there between the top picture and the bottom picture?",
+        "answers": [
+          "5",
+          "five"
+        ],
+        "aliases": [
+          "5 differences",
+          "five differences",
+          "5 changes"
+        ],
+        "wrong": [
+          "4",
+          "6",
+          "3",
+          "7"
+        ],
+        "explain": "Five: the chimney color, the right-hand window, an apple on the tree, one fence post, and one flower's color."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "q": "Four friends sit side by side in a row of four seats. Pia does not sit at either end. Rex sits directly to the left of Sue. Sue sits somewhere to the left of Pia. The fourth friend is Tim. Who sits in the left-most seat?",
+        "answers": [
+          "rex"
+        ],
+        "aliases": [
+          "rex sits in the left-most seat",
+          "rex is on the left",
+          "it is rex",
+          "its rex"
+        ],
+        "wrong": [
+          "pia",
+          "sue",
+          "tim"
+        ],
+        "explain": "Rex sits directly to the left of Sue, and Sue is to the left of Pia, so the order Rex, Sue, Pia must appear left to right. Pia is not at an end, so Tim must be at the far end after her: Rex, Sue, Pia, Tim."
+      },
+      {
+        "type": "slider",
+        "kind": "guesstimate",
+        "prompt": "Guesstimate: how many beads are in the jar?",
+        "min": 150,
+        "max": 650,
+        "step": 1,
+        "answer": 347,
+        "unit": "beads",
+        "scale": "percent",
+        "per_pct": 5,
+        "typed": true,
+        "image": "assets/tf-n19-beads.jpg",
+        "explain": "There are exactly 347 beads in the jar."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "What is Scotland's official national animal?",
+        "options": [
+          "Wolf",
+          "Loch Ness Monster",
+          "Sword",
+          "Unicorn"
+        ],
+        "a": 3,
+        "explain": "The unicorn. Scotland's official national animal is a mythical creature, which appears on the Scottish royal coat of arms."
+      },
+      {
+        "kind": "illusion",
+        "type": "mc",
+        "img": "illusion-08",
+        "q": "Which gray square is darker?",
+        "options": [
+          "The left square",
+          "The right square",
+          "They are exactly the same shade"
+        ],
+        "a": 2,
+        "explain": "Both squares are exactly the same gray. The dark and light backgrounds change how you see them (simultaneous contrast)."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "Four of these belong to the same biological kingdom. Which one doesn't?",
+        "options": [
+          "Mushroom",
+          "Truffle",
+          "Yeast",
+          "Mold",
+          "Moss"
+        ],
+        "a": 4,
+        "explain": "Moss is a plant. Mushrooms, truffles, yeast and mold are all fungi, a kingdom of their own: yeast is a single-celled fungus, a truffle is a fungus that grows underground, and mold is a fungus too, even though it looks like moss."
+      },
+      {
+        "type": "slider",
+        "kind": "guesstimate",
+        "prompt": "Guesstimate: how many stars are in the jar?",
+        "min": 25,
+        "max": 125,
+        "step": 1,
+        "answer": 64,
+        "unit": "stars",
+        "scale": "percent",
+        "per_pct": 5,
+        "typed": true,
+        "image": "assets/tf-n21-stars.jpg",
+        "explain": "There are exactly 64 stars."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "q": "Three rival bakers, Bram, Cora and Dax, each entered a different dessert (pie, cake or cookies) at the county fair, and each won a different ribbon (blue for 1st, red for 2nd, white for 3rd). Bram baked neither the pie nor the cake. The cake did not win the blue ribbon. Dax finished ahead of whoever baked the pie. Who baked the cake?",
+        "answers": [
+          "dax"
+        ],
+        "aliases": [
+          "dax baked the cake",
+          "it was dax",
+          "it is dax"
+        ],
+        "wrong": [
+          "bram",
+          "cora"
+        ],
+        "noSurname": true,
+        "match": {
+          "people": [
+            "Bram",
+            "Cora",
+            "Dax"
+          ],
+          "rows": {
+            "dessert": [
+              "pie",
+              "cake",
+              "cookies"
+            ],
+            "ribbon": [
+              "blue",
+              "red",
+              "white"
+            ]
+          },
+          "solution": {
+            "Bram": {
+              "dessert": "cookies",
+              "ribbon": "blue"
+            },
+            "Cora": {
+              "dessert": "pie",
+              "ribbon": "white"
+            },
+            "Dax": {
+              "dessert": "cake",
+              "ribbon": "red"
+            }
+          }
+        },
+        "explain": "Bram baked the cookies. Dax finished ahead of whoever baked the pie, so Dax did not bake the pie; Dax baked the cake and Cora the pie. The cake did not win blue, but it beat the pie, so it took red, the pie took white, and Bram's cookies took blue."
+      },
+      {
+        "kind": "illusion",
+        "type": "mc",
+        "img": "illusion-10",
+        "q": "These two dark bars have tick marks at their ends. Which dark bar is the longer one?",
+        "options": [
+          "The top bar",
+          "The bottom bar",
+          "They are exactly the same length"
+        ],
+        "a": 2,
+        "explain": "Both bars are exactly the same length. The extra tick marks on the top bar make it look longer (Oppel–Kundt illusion)."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "q": "Exactly one of three friends always tells the truth; the other two always lie. Kai says: \"Lia is lying.\" Lia says: \"Max is lying.\" Max says: \"Kai and Lia are both lying.\" Who is the truth-teller?",
+        "answers": [
+          "lia"
+        ],
+        "aliases": [
+          "lia is the truth-teller",
+          "lia is telling the truth",
+          "it is lia",
+          "its lia",
+          "lia tells the truth"
+        ],
+        "wrong": [
+          "kai",
+          "max"
+        ],
+        "explain": "If Kai told the truth, Lia would be lying, which makes Max truthful too, so there would be two truth-tellers. If Max told the truth, Kai's claim about Lia would be true, so Kai would not be lying. Only Lia works: Kai and Max both lie, and Max's claim that Kai and Lia are both lying is false because Lia is truthful."
+      },
+      {
+        "type": "slider",
+        "kind": "guesstimate",
+        "prompt": "Guesstimate: how many gumballs are in the big jar?",
+        "min": 150,
+        "max": 750,
+        "step": 1,
+        "answer": 360,
+        "unit": "gumballs",
+        "scale": "percent",
+        "per_pct": 5,
+        "typed": true,
+        "image": "assets/tf-n23-gumballs.jpg",
+        "explain": "There are exactly 360 gumballs."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "Which one does not belong?",
+        "options": [
+          "Gravy",
+          "Biscuit",
+          "Parade",
+          "Stuffing",
+          "Cranberry"
+        ],
+        "a": 2,
+        "explain": "Gravy, biscuits, stuffing and cranberry sauce are all foods on a Thanksgiving table. A parade is something you watch."
+      },
+      {
+        "kind": "riddle",
+        "q": "I'm a bird named after a country, and I'm usually served stuffed. What am I?",
+        "answers": [
+          "turkey",
+          "pavo",
+          "un pavo",
+          "el pavo"
+        ],
+        "aliases": [
+          "a turkey",
+          "the turkey",
+          "turkeys",
+          "turky",
+          "turkey bird",
+          "pavos",
+          "guajolote",
+          "chompipe"
+        ],
+        "wrong": [
+          "chicken",
+          "duck",
+          "goose",
+          "canary",
+          "peacock",
+          "pheasant",
+          "pollo",
+          "pato",
+          "ganso",
+          "canario",
+          "pavo real",
+          "faisán"
+        ],
+        "explain": "A turkey. It shares its name with the country Turkey, and it's often roasted with stuffing."
+      }
     ]
   ]
 };
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
+// 2026-11-18 through 2026-11-24 pin appended sets. 2026-11-25 is not scheduled.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
 window.DAY_OVERRIDES["2026-11-14"] = {"worldRush":47,"history":47,"sports":47,"thinkFast":49,"wordBridge":11};
 window.DAY_OVERRIDES["2026-11-15"] = {"worldRush":48,"history":48,"sports":48,"thinkFast":50,"connections":11};
 window.DAY_OVERRIDES["2026-11-16"] = {"worldRush":49,"history":49,"sports":49,"thinkFast":51,"oddOneOut":11};
 window.DAY_OVERRIDES["2026-11-17"] = {"worldRush":50,"history":50,"sports":50,"thinkFast":52,"anagram":13};
+window.DAY_OVERRIDES["2026-11-18"] = {"worldRush":51,"history":51,"sports":51,"thinkFast":53,"wordFlip":11};
+window.DAY_OVERRIDES["2026-11-19"] = {"worldRush":52,"history":52,"sports":52,"thinkFast":54,"wordBridge":12};
+window.DAY_OVERRIDES["2026-11-20"] = {"worldRush":53,"history":53,"sports":53,"thinkFast":55,"connections":12};
+window.DAY_OVERRIDES["2026-11-21"] = {"worldRush":54,"history":54,"sports":54,"thinkFast":56,"oddOneOut":12};
+window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":55,"history":55,"sports":55,"thinkFast":57,"anagram":14};
+window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58,"wordFlip":12};
+window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":57,"sports":57,"thinkFast":59,"wordBridge":13};

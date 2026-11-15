@@ -64,7 +64,10 @@ for (const k in LISTS) {
 const plain = load();
 const scheduled = plain.win.CONTENT.thinkFast.indexOf(plain.getDailySet("2026-11-18").thinkFast);
 const other = scheduled === 0 ? 1 : 0;
-const pinned = load(w => { w.DAY_OVERRIDES = Object.assign({}, w.DAY_OVERRIDES, { "2026-11-18": { thinkFast: other } }); });
+const pinned = load(w => {
+  const prev = (w.DAY_OVERRIDES && w.DAY_OVERRIDES["2026-11-18"]) || {};
+  w.DAY_OVERRIDES = Object.assign({}, w.DAY_OVERRIDES, { "2026-11-18": Object.assign({}, prev, { thinkFast: other }) });
+});
 const idx = (R, day, key) => R.win.CONTENT[key].indexOf(R.getDailySet(day)[key]);
 t(idx(plain, "2026-11-17", "thinkFast") === idx(pinned, "2026-11-17", "thinkFast"), "a date without an override keeps its thinkFast index");
 t(idx(plain, "2026-11-19", "thinkFast") === idx(pinned, "2026-11-19", "thinkFast"), "the following date is not shifted");

@@ -70,9 +70,9 @@ t("exactOnly still blocks a fragment", A.checkAnswer("muhamma", ["Muhammad Ali"]
 t("given still blocks brent", A.checkAnswer("brent", ["Favre"], { aliases: ["Brett"], given: ["Brett"], q: "Who?" }), false);
 
 const content = fs.readFileSync(path.join(root, "content.js"), "utf8") + fs.readFileSync(path.join(root, "content.es.js"), "utf8");
-t("live pairs are Nov 12 plus Nov 14-16 world and sports questions in both languages", (content.match(/"type"\s*:\s*"pair"/g) || []).length, 12);
-t("live reveals are the Nov 14-16 sports questions in both languages", (content.match(/"type"\s*:\s*"reveal"/g) || []).length, 6);
-t("live sliders are the Nov 14 jelly-bean question in both languages and the Nov 17 marble jar in English", (content.match(/"type"\s*:\s*"slider"/g) || []).length, 3);
+t("live pairs include Nov 12, Nov 14-16, and the scheduled Nov 18-24 pairs", (content.match(/"type"\s*:\s*"pair"/g) || []).length, 20);
+t("live reveals include Nov 14-16 and the scheduled Nov 18-24 reveals", (content.match(/"type"\s*:\s*"reveal"/g) || []).length, 12);
+t("live sliders are the Nov 14 jelly beans, the Nov 17 marbles, and the Nov 19, 21, and 23 jars", (content.match(/"type"\s*:\s*"slider"/g) || []).length, 6);
 
 const win = {};
 vm.runInNewContext(fs.readFileSync(path.join(root, "demo-types.js"), "utf8"), { window: win });
