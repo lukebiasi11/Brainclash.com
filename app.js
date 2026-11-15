@@ -1764,6 +1764,16 @@ function wordBridge() {
   draw();
 }
 
+// One away: the submitted tiles are the size of a real group, and exactly one of them is not in that group.
+// A 3-tile day is one away at 2 of 3. A 4-tile day is one away at 3 of 4. Two or more tiles off is not.
+function clustersOneAway(groups, selected) {
+  if (!Array.isArray(groups) || !Array.isArray(selected) || selected.length < 2) return false;
+  return groups.some(g => {
+    const words = g && g.words;
+    if (!Array.isArray(words) || words.length !== selected.length) return false;
+    return words.filter(w => selected.includes(w)).length === words.length - 1;
+  });
+}
 function connections() {
   const set = session.set.connections;
   const body = screen("📝 " + tr("Clusters"), tr("Find 3 groups of 3 · 90 seconds"));
@@ -1794,10 +1804,22 @@ function connections() {
   const submit = () => {
     const g = set.groups.find(g => g.words.every(w => sel.includes(w)));
     if (g) { found.push(g); total += g.pts; track(total); words = words.filter(w => !g.words.includes(w)); sel = []; if (found.length === 3) return end(); }
-    else { mistakes++; const one = set.groups.some(g => g.words.filter(w => sel.includes(w)).length === 2); grid.classList.add("shake"); setTimeout(() => grid.classList.remove("shake"), 400); if (one) feedbackTmp(tr("One away…")); sel = []; if (mistakes >= 3) return end(); }
+    else { mistakes++; const one = clustersOneAway(set.groups, sel); grid.classList.add("shake"); setTimeout(() => grid.classList.remove("shake"), 400); if (one) feedbackTmp(tr("One away!")); sel = []; if (mistakes >= 3) return end(); }
     draw();
   };
-  const feedbackTmp = t => { const f = feedback(body, null, t); setTimeout(() => f.remove(), 1200); };
+  const feedbackTmp = t => {
+    const f = feedback(document.body, null, t);
+    f.setAttribute("role", "status");
+    // Fixed, outside the game column, so the tiles, score, and try dots do not move.
+    f.style.position = "fixed";
+    f.style.left = "16px";
+    f.style.right = "16px";
+    f.style.bottom = "max(84px, calc(16px + env(safe-area-inset-bottom) + 68px))";
+    f.style.zIndex = "30";
+    f.style.margin = "0";
+    f.style.pointerEvents = "none";
+    setTimeout(() => { if (f.isConnected) f.remove(); }, 1200);
+  };
   const end = () => {
     if (over) return; over = true; timer.stop(); grid.remove(); ctrls.remove(); subBar.remove();
     found = found.concat(set.groups.filter(g => !found.includes(g)).map(g => Object.assign({}, g, { pts: 0 })));

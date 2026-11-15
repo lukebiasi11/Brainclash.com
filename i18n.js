@@ -133,7 +133,7 @@
     "↩ Undo": "↩ Deshacer", "Clear": "Borrar", "Skipped words come back at the end if time remains.": "Las palabras saltadas vuelven al final si queda tiempo.",
     "Word {0}/6 · {1} pts · Score {2}/1,000 pts": "Palabra {0}/6 · {1} pts · Puntaje {2}/1,000 pts", " · {0} left": " · quedan {0}", "Missing word": "Palabra faltante", "Submit": "Enviar",
     "Skipped puzzles come back at the end if time remains.": "Los acertijos saltados vuelven al final si queda tiempo.", "Puzzle {0}/6 · {1} pts · Score {2}/1,000 pts": "Acertijo {0}/6 · {1} pts · Puntaje {2}/1,000 pts",
-    "Find 3 groups of 3 · 90 seconds": "Encuentra 3 grupos de 3 · 90 segundos", "Score {0}/1,000 pts · Mistakes left: ": "Puntaje {0}/1,000 pts · Errores restantes: ", "One away…": "Te falta una…",
+    "Find 3 groups of 3 · 90 seconds": "Encuentra 3 grupos de 3 · 90 segundos", "Score {0}/1,000 pts · Mistakes left: ": "Puntaje {0}/1,000 pts · Errores restantes: ", "One away!": "¡Te falta una!",
     "8 puzzles · 60 seconds": "8 acertijos · 60 segundos", "Which one doesn't belong?": "¿Cuál no pertenece?", "Puzzle {0}/8 · {1} · {2} pts · Score {3}/1,000 pts": "Acertijo {0}/8 · {1} · {2} pts · Puntaje {3}/1,000 pts",
     "🔀 Shuffle": "🔀 Mezclar", "Shuffle": "Mezclar", "Submit word": "Enviar palabra", "Already found": "Ya la encontraste", "Not a word": "No es una palabra", "Missed words: ": "Palabras que faltaron: ", "none — wow!": "ninguna. ¡Wow!",
     // brain teaser
