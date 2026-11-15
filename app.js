@@ -2476,6 +2476,14 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
+  // 375x667 results only. The order list was clipping its last cities, and Time Warp's Next
+  // button lived inside the results scroller. Let the page scroll instead. 360, 390, and desktop keep the fit pass.
+  if (innerWidth === 375 && innerHeight === 667 && (body.classList.contains("tw-done") || body.querySelector(":scope > .order-reveal"))) {
+    body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
+    body.classList.remove("fit-scroll");
+    body.classList.add("page-scroll");
+    return;
+  }
   // nov2a: keyboard open (typed answer focused, or visual viewport much shorter than the layout viewport) -> never refit/shrink;
   // keep the current zoom and let the card scroll instead, so the prompt stays readable.
   const ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && body.contains(ae);

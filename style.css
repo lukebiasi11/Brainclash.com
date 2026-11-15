@@ -1186,3 +1186,27 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .slider-type-row{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:13px;margin-top:6px}
 .slider-type{min-height:44px;width:100%}
 .emoji-rebus{font-size:72px;line-height:1.15;text-align:center;margin:8px 0 4px;letter-spacing:.04em}
+/* 375x667 playtest (Nov 15). Exact viewport so 360, 390, and desktop stay as they are.
+   1. The MVP picture's shadow was covering the question heading.
+   2. After an order question, the list was shrinking and clipping the last cities.
+   3. Time Warp round 2 and that order result scroll the page, not a box inside the results. */
+@media (width: 375px) and (height: 667px) {
+  body.in-game .game-body > .visual { margin-bottom: 16px; }
+  body.in-game .game-body:has(> .order-reveal) .order-wrap,
+  body.in-game .game-body:has(> .order-reveal) .order-list {
+    overflow: visible;
+    flex: 0 0 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+  }
+  body.in-game .game-body:has(> .order-reveal) .order-chip { flex: 0 0 auto; }
+  body.in-game:has(.page-scroll) {
+    height: auto;
+    min-height: var(--app-h);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
+  body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
+}
