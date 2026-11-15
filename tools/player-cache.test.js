@@ -1,5 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers and i18n at v=nov17a, app.js and style.css at v=nov17b, and English and Spanish content at v=nov14b.
+// New HTML must request answers and i18n at v=nov17a, app.js and style.css at v=nov17c, and English and Spanish content at v=nov14b.
+// nov17c is after PR #74's nov17b. If those cache-token lines conflict, keep nov17c.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -7,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov17b";
+const APP_V = "nov17c";
 const CONTENT_V = "nov14b";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -33,7 +34,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=nov17b"], ["i18n", "i18n.js?v=nov17a"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
+[["style", "style.css?v=nov17c"], ["i18n", "i18n.js?v=nov17a"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
