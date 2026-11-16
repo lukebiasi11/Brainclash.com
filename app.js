@@ -1375,6 +1375,33 @@ function pairQuestion(body, q, value, seconds, done) {
   if (!n) { finish(false); return; }
   render();
 }
+// Keep the answer field inside the reveal column. Never scroll the document:
+// that slides the countdown off the top of the viewport.
+function keepRevealInView(body) {
+  const place = () => {
+    if (!body.isConnected) return;
+    const form = body.querySelector("form.answer");
+    if (!form) return;
+    const next = body.querySelector(".action-bar .btn");
+    const anchor = next && !next.hidden && next.getBoundingClientRect().height > 0 ? next : form;
+    const vv = window.visualViewport;
+    const viewBottom = vv ? vv.offsetTop + vv.height : innerHeight;
+    const pad = 8;
+    const ar = anchor.getBoundingClientRect();
+    if (ar.bottom > viewBottom - pad) body.scrollTop += ar.bottom - (viewBottom - pad);
+    const prompt = body.querySelector(".prompt");
+    const edge = body.getBoundingClientRect().top + pad;
+    if (prompt) {
+      const pr = prompt.getBoundingClientRect();
+      if (pr.top < edge) {
+        const room = Math.max(0, viewBottom - pad - anchor.getBoundingClientRect().bottom);
+        body.scrollTop -= Math.min(edge - pr.top, room);
+      }
+    }
+    if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+  };
+  requestAnimationFrame(place);
+}
 function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
   const parts = window.Answers.splitAccept(q.accept);
@@ -1382,6 +1409,8 @@ function revealQuestion(body, q, value, seconds, done) {
   const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
   let shown = 1, over = false;
   const banked = bankedPartial();
+  body.classList.add("reveal-q");
+  body.append(h("div", { class: "reveal-gap", "aria-hidden": "true" }));
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
   body.append(h("p", { class: "prompt" }, q.prompt || ""));
   const list = h("div", { class: "reveal-clues" });
@@ -1394,17 +1423,20 @@ function revealQuestion(body, q, value, seconds, done) {
   next.onclick = () => advance();
   bar.append(next);
   const timer = seconds ? Timer(seconds, () => end(0, true), typeHead(body)) : null;
+  const timerEl = typeHead(body) && typeHead(body).querySelector(".timer");
+  if (timerEl) timerEl.classList.add("timer-pin");
   function draw() {
     list.replaceChildren();
     clues.slice(0, shown).forEach((c, n) => list.append(h("p", { class: "reveal-clue" }, h("b", {}, tr("Clue {0} of {1}", n + 1, clues.length)), " ", c)));
     next.hidden = shown >= clues.length;
+    keepRevealInView(body);
   }
   function advance() {
     if (over || shown >= clues.length) return;
     shown++;
     input.value = "";
     draw();
-    input.focus();
+    input.focus({ preventScroll: true });
   }
   function submit() {
     if (over) return;
@@ -1430,7 +1462,7 @@ function revealQuestion(body, q, value, seconds, done) {
     done(pts);
   }
   draw();
-  setTimeout(() => input.focus(), 50);
+  setTimeout(() => input.focus({ preventScroll: true }), 50);
 }
 function sliderSnap(n, min, max, step) {
   const s = step > 0 ? step : 1;
@@ -2551,11 +2583,14 @@ function fitScreen() {
       const ex = Math.ceil(act.getBoundingClientRect().bottom - (vv ? vv.height + vv.offsetTop : innerHeight) + 4);
       if (ex > 0) { const ah = art.getBoundingClientRect().height; art.style.maxHeight = art.style.height = Math.max(40, ah - ex) + "px"; art.dataset.kbfit = ""; }
     }
+    // Reveal clues scroll inside the question column. scrollIntoView would move the
+    // document and take the countdown with it, so keep that bar put and scroll only the column.
+    if (body.classList.contains("reveal-q")) { keepRevealInView(body); return; }
     if (act && typing) requestAnimationFrame(() => { const r = act.getBoundingClientRect(); if (r.bottom > (vv ? vv.height : innerHeight)) { act.scrollIntoView({ block: "end" }); const pr = body.querySelector(".prompt"), bt = body.getBoundingClientRect().top; if (pr && pr.getBoundingClientRect().top < bt) body.scrollTop -= Math.min(bt - pr.getBoundingClientRect().top + 2, Math.max(0, (vv ? vv.height : innerHeight) - act.getBoundingClientRect().bottom)); } });
     return;
   }
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
-  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
+  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.classList.contains("reveal-gap") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
   // nov2a: prompt text must stay >= 16px after zoom; if that still overflows, the card scrolls (fit-scroll) instead.

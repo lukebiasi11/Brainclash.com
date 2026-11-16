@@ -1216,3 +1216,74 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
+
+/* Staged clue reveal. A new clue makes the column taller, and the phone then
+   scrolls the page to keep the answer field up, so the countdown leaves the
+   viewport. Lock the page and pin the timer. The prompt, clues, and answer
+   scroll in the column under the bar, so the bar never covers them. */
+html:has(body.in-game .reveal-q) {
+  overflow: hidden;
+  height: var(--app-h);
+}
+body.in-game:has(.reveal-q) {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  height: var(--app-h);
+  max-height: var(--app-h);
+  overflow: hidden;
+}
+body.in-game:has(.reveal-q) .game-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--orange);
+}
+body.in-game:has(.reveal-q) .timer.timer-pin {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 2;
+}
+body.in-game .game-body.reveal-q {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-top: 10px;
+  scroll-padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+/* .btn.big is display:block, which beats the UA [hidden] rule. Keep "Next clue" actually hidden. */
+body.in-game .game-body.reveal-q [hidden] { display: none !important; }
+/* Orange lip under the countdown so a scrolled clue or the question never touches the bar. */
+body.in-game .game-body.reveal-q > .reveal-gap {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 8px;
+  margin: 0;
+  flex: none;
+  background: var(--orange);
+}
+body.in-game .game-body.reveal-q > .action-bar {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+body.in-game .game-body.reveal-q .prompt,
+body.in-game .game-body.reveal-q .reveal-clue,
+body.in-game .game-body.reveal-q .reveal-clues,
+body.in-game .game-body.reveal-q form.answer {
+  scroll-margin-top: 10px;
+  scroll-margin-bottom: max(12px, env(safe-area-inset-bottom));
+}
+@media (prefers-reduced-motion: reduce) {
+  body.in-game:has(.reveal-q) .timer.timer-pin,
+  body.in-game:has(.reveal-q) .timer.timer-pin .timer-fill {
+    animation: none !important;
+    transition: none !important;
+  }
+  body.in-game .game-body.reveal-q { scroll-behavior: auto; }
+}
