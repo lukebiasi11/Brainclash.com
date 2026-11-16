@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov18a, i18n at v=nov17d, style.css at v=nov17c, and English and Spanish content at v=nov18a.
-// nov18a is the 11/18-24 content publish. style.css stays nov17c. i18n stays nov17d.
+// New HTML must request answers, app.js, and English and Spanish content at v=nov18b, i18n at v=nov17d, and style.css at v=nov17c.
+// nov18b is the bare-first-name matcher. style.css stays nov17c. i18n stays nov17d.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,9 +8,9 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov18a";
-const CONTENT_V = "nov18a";
-const ANSWERS_V = "nov17a";
+const APP_V = "nov18b";
+const CONTENT_V = "nov18b";
+const ANSWERS_V = "nov18b";
 const V = CONTENT_V;
 let bad = 0;
 const fail = (name, detail) => { bad++; console.log("FAIL", name, detail == null ? "" : typeof detail === "string" ? detail : JSON.stringify(detail)); };

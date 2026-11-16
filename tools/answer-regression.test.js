@@ -18,7 +18,10 @@ function walk(node) {
 }
 walk(C);
 function opts(q) {
-  return { aliases: q.aliases, wrong: q.wrong || q.options, given: q.given, exactOnly: q.exactOnly, noSurname: q.noSurname, textOnly: q.textOnly, person: q.person, q: typeof q.q === "string" ? q.q : (q.prompt || "") };
+  // Same lists the live reveal/typed paths pass: accept[] is typo-tolerant aliases, exactOnly stays exact.
+  const parts = newA.splitAccept(q.accept);
+  const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
+  return { aliases: [].concat(q.aliases || [], parts.aliases), wrong: q.wrong || q.options, given: given, exactOnly: q.exactOnly, noSurname: q.noSurname, noFirstName: q.noFirstName, textOnly: q.textOnly, person: q.person, q: typeof q.q === "string" ? q.q : (q.prompt || "") };
 }
 function targets(q) {
   return [].concat(q.answers || [], typeof q.answer === "string" ? [q.answer] : [], q.accept || []).filter(s => typeof s === "string" && s.trim());
@@ -37,7 +40,16 @@ function probes(s) {
   }
   return [...out];
 }
-let n = 0, diffs = [];
+const allowed = len => len <= 3 ? 0 : len <= 7 ? 1 : 2;
+// exactOnly/given stay exact. Forcing person:true used to re-add that token as a fuzzy surname
+// ("Mahomes Patrick" -> typos of "Patrick"). The new matcher does not.
+function keptExact(input, o, now) {
+  if (now !== false) return false;
+  const pins = [].concat(o.given || [], o.exactOnly || []).map(s => String(s).toLowerCase().replace(/[^a-z]/g, "")).filter(Boolean);
+  const got = String(input).toLowerCase().replace(/[^a-z]/g, "");
+  return pins.some(p => { const n = Math.min(got.length, p.length); return n && newA.dl(got, p) <= allowed(n); });
+}
+let n = 0, diffs = [], exactKept = 0, firstNames = 0;
 for (const q of questions) {
   const list = targets(q), o = opts(q);
   const answers = [].concat(q.answers || [], typeof q.answer === "string" ? [q.answer] : []);
@@ -47,7 +59,11 @@ for (const q of questions) {
       const a = oldA.checkAnswer(input, answers, o2);
       const b = newA.checkAnswer(input, answers, o2);
       n++;
-      if (a !== b && diffs.length < 20) diffs.push({ q: (o.q || "").slice(0, 60), input, old: a, now: b, extra });
+      if (a === b) continue;
+      if (keptExact(input, o2, b)) { exactKept++; continue; }
+      // A new accept that disappears when noFirstName is set is the bare-first-name rule, not a scoring accident.
+      if (b === true && a === false && !o2.noFirstName && newA.checkAnswer(input, answers, Object.assign({}, o2, { noFirstName: true })) === false) { firstNames++; continue; }
+      if (diffs.length < 20) diffs.push({ q: (o.q || "").slice(0, 60), input, old: a, now: b, extra });
     }
   }
 }
@@ -63,7 +79,7 @@ for (const [input, answers, o, exp] of extra) {
   n++;
   if (newA.checkAnswer(input, answers, o) !== exp) { extraBad++; console.log("FAIL extra", input, "expected", exp); }
 }
-console.log("comparisons", n, "content questions", questions.length, "diffs", diffs.length);
+console.log("comparisons", n, "content questions", questions.length, "diffs", diffs.length, "exactOnly kept", exactKept, "first names", firstNames);
 diffs.forEach(d => console.log("DIFF", JSON.stringify(d)));
 if (n < 26000) { console.log("FAIL fewer than 26000 comparisons"); process.exit(1); }
 if (diffs.length || extraBad) process.exit(1);

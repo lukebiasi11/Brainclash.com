@@ -1742,6 +1742,7 @@ window.CONTENT_ES = {
     "wrong": [
      "kerri"
     ],
+    "noFirstName": true,
     "explain": "El salto de Kerri Strug con el tobillo lesionado aseguró el oro para Estados Unidos."
    },
    {
@@ -1848,6 +1849,7 @@ window.CONTENT_ES = {
      "broncos",
      "denver"
     ],
+    "noFirstName": true,
     "explain": "John Elway; Denver retiró su n.º 7 en 1999."
    },
    {
@@ -1954,6 +1956,7 @@ window.CONTENT_ES = {
     "wrong": [
      "kirk"
     ],
+    "noFirstName": true,
     "explain": "El jonrón para dejar en el terreno de Kirk Gibson en el Juego 1 (15 de octubre de 1988)."
    },
    {

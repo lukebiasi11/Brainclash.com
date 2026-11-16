@@ -1,6 +1,6 @@
 /* Daily Gauntlet — lenient typed-answer checking (shared by app.js and tools/answers.test.js).
-   checkAnswer(input, answers, { aliases, wrong, noSurname, person, q, given, exactOnly }) -> true/false
-   Order: explicit answer/alias -> listed wrong -> unit-aware number -> nickname/surname -> typo (never toward a wrong).
+   checkAnswer(input, answers, { aliases, wrong, noSurname, noFirstName, person, q, given, exactOnly }) -> true/false
+   Order: explicit answer/alias -> listed wrong -> unit-aware number -> nickname/surname/first name -> typo (never toward a wrong).
    - answers : accepted spellings from content.js (unchanged format)
    - aliases : OPTIONAL extra accepted spellings (nicknames, abbreviations, other languages)
    - wrong   : OPTIONAL known wrong answers / MC options; typo tolerance never lands on these */
@@ -22,6 +22,14 @@
     "williams", "johnson", "smith", "jones", "brown", "davis", "jackson", "manning", "griffey", "ripken", "watt", "harrison", "curry", "joyner"]);
   // First words that signal a place/team, not a person ("New York" must not accept "york").
   const NOT_A_FIRST_NAME = new Set(["new", "san", "los", "las", "st", "saint", "fort", "north", "south", "east", "west", "united", "real", "el", "la", "le", "de", "port", "mount", "lake", "great", "old", "upper", "lower", "central", "golden", "green", "red", "blue", "white", "black", "kansas", "tampa", "green", "dallas", "boston", "chicago", "miami", "denver", "houston", "seattle", "atlanta", "detroit"]);
+  // Temporary (revisit at hard launch). ONE switch: false restores surname-only person matching.
+  // A question opts out with noFirstName: true. Saved results are never rescored; this runs only when an answer is checked.
+  const ACCEPT_BARE_FIRST_NAME = true;
+  // Not a given name: function words, and the first half of a particle surname ("abdul jabbar").
+  const NOT_A_GIVEN = new Set(["your", "his", "her", "their", "our", "its", "she", "him", "hers", "theirs", "ours", "this", "that", "they", "them", "you", "tu", "su", "sus", "esa", "ese", "esta", "este", "ella", "ello", "ellos", "ellas", "una", "uno", "mis", "tus", "is", "es", "of", "and", "for", "con", "por", "que", "with", "the", "un"]);
+  const SURNAME_PARTICLE = new Set(["abdul", "abd", "bin", "ibn", "van", "von", "da", "de", "del", "dela", "di", "dos", "das", "st", "mac", "mc"]);
+  // "his son" / "drews uncle" name a relationship, not a person.
+  const KINSHIP = new Set(["son", "daughter", "uncle", "aunt", "father", "mother", "brother", "sister", "cousin", "grandfather", "grandmother", "wife", "husband", "nephew", "niece", "grandpa", "grandma", "dad", "mom"]);
   // Unicode vulgar fractions -> " a/b" so "7½" = "7 1/2" = "7.5".
   const VULGAR = { "½": "1/2", "¼": "1/4", "¾": "3/4", "⅓": "1/3", "⅔": "2/3", "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8", "⅕": "1/5" };
   function norm(s) {
@@ -121,14 +129,20 @@
   const isNumeric = s => parseNum(s) !== null || /\d/.test(s);
 
   // Person questions: explicit `person: true`, or auto-detected from the question wording
-  // ("Silhouette clue", "Who ...", "Which man/player/QB/swimmer ..."), and never when it asks about a team, place or event.
-  const PERSON_Q = /silhouette clue|\bwho\b|\bwhich (man|woman|player|qb|quarterback|swimmer|pitcher|athlete|driver|boxer|golfer|skater|gymnast|coach|runner|sprinter|cyclist|jockey|tennis player|footballer|batter|goalkeeper|goalie)\b/i;
-  const NOT_PERSON_Q = /\b(team|teams|nation|country|city|club|franchise|stadium|event|tournament|venue|logo clue)\b/i;
+  // ("Silhouette clue", "Who ...", "Which player/QB ..."), and never when it asks about a team, place or event.
+  // Accents are folded first so a Spanish "¿Quién" can match. The extra patterns (Quién, Name this, Nombra,
+  // a role a few words after "which") turn on only with ACCEPT_BARE_FIRST_NAME, so that one constant
+  // restores the previous person gate.
+  const PERSON_Q = /silhouette clue|\bwho\b|\bwhich (man|woman|player|qb|quarterback|swimmer|pitcher|athlete|driver|boxer|golfer|skater|gymnast|coach|runner|sprinter|cyclist|jockey|tennis player|footballer|batter|goalkeeper|goalie)\b/;
+  const PERSON_Q_EXTRA = /\bquien\b|\bname this\b|\bnombra\b|\bidentifica\b|\bwhich\b(?: \S+){0,5} (man|woman|player|qb|quarterback|swimmer|pitcher|athlete|driver|boxer|golfer|skater|gymnast|coach|runner|sprinter|cyclist|jockey|tennis player|footballer|batter|goalkeeper|goalie|tight end)\b|\bque\b(?: \S+){0,4} (hombre|mujer|jugador|jugadora|piloto|pilota|nadador|nadadora|lanzador|atleta|boxeador|golfista|gimnasta|entrenador|corredor|corredora|ciclista|tenista|futbolista|bateador|portero|portera|mariscal)\b/;
+  const NOT_PERSON_Q = /\b(team|teams|nation|country|city|club|franchise|stadium|event|tournament|venue|logo clue|equipo|equipos|pais|ciudad|estadio|evento|torneo|sede|nacion|seleccion)\b/;
+  const foldQ = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   function isPersonQuestion(o) {
     if (o.person === true) return true;
     if (o.person === false) return false;
-    const q = typeof o.q === "string" ? o.q : "";
-    return PERSON_Q.test(q) && !NOT_PERSON_Q.test(q);
+    const q = foldQ(typeof o.q === "string" ? o.q : "");
+    const hit = PERSON_Q.test(q) || (ACCEPT_BARE_FIRST_NAME && PERSON_Q_EXTRA.test(q));
+    return hit && !NOT_PERSON_Q.test(q);
   }
   // ---- Units with a dimension (Luke: same value in another unit counts; a wrong unit is wrong) ----
   // Time and length convert to a base unit; percent is its own dimension; money keeps the dedicated $/cents logic below.
@@ -214,14 +228,42 @@
     // Names: nickname on the first word ("Mike Jordan" = "Michael Jordan").
     const vc = canonName(v), goodC = goodN.filter(g => !exactSet.has(g)).map(canonName);
     if (goodC.includes(vc)) return true;
+    // A single-word wrong answer blocks that spelling and two edits of it ("kerri" blocks "kerry", "kirk" blocks "kurt", "dan" blocks "danny").
+    // Multi-word wrong answers ("Ralf Schumacher") do not poison the shared surname.
+    function closeToWrong(token) {
+      for (const w of wrongN) {
+        if (w.includes(" ") || !/^[a-z]+$/.test(w) || w.length < 2) continue;
+        if (dl(token, w) <= 2) return true;
+      }
+      return false;
+    }
+    // given/exactOnly stay exact. A token within two edits ("Louis" next to "Lewis", "Jon" next to "John",
+    // "Mohammed" next to "Muhammad") is not added back as a fuzzy surname or first name.
+    function closeToExact(token) {
+      for (const piece of exactSet) {
+        if (!/^[a-z]+$/.test(piece)) continue;
+        if (dl(token, piece) <= 2) return true;
+      }
+      return false;
+    }
     // Last name alone ("Barry Bonds" -> "bonds") ONLY when the question is about a person (see isPersonQuestion),
     // never for ambiguous surnames, and never when the question opts out.
     if (!opts.noSurname && isPersonQuestion(opts)) goodN.forEach(g => {
       const w = g.split(" ");
       if (w.length >= 2 && w.length <= 3 && w.every(x => /^[a-z]+$/.test(x)) && !NOT_A_FIRST_NAME.has(w[0])) {
         const last = w[w.length - 1];
-        if (last.length >= 3 && !AMBIGUOUS_SURNAMES.has(last) && !goodC.includes(last)) goodC.push(last);
+        if (last.length >= 3 && !AMBIGUOUS_SURNAMES.has(last) && !exactSet.has(last) && !closeToExact(last) && !goodC.includes(last)) goodC.push(last);
       }
+    });
+    // Bare first name ("Michael Schumacher" -> "michael"), same 2–3 word gate and the same typo band as the surname.
+    // A single word (Pelé) is left alone. given/exactOnly stay exact, so "muhamma" is not a typo of a pinned "Muhammad".
+    if (ACCEPT_BARE_FIRST_NAME && !opts.noFirstName && isPersonQuestion(opts)) goodN.forEach(g => {
+      const w = g.split(" ");
+      if (w.length < 2 || w.length > 3 || !w.every(x => /^[a-z]+$/.test(x)) || w.some(x => NOT_A_GIVEN.has(x)) || NOT_A_FIRST_NAME.has(w[0]) || KINSHIP.has(w[w.length - 1])) return;
+      const first = w[0];
+      if (first.length < 3 || SURNAME_PARTICLE.has(first) || exactSet.has(first) || goodC.includes(first)) return;
+      if (closeToWrong(first) || closeToExact(first) || closeToWrong(w[w.length - 1])) return;
+      goodC.push(first);
     });
     // Typos, scaled by length; only for non-numeric answers, and never toward a listed wrong answer.
     const wrongC = wrongN;
@@ -389,6 +431,6 @@
     if (!(target > 0) || !Number.isFinite(raw)) return 0;
     return Math.min(1000, Math.max(0, Math.round(raw / target * 1000)));
   }
-  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ANAGRAM_STRICT_FROM, ANAGRAM_EASED_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramMode, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
+  const api = { setLang: l => { LANG = l === "es" ? "es" : "en"; }, checkAnswer, parseDim, parseEstimate, closenessScore, yearScore, pairScore, revealScore, sliderScore, splitAccept, typeFitsCategory, sliderStart, sliderStartClose, isPersonQuestion, norm, parseNum, parseQty, dl, NICK, AMBIGUOUS_SURNAMES, ACCEPT_BARE_FIRST_NAME, ANAGRAM_STRICT_FROM, ANAGRAM_EASED_FROM, ANAGRAM_OLD, ANAGRAM_NEW, anagramMode, anagramStrict, anagramPoints, anagramCommonRaw, anagramScore };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Answers = api;
 })(typeof window !== "undefined" ? window : globalThis);

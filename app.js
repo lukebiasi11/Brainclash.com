@@ -1379,7 +1379,7 @@ function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
   const parts = window.Answers.splitAccept(q.accept);
   const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
-  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
+  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, noFirstName: q.noFirstName, noSurname: q.noSurname, q: q.prompt || "", person: q.person };
   let shown = 1, over = false;
   const banked = bankedPartial();
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
@@ -1653,7 +1653,7 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
     skipBar.querySelector(".skip-btn")?.remove();
     if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
     if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
-    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
+    const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, noFirstName: src && src.noFirstName, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
     feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
     done(ok ? value : 0);
@@ -1920,7 +1920,7 @@ function anagramRush() {
 
 // ---------- 5. Think Fast ----------
 // Think Fast puzzle schema (see SPEC.md §5). Illusion img ids map to assets/<img>.svg. Day = [thinking (400), fun (600)]; the pairing/rotation comes from content order.
-//   typed (default, legacy): { q, answers, aliases?, wrong?, noSurname?, explain? }
+//   typed (default, legacy): { q, answers, aliases?, wrong?, noSurname?, noFirstName?, explain? }
 //   guess:                   { type:"guess", q, answer:Number, unit?, explain? }            → numeric input, closeness scoring
 //   mc / illusion:           { type:"mc", kind?:"illusion", img?:"illusion-…", q, options, a, explain? }
 //   alias (Designer):        { type:"illusion", svg:"assets/illusion-….svg", q, options, a } → normalised to the mc shape
