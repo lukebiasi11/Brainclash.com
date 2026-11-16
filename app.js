@@ -2074,14 +2074,85 @@ function g1Bin(score, width) {
   if (!Number.isFinite(Number(score))) return 0;
   return Math.min(9, Math.max(0, Math.floor(Number(score) / width)));
 }
-function g1Ticks(max) {
-  const top = Math.max(1, max);
-  if (top <= 4) { const a = []; for (let i = 0; i <= top; i++) a.push(i); return a; }
-  const step = Math.max(1, Math.ceil(top / 4));
-  const a = [];
-  for (let v = 0; v <= top; v += step) a.push(v);
-  if (a[a.length - 1] < top) a.push(top);
-  return a;
+function g1Measure(text, fontSize) {
+  const svg = g1Measure.svg || (g1Measure.svg = svgEl("svg", { viewBox: "0 0 360 40", width: "360", height: "40", class: "g1-axes" }));
+  if (!svg.isConnected && document.body) {
+    const host = document.createElement("div");
+    host.setAttribute("data-g1-measure", "");
+    host.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none";
+    host.append(svg);
+    document.body.append(host);
+  }
+  const t = svgEl("text", { "font-size": String(fontSize) }, text);
+  svg.append(t);
+  let w = 0;
+  try { w = t.getComputedTextLength(); } catch (e) { w = 0; }
+  t.remove();
+  if (!w) w = String(text).length * fontSize * 0.56;
+  if (document.fonts && document.fonts.status !== "loaded") w = Math.max(w, String(text).length * fontSize * 0.62);
+  return w;
+}
+function g1K(n) {
+  const v = Number(n) / 1000;
+  let num = (Math.round(v * 10) / 10).toFixed(1);
+  try { num = v.toLocaleString(I18N.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); } catch (e) {}
+  return tr("{0}k", num);
+}
+function g1RangeRow(lo, hi, compact) {
+  const a = compact ? g1K(lo) : fmtGrouped(lo);
+  const b = compact ? g1K(hi) : fmtGrouped(hi);
+  const text = tr("{0}–{1}", a, b);
+  const sep = text.slice(a.length, Math.max(a.length, text.length - b.length));
+  return { text: text, top: a + sep, bottom: b };
+}
+function g1NiceStep(min) {
+  const m = Math.max(1, Math.ceil(min));
+  const pow = Math.pow(10, Math.floor(Math.log10(m)));
+  for (const b of [1, 2, 5, 10]) if (b * pow >= m) return b * pow;
+  return m;
+}
+// One labeled guide per distinct bar count. If those labels would sit on top of
+// each other, fall back to whole-number steps that still span every bar.
+function g1YTicks(counts, ih) {
+  const vals = counts.map(c => Math.max(0, Math.round(Number(c) || 0)));
+  const max = Math.max(1, ...vals);
+  const uniq = [...new Set(vals)];
+  if (!uniq.includes(0)) uniq.push(0);
+  uniq.sort((a, b) => a - b);
+  const minGap = 12;
+  const fits = (ticks, top) => {
+    if (!(top > 0)) return false;
+    for (let i = 1; i < ticks.length; i++) if (((ticks[i] - ticks[i - 1]) / top) * ih < minGap) return false;
+    return true;
+  };
+  const topUniq = uniq[uniq.length - 1];
+  if (fits(uniq, topUniq)) return { ticks: uniq, top: topUniq, mode: "counts" };
+  let step = 1;
+  for (let n = 0; n < 24; n++) {
+    const top = Math.max(step, Math.ceil(max / step) * step);
+    const ticks = [];
+    for (let v = 0; v <= top; v += step) ticks.push(v);
+    if (fits(ticks, top)) return { ticks: ticks, top: top, mode: "step" };
+    step = g1NiceStep(step + 1);
+  }
+  return { ticks: [0, max], top: max, mode: "step" };
+}
+function g1XLabels(binCount, binWidth, slot) {
+  const build = compact => {
+    const rows = [];
+    for (let i = 0; i < binCount; i++) rows.push(g1RangeRow(i * binWidth, (i + 1) * binWidth, compact));
+    return rows;
+  };
+  const font = 10;
+  const room = Math.max(4, slot - 2);
+  const fitsOne = rows => rows.every(r => g1Measure(r.text, font) <= room);
+  const fitsTwo = rows => rows.every(r => g1Measure(r.top, font) <= room && g1Measure(r.bottom, font) <= room);
+  const full = build(false);
+  const compact = build(true);
+  if (fitsOne(full)) return { rows: full, lines: 1, format: "full" };
+  if (fitsOne(compact)) return { rows: compact, lines: 1, format: "compact" };
+  if (fitsTwo(full)) return { rows: full, lines: 2, format: "full" };
+  return { rows: compact, lines: 2, format: "compact" };
 }
 function g1BarPath(x, y, w, h) {
   const base = y + h;
@@ -2094,26 +2165,30 @@ function g1BarPath(x, y, w, h) {
     " Q" + (x + w).toFixed(1) + " " + y.toFixed(1) + " " + (x + w).toFixed(1) + " " + (y + r).toFixed(1) +
     " L" + (x + w).toFixed(1) + " " + base.toFixed(1) + " Z";
 }
-function g1Histogram(bins, ownBin, xMax, xTicks) {
-  const W = 360, Ht = 176, pad = { l: 32, r: 8, t: 18, b: 22 };
-  const iw = W - pad.l - pad.r, ih = Ht - pad.t - pad.b;
-  const max = Math.max(1, ...bins);
-  const yTicks = g1Ticks(max);
-  const yTop = yTicks[yTicks.length - 1];
-  const yAt = v => pad.t + ih - (Math.max(0, v) / yTop) * ih;
-  const base = pad.t + ih;
+function g1Histogram(bins, ownBin, binWidth) {
+  const W = 360, padT = 18, ih = 136, padR = 8;
+  const yScale = g1YTicks(bins, ih);
+  const yTicks = yScale.ticks, yTop = yScale.top;
+  const yLabelW = Math.max(8, ...yTicks.map(v => g1Measure(fmtGrouped(v), 10)));
+  const padL = Math.min(48, Math.max(20, Math.ceil(yLabelW + 6)));
+  const iw = W - padL - padR;
+  const slot = iw / bins.length;
+  const xLabels = g1XLabels(bins.length, binWidth, slot);
+  const padB = xLabels.lines === 2 ? 30 : 22;
+  const Ht = padT + ih + padB;
+  const yAt = v => padT + ih - (Math.max(0, v) / yTop) * ih;
+  const base = padT + ih;
   const nodes = [];
   yTicks.forEach(v => {
     const y = yAt(v);
-    nodes.push(svgEl("line", { x1: pad.l, y1: y.toFixed(1), x2: W - pad.r, y2: y.toFixed(1), stroke: "#eceff3" }));
-    nodes.push(svgEl("text", { x: pad.l - 4, y: (y + 3).toFixed(1), "text-anchor": "end", fill: "#98a0b0", "font-size": 10 }, String(v)));
+    nodes.push(svgEl("line", { class: "g1-y-guide", x1: padL, y1: y.toFixed(1), x2: W - padR, y2: y.toFixed(1), stroke: "#eceff3", "data-value": String(v) }));
+    nodes.push(svgEl("text", { class: "g1-y-tick", x: padL - 4, y: (y + 3).toFixed(1), "text-anchor": "end", fill: "#98a0b0", "font-size": 10, "data-value": String(v) }, fmtGrouped(v)));
   });
-  nodes.push(svgEl("line", { x1: pad.l, y1: pad.t, x2: pad.l, y2: base, stroke: "#e1e4ec" }));
-  nodes.push(svgEl("line", { x1: pad.l, y1: base, x2: W - pad.r, y2: base, stroke: "#d5d9e2" }));
-  const slot = iw / bins.length;
+  nodes.push(svgEl("line", { x1: padL, y1: padT, x2: padL, y2: base, stroke: "#e1e4ec" }));
+  nodes.push(svgEl("line", { x1: padL, y1: base, x2: W - padR, y2: base, stroke: "#d5d9e2" }));
   const bw = Math.max(8, slot * 0.62);
   bins.forEach((count, i) => {
-    const cx = pad.l + slot * i + slot / 2;
+    const cx = padL + slot * i + slot / 2;
     const x = cx - bw / 2;
     const hgt = (Math.max(0, count) / yTop) * ih;
     const y = base - hgt;
@@ -2123,11 +2198,22 @@ function g1Histogram(bins, ownBin, xMax, xTicks) {
     else nodes.push(svgEl("path", { class: "g1-bin", d: "M" + x.toFixed(1) + " " + base + " L" + (x + bw).toFixed(1) + " " + base, fill: "none", stroke: mine ? "#E8774A" : "#5B7FE0", "stroke-width": "2", "data-you": mine ? "1" : "0", "data-count": "0" }));
     if (mine) nodes.push(svgEl("text", { x: cx.toFixed(1), y: Math.max(12, y - 5).toFixed(1), "text-anchor": "middle", fill: "#E8774A", "font-size": 11, "font-weight": "800" }, tr("You")));
   });
-  xTicks.forEach(v => {
-    const x = pad.l + (v / xMax) * iw;
-    nodes.push(svgEl("text", { x: x.toFixed(1), y: Ht - 6, "text-anchor": v === 0 ? "start" : v === xMax ? "end" : "middle", fill: "#98a0b0", "font-size": 10 }, fmt(v)));
+  xLabels.rows.forEach((row, i) => {
+    const cx = (padL + slot * i + slot / 2).toFixed(1);
+    if (xLabels.lines === 1) {
+      nodes.push(svgEl("text", { class: "g1-x-tick", x: cx, y: (base + 14).toFixed(1), "text-anchor": "middle", fill: "#98a0b0", "font-size": 10, "data-range": row.text }, row.text));
+    } else {
+      const label = svgEl("text", { class: "g1-x-tick", "text-anchor": "middle", fill: "#98a0b0", "font-size": 10, "data-range": row.text });
+      label.append(svgEl("tspan", { x: cx, y: (base + 12).toFixed(1) }, row.top));
+      label.append(svgEl("tspan", { x: cx, y: (base + 23).toFixed(1) }, row.bottom));
+      nodes.push(label);
+    }
   });
-  return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": tr("Number of completed games") }, nodes);
+  return svgEl("svg", {
+    viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img",
+    "aria-label": tr("Number of completed games"),
+    "data-y-mode": yScale.mode, "data-y-ticks": yTicks.join(","), "data-x-format": xLabels.format, "data-x-lines": String(xLabels.lines)
+  }, nodes);
 }
 function g1Percent(above, others) {
   if (above == null || !Number.isFinite(Number(above)) || !Number.isFinite(Number(others)) || Number(others) <= 0) return null;
@@ -2196,10 +2282,9 @@ function g1OnSection() {
       h("div", {}, h("span", {}, tr("Player average")), h("b", {}, fmt(avg))),
       h("div", {}, h("span", {}, tr("Percentile")), h("b", {}, pct == null ? "—" : tr("Top {0}%", pct)))
     );
-    const xTicks = mode === "total" ? [0, 1000, 2000, 3000, 4000, 5000] : [0, 200, 400, 600, 800, 1000];
-    const xMax = mode === "total" ? 5000 : 1000;
+    const binWidth = mode === "total" ? 500 : 100;
     plot.append(
-      h("div", { class: "g1-chart g1-hist" }, h("div", { class: "g1-ylab" }, tr("↑ Number of completed games")), h("div", {}, g1Histogram(bins, ownBin, xMax, xTicks), h("div", { class: "g-xlab" }, tr("Score range"))))
+      h("div", { class: "g1-chart g1-hist" }, h("div", { class: "g1-ylab" }, tr("↑ Number of completed games")), h("div", {}, g1Histogram(bins, ownBin, binWidth), h("div", { class: "g-xlab" }, tr("Score range"))))
     );
     legend.append(
       h("span", {}, h("i", { class: "you", "aria-hidden": "true" }), tr("Your score range")),
@@ -2221,6 +2306,7 @@ function g1OnSection() {
     h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
     picker, status, strip, plot, legend, foot, note, g1Privacy());
   paint();
+  if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(() => { if (section.isConnected) paint(); });
   if (!skipped && window.FieldCompare && session) {
     let stop = null;
     const apply = result => {
