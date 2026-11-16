@@ -1,4 +1,5 @@
 // node tools/answers.test.js — regression checks for answers.js (typo hardening + unit-aware estimates).
+const fs = require("fs"), path = require("path");
 const A = require("../answers.js");
 let bad = 0;
 const t = (name, got, exp) => { if (got !== exp) { bad++; console.log("FAIL", name, "->", got, "expected", exp); } };
@@ -32,10 +33,10 @@ const favreYes = ["Brett", "brett", "BRETT", "Brétt", "Bret", "bret", "Favre", 
 const favreNo = ["brent", "aaron rodgers", "Aaron Rodgers", "rodgers", "bart starr", "starr", "jordan love", "packers", "green bay", "greenbay", "", "asdf", "??", "br", "b", "karl", "hakeem", "brandi", "bo", "jackson"];
 favreYes.forEach(s => t("favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
 favreNo.forEach(s => t("favre reject " + s, A.checkAnswer(s, favreA, favreO), false));
-t("brett without allowlist", A.checkAnswer("Brett", favreA, { aliases: favreO.aliases, wrong: ["brett", "packers", "green bay"], q: "Who?" }), false);
-t("bret without allowlist", A.checkAnswer("Bret", favreA, { aliases: favreO.aliases, q: "Who?" }), false);
-t("hakeem still not a given name", A.checkAnswer("Hakeem", ["hakeem olajuwon", "olajuwon"], { person: true, q: "Who?" }), false);
-t("karl still not a given name", A.checkAnswer("Karl", ["karl malone", "malone"], { person: true, q: "Who?" }), false);
+t("brett listed wrong still rejected", A.checkAnswer("Brett", favreA, { aliases: favreO.aliases, wrong: ["brett", "packers", "green bay"], q: "Who?" }), false);
+t("bret is a typo of the first name", A.checkAnswer("Bret", favreA, { aliases: favreO.aliases, q: "Who?" }), true);
+t("hakeem first name accepted", A.checkAnswer("Hakeem", ["hakeem olajuwon", "olajuwon"], { person: true, q: "Who?" }), true);
+t("karl first name accepted", A.checkAnswer("Karl", ["karl malone", "malone"], { person: true, q: "Who?" }), true);
 t("brandi still rejected", A.checkAnswer("Brandi", ["chastain", "brandi chastain"], { wrong: ["brandi"], q: "Fill in her surname." }), false);
 // Florence Griffith Joyner and Jackie Joyner-Kersee share the surname, so a bare "joyner" is not Flo-Jo.
 const flo = ["florence griffith joyner", "flo-jo", "flo jo"];
@@ -56,5 +57,34 @@ t("willi is not Willie", A.checkAnswer("willi", ["Willie Mays"], { aliases: ["Wi
 A.setLang("es");
 ["Brett", "Bret", "Farve", "Fávre", "Brett Favre"].forEach(s => t("es favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
 ["brent", "rodgers", "packers", "", "asdf"].forEach(s => t("es favre reject " + s, A.checkAnswer(s, favreA, favreO), false));
+A.setLang("en");
+
+// Bare first name (Luke, Nov 16): same person path and typo band as the surname. One flag, default on.
+t("first-name flag default on", A.ACCEPT_BARE_FIRST_NAME, true);
+const appSrc = fs.readFileSync(path.join(__dirname, "../app.js"), "utf8");
+t("app passes noFirstName", appSrc.includes("noFirstName: src && src.noFirstName") && appSrc.includes("noFirstName: q.noFirstName"), true);
+const schu = ["michael schumacher", "schumacher"];
+const schuO = { q: "Silhouette clue: German Formula One driver. Who?", wrong: ["ralf schumacher", "mick schumacher"] };
+["Michael", "michael", "MICHAEL", "Míchael", "Micheal"].forEach(s => t("schumacher first " + s, A.checkAnswer(s, schu, schuO), true));
+["Ralf", "Ralf Schumacher", "Mick", "Mick Schumacher", "Gary"].forEach(s => t("schumacher other " + s, A.checkAnswer(s, schu, schuO), false));
+t("hakeem typo", A.checkAnswer("Hakeen", ["hakeem olajuwon", "olajuwon"], { person: true, q: "Who?" }), true);
+const opted = { q: "Silhouette clue: Who?", noFirstName: true };
+t("opt-out rejects first name", A.checkAnswer("Michael", schu, opted), false);
+t("opt-out keeps surname", A.checkAnswer("Schumacher", schu, opted), true);
+t("opt-out keeps full name", A.checkAnswer("Michael Schumacher", schu, opted), true);
+t("cowboys city unchanged", A.checkAnswer("Dallas", ["dallas cowboys", "cowboys"], { q: "Logo clue: NFL team, star on the helmet." }), false);
+t("high jump unchanged", A.checkAnswer("high", ["high jump", "the high jump"], { q: "Which track and field event?", noSurname: true }), false);
+t("your still rejected", A.checkAnswer("your", ["your opponent", "opponent"], { q: "Who wins the point?" }), false);
+t("mononym pele stays", A.checkAnswer("Pelé", ["pele", "pelé", "edson arantes do nascimento"], { q: "Silhouette clue: Who?" }), true);
+t("mononym does not grow a first name", A.checkAnswer("Edson", ["pele", "pelé", "edson arantes do nascimento"], { q: "Silhouette clue: Who?" }), false);
+t("kerri stays wrong", A.checkAnswer("Kerri", ["kerri strug", "strug"], { aliases: ["kerry strug"], wrong: ["kerri"], q: "Who?" }), false);
+t("kerry not rescued from kerri", A.checkAnswer("Kerry", ["kerri strug", "strug"], { aliases: ["kerry strug"], wrong: ["kerri"], q: "Who?" }), false);
+A.setLang("es");
+const jose = ["José Martínez", "Martínez"];
+const joseO = { q: "¿Quién es este jugador?" };
+["Jose", "José", "JOSE", "José Martínez", "Martínez", "Jsoe"].forEach(s => t("es jose " + s, A.checkAnswer(s, jose, joseO), true));
+["García", "Carlos", "barcelona"].forEach(s => t("es jose reject " + s, A.checkAnswer(s, jose, joseO), false));
+t("es team not loosened", A.checkAnswer("fc", ["fc barcelona"], { q: "¿Qué equipo es?" }), false);
+t("es opt-out", A.checkAnswer("José", jose, { q: "¿Quién es este jugador?", noFirstName: true }), false);
 A.setLang("en");
 console.log(bad ? bad + " failures" : "answers.test.js: all pass"); process.exit(bad ? 1 : 0);
