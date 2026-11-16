@@ -95,6 +95,16 @@ psqlDb("postgres", ["-c", "drop database if exists bc_field_hosted"]);
 
 execFileSync("sudo", ["-u", "postgres", "psql", "-d", "postgres", "-c", `drop database if exists ${db}`]);
 execFileSync("sudo", ["-u", "postgres", "psql", "-d", "postgres", "-c", `create database ${db}`]);
+// Hosted Supabase grants anon and authenticated every privilege on new public
+// views. This cluster does not, so the lock migration would not be the thing
+// that stops a public write.
+psql(["-c", `
+  do $$ begin
+    if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
+    if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+  end $$;
+  alter default privileges in schema public grant all on tables to anon, authenticated;
+`]);
 for (const file of migrations) psql(["-f", file]);
 
 const uidA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -316,6 +326,29 @@ t("definer functions stay private", !/create (or replace )?function public\./i.t
   const dayRes = await handle(new Request("http://local/field-compare/day?day=2026-11-09&runId=" + runE, { method: "GET", headers }));
   const day = await dayRes.json();
   t("http adapter writes as app_writer", (await startRes.json()).ok === true && (await finishRes.json()).total === 400 && day.comparison_available === false && day.reason === "threshold_unresolved" && day.own_included === true && day.histogram === null && q("select auth_uid::text from private.runs where run_id = '" + runE + "'") === uidE);
+  const gateSnap = q("select collection_enabled::text || '|' || coalesce(operator_contact, '') || '|' || coalesce(min_other_finishes::text, '') from private.field_gate where id = 1");
+  const expectStatus = JSON.parse(q("select json_build_object('collection_enabled', collection_enabled, 'contact_configured', operator_contact is not null, 'threshold_configured', min_other_finishes is not null)::text from private.field_gate where id = 1"));
+  const isStatus = row => !!row && row.raised == null && Object.keys(row).length === 3 && ["collection_enabled", "contact_configured", "threshold_configured"].every(key => typeof row[key] === "boolean" && row[key] === expectStatus[key]);
+  t("anon reads collection status booleans", isStatus(callAs("anon", "(select to_jsonb(s) from public.collection_status s)")));
+  t("authenticated reads collection status booleans", isStatus(callAs("authenticated", "(select to_jsonb(s) from public.collection_status s)")));
+  const anonUpdate = attempt("anon", "update public.collection_status set collection_enabled = false");
+  const anonDelete = attempt("anon", "delete from public.collection_status");
+  const anonInsert = attempt("anon", "insert into public.collection_status (collection_enabled) values (false)");
+  const authUpdate = attempt("authenticated", "update public.collection_status set collection_enabled = false");
+  const authDelete = attempt("authenticated", "delete from public.collection_status");
+  const authInsert = attempt("authenticated", "insert into public.collection_status (collection_enabled) values (false)");
+  // LIMIT makes the view non-updatable (55000) before the privilege check.
+  // The revoke alone is 42501. Either code means the write did not land.
+  const blocked = code => code === "42501" || code === "55000";
+  t("anon cannot update collection status", blocked(anonUpdate), anonUpdate);
+  t("anon cannot delete collection status", blocked(anonDelete), anonDelete);
+  t("anon cannot insert collection status", blocked(anonInsert), anonInsert);
+  t("authenticated cannot update collection status", blocked(authUpdate), authUpdate);
+  t("authenticated cannot delete collection status", blocked(authDelete), authDelete);
+  t("authenticated cannot insert collection status", blocked(authInsert), authInsert);
+  t("anon and authenticated have no collection status dml grant", q("select (not has_table_privilege('anon', 'public.collection_status', 'insert') and not has_table_privilege('anon', 'public.collection_status', 'update') and not has_table_privilege('anon', 'public.collection_status', 'delete') and not has_table_privilege('authenticated', 'public.collection_status', 'insert') and not has_table_privilege('authenticated', 'public.collection_status', 'update') and not has_table_privilege('authenticated', 'public.collection_status', 'delete'))::text") === "true");
+  const gateAfter = q("select collection_enabled::text || '|' || coalesce(operator_contact, '') || '|' || coalesce(min_other_finishes::text, '') from private.field_gate where id = 1");
+  t("collection status writes leave the gate row", gateAfter === gateSnap, gateAfter);
   console.log(bad ? bad + " failures" : "field-compare.pg.test.js: all pass");
   process.exit(bad ? 1 : 0);
 })().catch(err => { console.error(err); process.exit(1); });
