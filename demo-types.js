@@ -59,27 +59,27 @@ window.TYPE_DEMO = [
   {
     type: "pair",
     difficulty: "medium",
-    prompt: "Which came first?",
-    explain: "The earlier event is the answer in each round.",
+    prompt: { en: "Which came first?", es: "¿Cuál ocurrió primero?" },
+    explain: { en: "The earlier event is the answer in each round.", es: "En cada ronda, la respuesta es lo que ocurrió primero." },
     points: 250,
     rounds: [
-      { left: "Model T goes on sale", right: "Titanic sinks", correct: "left", note: "1908 vs 1912" },
-      { left: "First Moon landing", right: "Berlin Wall falls", correct: "left", note: "1969 vs 1989" },
-      { left: "Telephone patented", right: "Printing press", correct: "right", note: "The printing press is the 1400s; the telephone is 1876." },
-      { left: "Wright Flyer", right: "Model T goes on sale", correct: "left", note: "1903 vs 1908" },
-      { left: "First modern Olympics", right: "Titanic sinks", correct: "left", note: "1896 vs 1912" }
+      { left: { en: "Model T goes on sale", es: "El Modelo T sale a la venta" }, right: { en: "Titanic sinks", es: "Se hunde el Titanic" }, correct: "left", note: { en: "1908 vs 1912", es: "1908 contra 1912" } },
+      { left: { en: "First Moon landing", es: "El primer alunizaje" }, right: { en: "Berlin Wall falls", es: "Cae el Muro de Berlín" }, correct: "left", note: { en: "1969 vs 1989", es: "1969 contra 1989" } },
+      { left: { en: "Telephone patented", es: "Se patenta el teléfono" }, right: { en: "Printing press", es: "La imprenta" }, correct: "right", note: { en: "The printing press is the 1400s; the telephone is 1876.", es: "La imprenta es del siglo XV; el teléfono es de 1876." } },
+      { left: { en: "Wright Flyer", es: "El Wright Flyer" }, right: { en: "Model T goes on sale", es: "El Modelo T sale a la venta" }, correct: "left", note: { en: "1903 vs 1908", es: "1903 contra 1908" } },
+      { left: { en: "First modern Olympics", es: "Los primeros Juegos Olímpicos modernos" }, right: { en: "Titanic sinks", es: "Se hunde el Titanic" }, correct: "left", note: { en: "1896 vs 1912", es: "1896 contra 1912" } }
     ]
   },
   {
     type: "reveal",
     difficulty: "medium",
-    prompt: "Who is this?",
-    explain: "Serena Williams won her first US Open singles title in 1999.",
+    prompt: { en: "Who is this?", es: "¿Quién es?" },
+    explain: { en: "Serena Williams won her first US Open singles title in 1999.", es: "Serena Williams ganó su primer US Open de individuales en 1999." },
     points: 300,
     clues: [
-      "This player won more Open Era Grand Slam singles titles than any other woman.",
-      "She won her first US Open singles title in 1999.",
-      "Her sister Venus is also a tennis champion."
+      { en: "This player won more Open Era Grand Slam singles titles than any other woman.", es: "Esta jugadora ganó más títulos de Grand Slam en individuales de la Era Open que cualquier otra mujer." },
+      { en: "She won her first US Open singles title in 1999.", es: "Ganó su primer US Open de individuales en 1999." },
+      { en: "Her sister Venus is also a tennis champion.", es: "Su hermana Venus también es una campeona del tenis." }
     ],
     answer: "Serena Williams",
     accept: ["Serena", "Serena Williams", "S. Williams"]
@@ -146,8 +146,8 @@ window.SLOT_DEMO = {
   },
   history: { r1: window.TYPE_DEMO[1], r2: window.TYPE_DEMO[2] },
   historyOther: {
-    r1: { type: "mc", q: "Which came first?", options: ["Model T", "Titanic"], a: 0 },
-    r2: { type: "text", q: "Who invented the telephone?", answers: ["alexander graham bell", "bell"] }
+    r1: { type: "mc", q: { en: "Which came first?", es: "¿Cuál ocurrió primero?" }, options: [{ en: "Model T", es: "Modelo T" }, { en: "Titanic", es: "Titanic" }], a: 0 },
+    r2: { type: "text", q: { en: "Who invented the telephone?", es: "¿Quién inventó el teléfono?" }, answers: ["alexander graham bell", "bell", "alejandro graham bell"] }
   },
   order: { type: "order", q: "Put these teams in career order.", items: ["Alpha", "Beta", "Gamma"] },
   orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: { en: "Put the first stop at the top.", es: "La primera parada va arriba." } },

@@ -13,7 +13,7 @@
 body{margin:0;background:var(--c);color:var(--n);font:15px/1.4 "Bricolage Grotesque",system-ui,sans-serif}
 header{background:var(--n);color:var(--c);padding:16px;position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 h1{font:400 26px Anton,Impact,sans-serif;letter-spacing:.5px;margin:0}h1 b{color:var(--o);font-weight:400}h1 small{font:700 12px "Bricolage Grotesque";color:var(--y);margin-left:6px;vertical-align:middle}
-.pick{display:flex;gap:6px;align-items:center}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:100%}
 input[type=date]{font:inherit;padding:7px 8px;border-radius:10px;border:2px solid var(--y);background:var(--c);color:var(--n)}
 button,.btn{font:800 14px "Bricolage Grotesque";border:0;border-radius:12px;padding:9px 14px;background:var(--o);color:#fff;cursor:pointer;text-decoration:none;display:inline-block;box-shadow:0 3px 0 #a33b17}
 .btn.sec{background:var(--y);color:var(--n);box-shadow:0 3px 0 #b48d14}
@@ -42,7 +42,7 @@ details{margin-top:6px;background:var(--c);border-radius:10px;padding:6px 10px}s
 .it .b{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.it .b button{padding:7px 12px;font-size:13px}
 button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0262d;box-shadow:0 3px 0 #7d1419}button.sec{background:var(--y);color:var(--n);box-shadow:0 3px 0 #b48d14}
 .it.up button.ok,.it.down button.no{outline:3px solid var(--n)}
-@media(max-width:520px){h1{font-size:22px}.dh h2{font-size:19px}body{font-size:14px}}
+@media(max-width:520px){h1{font-size:22px}.dh h2{font-size:19px}body{font-size:14px}header{align-items:flex-start}.pick{width:100%}}
 </style>
 </head>
 <body>
@@ -58,10 +58,10 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="vendor/world-atlas/countries-110m.js"></script>
 <script src="map.js?v=nov3k"></script>
 <script src="anagrams.js?v=nov12"></script>
-<script src="content.js?v=nov18a"></script>
+<script src="content.js?v=nov18b"></script>
 <script src="assets/icons.js?v=nov3k"></script>
 <script src="answers.js?v=nov17a"></script>
-<script src="app.js?v=nov18a"></script>
+<script src="app.js?v=nov18b"></script>
 <script src="feedback.js?v=nov3k"></script>
 <script>
 (() => {

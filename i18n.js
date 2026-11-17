@@ -121,7 +121,7 @@
     "Skipped. Answer: {0}. +0": "Saltada. Respuesta: {0}. +0", "Time's up. Answer: {0}. +0": "Se acabó el tiempo. Respuesta: {0}. +0", "Answer: {0}. +0": "Respuesta: {0}. +0",
     // time warp
     "Round {0} of 2 · {1} · up to {2} pts": "Ronda {0} de 2 · {1} · hasta {2} pts", "Drag the cards into order — ": "Arrastra las tarjetas en orden: ", "Earliest ←": "Más antiguo ←", "→ Latest": "→ Más reciente", "Earliest": "Más antiguo", "Latest": "Más reciente",
-    "Correct order: ": "Orden correcto: ", "{0}/{1} pairs in order → {2} pts": "{0}/{1} pares en orden → {2} pts", "Round 2 →": "Ronda 2 →",
+    "Correct order: ": "Orden correcto: ", "{0} BC": "{0} a. C.", "{0}/{1} pairs in order → {2} pts": "{0}/{1} pares en orden → {2} pts", "Round 2 →": "Ronda 2 →",
     // sports
     "Question {0} of 3 · {1} · {2} pts": "Pregunta {0} de 3 · {1} · {2} pts", "Easy": "Fácil", "Medium": "Media", "Hard": "Difícil", "Next question →": "Siguiente pregunta →",
     "Type your answer": "Escribe tu respuesta", "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.": "Arrastra en orden: el primer equipo arriba. O usa ▲▼ (o las flechas del teclado), o toca dos fichas para cambiarlas.",
