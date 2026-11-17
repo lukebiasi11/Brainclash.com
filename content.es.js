@@ -2422,14 +2422,14 @@ window.CONTENT_ES = {
   ],
   [
     {
-      "q": "¿Qué postre dulce, servido con crema, es una tradición famosa del torneo de tenis de Wimbledon?",
+      "q": "¿Qué fruta, servida con crema, es una tradición famosa del torneo de tenis de Wimbledon?",
       "options": [
         "Fresas",
         "Frambuesas",
         "Arándanos",
         "Cerezas"
       ],
-      "explain": "Las fresas con crema son el refrigerio clásico de Wimbledon; los aficionados comen decenas de miles de porciones cada año.",
+      "explain": "Las fresas con crema son el refrigerio clásico de Wimbledon; los aficionados comen cientos de miles de porciones cada año.",
       "hint": "Pista: es roja, dulce y los aficionados la comen con crema mientras ven los partidos en las canchas de césped."
     },
     {
@@ -2630,7 +2630,7 @@ window.CONTENT_ES = {
     {
       "type": "bracket",
       "round": "Semifinal de la Copa del Mundo de la FIFA 2014 (8 de julio de 2014)",
-      "q": "Brasil era el anfitrión y enfrentó a Alemania. ¿Qué equipo ganó 7-1?",
+      "q": "¿Qué equipo ganó 7 a 1?",
       "matchup": [
         "Alemania",
         "Brasil"
@@ -3630,7 +3630,7 @@ window.CONTENT_ES = {
       ],
       "odd": 0,
       "why": "El triciclo tiene tres ruedas; los demás tienen dos",
-      "prompt": "Ordénalos por número de ruedas. ¿Cuál no pertenece?"
+      "prompt": "Cuenta las ruedas. ¿Cuál no encaja?"
     },
     {
       "words": [

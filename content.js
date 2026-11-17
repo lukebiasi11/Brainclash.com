@@ -3319,7 +3319,7 @@ window.CONTENT = {
         ],
         "odd": 0,
         "why": "A tricycle has three wheels; the others have two",
-        "prompt": "Sort by number of wheels. Which one doesn't belong?"
+        "prompt": "Count the wheels. Which one doesn't belong?"
       },
       {
         "words": [
