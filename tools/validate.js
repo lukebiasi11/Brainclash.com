@@ -19,11 +19,11 @@ const str = v => typeof v === "string" && v.trim() !== "";
 const textOrI18n = v => str(v) || (!!v && typeof v === "object" && !Array.isArray(v) && (str(v.en) || str(v.es)));
 const hintOk = textOrI18n;
 const list = (v, n) => Array.isArray(v) && (n == null || v.length === n);
-const mc = (w, o) => { if (!str(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
+const mc = (w, o) => { if (!textOrI18n(o.q)) E(w, "missing q"); if (!list(o.options) || o.options.length < 2 || !o.options.every(textOrI18n)) E(w, "options needs 2+ choices"); else if (!(Number.isInteger(o.a) && o.a >= 0 && o.a < o.options.length)) E(w, `a must be 0..${o.options.length - 1} (position of right answer, counting from 0)`); };
 const DIFFS = new Set(["easy", "medium", "hard"]);
 const typeMeta = (w, q) => {
   if (q.difficulty != null && !DIFFS.has(q.difficulty)) E(w, "difficulty must be easy, medium, or hard");
-  if (q.explain != null && !str(q.explain)) E(w, "explain must be text");
+  if (q.explain != null && !textOrI18n(q.explain)) E(w, "explain must be text");
 };
 const pairQ = (w, q) => {
   typeMeta(w, q);
@@ -39,8 +39,8 @@ const pairQ = (w, q) => {
 };
 const revealQ = (w, q) => {
   typeMeta(w, q);
-  if (!str(q.prompt)) E(w, "missing prompt");
-  if (!list(q.clues, 3) || !q.clues.every(str)) E(w, "clues must be exactly 3 strings, easiest last");
+  if (!textOrI18n(q.prompt)) E(w, "missing prompt");
+  if (!list(q.clues, 3) || !q.clues.every(textOrI18n)) E(w, "clues must be exactly 3 strings, easiest last");
   if (!str(q.answer)) E(w, "missing answer");
   if (!list(q.accept) || !q.accept.length || !q.accept.every(str)) E(w, "accept must be a non-empty list of text");
   if (q.given != null && !(list(q.given) && q.given.every(str))) E(w, "given must be a list of text");
@@ -48,7 +48,7 @@ const revealQ = (w, q) => {
 };
 const sliderQ = (w, q) => {
   typeMeta(w, q);
-  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!textOrI18n(q.prompt)) E(w, "missing prompt");
   ["min", "max", "step", "answer"].forEach(k => { if (typeof q[k] !== "number" || !isFinite(q[k])) E(w, k + " must be a finite number"); });
   if (!(q.max > q.min)) E(w, "max must be greater than min");
   if (!(q.step > 0)) E(w, "step must be > 0");
@@ -110,7 +110,7 @@ if (C) {
       if (t === "reveal") return revealQ(`${w} ${r}`, x);
       if (t === "mc") return mc(`${w} ${r}`, x);
       if (t === "text" || t === "typed") {
-        if (!str(x.q)) E(`${w} ${r}`, "missing q");
+        if (!textOrI18n(x.q)) E(`${w} ${r}`, "missing q");
         if (!list(x.answers) || !x.answers.length || !x.answers.every(str)) E(`${w} ${r}`, "answers must be a list of text");
         return;
       }

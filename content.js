@@ -3318,7 +3318,8 @@ window.CONTENT = {
           "Motorcycle"
         ],
         "odd": 0,
-        "why": "A tricycle has three wheels; the others have two"
+        "why": "A tricycle has three wheels; the others have two",
+        "prompt": "Count the wheels. Which one doesn't belong?"
       },
       {
         "words": [

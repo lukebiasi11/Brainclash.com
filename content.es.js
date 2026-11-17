@@ -2422,12 +2422,14 @@ window.CONTENT_ES = {
   ],
   [
     {
+      "q": "¿Qué fruta, servida con crema, es una tradición famosa del torneo de tenis de Wimbledon?",
       "options": [
         "Fresas",
         "Frambuesas",
         "Arándanos",
         "Cerezas"
       ],
+      "explain": "Las fresas con crema son el refrigerio clásico de Wimbledon; los aficionados comen cientos de miles de porciones cada año.",
       "hint": "Pista: es roja, dulce y los aficionados la comen con crema mientras ven los partidos en las canchas de césped."
     },
     {
@@ -2441,6 +2443,23 @@ window.CONTENT_ES = {
       "explain": "Carlos Alcaraz, de España, ganó el US Open de 2022 a los 19 años y se convirtió en el hombre más joven en llegar al número 1 del mundo (septiembre de 2022)."
     },
     {
+      "type": "match",
+      "kind": "match-records",
+      "q": "Relaciona a cada estrella del tenis con el país al que representa o representó.",
+      "left": [
+        "Maria Sharapova",
+        "Andy Murray",
+        "Jannik Sinner",
+        "Ash Barty"
+      ],
+      "right": [
+        "Italia",
+        "Rusia",
+        "Australia",
+        "Gran Bretaña"
+      ],
+      "pairs": [1, 3, 0, 2],
+      "explain": "Sharapova: Rusia. Murray: Gran Bretaña. Sinner: Italia. Barty: Australia.",
       "hint": "Toca a una estrella del tenis y luego el país al que representa o representó para emparejarlos."
     }
   ],
@@ -2476,7 +2495,18 @@ window.CONTENT_ES = {
     }
   ],
   [
-    null,
+    {
+      "type": "mc",
+      "q": "En el golf informal, ¿qué es un \"mulligan\"?",
+      "options": [
+        "Una repetición gratis de un mal golpe",
+        "Un hoyo en uno en un par 3",
+        "Un golpe desde un búnker de arena",
+        "Un empate después de 18 hoyos"
+      ],
+      "a": 0,
+      "explain": "Un mulligan es una segunda oportunidad informal para repetir un golpe; las reglas formales del golf no lo permiten."
+    },
     {
       "prompt": "Identifica a esta estrella del fútbol americano.",
       "explain": "Ray Lewis jugó las 17 temporadas de su carrera en la NFL con los Ravens, fue Jugador Defensivo del Año y MVP del Super Bowl XXXV en la temporada 2000, ganó un segundo Super Bowl en su último partido (2013) y fue elegido para el Salón de la Fama del Fútbol Americano Profesional en 2018.",
@@ -2487,6 +2517,14 @@ window.CONTENT_ES = {
       ]
     },
     {
+      "q": "Ordena a estos mariscales de campo según cuándo ganó cada uno su primer Super Bowl, el más antiguo primero.",
+      "items": [
+        "Troy Aikman",
+        "Kurt Warner",
+        "Drew Brees",
+        "Russell Wilson"
+      ],
+      "explain": "Aikman: Super Bowl XXVII (enero de 1993, Cowboys). Warner: Super Bowl XXXIV (enero de 2000, Rams). Brees: Super Bowl XLIV (febrero de 2010, Saints). Wilson: Super Bowl XLVIII (febrero de 2014, Seahawks).",
       "hint": "Arrastra a los mariscales de campo en orden según su primer Super Bowl ganado, el más antiguo arriba."
     }
   ],
@@ -2527,6 +2565,23 @@ window.CONTENT_ES = {
       "explain": "Londres fue sede de los Juegos Olímpicos de Verano de 2012. La ceremonia de apertura incluyó un sketch en video con Daniel Craig como James Bond escoltando a la reina Isabel II."
     },
     {
+      "type": "match",
+      "kind": "match-records",
+      "q": "Relaciona a cada gran figura olímpica con su deporte.",
+      "left": [
+        "Lindsey Vonn",
+        "Apolo Ohno",
+        "Kristi Yamaguchi",
+        "Allyson Felix"
+      ],
+      "right": [
+        "Atletismo",
+        "Patinaje artístico",
+        "Esquí alpino",
+        "Patinaje de velocidad"
+      ],
+      "pairs": [2, 3, 1, 0],
+      "explain": "Vonn: esquí alpino (oro en descenso en 2010). Ohno: patinaje de velocidad en pista corta (ocho medallas). Yamaguchi: patinaje artístico (oro en 1992). Felix: atletismo (velocidad).",
       "hint": "Toca a una leyenda olímpica y luego el deporte para emparejarlos."
     }
   ],
@@ -2538,7 +2593,31 @@ window.CONTENT_ES = {
     }
   ],
   [
-    null,
+    {
+      "type": "text",
+      "q": "¿Qué ex ala cerrada de la NFL ganó cuatro Super Bowls, tres con los Patriots y uno con los Buccaneers?",
+      "answers": [
+        "rob gronkowski",
+        "gronkowski",
+        "gronk"
+      ],
+      "aliases": [
+        "robert gronkowski",
+        "rob gronkowsky",
+        "gronkowsky",
+        "rob gronkowsi",
+        "rob gronkoski",
+        "gronkowski rob"
+      ],
+      "wrong": [
+        "tony gonzalez",
+        "jason witten"
+      ],
+      "given": [
+        "rob"
+      ],
+      "explain": "Rob \"Gronk\" Gronkowski ganó los Super Bowls XLIX, LI y LIII con los New England Patriots y el Super Bowl LV con los Tampa Bay Buccaneers."
+    },
     {
       "prompt": "Identifica a esta estrella del fútbol americano.",
       "explain": "Michael Strahan jugó 15 temporadas en la NFL con los New York Giants, ganó el Super Bowl XLII en febrero de 2008, entró al Salón de la Fama del Fútbol Americano Profesional en 2014 y más tarde copresentó Good Morning America y Live! with Kelly and Michael.",
@@ -2548,7 +2627,17 @@ window.CONTENT_ES = {
         "Después de retirarse se convirtió en estrella de la televisión y copresentó Good Morning America, de ABC."
       ]
     },
-    null
+    {
+      "type": "bracket",
+      "round": "Semifinal de la Copa del Mundo de la FIFA 2014 (8 de julio de 2014)",
+      "q": "¿Qué equipo ganó 7 a 1?",
+      "matchup": [
+        "Alemania",
+        "Brasil"
+      ],
+      "a": 0,
+      "explain": "Alemania venció 7-1 al anfitrión Brasil en la semifinal de la Copa del Mundo de 2014 en Belo Horizonte y luego ganó la final 1-0 ante Argentina."
+    }
   ],
   [
     {
@@ -3540,7 +3629,8 @@ window.CONTENT_ES = {
         "Motocicleta"
       ],
       "odd": 0,
-      "why": "El triciclo tiene tres ruedas; los demás tienen dos"
+      "why": "El triciclo tiene tres ruedas; los demás tienen dos",
+      "prompt": "Cuenta las ruedas. ¿Cuál no encaja?"
     },
     {
       "words": [

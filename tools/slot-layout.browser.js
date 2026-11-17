@@ -140,7 +140,9 @@ const stateExpr = `(() => {
       await open("/index.html?preview=slots&shot=warp&lang=" + lang);
       if (!await waitFor(cdp, `document.querySelector(".pair-card")`)) throw new Error("warp pair " + lang);
       const tq = await ev(cdp, stateExpr);
-      const warpOk = tq.cards === 2 && tq.overflow <= 1 && !tq.small.length && /which came first/i.test(tq.prompt) && (lang === "en" ? /time warp/i.test(tq.title) : /máquina del tiempo/i.test(tq.title));
+      const warpPromptOk = lang === "en" ? /which came first/i.test(tq.prompt) : /ocurrió primero/i.test(tq.prompt);
+      const warpCardOk = lang === "en" ? /model t goes on sale/i.test(tq.card) : /modelo t sale a la venta/i.test(tq.card);
+      const warpOk = tq.cards === 2 && tq.overflow <= 1 && !tq.small.length && warpPromptOk && warpCardOk && (lang === "en" ? /time warp/i.test(tq.title) : /máquina del tiempo/i.test(tq.title));
       if (!warpOk) fail(lang + " warp pair question", tq); else pass(lang + " warp pair question");
       await shot("slot-warp-" + lang + "-question.png");
       if (!await playPair("history.r1")) throw new Error("play warp pair " + lang);
@@ -154,7 +156,8 @@ const stateExpr = `(() => {
       if (!await clickRe(cdp, "/round 2|ronda 2/i")) throw new Error("round 2 " + lang);
       if (!await waitFor(cdp, `document.querySelector(".reveal-clue")`)) throw new Error("reveal " + lang);
       const rq = await ev(cdp, stateExpr);
-      if (rq.clues < 1 || rq.overflow > 1 || !/who is this/i.test(rq.prompt)) fail(lang + " warp reveal question", rq); else pass(lang + " warp reveal question");
+      const revealPromptOk = lang === "en" ? /who is this/i.test(rq.prompt) : /quién es/i.test(rq.prompt);
+      if (rq.clues < 1 || rq.overflow > 1 || !revealPromptOk) fail(lang + " warp reveal question", rq); else pass(lang + " warp reveal question");
       await shot("slot-warp-reveal-" + lang + "-question.png");
       await ev(cdp, `(() => { const i = document.querySelector(".txt"); i.value = "Serena Williams"; i.dispatchEvent(new Event("input")); document.querySelector("form.answer").requestSubmit(); return true; })()`);
       if (!await waitFor(cdp, `document.querySelector(".fb")`)) throw new Error("reveal score " + lang);
@@ -166,7 +169,7 @@ const stateExpr = `(() => {
 
       await open("/index.html?preview=slots&shot=mc&lang=" + lang);
       if (!await waitFor(cdp, `document.querySelector(".opt")`)) throw new Error("mc " + lang);
-      if (!await clickRe(cdp, "/^model t$/i")) throw new Error("mc choice " + lang);
+      if (!await clickRe(cdp, lang === "es" ? "/^modelo t$/i" : "/^model t$/i")) throw new Error("mc choice " + lang);
       if (!await waitFor(cdp, `document.querySelector(".fb")`)) throw new Error("mc score " + lang);
       const mc = await ev(cdp, stateExpr);
       if (!/\+400/.test(mc.fb) || mc.saved.length) fail(lang + " warp mc", mc); else pass(lang + " warp mc");

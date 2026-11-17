@@ -215,7 +215,13 @@ const sched = (name, arr, u, day) => { if (!Array.isArray(arr) || !arr.length) r
 const ES_OK = new Set(["worldRush", "history", "sports", "wordFlip", "connections", "oddOneOut", "thinkFast"]);
 function esMerge(en, es) {
   if (es == null) return en;
-  if (Array.isArray(en) && Array.isArray(es)) return en.map((x, i) => esMerge(x, es[i]));
+  if (Array.isArray(en) && Array.isArray(es)) {
+    // Index holes stay English (a null emoji or year). Extra Spanish spellings on
+    // typed-answer lists are kept: those lists are supersets of the English ones.
+    const merged = en.map((x, i) => esMerge(x, i < es.length ? es[i] : null));
+    for (let i = en.length; i < es.length; i++) merged.push(esMerge(undefined, es[i]));
+    return merged;
+  }
   if (en && typeof en === "object" && !Array.isArray(en) && typeof es === "object" && !Array.isArray(es)) {
     const o = { ...en }; for (const k of Object.keys(es)) o[k] = esMerge(en[k], es[k]); return o; }
   return es;
@@ -755,12 +761,12 @@ function worldRush() {
 }
 function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinLast) {
   if (visual) body.append(visual instanceof Node && visual.classList && visual.classList.contains("tf-svg") ? visual : h("div", { class: "visual" }, visual));
-  body.append(h("p", { class: "prompt" }, q));
+  body.append(h("p", { class: "prompt" }, showText(q)));
   let over = false;
   // order[pos] = original index. pinLast (optional index, e.g. an illusion's "They're equal") stays last, the rest seeded-shuffled.
   let order = seededOrder(options.length, session.key + "|" + qText(q));
   if (pinLast != null && pinLast >= 0) order = order.filter(i => i !== pinLast).concat(pinLast);
-  const opts = h("div", { class: "options" }, order.map(i => h("button", { class: "opt", onclick: () => choose(i) }, options[i])));
+  const opts = h("div", { class: "options" }, order.map(i => h("button", { class: "opt", onclick: () => choose(i) }, showText(options[i]))));
   body.append(opts);
   const skipBar = ensureSkipBar(body, () => choose(-2));
   const timer = seconds ? Timer(seconds, () => choose(-1), body.parentNode.querySelector(".game-head")) : null;
@@ -806,8 +812,8 @@ function history() {
       order.forEach((ev, pos) => {
         const e = rd.events[ev];
         const card = h("div", { class: "card", "data-ev": ev, tabindex: locked ? -1 : 0, "aria-label": e[1] + (locked ? "" : " — drag to reorder, or use arrow keys") },
-          h("div", { class: "pic" }, ic(e[0], e[3]), locked && window.histCredit && window.histCredit(e[3]) ? h("a", { class: "pcr", href: window.histCredit(e[3]), target: "_blank", rel: "noopener", "aria-label": "Photo credit", title: "Photo credit" }, "i") : null), h("div", { class: "cap" }, e[1]),
-          locked ? h("div", { class: "yr" }, e[2] < 0 ? -e[2] + " BC" : e[2]) : h("div", { class: "grip", "aria-hidden": "true" }, "⠿"));
+          h("div", { class: "pic" }, ic(e[0], e[3]), locked && window.histCredit && window.histCredit(e[3]) ? h("a", { class: "pcr", href: window.histCredit(e[3]), target: "_blank", rel: "noopener", "aria-label": "Photo credit", title: "Photo credit" }, "i") : null), h("div", { class: "cap" }, showText(e[1])),
+          locked ? h("div", { class: "yr" }, yearLabel(e[2])) : h("div", { class: "grip", "aria-hidden": "true" }, "⠿"));
         if (!locked) enableDrag(card);
         line.append(card);
       });
@@ -883,7 +889,7 @@ function history() {
       const pts = skipped ? 0 : Math.round(rd.max * good / pairs);
       render();
       const correct = rd.events.map((e, i) => i).sort((a, b) => rd.events[a][2] - rd.events[b][2]);
-      body.append(h("p", { class: "muted" }, tr("Correct order: ") + correct.map(i => rd.events[i][1] + " (" + (rd.events[i][2] < 0 ? -rd.events[i][2] + " BC" : rd.events[i][2]) + ")").join(" → ")));
+      body.append(h("p", { class: "muted" }, tr("Correct order: ") + correct.map(i => showText(rd.events[i][1]) + " (" + yearLabel(rd.events[i][2]) + ")").join(" → ")));
       feedback(body, skipped ? false : good === pairs ? true : good > pairs / 2 ? null : false, skipped ? tr("Skipped. +0") : tr("{0}/{1} pairs in order → {2} pts", good, pairs, pts));
       total += pts; log.push(pts); track(total); r++;
       body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
@@ -936,6 +942,20 @@ function localizedText(value) {
   }
   return "";
 }
+// Strings pass through. {en, es} picks the active language (Spanish falls back to English).
+// Nodes and arrays (flag questions) stay renderable.
+function showText(value) {
+  if (value == null || value === false) return "";
+  if (typeof value === "string") return value;
+  if (typeof Node !== "undefined" && value instanceof Node) return value;
+  if (Array.isArray(value)) return value.map(showText);
+  if (value && typeof value === "object") {
+    const text = localizedText(value);
+    if (text) return text;
+  }
+  return value;
+}
+function yearLabel(y) { return y < 0 ? tr("{0} BC", -y) : String(y); }
 function questionHint(q, fallback) {
   const custom = localizedText(q && q.hint);
   if (custom) return typeof q.hint === "string" ? tr(custom) : custom;
@@ -959,7 +979,7 @@ function flipPack(raw) {
 function orderQuestion(body, q, value, seconds, done) {
   const items = (q.items || []).slice();
   const n = items.length;
-  body.append(h("p", { class: "prompt" }, q.q));
+  body.append(h("p", { class: "prompt" }, showText(q.q)));
   const orderFallback = "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.";
   body.append(h("p", { class: "drag-hint" }, questionHint(q, orderFallback)));
   let order = seededOrder(n, session.key + "|order|" + q.q);
@@ -1031,7 +1051,7 @@ function orderQuestion(body, q, value, seconds, done) {
   const render = () => {
     list.innerHTML = "";
     order.forEach((idx, pos) => {
-      const label = items[idx];
+      const label = showText(items[idx]);
       const up = h("button", { class: "order-move", type: "button", "aria-label": "Move " + label + " up", disabled: locked || pos === 0, onclick: e => { e.stopPropagation(); move(pos, pos - 1); } }, "▲");
       const dn = h("button", { class: "order-move", type: "button", "aria-label": "Move " + label + " down", disabled: locked || pos === n - 1, onclick: e => { e.stopPropagation(); move(pos, pos + 1); } }, "▼");
       const chip = h("div", { class: "order-chip" + (sel === pos ? " order-sel" : ""), role: "listitem", tabindex: locked ? -1 : 0,
@@ -1076,7 +1096,7 @@ function orderQuestion(body, q, value, seconds, done) {
       chip.querySelectorAll("button").forEach(b => { b.disabled = true; });
       chip.tabIndex = -1;
     });
-    body.append(h("p", { class: "muted order-reveal" }, tr("Correct order: ") + items.join(" → ")));
+    body.append(h("p", { class: "muted order-reveal" }, tr("Correct order: ") + items.map(showText).join(" → ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
     const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? tr("Correct! +{0}", pts) : PARTIAL_ORDER ? tr("{0}/{1} in the right spot → +{2}", good, pairs, pts) : tr("Not quite. +0");
     feedback(body, exact && !skipped && !timedOut ? true : pts > 0 ? null : false, msg);
@@ -1091,8 +1111,8 @@ const PARTIAL_MATCH = true;
 function bracketQuestion(body, q, value, seconds, done) {
   const teams = (q.matchup || q.options || []).slice(0, 2);
   const answer = q.a;
-  if (q.round) body.append(h("p", { class: "bracket-round" }, q.round));
-  body.append(h("p", { class: "prompt" }, q.q));
+  if (q.round) body.append(h("p", { class: "bracket-round" }, showText(q.round)));
+  body.append(h("p", { class: "prompt" }, showText(q.q)));
   let over = false, picked = null;
   const fork = h("div", { class: "bracket-fork", "aria-hidden": "true" },
     h("span", { class: "bracket-arm" }), h("span", { class: "bracket-stem" }), h("span", { class: "bracket-cup" }));
@@ -1101,7 +1121,7 @@ function bracketQuestion(body, q, value, seconds, done) {
   // Seeded display shuffle (same pattern as mcQuestion) so a content a:0 is not always the first chip.
   // order[pos] = original index; picked/answer stay in ORIGINAL indices, so scoring is unchanged.
   const order = seededOrder(teams.length, session.key + "|bracket|" + qText(q.q));
-  order.forEach((i, pos) => { const name = teams[i];
+  order.forEach((i, pos) => { const name = showText(teams[i]);
     const b = h("button", { class: "bracket-chip", type: "button", "aria-pressed": "false",
       onclick: () => { if (over || b.dataset.dragged) return; picked = i; [...opts.children].forEach((c, j) => { c.classList.toggle("bracket-sel", j === pos); c.setAttribute("aria-pressed", j === pos ? "true" : "false"); }); live.textContent = name + " selected"; lockBtn.disabled = false; } }, name);
     // Drag-to-slot (Nov 1): dragging a chip onto the bracket/cup (drop slot) picks it exactly like a tap.
@@ -1148,7 +1168,7 @@ function matchQuestion(body, q, value, seconds, done) {
   const right = (q.right || []).slice();
   const pairs = (q.pairs || []).slice(); // pairs[i] = right-index for left[i]
   const n = left.length;
-  body.append(h("p", { class: "prompt" }, q.q));
+  body.append(h("p", { class: "prompt" }, showText(q.q)));
   body.append(h("p", { class: "drag-hint" }, questionHint(q, "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   // rightOrder[pos] = original right index at display position
@@ -1177,7 +1197,7 @@ function matchQuestion(body, q, value, seconds, done) {
         style: paired ? `--match-c:${color}` : "",
         onclick: () => onLeft(i) },
         paired ? h("span", { class: "match-num", "aria-hidden": "true" }, num) : null,
-        h("span", { class: "match-label" }, name));
+        h("span", { class: "match-label" }, showText(name)));
       if (!locked) enableDragLeft(b, i);
       leftCol.append(b);
     });
@@ -1191,7 +1211,7 @@ function matchQuestion(body, q, value, seconds, done) {
         style: paired ? `--match-c:${color}` : "",
         onclick: () => onRight(ri) },
         paired ? h("span", { class: "match-num", "aria-hidden": "true" }, String(owner + 1)) : null,
-        h("span", { class: "match-label" }, right[ri]));
+        h("span", { class: "match-label" }, showText(right[ri])));
       rightCol.append(b);
     });
     lockBtn.disabled = locked || link.some(x => x == null);
@@ -1275,7 +1295,7 @@ function matchQuestion(body, q, value, seconds, done) {
       chip.classList.toggle("order-wrong", linked !== ri);
     });
     // show correct mapping
-    const lines = left.map((name, i) => name + " → " + right[pairs[i]]);
+    const lines = left.map((name, i) => showText(name) + " → " + showText(right[pairs[i]]));
     body.append(h("p", { class: "muted order-reveal" }, tr("Correct: ") + lines.join("; ")));
     if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
     const msg = skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : exact ? tr("Correct! +{0}", pts) : PARTIAL_MATCH ? tr("{0}/{1} correct → +{2}", good, n, pts) : tr("Not quite. +0");
@@ -1292,7 +1312,7 @@ function typeDiff(q) {
   const name = { easy: "Easy", medium: "Medium", hard: "Hard" }[q && q.difficulty];
   return name ? h("p", { class: "q-diff" }, tr(name)) : null;
 }
-function typeExplain(body, q) { if (q && q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); }
+function typeExplain(body, q) { if (q && q.explain) body.append(h("p", { class: "muted tf-explain" }, showText(q.explain))); }
 function playNewType(body, q, value, seconds, done, pairFallback) {
   if (!q || (q.type !== "pair" && q.type !== "reveal" && q.type !== "slider")) return false;
   if (q.type === "pair") pairQuestion(body, q, value, pairFallback != null ? pairFallback : 8, done);
@@ -1379,11 +1399,11 @@ function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
   const parts = window.Answers.splitAccept(q.accept);
   const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
-  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: q.prompt || "", person: q.person };
+  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: showText(q.prompt || ""), person: q.person };
   let shown = 1, over = false;
   const banked = bankedPartial();
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
-  body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  body.append(h("p", { class: "prompt" }, showText(q.prompt || "")));
   const list = h("div", { class: "reveal-clues" });
   body.append(list);
   const input = h("input", { class: "txt", placeholder: tr("Type your answer"), autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Type your answer") });
@@ -1396,7 +1416,7 @@ function revealQuestion(body, q, value, seconds, done) {
   const timer = seconds ? Timer(seconds, () => end(0, true), typeHead(body)) : null;
   function draw() {
     list.replaceChildren();
-    clues.slice(0, shown).forEach((c, n) => list.append(h("p", { class: "reveal-clue" }, h("b", {}, tr("Clue {0} of {1}", n + 1, clues.length)), " ", c)));
+    clues.slice(0, shown).forEach((c, n) => list.append(h("p", { class: "reveal-clue" }, h("b", {}, tr("Clue {0} of {1}", n + 1, clues.length)), " ", showText(c))));
     next.hidden = shown >= clues.length;
   }
   function advance() {
@@ -1473,11 +1493,11 @@ function sliderQuestion(body, q, value, seconds, done) {
   const banked = bankedPartial();
   const art = sliderArt(q);
   const sliderDiff = typeDiff(q); if (sliderDiff) body.append(sliderDiff);
-  body.append(h("p", { class: "prompt" }, q.prompt || ""));
+  body.append(h("p", { class: "prompt" }, showText(q.prompt || "")));
   if (art) body.append(h("div", { class: "slider-art" }, art));
   const unit = q.unit ? h("span", { class: "slider-unit" }, tr(q.unit)) : null;
   const val = h("b", { class: "slider-val" }, String(valueNow));
-  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": q.prompt || tr("Your answer") });
+  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": showText(q.prompt) || tr("Your answer") });
   const typed = q.typed ? h("input", { class: "txt slider-type", type: "number", inputmode: "numeric", min: String(min), max: String(max), step: String(step), value: String(valueNow), "aria-label": tr("Type a number") }) : null;
   const show = n => {
     if (!Number.isFinite(n)) return;
@@ -1639,7 +1659,7 @@ function sports() {
 }
 function textQuestion(body, q, answers, value, seconds, done, visual, display, explain, src, tq) {
   if (visual) body.append(visual instanceof Node && visual.classList && (visual.classList.contains("tf-svg") || visual.classList.contains("ct-clues")) ? visual : h("div", { class: "visual" }, visual));
-  body.append(h("p", { class: "prompt" }, q));
+  body.append(h("p", { class: "prompt" }, showText(q)));
   let over = false;
   const input = h("input", { class: "txt", placeholder: tr("Type your answer"), autocomplete: "off", autocapitalize: "off", spellcheck: "false" });
   const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } }, input, h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
@@ -1843,7 +1863,7 @@ function oddOneOut() {
   const draw = () => {
     drawnAt = performance.now();
     prog.textContent = tr("Puzzle {0}/8 · {1} · {2} pts · Score {3}/1,000 pts", i + 1, tr(i < 4 ? tr("Medium") : tr("Hard")), val(i), fmt(total));
-    promptEl.textContent = list[i].prompt || tr("Which one doesn't belong?");
+    promptEl.textContent = showText(list[i].prompt) || tr("Which one doesn't belong?");
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
     opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
   };
@@ -1932,7 +1952,7 @@ const TF_KIND = { math: tr("Math trap"), sequence: tr("Sequence"), logic: tr("Lo
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
 function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer", true); }
 function guessQuestion(body, q, value, seconds, done, gq) {
-  body.append(h("p", { class: "prompt" }, q.q));
+  body.append(h("p", { class: "prompt" }, showText(q.q)));
   let over = false;
   const yearMode = q.exactYear === true || typeof q.yearBand === "number";
   const yearBand = typeof q.yearBand === "number" && isFinite(q.yearBand) ? Math.max(0, q.yearBand) : 0;
@@ -1991,7 +2011,7 @@ function thinkFast() {
     else if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
-      mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain)); next(pts); },
+      mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, showText(q.explain))); next(pts); },
         q.img || q.kind === "illusion" ? puzzleArt(q.img) : null, pin);
     } else textQuestion(body, q.q, q.answers, vals[i], TBD.think, next, q.img ? puzzleArt(q.img) : null, q.answers[0], q.explain, q);
   };

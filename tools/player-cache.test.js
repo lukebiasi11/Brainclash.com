@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov18a, i18n at v=nov17d, style.css at v=nov17c, and English and Spanish content at v=nov18a.
-// nov18a is the 11/18-24 content publish. style.css stays nov17c. i18n stays nov17d.
+// New HTML must request answers at v=nov17a, app.js at v=nov18c, i18n at v=nov18b, style.css at v=nov18b, and English and Spanish content at v=nov18c.
+// nov18c is the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,8 +8,8 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov18a";
-const CONTENT_V = "nov18a";
+const APP_V = "nov18c";
+const CONTENT_V = "nov18c";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
@@ -34,7 +34,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=nov17c"], ["i18n", "i18n.js?v=nov17d"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
+[["style", "style.css?v=nov18b"], ["i18n", "i18n.js?v=nov18b"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");

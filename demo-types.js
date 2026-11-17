@@ -45,41 +45,41 @@ window.TYPE_DEMO = [
   {
     type: "pair",
     difficulty: "easy",
-    prompt: "Larger by area?",
-    explain: "Brazil, Canada, Russia, India, and Algeria are the larger ones here.",
+    prompt: { en: "Larger by area?", es: "¿Cuál es más grande por superficie?" },
+    explain: { en: "Brazil, Canada, Russia, India, and Algeria are the larger ones here.", es: "Brasil, Canadá, Rusia, India y Argelia son los más grandes de esta lista." },
     points: 250,
     rounds: [
-      { left: "Brazil", right: "Australia", correct: "left", note: "Brazil is about 8.5 million km²; Australia about 7.7 million." },
-      { left: "Canada", right: "United States", correct: "left", note: "Canada is larger by area." },
-      { left: "China", right: "Russia", correct: "right", note: "Russia is the larger country." },
-      { left: "Argentina", right: "India", correct: "right", note: "India is larger by area." },
-      { left: "Algeria", right: "Mexico", correct: "left", note: "Algeria is larger by area." }
+      { left: { en: "Brazil", es: "Brasil" }, right: { en: "Australia", es: "Australia" }, correct: "left", note: { en: "Brazil is about 8.5 million km²; Australia about 7.7 million.", es: "Brasil tiene unos 8,5 millones de km²; Australia, unos 7,7 millones." } },
+      { left: { en: "Canada", es: "Canadá" }, right: { en: "United States", es: "Estados Unidos" }, correct: "left", note: { en: "Canada is larger by area.", es: "Canadá es más grande por superficie." } },
+      { left: { en: "China", es: "China" }, right: { en: "Russia", es: "Rusia" }, correct: "right", note: { en: "Russia is the larger country.", es: "Rusia es el país más grande." } },
+      { left: { en: "Argentina", es: "Argentina" }, right: { en: "India", es: "India" }, correct: "right", note: { en: "India is larger by area.", es: "India es más grande por superficie." } },
+      { left: { en: "Algeria", es: "Argelia" }, right: { en: "Mexico", es: "México" }, correct: "left", note: { en: "Algeria is larger by area.", es: "Argelia es más grande por superficie." } }
     ]
   },
   {
     type: "pair",
     difficulty: "medium",
-    prompt: "Which came first?",
-    explain: "The earlier event is the answer in each round.",
+    prompt: { en: "Which came first?", es: "¿Cuál ocurrió primero?" },
+    explain: { en: "The earlier event is the answer in each round.", es: "En cada ronda, la respuesta es lo que ocurrió primero." },
     points: 250,
     rounds: [
-      { left: "Model T goes on sale", right: "Titanic sinks", correct: "left", note: "1908 vs 1912" },
-      { left: "First Moon landing", right: "Berlin Wall falls", correct: "left", note: "1969 vs 1989" },
-      { left: "Telephone patented", right: "Printing press", correct: "right", note: "The printing press is the 1400s; the telephone is 1876." },
-      { left: "Wright Flyer", right: "Model T goes on sale", correct: "left", note: "1903 vs 1908" },
-      { left: "First modern Olympics", right: "Titanic sinks", correct: "left", note: "1896 vs 1912" }
+      { left: { en: "Model T goes on sale", es: "El Modelo T sale a la venta" }, right: { en: "Titanic sinks", es: "Se hunde el Titanic" }, correct: "left", note: { en: "1908 vs 1912", es: "1908 contra 1912" } },
+      { left: { en: "First Moon landing", es: "El primer alunizaje" }, right: { en: "Berlin Wall falls", es: "Cae el Muro de Berlín" }, correct: "left", note: { en: "1969 vs 1989", es: "1969 contra 1989" } },
+      { left: { en: "Telephone patented", es: "Se patenta el teléfono" }, right: { en: "Printing press", es: "La imprenta" }, correct: "right", note: { en: "The printing press is the 1400s; the telephone is 1876.", es: "La imprenta es del siglo XV; el teléfono es de 1876." } },
+      { left: { en: "Wright Flyer", es: "El Wright Flyer" }, right: { en: "Model T goes on sale", es: "El Modelo T sale a la venta" }, correct: "left", note: { en: "1903 vs 1908", es: "1903 contra 1908" } },
+      { left: { en: "First modern Olympics", es: "Los primeros Juegos Olímpicos modernos" }, right: { en: "Titanic sinks", es: "Se hunde el Titanic" }, correct: "left", note: { en: "1896 vs 1912", es: "1896 contra 1912" } }
     ]
   },
   {
     type: "reveal",
     difficulty: "medium",
-    prompt: "Who is this?",
-    explain: "Serena Williams won her first US Open singles title in 1999.",
+    prompt: { en: "Who is this?", es: "¿Quién es?" },
+    explain: { en: "Serena Williams won her first US Open singles title in 1999.", es: "Serena Williams ganó su primer US Open de individuales en 1999." },
     points: 300,
     clues: [
-      "This player won more Open Era Grand Slam singles titles than any other woman.",
-      "She won her first US Open singles title in 1999.",
-      "Her sister Venus is also a tennis champion."
+      { en: "This player won more Open Era Grand Slam singles titles than any other woman.", es: "Esta jugadora ganó más títulos de Grand Slam en individuales de la Era Open que cualquier otra mujer." },
+      { en: "She won her first US Open singles title in 1999.", es: "Ganó su primer US Open de individuales en 1999." },
+      { en: "Her sister Venus is also a tennis champion.", es: "Su hermana Venus también es una campeona del tenis." }
     ],
     answer: "Serena Williams",
     accept: ["Serena", "Serena Williams", "S. Williams"]
@@ -87,22 +87,22 @@ window.TYPE_DEMO = [
   {
     type: "reveal",
     difficulty: "easy",
-    prompt: "What is this?",
-    explain: "The Eiffel Tower was finished for the 1889 world's fair in Paris.",
+    prompt: { en: "What is this?", es: "¿Qué es esto?" },
+    explain: { en: "The Eiffel Tower was finished for the 1889 world's fair in Paris.", es: "La Torre Eiffel se terminó para la exposición universal de 1889 en París." },
     points: 300,
     clues: [
-      "It was built as the entrance to a world's fair.",
-      "It stands beside the Seine.",
-      "This iron tower is the symbol of Paris."
+      { en: "It was built as the entrance to a world's fair.", es: "Se construyó como la entrada de una exposición universal." },
+      { en: "It stands beside the Seine.", es: "Está junto al río Sena." },
+      { en: "This iron tower is the symbol of Paris.", es: "Esta torre de hierro es el símbolo de París." }
     ],
     answer: "Eiffel Tower",
-    accept: ["Eiffel", "the Eiffel Tower", "Tour Eiffel"]
+    accept: ["Eiffel", "the Eiffel Tower", "Tour Eiffel", "Torre Eiffel", "la Torre Eiffel"]
   },
   {
     type: "slider",
     difficulty: "medium",
-    prompt: "How many marbles are in the jar?",
-    explain: "The jar is drawn with exactly 437 marbles.",
+    prompt: { en: "How many marbles are in the jar?", es: "¿Cuántas canicas hay en el frasco?" },
+    explain: { en: "The jar is drawn with exactly 437 marbles.", es: "El frasco está dibujado con exactamente 437 canicas." },
     points: 1000,
     min: 0,
     max: 2000,
@@ -118,8 +118,8 @@ window.TYPE_DEMO = [
   {
     type: "slider",
     difficulty: "easy",
-    prompt: "How many keys does a standard piano have?",
-    explain: "A standard piano has 88 keys.",
+    prompt: { en: "How many keys does a standard piano have?", es: "¿Cuántas teclas tiene un piano estándar?" },
+    explain: { en: "A standard piano has 88 keys.", es: "Un piano estándar tiene 88 teclas." },
     points: 200,
     min: 0,
     max: 150,
@@ -138,16 +138,16 @@ window.SLOT_DEMO = {
     pair: Object.assign({}, window.TYPE_DEMO[0], {
       prompt: { en: "Which is bigger?", es: "¿Cuál es más grande?" },
       rounds: window.TYPE_DEMO[0].rounds.map((r, i) => i ? r : Object.assign({}, r, {
-        left: { en: r.left, es: "Brasil" },
-        right: { en: r.right, es: "Australia" },
-        note: { en: r.note, es: "Brasil es más grande por área." }
+        left: { en: r.left.en, es: "Brasil" },
+        right: { en: r.right.en, es: "Australia" },
+        note: { en: r.note.en, es: "Brasil es más grande por área." }
       }))
     })
   },
   history: { r1: window.TYPE_DEMO[1], r2: window.TYPE_DEMO[2] },
   historyOther: {
-    r1: { type: "mc", q: "Which came first?", options: ["Model T", "Titanic"], a: 0 },
-    r2: { type: "text", q: "Who invented the telephone?", answers: ["alexander graham bell", "bell"] }
+    r1: { type: "mc", q: { en: "Which came first?", es: "¿Cuál ocurrió primero?" }, options: [{ en: "Model T", es: "Modelo T" }, { en: "Titanic", es: "Titanic" }], a: 0 },
+    r2: { type: "text", q: { en: "Who invented the telephone?", es: "¿Quién inventó el teléfono?" }, answers: ["alexander graham bell", "bell", "alejandro graham bell"] }
   },
   order: { type: "order", q: "Put these teams in career order.", items: ["Alpha", "Beta", "Gamma"] },
   orderHint: { type: "order", q: "Put these stops in order.", items: ["Alpha", "Beta", "Gamma"], hint: { en: "Put the first stop at the top.", es: "La primera parada va arriba." } },
