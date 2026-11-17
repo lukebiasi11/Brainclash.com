@@ -45,15 +45,15 @@ window.TYPE_DEMO = [
   {
     type: "pair",
     difficulty: "easy",
-    prompt: "Larger by area?",
-    explain: "Brazil, Canada, Russia, India, and Algeria are the larger ones here.",
+    prompt: { en: "Larger by area?", es: "¿Cuál es más grande por superficie?" },
+    explain: { en: "Brazil, Canada, Russia, India, and Algeria are the larger ones here.", es: "Brasil, Canadá, Rusia, India y Argelia son los más grandes de esta lista." },
     points: 250,
     rounds: [
-      { left: "Brazil", right: "Australia", correct: "left", note: "Brazil is about 8.5 million km²; Australia about 7.7 million." },
-      { left: "Canada", right: "United States", correct: "left", note: "Canada is larger by area." },
-      { left: "China", right: "Russia", correct: "right", note: "Russia is the larger country." },
-      { left: "Argentina", right: "India", correct: "right", note: "India is larger by area." },
-      { left: "Algeria", right: "Mexico", correct: "left", note: "Algeria is larger by area." }
+      { left: { en: "Brazil", es: "Brasil" }, right: { en: "Australia", es: "Australia" }, correct: "left", note: { en: "Brazil is about 8.5 million km²; Australia about 7.7 million.", es: "Brasil tiene unos 8,5 millones de km²; Australia, unos 7,7 millones." } },
+      { left: { en: "Canada", es: "Canadá" }, right: { en: "United States", es: "Estados Unidos" }, correct: "left", note: { en: "Canada is larger by area.", es: "Canadá es más grande por superficie." } },
+      { left: { en: "China", es: "China" }, right: { en: "Russia", es: "Rusia" }, correct: "right", note: { en: "Russia is the larger country.", es: "Rusia es el país más grande." } },
+      { left: { en: "Argentina", es: "Argentina" }, right: { en: "India", es: "India" }, correct: "right", note: { en: "India is larger by area.", es: "India es más grande por superficie." } },
+      { left: { en: "Algeria", es: "Argelia" }, right: { en: "Mexico", es: "México" }, correct: "left", note: { en: "Algeria is larger by area.", es: "Argelia es más grande por superficie." } }
     ]
   },
   {
@@ -87,22 +87,22 @@ window.TYPE_DEMO = [
   {
     type: "reveal",
     difficulty: "easy",
-    prompt: "What is this?",
-    explain: "The Eiffel Tower was finished for the 1889 world's fair in Paris.",
+    prompt: { en: "What is this?", es: "¿Qué es esto?" },
+    explain: { en: "The Eiffel Tower was finished for the 1889 world's fair in Paris.", es: "La Torre Eiffel se terminó para la exposición universal de 1889 en París." },
     points: 300,
     clues: [
-      "It was built as the entrance to a world's fair.",
-      "It stands beside the Seine.",
-      "This iron tower is the symbol of Paris."
+      { en: "It was built as the entrance to a world's fair.", es: "Se construyó como la entrada de una exposición universal." },
+      { en: "It stands beside the Seine.", es: "Está junto al río Sena." },
+      { en: "This iron tower is the symbol of Paris.", es: "Esta torre de hierro es el símbolo de París." }
     ],
     answer: "Eiffel Tower",
-    accept: ["Eiffel", "the Eiffel Tower", "Tour Eiffel"]
+    accept: ["Eiffel", "the Eiffel Tower", "Tour Eiffel", "Torre Eiffel", "la Torre Eiffel"]
   },
   {
     type: "slider",
     difficulty: "medium",
-    prompt: "How many marbles are in the jar?",
-    explain: "The jar is drawn with exactly 437 marbles.",
+    prompt: { en: "How many marbles are in the jar?", es: "¿Cuántas canicas hay en el frasco?" },
+    explain: { en: "The jar is drawn with exactly 437 marbles.", es: "El frasco está dibujado con exactamente 437 canicas." },
     points: 1000,
     min: 0,
     max: 2000,
@@ -118,8 +118,8 @@ window.TYPE_DEMO = [
   {
     type: "slider",
     difficulty: "easy",
-    prompt: "How many keys does a standard piano have?",
-    explain: "A standard piano has 88 keys.",
+    prompt: { en: "How many keys does a standard piano have?", es: "¿Cuántas teclas tiene un piano estándar?" },
+    explain: { en: "A standard piano has 88 keys.", es: "Un piano estándar tiene 88 teclas." },
     points: 200,
     min: 0,
     max: 150,
@@ -138,9 +138,9 @@ window.SLOT_DEMO = {
     pair: Object.assign({}, window.TYPE_DEMO[0], {
       prompt: { en: "Which is bigger?", es: "¿Cuál es más grande?" },
       rounds: window.TYPE_DEMO[0].rounds.map((r, i) => i ? r : Object.assign({}, r, {
-        left: { en: r.left, es: "Brasil" },
-        right: { en: r.right, es: "Australia" },
-        note: { en: r.note, es: "Brasil es más grande por área." }
+        left: { en: r.left.en, es: "Brasil" },
+        right: { en: r.right.en, es: "Australia" },
+        note: { en: r.note.en, es: "Brasil es más grande por área." }
       }))
     })
   },

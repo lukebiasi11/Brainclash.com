@@ -1497,7 +1497,7 @@ function sliderQuestion(body, q, value, seconds, done) {
   if (art) body.append(h("div", { class: "slider-art" }, art));
   const unit = q.unit ? h("span", { class: "slider-unit" }, tr(q.unit)) : null;
   const val = h("b", { class: "slider-val" }, String(valueNow));
-  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": q.prompt || tr("Your answer") });
+  const range = h("input", { class: "slider-range", type: "range", min: String(min), max: String(max), step: String(step), value: String(valueNow), "data-answer": String(q.answer), "aria-label": showText(q.prompt) || tr("Your answer") });
   const typed = q.typed ? h("input", { class: "txt slider-type", type: "number", inputmode: "numeric", min: String(min), max: String(max), step: String(step), value: String(valueNow), "aria-label": tr("Type a number") }) : null;
   const show = n => {
     if (!Number.isFinite(n)) return;

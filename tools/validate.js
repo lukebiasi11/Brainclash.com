@@ -48,7 +48,7 @@ const revealQ = (w, q) => {
 };
 const sliderQ = (w, q) => {
   typeMeta(w, q);
-  if (!str(q.prompt)) E(w, "missing prompt");
+  if (!textOrI18n(q.prompt)) E(w, "missing prompt");
   ["min", "max", "step", "answer"].forEach(k => { if (typeof q[k] !== "number" || !isFinite(q[k])) E(w, k + " must be a finite number"); });
   if (!(q.max > q.min)) E(w, "max must be greater than min");
   if (!(q.step > 0)) E(w, "step must be > 0");
