@@ -1255,6 +1255,16 @@ function matchQuestion(body, q, value, seconds, done) {
         if (ev && ev.pointerId !== e.pointerId) return;
         window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
         ghost.remove(); document.body.classList.remove("is-dragging");
+        // Touch taps fire pointerup and then a click. The click would call onLeft again and clear the selection.
+        // Drop that follow-up click only. Keyboard clicks (detail 0) and other chips are left alone.
+        const swallow = e2 => {
+          const hit = e2.target && e2.target.closest && e2.target.closest("[data-left]");
+          if (!(hit && +hit.dataset.left === i && (e2.detail > 0 || e2.pointerType === "touch"))) return;
+          document.removeEventListener("click", swallow, true);
+          e2.preventDefault(); e2.stopImmediatePropagation();
+        };
+        document.addEventListener("click", swallow, true);
+        setTimeout(() => document.removeEventListener("click", swallow, true), 500);
         if (moved) {
           const el = document.elementFromPoint(lastX, lastY);
           const tgt = el && el.closest && el.closest(".match-right .match-chip");
