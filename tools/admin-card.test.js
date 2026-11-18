@@ -95,7 +95,7 @@ function textOf(v) {
 const from = B.dayOfKey("2026-10-23"), to = B.dayOfKey("2027-01-31");
 const scheduled = [];
 for (let d = from; d <= to; d++) scheduled.push(B.keyOf(d));
-for (const k of Object.keys(sandbox.DAY_OVERRIDES || {})) if (!scheduled.includes(k)) scheduled.push(k);
+for (const k of Object.keys(sandbox.DAY_OVERRIDES || {})) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && !scheduled.includes(k)) scheduled.push(k);
 
 let badDays = [];
 for (const k of scheduled) {

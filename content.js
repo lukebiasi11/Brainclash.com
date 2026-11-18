@@ -1006,6 +1006,90 @@ window.CONTENT = {
         "a": 1,
         "explain": "Cranberries are native to eastern North America. Wheat comes from Southwest Asia, peas from the Mediterranean region and southwest Asia, and carrots from Europe and Southwestern Asia."
       }
+    },
+    {
+      "pins": [
+        {
+          "name": "Land's End, England",
+          "lat": 50.07,
+          "lon": -5.71
+        },
+        {
+          "name": "Cancún, Mexico",
+          "lat": 21.16,
+          "lon": -86.85
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is taller?",
+          "es": "¿Cuál es más alto?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "An African elephant",
+              "es": "Un elefante africano"
+            },
+            "right": {
+              "en": "A giraffe",
+              "es": "Una jirafa"
+            },
+            "correct": "right",
+            "note": "The giraffe is the tallest living land animal; an elephant's shoulder height is about 3 to 3.4 m."
+          },
+          {
+            "left": {
+              "en": "A basketball hoop (rim)",
+              "es": "Un aro de baloncesto"
+            },
+            "right": {
+              "en": "A men's volleyball net (top)",
+              "es": "La red de voleibol masculino (borde superior)"
+            },
+            "correct": "left",
+            "note": "A basketball rim is 10 feet (3.05 m) above the court. The top of a men's volleyball net is 2.43 m."
+          },
+          {
+            "left": {
+              "en": "One World Trade Center",
+              "es": "El One World Trade Center"
+            },
+            "right": {
+              "en": "The Christ the Redeemer statue",
+              "es": "La estatua del Cristo Redentor"
+            },
+            "correct": "left",
+            "note": "One World Trade Center: 541 m (1,776 ft). Christ the Redeemer: a 30 m statue on an 8 m pedestal."
+          },
+          {
+            "left": {
+              "en": "Mount Whitney",
+              "es": "El monte Whitney"
+            },
+            "right": {
+              "en": "Denali",
+              "es": "Denali"
+            },
+            "correct": "right",
+            "note": "Denali 6,190 m vs Mount Whitney 4,421 m."
+          },
+          {
+            "left": {
+              "en": "Tokyo Skytree",
+              "es": "La Tokyo Skytree"
+            },
+            "right": {
+              "en": "The CN Tower",
+              "es": "La Torre CN"
+            },
+            "correct": "left",
+            "note": "Tokyo Skytree 634 m vs CN Tower 553 m."
+          }
+        ],
+        "explain": "Heights from Wikipedia. Mountains are compared by height above sea level."
+      }
     }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -1772,6 +1856,120 @@ window.CONTENT = {
             "🐕",
             "NBC begins airing the National Dog Show on Thanksgiving Day",
             2002
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Time capsule",
+        "events": [
+          [
+            "🥤",
+            "The soft drink Dr Pepper is first sold",
+            1885
+          ],
+          [
+            "🍪",
+            "Ruth Wakefield's Toll House cookie recipe appears in her cookbook",
+            1938
+          ],
+          [
+            "📼",
+            "VHS video recorders go on sale in the United States",
+            1977
+          ],
+          [
+            "🟩",
+            "The word game Wordle is released and goes viral",
+            2021
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Toys and gadgets",
+        "events": [
+          [
+            "🥔",
+            "Mr. Potato Head goes on sale",
+            1952
+          ],
+          [
+            "🏎️",
+            "Mattel introduces Hot Wheels",
+            1968
+          ],
+          [
+            "🎎",
+            "Coleco produces the first Cabbage Patch Kids dolls",
+            1982
+          ],
+          [
+            "🦉",
+            "Furby is released",
+            1998
+          ],
+          [
+            "🕹️",
+            "Nintendo Switch is released",
+            2017
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Rivals and showdowns",
+        "events": [
+          [
+            "🐎",
+            "Seabiscuit beats War Admiral in their match race",
+            1938
+          ],
+          [
+            "🦸",
+            "Marvel launches the Fantastic Four to compete with DC's Justice League",
+            1961
+          ],
+          [
+            "🥤",
+            "Coca-Cola launches New Coke to fight Pepsi's gains",
+            1985
+          ],
+          [
+            "💻",
+            "Apple's \"Get a Mac\" ads pit a Mac against a PC",
+            2006
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Pop-culture favorites",
+        "events": [
+          [
+            "💪",
+            "Popeye the Sailor Man first appears in a newspaper comic strip",
+            1929
+          ],
+          [
+            "🎨",
+            "Play-Doh goes on sale as a toy",
+            1956
+          ],
+          [
+            "🍟",
+            "The Happy Meal goes national in the U.S.",
+            1979
+          ],
+          [
+            "📺",
+            "The Teletubbies arrive on TV",
+            1997
+          ],
+          [
+            "🕺",
+            "The \"Gangnam Style\" dance craze takes off",
+            2012
           ]
         ]
       }
@@ -2932,6 +3130,131 @@ window.CONTENT = {
           "explain": "Pippen nació en 1965, Mayweather en 1977, Morgan en 1989 y Mbappé en 1998."
         }
       }
+    ],
+    [
+      {
+        "type": "pair",
+        "prompt": {
+          "en": "Which came first?",
+          "es": "¿Cuál ocurrió primero?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Evel Knievel tries to jump a canyon on a rocket-powered motorcycle",
+              "es": "Evel Knievel intenta saltar un cañón en una motocicleta impulsada por cohete"
+            },
+            "right": {
+              "en": "Luka Dončić is traded in a shock NBA blockbuster deal",
+              "es": "Luka Dončić es traspasado en un sorpresivo cambio bomba de la NBA"
+            },
+            "correct": "left",
+            "note": "Knievel's Snake River Canyon jump: 1974. Dončić trade: 2025."
+          },
+          {
+            "left": {
+              "en": "Ronda Rousey becomes the UFC's first women's champion",
+              "es": "Ronda Rousey se convierte en la primera campeona femenina de la UFC"
+            },
+            "right": {
+              "en": "Doug Flutie throws his famous last-second 'Hail Mary' touchdown pass",
+              "es": "Doug Flutie lanza su famoso pase de touchdown 'Hail Mary' en el último segundo"
+            },
+            "correct": "right",
+            "note": "Flutie's Hail Mary: 1984. Rousey: 2012."
+          },
+          {
+            "left": {
+              "en": "Ronaldinho wins the Ballon d'Or",
+              "es": "Ronaldinho gana el Balón de Oro"
+            },
+            "right": {
+              "en": "Erling Haaland breaks the Premier League single-season scoring record",
+              "es": "Erling Haaland rompe el récord de goles en una sola temporada de la Premier League"
+            },
+            "correct": "left",
+            "note": {
+              "en": "Ronaldinho: 2005. Haaland: record broken May 2023.",
+              "es": "Ronaldinho: 2005. Haaland: récord roto en mayo de 2023."
+            }
+          },
+          {
+            "left": {
+              "en": "Neymar makes his world-record €222 million transfer",
+              "es": "Neymar protagoniza su fichaje récord mundial de 222 millones de euros"
+            },
+            "right": {
+              "en": "Sugar Ray Leonard upsets 'Marvelous' Marvin Hagler",
+              "es": "Sugar Ray Leonard vence por sorpresa a 'Marvelous' Marvin Hagler"
+            },
+            "correct": "right",
+            "note": "Leonard vs. Hagler: 1987. Neymar: 2017."
+          },
+          {
+            "left": {
+              "en": "Jeremy Lin's 'Linsanity' takes over the NBA",
+              "es": "La 'Linsanity' de Jeremy Lin se apodera de la NBA"
+            },
+            "right": {
+              "en": "Max Verstappen wins his first F1 world title",
+              "es": "Max Verstappen gana su primer campeonato mundial de F1"
+            },
+            "correct": "left",
+            "note": "Linsanity: February 2012. Verstappen: 2021."
+          }
+        ],
+        "explain": "Big sports moments, one year each: Knievel's canyon jump 1974, Flutie's Hail Mary 1984, Leonard over Hagler 1987, Ronaldinho's Ballon d'Or 2005, Linsanity 2012, Rousey 2012, Neymar 2017, Verstappen 2021, Haaland 2023, Dončić trade 2025."
+      },
+      {
+        "type": "mc",
+        "q": "Which fast-growing paddle sport is played with a hollow plastic ball full of holes, hit over a low net?",
+        "options": [
+          "Racquetball",
+          "Pickleball",
+          "Cornhole",
+          "Wiffle ball"
+        ],
+        "a": 1,
+        "explain": "Pickleball. Players use solid paddles and a perforated plastic ball over a net about 34 inches (86 cm) high. It was invented in 1965.",
+        "es": {
+          "q": "¿Qué deporte de paleta, cada vez más popular, se juega con una pelota de plástico hueca llena de agujeros que se golpea por encima de una red baja?",
+          "options": [
+            "Ráquetbol",
+            "Pickleball",
+            "Cornhole",
+            "Wiffle ball"
+          ],
+          "explain": "El pickleball. Se juega con paletas sólidas y una pelota de plástico perforada sobre una red de unos 86 cm de alto. Se inventó en 1965."
+        }
+      },
+      {
+        "type": "match",
+        "kind": "match-records",
+        "q": "Match each star to her or his sport.",
+        "left": [
+          "Megan Rapinoe",
+          "Jeff Gordon",
+          "Andy Roddick",
+          "Manny Pacquiao"
+        ],
+        "right": [
+          "Boxing",
+          "Soccer",
+          "Tennis",
+          "Auto racing"
+        ],
+        "pairs": [
+          1,
+          3,
+          2,
+          0
+        ],
+        "explain": "Rapinoe: soccer (2019 Women's World Cup Golden Ball and Golden Boot). Gordon: NASCAR auto racing (four Cup Series titles). Roddick: tennis (2003 US Open champion). Pacquiao: boxing (world titles in eight weight divisions).",
+        "hint": {
+          "en": "Tap a star, then the sport, to pair them.",
+          "es": "Toca a una estrella y luego el deporte para emparejarlos."
+        }
+      }
     ]
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
@@ -3198,6 +3521,37 @@ window.CONTENT = {
             "HATFIELDS",
             "MCCOYS",
             "MONTAGUES"
+          ],
+          "pts": 400
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "name": "Cartoon chasers",
+          "words": [
+            "TOM",
+            "SYLVESTER",
+            "COYOTE"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Their prey",
+          "words": [
+            "JERRY",
+            "TWEETY",
+            "ROADRUNNER"
+          ],
+          "pts": 300
+        },
+        {
+          "name": "Other cartoon birds",
+          "words": [
+            "DONALD",
+            "ZAZU",
+            "SCROOGE"
           ],
           "pts": 400
         }
@@ -4085,6 +4439,83 @@ window.CONTENT = {
         ],
         "explain": "A turkey. It shares its name with the country Turkey, and it's often roasted with stuffing."
       }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "Four friends ran a race with no ties. Omar beat Leo. Leo beat Ana. Nina crossed the line right after Omar. Who finished third?",
+        "options": [
+          "Omar",
+          "Nina",
+          "Leo",
+          "Ana"
+        ],
+        "a": 2,
+        "explain": "Omar beat Leo, and Leo beat Ana, so the order is Omar, then Leo, then Ana. Nina came right after Omar, which puts her ahead of Leo: Omar, Nina, Leo, Ana. Leo was third."
+      },
+      {
+        "kind": "illusion",
+        "type": "mc",
+        "img": "illusion-08",
+        "q": "Which gray square is darker?",
+        "options": [
+          "The left square",
+          "The right square",
+          "They are exactly the same shade"
+        ],
+        "a": 2,
+        "explain": "Both squares are exactly the same gray. The dark and light backgrounds change how you see them (simultaneous contrast)."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "Two friends played five games of checkers. Each of them won the same number of games, and none of the games ended in a tie, and every game was played to the end. How is that possible?",
+        "options": [
+          "One game was never finished",
+          "They weren't playing against each other",
+          "One of them won a game twice",
+          "They switched sides halfway through"
+        ],
+        "a": 1,
+        "explain": "They each played other opponents, not each other. Five games can't split evenly between two players with no ties, so the two friends can't have been playing one another."
+      },
+      {
+        "kind": "riddle",
+        "q": "It was given to you for free, it belongs only to you, and you never lose it, yet other people use it far more often than you do. What is it?",
+        "answers": [
+          "your name",
+          "name",
+          "my name",
+          "a name",
+          "tu nombre",
+          "nombre",
+          "mi nombre",
+          "el nombre"
+        ],
+        "aliases": [
+          "ur name",
+          "one's name",
+          "your first name",
+          "first name",
+          "the name",
+          "names",
+          "su nombre",
+          "un nombre",
+          "tu nombre propio"
+        ],
+        "wrong": [
+          "phone number",
+          "address",
+          "birthday",
+          "número de teléfono",
+          "dirección",
+          "cumpleaños"
+        ],
+        "explain": "Your name. Your parents gave it to you for free, it's yours alone, but other people say, write and call out your name far more often than you do."
+      }
     ]
   ]
 };
@@ -4092,6 +4523,7 @@ window.CONTENT = {
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
 // 2026-11-18 through 2026-11-24 pin appended sets. 2026-11-25 is not scheduled.
+// 2026-11-20, 2026-11-21 and 2026-11-22 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
 window.DAY_OVERRIDES["2026-11-14"] = {"worldRush":47,"history":47,"sports":47,"thinkFast":49,"wordBridge":11};
@@ -4100,8 +4532,11 @@ window.DAY_OVERRIDES["2026-11-16"] = {"worldRush":49,"history":49,"sports":49,"t
 window.DAY_OVERRIDES["2026-11-17"] = {"worldRush":50,"history":50,"sports":50,"thinkFast":52,"anagram":13};
 window.DAY_OVERRIDES["2026-11-18"] = {"worldRush":51,"history":51,"sports":51,"thinkFast":53,"wordFlip":11};
 window.DAY_OVERRIDES["2026-11-19"] = {"worldRush":52,"history":52,"sports":52,"thinkFast":54,"wordBridge":12};
-window.DAY_OVERRIDES["2026-11-20"] = {"worldRush":53,"history":53,"sports":53,"thinkFast":55,"connections":12};
-window.DAY_OVERRIDES["2026-11-21"] = {"worldRush":54,"history":54,"sports":54,"thinkFast":56,"oddOneOut":12};
-window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":55,"history":55,"sports":55,"thinkFast":57,"anagram":14};
+window.DAY_OVERRIDES["2026-11-20"] = {"worldRush":53,"history":53,"sports":58,"thinkFast":60,"connections":13};
+window.DAY_OVERRIDES["2026-11-21"] = {"worldRush":58,"history":58,"sports":54,"thinkFast":61,"oddOneOut":12};
+window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":55,"history":59,"sports":55,"thinkFast":57,"anagram":14};
+window.DAY_OVERRIDES["banked-1120"] = {"sports":53,"thinkFast":55,"connections":12};
+window.DAY_OVERRIDES["banked-1121"] = {"worldRush":54,"history":54,"thinkFast":56};
+window.DAY_OVERRIDES["banked-1122"] = {"history":55};
 window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58,"wordFlip":12};
 window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":57,"sports":57,"thinkFast":59,"wordBridge":13};
