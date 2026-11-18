@@ -37,7 +37,8 @@ if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content 
 [["style", "style.css?v=nov18b"], ["i18n", "i18n.js?v=nov18b"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
-if (!has(adminSrc, "feedback.js?v=nov3k") || !has(adminSrc, "map.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
+// feedback.js bumped to nov18d with the admin card fix. map.js stays on nov3k.
+if (!has(adminSrc, "feedback.js?v=nov18d") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
 
 const OLD = {};
 for (const f of ["app.js", "content.js", "content.es.js", "answers.js"]) OLD[f] = execFileSync("git", ["show", "origin/main:" + f]);
