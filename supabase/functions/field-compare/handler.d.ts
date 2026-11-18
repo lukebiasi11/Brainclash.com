@@ -1,3 +1,5 @@
+export const PUBLIC_ORIGINS: string[];
+
 export function createFieldHandler(options?: {
   collection?: string;
   allowedOrigins?: string[];

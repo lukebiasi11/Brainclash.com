@@ -2407,7 +2407,7 @@ function bcGraphs() {
 
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
-const SITE_URL = "https://lukebiasi11.github.io/Brainclash.com/";
+const SITE_URL = "https://dailydosetrivia.com/";
 const shareText = () => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
 async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch {} }
 // Lightweight confetti on a single canvas (~2 s, no library).

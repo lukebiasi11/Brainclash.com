@@ -310,15 +310,32 @@ t("definer functions stay private", !/create (or replace )?function public\./i.t
     psqlAsync(`begin; set local role app_writer; select private.finish_run('${runD}'::uuid, '2026-11-08'::date, '${uidD}'::uuid, '{0,100,0,0,0}'::int[]); commit;`)
   ]);
   t("concurrent different identities", both.every(s => JSON.parse(s).ok === true) && q("select finishes from private.day_agg where day_key = '2026-11-08'") === "2");
-  const { createFieldHandler } = await import(pathToFileURL(path.join(root, "supabase/functions/field-compare/handler.js")).href);
+  const { createFieldHandler, PUBLIC_ORIGINS } = await import(pathToFileURL(path.join(root, "supabase/functions/field-compare/handler.js")).href);
+  t("switch origins stay allowed together", PUBLIC_ORIGINS.join(",") === "https://lukebiasi11.github.io,https://dailydosetrivia.com,https://www.dailydosetrivia.com");
   const uidE = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   const httpDb = { async call(name, args) { return writer(sqlFor(name, args)); } };
   const handle = createFieldHandler({
     collection: "on",
-    allowedOrigins: ["https://lukebiasi11.github.io"],
+    allowedOrigins: PUBLIC_ORIGINS,
     db: httpDb,
     getClaims: async () => ({ data: { claims: { role: "authenticated", is_anonymous: true, sub: uidE } } })
   });
+  for (const origin of PUBLIC_ORIGINS) {
+    const preflight = await handle(new Request("http://local/field-compare/start", { method: "OPTIONS", headers: { origin } }));
+    t("preflight " + origin, preflight.status === 204 && preflight.headers.get("access-control-allow-origin") === origin);
+  }
+  const extraStarts = [
+    ["https://dailydosetrivia.com", "77777777-7777-4777-8777-777777777777"],
+    ["https://www.dailydosetrivia.com", "88888888-8888-4888-8888-888888888888"]
+  ];
+  for (const [origin, runId] of extraStarts) {
+    const res = await handle(new Request("http://local/field-compare/start", {
+      method: "POST",
+      headers: { origin, "content-type": "application/json", authorization: "Bearer session" },
+      body: JSON.stringify({ runId, day: "2026-11-09" })
+    }));
+    t("start " + origin, res.status === 200 && (await res.json()).ok === true);
+  }
   const runE = "66666666-6666-4666-8666-666666666666";
   const headers = { origin: "https://lukebiasi11.github.io", "content-type": "application/json", authorization: "Bearer session" };
   const startRes = await handle(new Request("http://local/field-compare/start", { method: "POST", headers, body: JSON.stringify({ runId: runE, day: "2026-11-09" }) }));

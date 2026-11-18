@@ -7,6 +7,16 @@ import { verifyAnonymousClaims } from "./auth.js";
 import { reportDbFailure } from "./db-log.js";
 const MAX_BODY = 2048;
 
+// Browser origins during the move to dailydosetrivia.com. createFieldHandler
+// allows only options.allowedOrigins. Production reads that list from the
+// FIELD_ALLOWED_ORIGINS secret. These values are not appended at runtime, so
+// a staging secret can still exclude every public origin.
+export const PUBLIC_ORIGINS = [
+  "https://lukebiasi11.github.io",
+  "https://dailydosetrivia.com",
+  "https://www.dailydosetrivia.com"
+];
+
 function cors(origin, allowed) {
   if (!origin || !allowed.has(origin)) return {};
   return {
