@@ -549,7 +549,7 @@ select count(*) from private.dedup
 where run_id = '11111111-1111-4111-8111-111111111111';
 ```
 
-Expected: all `0`. Real score rows, dedup, and aggregates are not on a 7-day timer. `private.retain_technical()` is not part of this cleanup and is not scheduled.
+Expected: all `0`. Real score rows, dedup, and aggregates are not on a 7-day timer. `private.retain_technical()` is not part of this cleanup. The daily caller is `.github/workflows/retain-technical.yml`, and this runbook does not run it.
 
 ## 9. Advisors and logs
 

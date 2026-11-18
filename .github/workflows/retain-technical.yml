@@ -1,0 +1,26 @@
+name: Retain technical rows
+
+on:
+  schedule:
+    - cron: "15 8 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  retain-technical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install the Postgres client
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client
+      - name: Call private.retain_technical
+        env:
+          RETENTION_DB_URL: ${{ secrets.RETENTION_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          if [ -z "${RETENTION_DB_URL:-}" ]; then
+            echo "RETENTION_DB_URL is not set. Refusing to connect."
+            exit 1
+          fi
+          psql "${RETENTION_DB_URL}" -X -v ON_ERROR_STOP=1 -c "select private.retain_technical();"

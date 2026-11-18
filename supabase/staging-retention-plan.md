@@ -1,6 +1,6 @@
 # Staging retention plan
 
-This plan is not enabled. Nothing in this repository creates a hosted project, sets a database password, schedules a job, or turns collection on.
+pg_cron is not enabled. Nothing in this repository creates a hosted project, sets a database password, or turns collection on.
 
 ## Login
 
@@ -12,14 +12,18 @@ The password, when a staging database exists, is set by an operator outside this
 
 ## Retention
 
-`private.retain_technical()` deletes only `technical_event` and `rate_window` rows older than 7 days. Score rows, dedup rows, and day aggregates stay.
+`private.retain_technical()` is unchanged. It deletes only `technical_event` rows whose `created_at` is older than 7 days and `rate_window` rows whose `window_start` is older than 7 days. It does not read or delete `attempts`, `runs`, `dedup`, or `day_agg`.
 
-The function is not granted to `field_runtime`, `app_writer`, `anon`, or `authenticated`. The Edge function does not call it. This repository does not enable `pg_cron` and does not create a schedule.
+The function stays security definer with an empty `search_path`. Execute stays revoked from `public`, `anon`, `authenticated`, `field_runtime`, and `app_writer`. The Edge function does not call it.
 
-When a staging database exists, the migration owner — not the Edge login — may run this once a day:
+`retention_job` is a login with no password in this repository. It does not inherit. It has usage on schema `private` and execute on `private.retain_technical()` only. It has no table privileges. An operator sets its password outside this repository when a hosted database exists. The password is not committed and it is not an environment example file.
+
+## Schedule
+
+No migration enables `pg_cron` or calls `cron.schedule`. The daily schedule is `.github/workflows/retain-technical.yml`. At 08:15 UTC, and when an operator runs the workflow by hand, it executes one statement:
 
 ```sql
 select private.retain_technical();
 ```
 
-That statement is not executed by this repository. A hosted scheduler is a later operator step, not part of this change.
+That statement is not executed by this repository. GitHub runs it only after the workflow is on the default branch and the Actions secret `RETENTION_DB_URL` is set. That secret is the session-mode pooler URI for `retention_job` (port 5432, database `postgres`, TLS required). It is not a service-role key, not the `field_runtime` URL, and not the migration-owner URL. Until the secret exists, the workflow refuses to connect.
