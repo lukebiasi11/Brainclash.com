@@ -553,7 +553,40 @@ window.CONTENT_ES = {
       ]
     }
   },
-  null
+  null,
+  {
+    "pins": [
+      {
+        "name": "Land's End, Inglaterra"
+      },
+      null
+    ],
+    "pair": {
+      "prompt": "¿Cuál es más alto?",
+      "rounds": [
+        {
+          "left": "Un elefante africano",
+          "right": "Una jirafa"
+        },
+        {
+          "left": "Un aro de baloncesto",
+          "right": "La red de voleibol masculino (borde superior)"
+        },
+        {
+          "left": "El One World Trade Center",
+          "right": "La estatua del Cristo Redentor"
+        },
+        {
+          "left": "El monte Whitney",
+          "right": "Denali"
+        },
+        {
+          "left": "La Tokyo Skytree",
+          "right": "La Torre CN"
+        }
+      ]
+    }
+  }
   ],
  "history": [
   null,
@@ -1679,6 +1712,120 @@ window.CONTENT_ES = {
         ]
       ]
     }
+  },
+  {
+    "r1": {
+      "theme": "Cápsula del tiempo",
+      "events": [
+        [
+          null,
+          "El refresco Dr Pepper sale a la venta por primera vez",
+          null
+        ],
+        [
+          null,
+          "La receta de galletas Toll House de Ruth Wakefield aparece en su libro de cocina",
+          null
+        ],
+        [
+          null,
+          "Las videocaseteras VHS salen a la venta en Estados Unidos",
+          null
+        ],
+        [
+          null,
+          "Se lanza el juego de palabras Wordle y se vuelve viral",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Juguetes y aparatos",
+      "events": [
+        [
+          null,
+          "El Sr. Cara de Papa sale a la venta",
+          null
+        ],
+        [
+          null,
+          "Mattel presenta Hot Wheels",
+          null
+        ],
+        [
+          null,
+          "Coleco produce las primeras muñecas Cabbage Patch Kids",
+          null
+        ],
+        [
+          null,
+          "Sale a la venta el Furby",
+          null
+        ],
+        [
+          null,
+          "Sale a la venta la Nintendo Switch",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Rivales y enfrentamientos",
+      "events": [
+        [
+          null,
+          "Seabiscuit vence a War Admiral en su carrera mano a mano",
+          null
+        ],
+        [
+          null,
+          "Marvel lanza a los Cuatro Fantásticos para competir con la Liga de la Justicia de DC",
+          null
+        ],
+        [
+          null,
+          "Coca-Cola lanza la New Coke para frenar el avance de Pepsi",
+          null
+        ],
+        [
+          null,
+          "Los anuncios «Get a Mac» de Apple enfrentan a una Mac contra una PC",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Favoritos de la cultura pop",
+      "events": [
+        [
+          null,
+          "Popeye el Marino aparece por primera vez en una tira cómica de periódico",
+          null
+        ],
+        [
+          null,
+          "Play-Doh sale a la venta como juguete",
+          null
+        ],
+        [
+          null,
+          "La Cajita Feliz (Happy Meal) llega a todo Estados Unidos",
+          null
+        ],
+        [
+          null,
+          "Los Teletubbies llegan a la televisión",
+          null
+        ],
+        [
+          null,
+          "Arranca la locura del baile de «Gangnam Style»",
+          null
+        ]
+      ]
+    }
   }
   ],
  "sports": [
@@ -2684,6 +2831,69 @@ window.CONTENT_ES = {
       ],
       "hint": "Arrastra a las estrellas en orden por año de nacimiento, la más veterana arriba."
     }
+  ],
+  [
+    {
+      "prompt": "¿Cuál ocurrió primero?",
+      "rounds": [
+        {
+          "left": "Evel Knievel intenta saltar un cañón en una motocicleta impulsada por cohete",
+          "right": "Luka Dončić es traspasado en un sorpresivo cambio bomba de la NBA"
+        },
+        {
+          "left": "Ronda Rousey se convierte en la primera campeona femenina de la UFC",
+          "right": "Doug Flutie lanza su famoso pase de touchdown 'Hail Mary' en el último segundo"
+        },
+        {
+          "left": "Ronaldinho gana el Balón de Oro",
+          "right": "Erling Haaland rompe el récord de goles en una sola temporada de la Premier League",
+          "note": "Ronaldinho: 2005. Haaland: récord roto en mayo de 2023."
+        },
+        {
+          "left": "Neymar protagoniza su fichaje récord mundial de 222 millones de euros",
+          "right": "Sugar Ray Leonard vence por sorpresa a 'Marvelous' Marvin Hagler"
+        },
+        {
+          "left": "La 'Linsanity' de Jeremy Lin se apodera de la NBA",
+          "right": "Max Verstappen gana su primer campeonato mundial de F1"
+        }
+      ]
+    },
+    {
+      "q": "¿Qué deporte de paleta, cada vez más popular, se juega con una pelota de plástico hueca llena de agujeros que se golpea por encima de una red baja?",
+      "options": [
+        "Ráquetbol",
+        "Pickleball",
+        "Cornhole",
+        "Wiffle ball"
+      ],
+      "explain": "El pickleball. Se juega con paletas sólidas y una pelota de plástico perforada sobre una red de unos 86 cm de alto. Se inventó en 1965."
+    },
+    {
+      "type": "match",
+      "kind": "match-records",
+      "q": "Relaciona a cada estrella con su deporte.",
+      "left": [
+        "Megan Rapinoe",
+        "Jeff Gordon",
+        "Andy Roddick",
+        "Manny Pacquiao"
+      ],
+      "right": [
+        "Boxeo",
+        "Fútbol",
+        "Tenis",
+        "Automovilismo"
+      ],
+      "pairs": [
+        1,
+        3,
+        2,
+        0
+      ],
+      "explain": "Rapinoe: fútbol (Balón de Oro y Bota de Oro del Mundial Femenino 2019). Gordon: automovilismo en NASCAR (cuatro títulos de la Copa). Roddick: tenis (campeón del US Open 2003). Pacquiao: boxeo (títulos mundiales en ocho divisiones de peso).",
+      "hint": "Toca a una estrella y luego el deporte para emparejarlos."
+    }
   ]
   ],
  "thinkFast": [
@@ -3352,6 +3562,66 @@ window.CONTENT_ES = {
       ],
       "explain": "Un pavo. En inglés se llama turkey, igual que el país Turquía (Turkey), y a menudo se asa relleno."
     }
+  ],
+  [
+    {
+      "q": "Cuatro amigos corrieron una carrera sin empates. Omar le ganó a Leo. Leo le ganó a Ana. Nina cruzó la meta justo después de Omar. ¿Quién llegó en tercer lugar?",
+      "options": [
+        "Omar",
+        "Nina",
+        "Leo",
+        "Ana"
+      ],
+      "a": 2,
+      "explain": "Omar le ganó a Leo y Leo le ganó a Ana, así que el orden es Omar, luego Leo, luego Ana. Nina llegó justo después de Omar, así que va antes que Leo: Omar, Nina, Leo, Ana. Leo llegó tercero."
+    },
+    null
+  ],
+  [
+    {
+      "q": "Dos amigos jugaron cinco partidas de damas. Cada uno ganó el mismo número de partidas, y ninguna terminó en empate, y todas las partidas se terminaron. ¿Cómo es posible?",
+      "options": [
+        "Una partida nunca se terminó",
+        "No estaban jugando uno contra el otro",
+        "Uno de ellos ganó una partida dos veces",
+        "Cambiaron de lado a la mitad"
+      ],
+      "a": 1,
+      "explain": "Cada uno jugó contra otras personas, no entre ellos. Cinco partidas no se pueden repartir por igual entre dos jugadores sin empates, así que los dos amigos no pudieron jugar uno contra el otro."
+    },
+    {
+      "q": "Te lo dieron gratis, es solo tuyo y nunca lo pierdes, pero los demás lo usan mucho más que tú. ¿Qué es?",
+      "answers": [
+        "your name",
+        "name",
+        "my name",
+        "a name",
+        "tu nombre",
+        "nombre",
+        "mi nombre",
+        "el nombre"
+      ],
+      "aliases": [
+        "ur name",
+        "one's name",
+        "your first name",
+        "first name",
+        "the name",
+        "names",
+        "su nombre",
+        "un nombre",
+        "tu nombre propio"
+      ],
+      "wrong": [
+        "phone number",
+        "address",
+        "birthday",
+        "número de teléfono",
+        "dirección",
+        "cumpleaños"
+      ],
+      "explain": "Tu nombre. Tus papás te lo dieron gratis y es solo tuyo, pero los demás dicen, escriben y llaman tu nombre mucho más seguido que tú."
+    }
   ]
   ],
  "wordFlip": [
@@ -3505,7 +3775,38 @@ window.CONTENT_ES = {
       }
     ]
   },
-  null
+  null,
+  {
+    "groups": [
+      {
+        "name": "Perseguidores de caricatura",
+        "words": [
+          "TOM",
+          "SILVESTRE",
+          "COYOTE"
+        ],
+        "pts": 300
+      },
+      {
+        "name": "Sus presas",
+        "words": [
+          "JERRY",
+          "PIOLÍN",
+          "CORRECAMINOS"
+        ],
+        "pts": 300
+      },
+      {
+        "name": "Otras aves de caricatura",
+        "words": [
+          "PATO DONALD",
+          "ZAZU",
+          "RICO MCPATO"
+        ],
+        "pts": 400
+      }
+    ]
+  }
  ],
  "oddOneOut": [
   null,
