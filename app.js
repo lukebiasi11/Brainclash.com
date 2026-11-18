@@ -1961,6 +1961,18 @@ function normPuzzle(q) {
 const TF_KIND = { math: tr("Math trap"), sequence: tr("Sequence"), logic: tr("Logic"), guesstimate: tr("Guesstimate"), illusion: tr("Optical illusion"), riddle: tr("Lateral riddle") };
 // Illusion art: Designer's SVGs have fixed colours, so a plain <img> (uniform scale via object-fit) — placeholder if missing.
 function puzzleArt(id) { return artBox("tf-svg", id, "Optical illusion — look closely, then answer", true); }
+// A Think Fast photo (matchstick puzzles and the like). Illusion art still uses puzzleArt.
+function puzzlePhoto(src) {
+  const img = h("img", { class: "slider-photo", src: src, alt: "", decoding: "async" });
+  img.style.maxHeight = "min(38vh, 230px)";
+  img.style.width = "100%";
+  img.style.height = "auto";
+  img.style.objectFit = "contain";
+  img.style.background = "#f3f0ea";
+  img.style.borderRadius = "12px";
+  img.addEventListener("load", scheduleFit);
+  return img;
+}
 function guessQuestion(body, q, value, seconds, done, gq) {
   body.append(h("p", { class: "prompt" }, showText(q.q)));
   let over = false;
@@ -2020,6 +2032,7 @@ function thinkFast() {
     else if (playNewType(body, q, vals[i], TBD.think, next, 20)) { /* pair uses 20s per round; reveal and slider keep the category timer */ }
     else if (q.type === "guess") guessQuestion(body, q, vals[i], TBD.think, next);
     else if (q.type === "mc") {
+      if (typeof q.image === "string" && q.image.trim()) body.append(puzzlePhoto(q.image));
       const pin = q.kind === "illusion" ? q.options.findIndex(o => /equal|same|igual|mismo/i.test(o)) : -1; // "They're equal" stays last; others seeded-shuffled
       mcQuestion(body, q.q, q.options, q.a, vals[i], TBD.think, pts => { if (q.explain) body.append(h("p", { class: "muted tf-explain" }, showText(q.explain))); next(pts); },
         q.img || q.kind === "illusion" ? puzzleArt(q.img) : null, pin);

@@ -1090,6 +1090,178 @@ window.CONTENT = {
         ],
         "explain": "Heights from Wikipedia. Mountains are compared by height above sea level."
       }
+    },
+    // 2026-11-22 Cape Canaveral pin + island pair, then 2026-11-23 elevation pair.
+    {
+      "pins": [
+        {
+          "name": "Cape Canaveral, Florida (the Space Coast rocket launch site)",
+          "lat": 28.46,
+          "lon": -80.53
+        },
+        {
+          "name": "Okavango Delta, Botswana",
+          "lat": -19.4,
+          "lon": 22.9
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which island is BIGGER?",
+          "es": "¿Qué isla es MÁS GRANDE?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Manhattan (New York)",
+              "es": "Manhattan (Nueva York)"
+            },
+            "right": {
+              "en": "Long Island (New York)",
+              "es": "Long Island (Nueva York)"
+            },
+            "correct": "right",
+            "note": "Long Island is about 3,600 km². Manhattan is about 59 km²."
+          },
+          {
+            "left": {
+              "en": "Taiwan",
+              "es": "Taiwán"
+            },
+            "right": {
+              "en": "Cyprus",
+              "es": "Chipre"
+            },
+            "correct": "left",
+            "note": "Taiwan's main island is about 35,800 km². Cyprus is about 9,250 km²."
+          },
+          {
+            "left": {
+              "en": "Ibiza (Spain)",
+              "es": "Ibiza (España)"
+            },
+            "right": {
+              "en": "Mallorca (Spain)",
+              "es": "Mallorca (España)"
+            },
+            "correct": "right",
+            "note": "Mallorca is about 3,640 km², roughly six times Ibiza's 573 km²."
+          },
+          {
+            "left": {
+              "en": "Oahu (Hawaiian Islands)",
+              "es": "Oahu (islas hawaianas)"
+            },
+            "right": {
+              "en": "Aruba",
+              "es": "Aruba"
+            },
+            "correct": "left",
+            "note": "Oahu is about 1,545 km². Aruba is about 179 km²."
+          },
+          {
+            "left": {
+              "en": "Bermuda",
+              "es": "Bermudas"
+            },
+            "right": {
+              "en": "Barbados",
+              "es": "Barbados"
+            },
+            "correct": "right",
+            "note": "Barbados is about 439 km². Bermuda's land area is about 54 km²."
+          }
+        ],
+        "explain": "Areas from Wikipedia: Long Island 3,600 km²; Manhattan 59 km²; Taiwan 35,808 km²; Cyprus 9,251 km²; Mallorca about 3,640 km² (Ibiza is 'almost one-sixth the size of Mallorca'); Ibiza 573 km²; Oahu 1,545 km²; Aruba 179 km²; Barbados 439 km²; Bermuda 54 km²."
+      }
+    },
+    {
+      "pins": [
+        {
+          "name": "Zion National Park, Utah, USA",
+          "lat": 37.3,
+          "lon": -113
+        },
+        {
+          "name": "Glacier National Park, Montana, USA",
+          "lat": 48.76,
+          "lon": -113.79
+        }
+      ],
+      "pair": {
+        "type": "pair",
+        "prompt": {
+          "en": "Which is HIGHER above sea level?",
+          "es": "¿Cuál está a MAYOR altitud?"
+        },
+        "rounds": [
+          {
+            "left": {
+              "en": "Aspen, Colorado (mountain ski town)",
+              "es": "Aspen, Colorado (pueblo de esquí en la montaña)"
+            },
+            "right": {
+              "en": "Houston, Texas",
+              "es": "Houston, Texas"
+            },
+            "correct": "left",
+            "note": "Aspen sits just below 8,000 ft (about 2,400 m). Houston is only about 50 ft (15 m) above sea level."
+          },
+          {
+            "left": {
+              "en": "Tibet",
+              "es": "El Tíbet"
+            },
+            "right": {
+              "en": "The Bahamas",
+              "es": "Las Bahamas"
+            },
+            "correct": "left",
+            "note": "Tibet averages about 4,380 m, the highest region on Earth. The Bahamas' HIGHEST point is just 64 m."
+          },
+          {
+            "left": {
+              "en": "Lake Tahoe (California-Nevada)",
+              "es": "El lago Tahoe (California-Nevada)"
+            },
+            "right": {
+              "en": "The beaches of Acapulco (Mexico)",
+              "es": "Las playas de Acapulco (México)"
+            },
+            "correct": "left",
+            "note": "Lake Tahoe lies at 1,897 m in the Sierra Nevada. Acapulco's beaches are at sea level."
+          },
+          {
+            "left": {
+              "en": "Dallas, Texas",
+              "es": "Dallas, Texas"
+            },
+            "right": {
+              "en": "Mount Sinai (Egypt)",
+              "es": "El monte Sinaí (Egipto)"
+            },
+            "correct": "right",
+            "note": {
+              "en": "Mount Sinai, traditionally said to be where Moses received the Ten Commandments, is 2,285 m. Dallas is about 130–170 m.",
+              "es": "El monte Sinaí, donde según la tradición Moisés recibió los Diez Mandamientos, mide 2,285 m. Dallas está a unos 130–170 m."
+            }
+          },
+          {
+            "left": {
+              "en": "Malibu, California (beach city)",
+              "es": "Malibú, California (ciudad de playa)"
+            },
+            "right": {
+              "en": "K2 (world's 2nd-highest mountain)",
+              "es": "El K2 (la 2.ª montaña más alta del mundo)"
+            },
+            "correct": "right",
+            "note": "K2 is 8,611 m, second only to Everest. Malibu's beaches are at sea level."
+          }
+        ],
+        "explain": "Elevations from Wikipedia: Aspen ~2,400 m; Houston ~15 m; Tibet average 4,380 m; Bahamas highest point 64 m; Lake Tahoe 1,897 m; Acapulco beaches 0 m; Mount Sinai 2,285 m; Dallas about 130–170 m; K2 8,611 m; Malibu beaches 0 m."
+      }
     }
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -1970,6 +2142,121 @@ window.CONTENT = {
             "🕺",
             "The \"Gangnam Style\" dance craze takes off",
             2012
+          ]
+        ]
+      }
+    },
+    // 2026-11-23 and 2026-11-24 Time Warp round 2 replacements. Round 1 is unchanged.
+    {
+      "r1": {
+        "theme": "Games and sports",
+        "events": [
+          [
+            "🏀",
+            "James Naismith invents basketball",
+            1891
+          ],
+          [
+            "🤹",
+            "The team that becomes the Harlem Globetrotters starts playing in Chicago",
+            1926
+          ],
+          [
+            "🏟️",
+            "The NBA is born as the Basketball Association of America",
+            1946
+          ],
+          [
+            "🛹",
+            "ESPN holds the first X Games, then called the Extreme Games",
+            1995
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "History's big moments",
+        "events": [
+          [
+            "🏇",
+            "Paul Revere makes his famous midnight ride",
+            1775
+          ],
+          [
+            "🎩",
+            "Charlie Chaplin's 'Little Tramp' first appears on movie screens",
+            1914
+          ],
+          [
+            "🕊️",
+            "The United Nations is founded",
+            1945
+          ],
+          [
+            "🇩🇪",
+            "Germany reunifies",
+            1990
+          ],
+          [
+            "⛪",
+            "Pope Francis becomes the first pope from the Americas",
+            2013
+          ]
+        ]
+      }
+    },
+    {
+      "r1": {
+        "theme": "Thanksgiving roots",
+        "events": [
+          [
+            "🌽",
+            "The Pilgrims' harvest feast at Plymouth",
+            1621
+          ],
+          [
+            "📜",
+            "President George Washington issues the first Thanksgiving proclamation under the Constitution",
+            1789
+          ],
+          [
+            "🎩",
+            "Abraham Lincoln proclaims a national day of Thanksgiving",
+            1863
+          ],
+          [
+            "🎈",
+            "Macy's holds its first Thanksgiving Day Parade",
+            1924
+          ]
+        ]
+      },
+      "r2": {
+        "theme": "Kitchen helpers",
+        "events": [
+          [
+            "🍽️",
+            "Josephine Cochrane patents the first successful dishwasher",
+            1886
+          ],
+          [
+            "🥣",
+            "KitchenAid introduces its first stand mixer",
+            1919
+          ],
+          [
+            "🍳",
+            "The first nonstick Teflon frying pans are made",
+            1954
+          ],
+          [
+            "🥕",
+            "Cuisinart food processors are introduced",
+            1973
+          ],
+          [
+            "🍟",
+            "Philips launches the Airfryer, popularizing air fryers",
+            2010
           ]
         ]
       }
@@ -3255,6 +3542,83 @@ window.CONTENT = {
           "es": "Toca a una estrella y luego el deporte para emparejarlos."
         }
       }
+    ],
+    // 2026-11-23 Notre Dame typed question. Questions 2 and 3 are unchanged.
+    [
+      {
+        "type": "text",
+        "q": "Which college football program's teams are nicknamed the 'Fighting Irish'?",
+        "answers": [
+          "notre dame",
+          "notre-dame",
+          "university of notre dame"
+        ],
+        "aliases": [
+          "notre dame fighting irish",
+          "the university of notre dame",
+          "notredame",
+          "notre dam",
+          "notre damn",
+          "notre damme",
+          "norte dame",
+          "notre dame university",
+          "u of notre dame",
+          "universidad de notre dame",
+          "nd"
+        ],
+        "exactOnly": [
+          "nd"
+        ],
+        "wrong": [
+          "boston college",
+          "penn state",
+          "michigan state",
+          "irish",
+          "notre",
+          "fighting irish",
+          "the fighting irish"
+        ],
+        "explain": "Notre Dame. The school officially claims 11 national championships, and NBC has televised their home games since 1991."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this college football legend.",
+        "clues": [
+          "A home-schooled Florida quarterback, he was a first-round pick (25th overall) of the Denver Broncos in the 2010 NFL draft.",
+          "He won two national titles at Florida (2006 and 2008).",
+          "In 2007 he became the first underclassman to win the Heisman Trophy."
+        ],
+        "answer": "Tim Tebow",
+        "accept": [
+          "Tim Tebow",
+          "Tebow",
+          "Tim",
+          "Timothy Tebow",
+          "Timmy Tebow",
+          "Tim Tebo",
+          "Tebo"
+        ],
+        "explain": "Tebow won the 2007 Heisman Trophy (first underclassman to do so), two BCS titles at Florida (2006, 2008), and was the 25th overall pick of the 2010 NFL draft by the Denver Broncos.",
+        "exactOnly": [
+          "Tim"
+        ]
+      },
+      {
+        "type": "order",
+        "kind": "team-path",
+        "q": "Put these Heisman Trophy winners in order, earliest first.",
+        "items": [
+          "Cam Newton",
+          "Johnny Manziel",
+          "Derrick Henry",
+          "Lamar Jackson"
+        ],
+        "explain": "Newton 2010 (Auburn), Manziel 2012 (Texas A&M), Henry 2015 (Alabama), Jackson 2016 (Louisville).",
+        "hint": {
+          "en": "Drag the Heisman winners into order, earliest win at the top.",
+          "es": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
+        }
+      }
     ]
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
@@ -4516,6 +4880,146 @@ window.CONTENT = {
         ],
         "explain": "Your name. Your parents gave it to you for free, it's yours alone, but other people say, write and call out your name far more often than you do."
       }
+    ],
+    // 2026-11-22, 2026-11-23 and 2026-11-24 Brain Teaser replacements.
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "A truck gets stuck under a low bridge. It's only 2 cm too tall to fit, the driver can't back up, and he has no tools. A kid walking by suggests an easy fix. What is it?",
+        "options": [
+          "Let some air out of the tires",
+          "Push the truck from behind",
+          "Wait for the bridge to be raised",
+          "Take the mirrors off"
+        ],
+        "a": 0,
+        "explain": "Let some air out of the tires. The truck sits a few centimeters lower and can roll under the bridge."
+      },
+      {
+        "kind": "riddle",
+        "q": "What can you hold in your left hand but never in your right hand?",
+        "answers": [
+          "your right hand",
+          "right hand",
+          "tu mano derecha",
+          "mano derecha"
+        ],
+        "aliases": [
+          "my right hand",
+          "the right hand",
+          "ur right hand",
+          "your other hand",
+          "mi mano derecha",
+          "la mano derecha",
+          "tu otra mano",
+          "la otra mano"
+        ],
+        "wrong": [
+          "left hand",
+          "ball",
+          "cup",
+          "mano izquierda",
+          "pelota",
+          "taza"
+        ],
+        "explain": "Your right hand. Your left hand can grab it, but your right hand can't hold itself."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "PICTURE: an equation built from matchsticks reads 5 + 7 = 2. Move exactly ONE matchstick to make the equation true. What does it say now?",
+        "options": [
+          "9 − 7 = 2",
+          "5 + 7 = 12",
+          "3 + 7 = 10",
+          "6 + 1 = 7"
+        ],
+        "a": 0,
+        "explain": "Take the upright stick out of the '+' (it becomes '−') and add it to the top right of the 5, which turns it into a 9: 9 − 7 = 2.",
+        "image": "assets/tf-n23-sticks.jpg"
+      },
+      {
+        "kind": "riddle",
+        "q": "Sailors throw me out when they need me and pull me back in when they don't. What am I?",
+        "answers": [
+          "anchor",
+          "an anchor",
+          "ancla",
+          "el ancla",
+          "un ancla"
+        ],
+        "aliases": [
+          "the anchor",
+          "boat anchor",
+          "ship anchor",
+          "anchors",
+          "anclas",
+          "el ancla del barco"
+        ],
+        "wrong": [
+          "net",
+          "fishing net",
+          "sail",
+          "rope",
+          "red",
+          "red de pesca",
+          "cuerda"
+        ],
+        "explain": "An anchor. It goes overboard when the boat needs to stay put and comes back up when it's time to sail."
+      }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "You throw a ball as hard as you can. It stops, then comes straight back to you, and nothing touches it: no wall, no net, no string, no person. How?",
+        "options": [
+          "You threw it straight up",
+          "The wind pushed it back",
+          "It's a special boomerang ball",
+          "It bounced off the ceiling"
+        ],
+        "a": 0,
+        "explain": "You threw it straight up. Gravity stops it and brings it right back down to you."
+      },
+      {
+        "kind": "riddle",
+        "q": "I'm a bird named after a country, and I'm usually served stuffed. What am I?",
+        "answers": [
+          "turkey",
+          "pavo",
+          "un pavo",
+          "el pavo"
+        ],
+        "aliases": [
+          "a turkey",
+          "the turkey",
+          "turkeys",
+          "turky",
+          "turkey bird",
+          "pavos",
+          "guajolote",
+          "chompipe"
+        ],
+        "wrong": [
+          "chicken",
+          "duck",
+          "goose",
+          "canary",
+          "peacock",
+          "pheasant",
+          "pollo",
+          "pato",
+          "ganso",
+          "canario",
+          "pavo real",
+          "faisán"
+        ],
+        "explain": "A turkey. It shares its name with the country Turkey, and it's often roasted with stuffing."
+      }
     ]
   ]
 };
@@ -4523,7 +5027,7 @@ window.CONTENT = {
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
 // 2026-11-18 through 2026-11-24 pin appended sets. 2026-11-25 is not scheduled.
-// 2026-11-20, 2026-11-21 and 2026-11-22 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
+// 2026-11-20 through 2026-11-24 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
 window.DAY_OVERRIDES["2026-11-14"] = {"worldRush":47,"history":47,"sports":47,"thinkFast":49,"wordBridge":11};
@@ -4534,9 +5038,11 @@ window.DAY_OVERRIDES["2026-11-18"] = {"worldRush":51,"history":51,"sports":51,"t
 window.DAY_OVERRIDES["2026-11-19"] = {"worldRush":52,"history":52,"sports":52,"thinkFast":54,"wordBridge":12};
 window.DAY_OVERRIDES["2026-11-20"] = {"worldRush":53,"history":53,"sports":58,"thinkFast":60,"connections":13};
 window.DAY_OVERRIDES["2026-11-21"] = {"worldRush":58,"history":58,"sports":54,"thinkFast":61,"oddOneOut":12};
-window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":55,"history":59,"sports":55,"thinkFast":57,"anagram":14};
+window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":59,"history":59,"sports":55,"thinkFast":62,"anagram":14};
 window.DAY_OVERRIDES["banked-1120"] = {"sports":53,"thinkFast":55,"connections":12};
 window.DAY_OVERRIDES["banked-1121"] = {"worldRush":54,"history":54,"thinkFast":56};
-window.DAY_OVERRIDES["banked-1122"] = {"history":55};
-window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58,"wordFlip":12};
-window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":57,"sports":57,"thinkFast":59,"wordBridge":13};
+window.DAY_OVERRIDES["banked-1122"] = {"worldRush":55,"history":55,"thinkFast":57};
+window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":60,"history":60,"sports":59,"thinkFast":63,"wordFlip":12};
+window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"thinkFast":64,"wordBridge":13};
+window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
+window.DAY_OVERRIDES["banked-1124"] = {"history":57,"thinkFast":59};
