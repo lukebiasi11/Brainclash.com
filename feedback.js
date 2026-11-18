@@ -11,21 +11,72 @@ function issueUrl(title, body, labels) {
   return u;
 }
 const ansOf = q => !q ? "" : q.type === "order" && q.items ? q.items.join(" → ") : q.type === "match" && q.left ? q.left.map((l, i) => l + " = " + (q.right || [])[(q.pairs || [])[i]]).join("; ") : q.matchup && q.a != null ? (q.matchup[q.a] ?? "") : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") + (q.aliases && q.aliases.length ? " (also: " + q.aliases.join(" / ") + ")" : "") : q.answer != null ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
-// Flatten a day's set into reviewable items: {id, cat, prompt, answer}
+function textOf(v) {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    const en = typeof v.en === "string" ? v.en.trim() : "";
+    const es = typeof v.es === "string" ? v.es.trim() : "";
+    return en || es;
+  }
+  return "";
+}
+function pairAns(q) {
+  if (!q || !Array.isArray(q.rounds)) return "";
+  return q.rounds.map(r => r && (r.correct === "left" || r.correct === "right") ? textOf(r[r.correct]) : "").filter(Boolean).join(" | ");
+}
+// Flatten a day's set into reviewable items: {id, cat, prompt, answer}.
+// A missing or odd piece becomes one "unrecognized item" instead of throwing.
 function items(set) {
   const out = [], add = (cat, n, prompt, answer) => out.push({ id: cat.toLowerCase().replace(/[^a-z]+/g, "-") + "-" + n, cat, prompt: String(prompt ?? ""), answer: String(answer ?? "") });
-  const w = set.worldRush;
-  w.pins.forEach((p, i) => add("World Rush", i + 1, "Pin: " + p.name, p.name));
-  add("World Rush", w.pins.length + 1, w.mc.q, ansOf(w.mc));
-  ["r1", "r2"].map(r => set.history[r]).filter(Boolean).forEach((r, i) => add("Time Warp", i + 1, "Order: " + r.theme + " — " + r.events.map(e => e[1]).join(" · "), r.events.slice().sort((a, b) => a[2] - b[2]).map(e => e[1] + " (" + e[2] + ")").join(" → ")));
-  set.sports.forEach((q, i) => add("MVP", i + 1, q.q, ansOf(q) || (q.pairs ? JSON.stringify(q.pairs) : q.order ? q.order.join(" → ") : "")));
-  const g = set.wordGame, wn = "Word Nerd (" + g.name + ")";
-  if (g.id === "flip") set.wordFlip.forEach((x, i) => add(wn, i + 1, x[1] + " — " + x[2], x[0]));
-  else if (g.id === "bridge") set.wordBridge.forEach((x, i) => add(wn, i + 1, x[0] + " ___ " + x[1], x[2] + " (" + x[0] + x[2] + " / " + x[2] + x[1] + ")"));
-  else if (g.id === "conn") add(wn, 1, set.connections.groups.flatMap(x => x.words).sort().join(", "), set.connections.groups.map(x => x.name + ": " + x.words.join(", ")).join("; "));
-  else if (g.id === "odd") set.oddOneOut.forEach((o, i) => add(wn, i + 1, o.words.join(", "), o.words[o.odd] + " — " + o.why));
-  else if (g.id === "anag") { const a = set.anagram || {}; add(wn, 1, "Letters: " + (a.letters || ""), (a.valid || []).slice(0, 40).join(", ")); }
-  set.thinkFast.forEach((q, i) => add("Brain Teaser", i + 1, q.q, ansOf(q) + (q.explain ? " — " + q.explain : "")));
+  const odd = (cat, n) => add(cat, n, "unrecognized item", "");
+  const w = set && set.worldRush;
+  if (!w || typeof w !== "object" || !Array.isArray(w.pins)) odd("World Rush", 1);
+  else w.pins.forEach((p, i) => p && typeof p.name === "string" ? add("World Rush", i + 1, "Pin: " + p.name, p.name) : odd("World Rush", i + 1));
+  const base = w && Array.isArray(w.pins) ? w.pins.length : 0;
+  if (w && w.mc && textOf(w.mc.q)) add("World Rush", base + 1, textOf(w.mc.q), ansOf(w.mc));
+  else if (w && w.pair && (textOf(w.pair.prompt) || pairAns(w.pair))) add("World Rush", base + 1, textOf(w.pair.prompt) || "Pair", pairAns(w.pair));
+  else odd("World Rush", base + 1);
+  ["r1", "r2"].forEach((r, i) => {
+    const rd = set && set.history && set.history[r];
+    try {
+      if (!rd || !Array.isArray(rd.events) || !rd.theme) return odd("Time Warp", i + 1);
+      add("Time Warp", i + 1, "Order: " + rd.theme + " — " + rd.events.map(e => e[1]).join(" · "), rd.events.slice().sort((a, b) => a[2] - b[2]).map(e => e[1] + " (" + e[2] + ")").join(" → "));
+    } catch (e) { odd("Time Warp", i + 1); }
+  });
+  if (!set || !Array.isArray(set.sports)) odd("MVP", 1);
+  else set.sports.forEach((q, i) => {
+    try {
+      if (!q || typeof q !== "object") return odd("MVP", i + 1);
+      const prompt = textOf(q.q != null ? q.q : q.prompt);
+      if (!prompt) return odd("MVP", i + 1);
+      const ans = q.type === "pair" ? pairAns(q) : q.type === "reveal" ? textOf(q.answer) : (ansOf(q) || (q.pairs ? JSON.stringify(q.pairs) : q.order ? q.order.join(" → ") : ""));
+      add("MVP", i + 1, prompt, ans);
+    } catch (e) { odd("MVP", i + 1); }
+  });
+  try {
+    const g = set && set.wordGame;
+    if (!g || !g.id) odd("Word Nerd", 1);
+    else {
+      const wn = "Word Nerd (" + (g.name || g.id) + ")";
+      if (g.id === "flip" && Array.isArray(set.wordFlip)) set.wordFlip.forEach((x, i) => Array.isArray(x) ? add(wn, i + 1, x[1] + " — " + x[2], x[0]) : odd(wn, i + 1));
+      else if (g.id === "bridge" && Array.isArray(set.wordBridge)) set.wordBridge.forEach((x, i) => Array.isArray(x) ? add(wn, i + 1, x[0] + " ___ " + x[1], x[2] + " (" + x[0] + x[2] + " / " + x[2] + x[1] + ")") : odd(wn, i + 1));
+      else if (g.id === "conn" && set.connections && Array.isArray(set.connections.groups)) add(wn, 1, set.connections.groups.flatMap(x => x.words).sort().join(", "), set.connections.groups.map(x => x.name + ": " + x.words.join(", ")).join("; "));
+      else if (g.id === "odd" && Array.isArray(set.oddOneOut)) set.oddOneOut.forEach((o, i) => o && Array.isArray(o.words) ? add(wn, i + 1, o.words.join(", "), o.words[o.odd] + " — " + o.why) : odd(wn, i + 1));
+      else if (g.id === "anag") { const a = set.anagram || {}; add(wn, 1, "Letters: " + (a.letters || ""), (a.valid || []).slice(0, 40).join(", ")); }
+      else odd(wn, 1);
+    }
+  } catch (e) { odd("Word Nerd", 1); }
+  if (!set || !Array.isArray(set.thinkFast)) odd("Brain Teaser", 1);
+  else set.thinkFast.forEach((q, i) => {
+    try {
+      if (!q || typeof q !== "object") return odd("Brain Teaser", i + 1);
+      const prompt = textOf(q.q != null ? q.q : q.prompt);
+      if (!prompt) return odd("Brain Teaser", i + 1);
+      const explain = textOf(q.explain);
+      add("Brain Teaser", i + 1, prompt, (q.type === "pair" ? pairAns(q) : ansOf(q)) + (explain ? " — " + explain : ""));
+    } catch (e) { odd("Brain Teaser", i + 1); }
+  });
   return out;
 }
 function itemUrl(date, it, note, verdict) {

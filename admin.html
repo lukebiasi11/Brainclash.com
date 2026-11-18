@@ -34,6 +34,8 @@ ul{margin:0;padding-left:18px}li{margin:2px 0}
 .tag{display:inline-block;font-size:11px;font-weight:800;background:var(--n);color:var(--c);border-radius:6px;padding:1px 6px;margin-right:5px;vertical-align:1px}
 details{margin-top:6px;background:var(--c);border-radius:10px;padding:6px 10px}summary{cursor:pointer;font-weight:800}
 .ans{color:#1d8a4a;font-weight:800}.dup{color:#c0262d;font-weight:800;font-size:12px}
+.unrecognized{font-size:12px;font-weight:800;color:#c0262d}
+img.flag{height:22px;width:auto;vertical-align:-5px;margin-left:4px;border:1px solid var(--n);border-radius:2px;background:#fff}
 .rv{padding:0 14px 14px}.rv h3{margin:6px 0;font-size:14px;text-transform:uppercase;letter-spacing:.6px}
 .it{border:2px solid #e4d6bf;border-radius:12px;padding:9px 10px;margin:8px 0;background:#fffdf8}
 .it.up{border-color:#1d8a4a;background:#effaf2}.it.down{border-color:#c0262d;background:#fdf0f0}
@@ -62,7 +64,7 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="assets/icons.js?v=nov3k"></script>
 <script src="answers.js?v=nov17a"></script>
 <script src="app.js?v=nov18d"></script>
-<script src="feedback.js?v=nov3k"></script>
+<script src="feedback.js?v=nov18d"></script>
 <script>
 (() => {
 const B = window.BCDaily, C = window.CONTENT;
@@ -72,19 +74,155 @@ const appr = () => { try { return JSON.parse(localStorage.getItem(APK)) || {}; }
 const setAppr = (k, v) => { const a = appr(); if (v) a[k] = true; else delete a[k]; localStorage.setItem(APK, JSON.stringify(a)); };
 const ansOf = q => !q ? "" : q.type === "order" && q.items ? q.items.join(" → ") : q.type === "match" && q.left ? q.left.map((l, i) => l + " = " + (q.right || [])[(q.pairs || [])[i]]).join("; ") : q.matchup && q.a != null ? (q.matchup[q.a] ?? "") : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") + (q.aliases && q.aliases.length ? " (also: " + q.aliases.join(" / ") + ")" : "") : q.answer != null ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
 const nice = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+const UN_LI = `<li class="unrecognized">unrecognized item</li>`;
+const un = () => `<span class="unrecognized">unrecognized item</span>`;
+// English admin copy. {en, es} objects are the same shape app.js localizedText reads.
+function textOf(v) {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    const en = typeof v.en === "string" ? v.en.trim() : "";
+    const es = typeof v.es === "string" ? v.es.trim() : "";
+    return en || es;
+  }
+  return "";
+}
+function assetImg(key) {
+  if (typeof key !== "string" || !key) return "";
+  const src = window.ICONS && window.ICONS[key];
+  return src ? ` <img class="flag" alt="" src="${esc(src)}">` : "";
+}
+// World Rush, as getDailySet returns it: pins, plus either mc (plain or a flag image) or pair.
+// app.js worldRush() plays set.pins, then set.pair or set.mc (mc.img / mc.optionImgs for flags).
+function worldParts(w) {
+  const items = [], answers = [];
+  if (!w || typeof w !== "object" || Array.isArray(w)) return { items: UN_LI, answers: un() };
+  if (!Array.isArray(w.pins) || !w.pins.length) items.push(UN_LI);
+  else w.pins.forEach(p => {
+    if (!p || typeof p.name !== "string" || !p.name.trim() || typeof p.lat !== "number" || typeof p.lon !== "number") { items.push(UN_LI); return; }
+    items.push(`<li><span class="tag">pin</span>${esc(p.name)}</li>`);
+    answers.push(esc(p.name));
+  });
+  if (w.mc != null) {
+    const mc = w.mc, q = mc && textOf(mc.q), opts = mc && Array.isArray(mc.options) ? mc.options : null;
+    const aOk = !!(mc && Number.isInteger(mc.a) && opts && mc.a >= 0 && mc.a < opts.length && textOf(opts[mc.a]));
+    if (!q || !aOk) items.push(UN_LI);
+    else {
+      const keys = [].concat(typeof mc.img === "string" ? [mc.img] : [], Array.isArray(mc.optionImgs) ? mc.optionImgs : []);
+      const isFlag = keys.some(k => typeof k === "string" && k.slice(0, 5) === "flag-");
+      items.push(`<li><span class="tag">${isFlag ? "flag" : "MC"}</span>${esc(q)}${keys.map(assetImg).join("")}</li>`);
+      answers.push(esc(textOf(opts[mc.a])));
+    }
+  }
+  if (w.pair != null) {
+    const pair = w.pair, prompt = pair && textOf(pair.prompt), rounds = pair && Array.isArray(pair.rounds) ? pair.rounds : null;
+    if (!prompt || !rounds || !rounds.length) items.push(UN_LI);
+    else {
+      const lines = rounds.map(r => {
+        if (!r || (r.correct !== "left" && r.correct !== "right")) return "";
+        const chosen = textOf(r[r.correct]), other = textOf(r[r.correct === "left" ? "right" : "left"]);
+        return chosen && other ? esc(chosen) : "";
+      });
+      items.push(`<li><span class="tag">pair</span>${esc(prompt)}</li>`);
+      rounds.forEach((r, i) => {
+        if (!lines[i]) { items.push(UN_LI); return; }
+        const other = textOf(r[r.correct === "left" ? "right" : "left"]);
+        items.push(`<li><span class="tag">round</span>${esc(textOf(r.left))} vs ${esc(textOf(r.right))}</li>`);
+        answers.push(`<span class="ans">${lines[i]}</span> (not ${esc(other)})`);
+      });
+    }
+  }
+  if (w.mc == null && w.pair == null) items.push(UN_LI);
+  Object.keys(w).forEach(k => { if (k !== "pins" && k !== "mc" && k !== "pair") items.push(UN_LI); });
+  return { items: items.join("") || UN_LI, answers: answers.join("<br>") || un() };
+}
+function historyParts(set) {
+  const items = [], answers = [];
+  const hist = set && set.history;
+  ["r1", "r2"].forEach(r => {
+    const rd = hist && hist[r];
+    try {
+      if (!rd || typeof rd !== "object" || !Array.isArray(rd.events) || !textOf(rd.theme) || !rd.events.length) { items.push(UN_LI); answers.push(un()); return; }
+      if (!rd.events.every(e => Array.isArray(e) && e.length >= 3 && (typeof e[1] === "string" || textOf(e[1])) && Number.isFinite(e[2]))) { items.push(UN_LI); answers.push(un()); return; }
+      const label = e => textOf(e[1]) || String(e[1]);
+      items.push(`<li><b>${esc(textOf(rd.theme))}</b> — ${esc(rd.events.map(label).join(" · "))}</li>`);
+      answers.push(esc(textOf(rd.theme)) + ": " + rd.events.slice().sort((a, b) => a[2] - b[2]).map(e => esc(label(e)) + " (" + e[2] + ")").join(" → "));
+    } catch (e) { items.push(UN_LI); answers.push(un()); }
+  });
+  return { items: items.join(""), answers: answers.join("<br>") };
+}
+function questionAnswer(q) {
+  if (!q || typeof q !== "object") return "";
+  const t = q.type || "";
+  if (t === "pair") {
+    if (!Array.isArray(q.rounds) || !q.rounds.length) return "";
+    const bits = q.rounds.map(r => r && (r.correct === "left" || r.correct === "right") ? textOf(r[r.correct]) : "");
+    return bits.every(Boolean) ? bits.join(" | ") : "";
+  }
+  if (t === "reveal") return textOf(q.answer);
+  if (t === "slider" || t === "guess") return typeof q.answer === "number" && Number.isFinite(q.answer) ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
+  const a = ansOf(q);
+  return a == null ? "" : textOf(a) || (typeof a === "string" ? a : "");
+}
+function listParts(list, tagOf) {
+  if (!Array.isArray(list)) return { items: UN_LI, answers: un() };
+  const items = [], answers = [];
+  list.forEach((q, i) => {
+    try {
+      const prompt = q && typeof q === "object" ? textOf(q.q != null ? q.q : q.prompt) : "";
+      const ans = questionAnswer(q);
+      if (!prompt || !ans) { items.push(UN_LI); answers.push((i + 1) + ". " + un()); return; }
+      const tag = tagOf(q);
+      items.push(`<li><span class="tag">${esc(tag)}</span>${esc(prompt)}</li>`);
+      const explain = textOf(q.explain);
+      answers.push((i + 1) + `. <span class="ans">${esc(ans)}</span>` + (explain ? " — " + esc(explain) : ""));
+    } catch (e) { items.push(UN_LI); answers.push((i + 1) + ". " + un()); }
+  });
+  return { items: items.join(""), answers: answers.join("<br>") };
+}
+const SPORT_TAG = { mc: "multiple choice", order: "order", match: "match", bracket: "bracket", guess: "estimate", pair: "pair", reveal: "reveal", slider: "slider" };
+function sportParts(list) { return listParts(list, q => SPORT_TAG[q.type] || "type answer"); }
+function thinkParts(list) { return listParts(list, q => q.kind || q.type || "text"); }
 // Which raw list index each category uses that day (to flag repeats inside the window).
-function idx(set) { const f = (list, v) => list.indexOf(v); const wg = set.wordGame.id;
-  const wkey = { flip: ["wordFlip", set.wordFlip], bridge: ["wordBridge", set.wordBridge], conn: ["connections", set.connections], odd: ["oddOneOut", set.oddOneOut], anag: ["anagram", set.anagram] }[wg];
-  return { world: f(C.worldRush, set.worldRush), history: f(C.history, set.history), sports: f(C.sports, set.sports), think: f(C.thinkFast, set.thinkFast), word: wg + ":" + (wkey[0] === "anagram" ? window.ANAGRAM_SETS.indexOf(wkey[1]) : f(C[wkey[0]], wkey[1])) };
+function idx(set) {
+  const f = (list, v) => Array.isArray(list) ? list.indexOf(v) : -1;
+  const wg = set && set.wordGame && set.wordGame.id || "?";
+  const wkey = { flip: ["wordFlip", set && set.wordFlip], bridge: ["wordBridge", set && set.wordBridge], conn: ["connections", set && set.connections], odd: ["oddOneOut", set && set.oddOneOut], anag: ["anagram", set && set.anagram] }[wg];
+  let word = wg + ":?";
+  try { if (wkey) word = wg + ":" + (wkey[0] === "anagram" ? (window.ANAGRAM_SETS || []).indexOf(wkey[1]) : f(C[wkey[0]], wkey[1])); } catch (e) { word = wg + ":?"; }
+  return { world: f(C && C.worldRush, set && set.worldRush), history: f(C && C.history, set && set.history), sports: f(C && C.sports, set && set.sports), think: f(C && C.thinkFast, set && set.thinkFast), word };
 }
 function wordHtml(set) {
-  const g = set.wordGame; let items = "", ans = "";
-  if (g.id === "flip") { items = set.wordFlip.map(w => `<li><span class="tag">${esc(w[1])}</span>${esc(w[2])}</li>`).join(""); ans = set.wordFlip.map(w => esc(w[0])).join(", "); }
-  else if (g.id === "bridge") { items = set.wordBridge.map(w => `<li>${esc(w[0])} ___ ${esc(w[1])}</li>`).join(""); ans = set.wordBridge.map(w => esc(w[2] + " (" + w[0] + w[2] + " / " + w[2] + w[1] + ")")).join(", "); }
-  else if (g.id === "conn") { items = `<li>${esc(set.connections.groups.flatMap(x => x.words).sort().join(", "))}</li>`; ans = set.connections.groups.map(x => `<b>${esc(x.name)}</b>: ${esc(x.words.join(", "))}`).join("<br>"); }
-  else if (g.id === "odd") { items = set.oddOneOut.map(o => `<li>${esc(o.words.join(", "))}</li>`).join(""); ans = set.oddOneOut.map(o => `${esc(o.words[o.odd])} — ${esc(o.why)}`).join("<br>"); }
-  else if (g.id === "anag") { const a = set.anagram || {}; items = `<li>Letters: <b>${esc(a.letters || JSON.stringify(a).slice(0, 80))}</b></li>`; ans = esc((a.valid || []).length + " valid words, e.g. " + (a.valid || []).slice(0, 12).join(", ")); }
-  return { title: g.name, items, ans };
+  try {
+    const g = set && set.wordGame;
+    if (!g || typeof g !== "object" || !g.id) return { title: "Word Nerd", items: UN_LI, ans: un() };
+    const title = textOf(g.name) || g.id;
+    let items = "", ans = "";
+    if (g.id === "flip") {
+      if (!Array.isArray(set.wordFlip)) return { title, items: UN_LI, ans: un() };
+      items = set.wordFlip.map(w => Array.isArray(w) && w.length >= 3 && typeof w[0] === "string" ? `<li><span class="tag">${esc(w[1])}</span>${esc(w[2])}</li>` : UN_LI).join("");
+      ans = set.wordFlip.map(w => Array.isArray(w) && typeof w[0] === "string" ? esc(w[0]) : "unrecognized item").join(", ");
+    } else if (g.id === "bridge") {
+      if (!Array.isArray(set.wordBridge)) return { title, items: UN_LI, ans: un() };
+      items = set.wordBridge.map(w => Array.isArray(w) && w.length >= 3 && [0, 1, 2].every(i => typeof w[i] === "string") ? `<li>${esc(w[0])} ___ ${esc(w[1])}</li>` : UN_LI).join("");
+      ans = set.wordBridge.map(w => Array.isArray(w) && w.length >= 3 && typeof w[2] === "string" ? esc(w[2] + " (" + w[0] + w[2] + " / " + w[2] + w[1] + ")") : "unrecognized item").join(", ");
+    } else if (g.id === "conn") {
+      const groups = set.connections && Array.isArray(set.connections.groups) ? set.connections.groups : null;
+      if (!groups || !groups.every(x => x && typeof x.name === "string" && Array.isArray(x.words) && x.words.every(wd => typeof wd === "string"))) return { title, items: UN_LI, ans: un() };
+      items = `<li>${esc(groups.flatMap(x => x.words).sort().join(", "))}</li>`;
+      ans = groups.map(x => `<b>${esc(x.name)}</b>: ${esc(x.words.join(", "))}`).join("<br>");
+    } else if (g.id === "odd") {
+      if (!Array.isArray(set.oddOneOut)) return { title, items: UN_LI, ans: un() };
+      items = set.oddOneOut.map(o => o && Array.isArray(o.words) && o.words.every(wd => typeof wd === "string") && Number.isInteger(o.odd) && o.words[o.odd] != null && typeof o.why === "string" ? `<li>${esc(o.words.join(", "))}</li>` : UN_LI).join("");
+      ans = set.oddOneOut.map(o => o && Array.isArray(o.words) && o.words[o.odd] != null ? `${esc(o.words[o.odd])} — ${esc(o.why)}` : "unrecognized item").join("<br>");
+    } else if (g.id === "anag") {
+      const a = set.anagram;
+      if (!a || typeof a !== "object" || typeof a.letters !== "string" || !Array.isArray(a.valid)) return { title, items: UN_LI, ans: un() };
+      items = `<li>Letters: <b>${esc(a.letters)}</b></li>`;
+      ans = esc(a.valid.length + " valid words, e.g. " + a.valid.slice(0, 12).join(", "));
+    } else return { title, items: UN_LI, ans: un() };
+    return { title, items: items || UN_LI, ans: ans || un() };
+  } catch (e) { return { title: "Word Nerd", items: UN_LI, ans: un() }; }
 }
 const F = window.BCFeedback, RVK = "bc-admin-review";
 const rv = () => { try { return JSON.parse(localStorage.getItem(RVK)) || {}; } catch { return {}; } };
@@ -119,45 +257,61 @@ function weekUrl(keys) {
     if (!dn.length && !up.length && !nn.length) body += "_No per-question marks._\n"; });
   return F.issueUrl(`[Week review] ${keys[0]} → ${keys[keys.length - 1]}: ${nu} approved, ${nd} disapproved`, body, nd ? "admin-feedback" : "admin-feedback,approved");
 }
-window.BCAdmin = { weekUrl: () => weekUrl(keys), review };
+function failedDay(k) {
+  const d = document.createElement("section"); d.className = "day"; d.dataset.key = k;
+  d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}</h2></div><div class="cats"><p class="unrecognized">unrecognized item</p></div>`;
+  return d;
+}
 function card(k, dup, isToday) {
   const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
   const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
   const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
-  const sp = s.sports.map(q => `<li><span class="tag">${({ mc: "multiple choice", order: "order", match: "match", bracket: "bracket", guess: "estimate" })[q.type] || "type answer"}</span>${esc(q.q)}</li>`).join("");
-  const tf = s.thinkFast.map(q => `<li><span class="tag">${esc(q.kind || q.type || "text")}</span>${esc(q.q)}</li>`).join("");
-  const hist = ["r1", "r2"].map(r => s.history[r]).filter(Boolean);
+  const world = worldParts(s && s.worldRush), hist = historyParts(s), sp = sportParts(s && s.sports), tf = thinkParts(s && s.thinkFast);
   d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>
    <div class="acts"><label class="ap"><input type="checkbox" ${ok ? "checked" : ""}> Approved</label>
-   <a class="btn" href="index.html?preview=${k}" target="_blank" rel="noopener">▶ Play this day</a></div></div>
+   <a class="btn" href="index.html?preview=${esc(k)}" target="_blank" rel="noopener">▶ Play this day</a></div></div>
   <div class="cats">
-   <div class="cat"><h3>🌎 World Rush${dupT("world")}</h3><ul>${s.worldRush.pins.map(p => `<li><span class="tag">pin</span>${esc(p.name)}</li>`).join("")}<li><span class="tag">MC</span>${esc(s.worldRush.mc.q)}</li></ul></div>
-   <div class="cat"><h3>📜 Time Warp${dupT("history")}</h3><ul>${hist.map(r => `<li><b>${esc(r.theme)}</b> — ${esc(r.events.map(e => e[1]).join(" · "))}</li>`).join("")}</ul></div>
-   <div class="cat"><h3>🏆 MVP (sports)${dupT("sports")}</h3><ul>${sp}</ul></div>
+   <div class="cat"><h3>🌎 World Rush${dupT("world")}</h3><ul>${world.items}</ul></div>
+   <div class="cat"><h3>📜 Time Warp${dupT("history")}</h3><ul>${hist.items}</ul></div>
+   <div class="cat"><h3>🏆 MVP (sports)${dupT("sports")}</h3><ul>${sp.items}</ul></div>
    <div class="cat"><h3>📝 Word Nerd: ${esc(w.title)}${dupT("word")}</h3><ul>${w.items}</ul></div>
-   <div class="cat"><h3>🧠 Brain Teaser${dupT("think")}</h3><ul>${tf}</ul></div>
+   <div class="cat"><h3>🧠 Brain Teaser${dupT("think")}</h3><ul>${tf.items}</ul></div>
    <details><summary>Show answers</summary>
-    <p><b>World:</b> ${esc(ansOf(s.worldRush.mc))}</p>
-    <p><b>History order:</b><br>${hist.map(r => esc(r.theme) + ": " + r.events.slice().sort((a, b) => a[2] - b[2]).map(e => esc(e[1]) + " (" + e[2] + ")").join(" → ")).join("<br>")}</p>
-    <p><b>Sports:</b><br>${s.sports.map((q, i) => `${i + 1}. <span class="ans">${esc(ansOf(q))}</span>`).join("<br>")}</p>
+    <p><b>World:</b><br>${world.answers}</p>
+    <p><b>History order:</b><br>${hist.answers}</p>
+    <p><b>Sports:</b><br>${sp.answers}</p>
     <p><b>${esc(w.title)}:</b><br><span class="ans">${w.ans}</span></p>
-    <p><b>Brain Teaser:</b><br>${s.thinkFast.map((q, i) => `${i + 1}. <span class="ans">${esc(ansOf(q))}</span>${q.explain ? " — " + esc(q.explain) : ""}`).join("<br>")}</p>
+    <p><b>Brain Teaser:</b><br>${tf.answers}</p>
    </details></div>`;
-  d.querySelector("input").onchange = e => { setAppr(k, e.target.checked); d.classList.toggle("ok", e.target.checked); };
-  review(k, d);
+  const boxIn = d.querySelector("input");
+  if (boxIn) boxIn.onchange = e => { setAppr(k, e.target.checked); d.classList.toggle("ok", e.target.checked); };
+  try { review(k, d); } catch (e) { /* one review failure stays inside this day */ }
   return d;
 }
+// One bad day is a note. It does not stop the other days in the window.
+function showDay(k, dup, isToday) { try { return card(k, dup, isToday); } catch (e) { return failedDay(k); } }
+function renderWindow(keys, today) {
+  const seen = {}, nodes = [];
+  keys.forEach(k => {
+    let dup = null;
+    try {
+      const ix = idx(B.getDailySet(k)); dup = {};
+      for (const c in ix) { const prev = seen[c + ix[c]]; if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
+    } catch (e) { dup = null; }
+    nodes.push(showDay(k, dup, k === today));
+  });
+  return nodes;
+}
+window.BCAdmin = { weekUrl: () => weekUrl(keys), review, card, showDay, renderWindow, worldParts };
 const box = document.getElementById("days"), dp = document.getElementById("dp");
 const today = B.todayKey(), t0 = B.dayOfKey(today);
 dp.value = today;
 // Next 7 days, with repeat detection (each category vs. earlier days in the window).
-const seen = {}; const keys = Array.from({ length: 7 }, (_, i) => B.keyOf(t0 + i));
-keys.forEach(k => { const ix = idx(B.getDailySet(k)), dup = {};
-  for (const c in ix) { const prev = (seen[c + ix[c]]); if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
-  box.append(card(k, dup, k === today)); });
+const keys = Array.from({ length: 7 }, (_, i) => B.keyOf(t0 + i));
+renderWindow(keys, today).forEach(el => box.append(el));
 document.getElementById("week").onclick = () => window.open(weekUrl(keys), "_blank", "noopener");
 document.getElementById("go").onclick = () => { const k = dp.value; if (!k) return;
-  const el = card(k, null, k === today); el.style.outline = "4px solid var(--o)"; box.prepend(el); el.scrollIntoView({ behavior: "smooth" }); };
+  const el = showDay(k, null, k === today); el.style.outline = "4px solid var(--o)"; box.prepend(el); el.scrollIntoView({ behavior: "smooth", block: "start" }); };
 })();
 </script>
 </body>
