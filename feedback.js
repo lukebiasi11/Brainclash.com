@@ -81,7 +81,7 @@ function items(set) {
 }
 function itemUrl(date, it, note, verdict) {
   verdict = verdict || "Disapproved";
-  const body = `**${verdict}** from admin preview\n\n- **Date:** ${date}\n- **Category:** ${it.cat}\n- **Question id:** \`${date}/${it.id}\`\n\n**Prompt:**\n> ${cut(it.prompt, 1500).replace(/\n/g, "\n> ")}\n\n**Answer:**\n> ${cut(it.answer, 1500).replace(/\n/g, "\n> ")}\n\n**Luke's note:**\n${cut(note, 2500) || "_(no note)_"}\n\nPreview: https://lukebiasi11.github.io/Brainclash.com/index.html?preview=${date}`;
+  const body = `**${verdict}** from admin preview\n\n- **Date:** ${date}\n- **Category:** ${it.cat}\n- **Question id:** \`${date}/${it.id}\`\n\n**Prompt:**\n> ${cut(it.prompt, 1500).replace(/\n/g, "\n> ")}\n\n**Answer:**\n> ${cut(it.answer, 1500).replace(/\n/g, "\n> ")}\n\n**Luke's note:**\n${cut(note, 2500) || "_(no note)_"}\n\nPreview: https://dailydosetrivia.com/index.html?preview=${date}`;
   return issueUrl(`[${verdict}] ${date} · ${it.cat} · ${cut(it.prompt, 60)}`, body, "admin-feedback");
 }
 window.BCFeedback = Object.freeze({ issueUrl, items, itemUrl, cut, MAX });

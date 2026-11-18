@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov18d, i18n at v=nov18b, style.css at v=nov18b, and English and Spanish content at v=nov18c.
-// nov18d is the match touch-tap fix. nov18c remains the wording pass on the Spanish and narrow-layout fix.
+// New HTML must request answers at v=nov17a, app.js at v=nov18e, i18n at v=nov18b, style.css at v=nov18b, and English and Spanish content at v=nov18c.
+// nov18e is the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18c remains the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov18d";
+const APP_V = "nov18e";
 const CONTENT_V = "nov18c";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -37,8 +37,8 @@ if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content 
 [["style", "style.css?v=nov18b"], ["i18n", "i18n.js?v=nov18b"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
-// feedback.js bumped to nov18d with the admin card fix. map.js stays on nov3k.
-if (!has(adminSrc, "feedback.js?v=nov18d") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov3k")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
+// feedback.js bumped to nov18e with the custom-domain preview URL. map.js stays on nov3k.
+if (!has(adminSrc, "feedback.js?v=nov18e") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18d")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
 
 const OLD = {};
 for (const f of ["app.js", "content.js", "content.es.js", "answers.js"]) OLD[f] = execFileSync("git", ["show", "origin/main:" + f]);

@@ -121,9 +121,9 @@ Set the secret `FIELD_ALLOWED_ORIGINS` to exactly:
 https://synthetic.dailydose.invalid
 ```
 
-Do not include `https://lukebiasi11.github.io`. The public game sends that origin, and this allowlist is the one the live game cannot reach. One origin, no wildcard, no trailing slash.
+Do not include `https://lukebiasi11.github.io`, `https://dailydosetrivia.com`, or `https://www.dailydosetrivia.com`. The public game sends one of those origins, and this allowlist is the one the live game cannot reach. One origin, no wildcard, no trailing slash.
 
-Expected: a curl with `Origin: https://lukebiasi11.github.io` returns 403 `origin_denied`. A curl with the synthetic origin is allowed through to the next check.
+Expected: a curl with `Origin: https://lukebiasi11.github.io` returns 403 `origin_denied`. The same 403 is required for `Origin: https://dailydosetrivia.com` and `Origin: https://www.dailydosetrivia.com`. A curl with the synthetic origin is allowed through to the next check.
 
 ### Anonymous sign-ins — dashboard only
 
@@ -559,7 +559,7 @@ Expected: all `0`. Real score rows, dedup, and aggregates are not on a 7-day tim
 
 Expected: no finding that `anon` or `authenticated` can read `operator_contact`, and no finding that a public table is missing row-level security because of these migrations. Record any other finding and do not "fix" it by opening a grant or turning collection on.
 
-`get_logs` for `field-compare`: the synthetic calls, then the final `collection_off`. No request from `https://lukebiasi11.github.io` during the collection-on window.
+`get_logs` for `field-compare`: the synthetic calls, then the final `collection_off`. No request from `https://lukebiasi11.github.io`, `https://dailydosetrivia.com`, or `https://www.dailydosetrivia.com` during the collection-on window.
 
 ## 10. Return the project to rest
 

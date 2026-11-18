@@ -36,27 +36,34 @@ const claims = {
 };
 
 (async () => {
-  const { createFieldHandler } = await import(pathToFileURL(path.join(__dirname, "../supabase/functions/field-compare/handler.js")).href);
+  const { createFieldHandler, PUBLIC_ORIGINS } = await import(pathToFileURL(path.join(__dirname, "../supabase/functions/field-compare/handler.js")).href);
+  const origins = PUBLIC_ORIGINS;
+  t("switch origins stay allowed together", origins.join(",") === "https://lukebiasi11.github.io,https://dailydosetrivia.com,https://www.dailydosetrivia.com");
   const counts = new Map();
   const db = dbFor(counts);
-  const on = createFieldHandler({ collection: "on", allowedOrigins: [origin], db, getClaims: claims.session });
-  const off = createFieldHandler({ collection: "off", allowedOrigins: [origin], db, getClaims: claims.session });
+  const on = createFieldHandler({ collection: "on", allowedOrigins: origins, db, getClaims: claims.session });
+  const off = createFieldHandler({ collection: "off", allowedOrigins: origins, db, getClaims: claims.session });
   const denied = await off(req("/field-compare/start", { body: { runId: run, day: "2026-11-07" } }));
   t("default off does not call sql", denied.status === 503 && (await denied.json()).error === "collection_off" && db.calls.length === 0);
   const badOrigin = await on(req("/field-compare/start", { headers: { origin: "https://evil.example" }, body: { runId: run, day: "2026-11-07" } }));
   t("origin allowlist", badOrigin.status === 403);
-  const preflight = await on(new Request("http://local/field-compare/start", { method: "OPTIONS", headers: { origin } }));
-  t("preflight", preflight.status === 204 && preflight.headers.get("access-control-allow-origin") === origin);
+  for (const allowedOrigin of origins) {
+    const preflight = await on(new Request("http://local/field-compare/start", { method: "OPTIONS", headers: { origin: allowedOrigin } }));
+    t("preflight " + allowedOrigin, preflight.status === 204 && preflight.headers.get("access-control-allow-origin") === allowedOrigin);
+    const opened = await on(req("/field-compare/start", { headers: { origin: allowedOrigin }, body: { runId: run, day: "2026-11-07" } }));
+    const openedBody = await opened.json();
+    t("allowed " + allowedOrigin, opened.status === 200 && opened.headers.get("access-control-allow-origin") === allowedOrigin && openedBody.ok === true);
+  }
   const method = await on(req("/field-compare/start", { method: "PUT", body: {} }));
   t("method", method.status === 405);
   const remove = await on(req("/field-compare/start", { method: "DELETE" }));
   t("no deletion route", remove.status === 405 && !db.calls.some(call => call.name === "deletion_request"));
   const missing = await on(req("/field-compare/start", { headers: { authorization: "" }, body: { runId: run, day: "2026-11-07" } }));
   t("missing session", missing.status === 401 && (await missing.json()).error === "identity_required");
-  const keyOnly = createFieldHandler({ collection: "on", allowedOrigins: [origin], db, getClaims: claims.publishable });
+  const keyOnly = createFieldHandler({ collection: "on", allowedOrigins: origins, db, getClaims: claims.publishable });
   const publicKey = await keyOnly(req("/field-compare/start", { headers: { authorization: "Bearer publishable-key" }, body: { runId: run, day: "2026-11-07" } }));
   t("publishable key is not a session", publicKey.status === 401 && (await publicKey.json()).error === "anonymous_required");
-  const rejected = createFieldHandler({ collection: "on", allowedOrigins: [origin], db, getClaims: claims.broken });
+  const rejected = createFieldHandler({ collection: "on", allowedOrigins: origins, db, getClaims: claims.broken });
   const badToken = await rejected(req("/field-compare/start", { body: { runId: run, day: "2026-11-07" } }));
   t("rejected claims", badToken.status === 401);
   const schema = await on(req("/field-compare/finish", { body: { runId: run, day: "2026-02-31", playerDayHash: "player-a", scores: [1, 1, 1, 1, 1], secret: "nope" } }));
@@ -105,7 +112,7 @@ const claims = {
   const started = await on(req("/field-compare/start", { body: { runId: run, day: "2026-11-07" } }));
   t("start reaches sql only when on", started.status === 200 && db.calls.at(-1).name === "start_run" && db.calls.at(-1).args[2] === uid);
   const rateDb = dbFor(new Map());
-  const rate = createFieldHandler({ collection: "on", allowedOrigins: [origin], db: rateDb, getClaims: claims.session });
+  const rate = createFieldHandler({ collection: "on", allowedOrigins: origins, db: rateDb, getClaims: claims.session });
   let limited = 0;
   for (let i = 0; i < 25; i++) {
     const id = `22222222-2222-4222-8222-${String(i).padStart(12, "0")}`;
@@ -123,7 +130,7 @@ const claims = {
   console.error = (line) => lines.push(String(line));
   const failing = createFieldHandler({
     collection: "on",
-    allowedOrigins: [origin],
+    allowedOrigins: origins,
     getClaims: claims.session,
     db: { async call(name) { if (name === "consume_rate") throw new PostgresError(`permission denied ${leakedUrl} ${leakedJwt} ${uid}`, "42501"); return { ok: true }; } }
   });
@@ -135,7 +142,7 @@ const claims = {
   t("database failure log names the stage and hides secrets", logged.includes("stage=consume_rate") && logged.includes("class=PostgresError") && logged.includes("sqlstate=42501") && logged.includes("permission denied") && !logged.includes("secret-pass") && !logged.includes("pooler.supabase.com") && !logged.includes("eyJhbGci") && !logged.includes(uid));
   const shaped = createFieldHandler({
     collection: "on",
-    allowedOrigins: [origin],
+    allowedOrigins: origins,
     getClaims: claims.session,
     db: { async call() { return { ok: false, error: "db_error" }; } }
   });
@@ -143,7 +150,7 @@ const claims = {
   t("db_error result is unavailable", shapedRes.status === 503 && (await shapedRes.json()).error === "db_unavailable");
   const onlyLimited = createFieldHandler({
     collection: "on",
-    allowedOrigins: [origin],
+    allowedOrigins: origins,
     getClaims: claims.session,
     db: { async call(name) { return name === "consume_rate" ? { ok: false, error: "rate_limited" } : { ok: true }; } }
   });

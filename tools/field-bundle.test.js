@@ -17,21 +17,31 @@ t("deployable files are ESM", files.includes("export function createFieldHandler
 const { execFileSync } = require("child_process");
 execFileSync(deno, ["check", "--no-lock", "index.ts"], { stdio: "inherit", cwd: source });
 
+const publicOrigins = [
+  "https://lukebiasi11.github.io",
+  "https://dailydosetrivia.com",
+  "https://www.dailydosetrivia.com"
+];
 const probePath = path.join(source, ".load-probe.mjs");
 fs.writeFileSync(probePath, `
-import { createFieldHandler } from "./handler.js";
+import { createFieldHandler, PUBLIC_ORIGINS } from "./handler.js";
+const expected = ${JSON.stringify(publicOrigins)};
+if (PUBLIC_ORIGINS.join() !== expected.join()) throw new Error("PUBLIC_ORIGINS " + PUBLIC_ORIGINS.join());
 const handler = createFieldHandler({ collection: "off", allowedOrigins: ["https://synthetic.dailydose.invalid"] });
-const denied = await handler(new Request("http://local/field-compare/start", {
-  method: "POST",
-  headers: { origin: "https://lukebiasi11.github.io", "content-type": "application/json" },
-  body: "{}"
-}));
+for (const origin of PUBLIC_ORIGINS) {
+  const denied = await handler(new Request("http://local/field-compare/start", {
+    method: "POST",
+    headers: { origin, "content-type": "application/json" },
+    body: "{}"
+  }));
+  if (denied.status !== 403) throw new Error("handler " + origin + " " + denied.status);
+}
 const off = await handler(new Request("http://local/field-compare/start", {
   method: "POST",
   headers: { origin: "https://synthetic.dailydose.invalid", "content-type": "application/json" },
   body: "{}"
 }));
-if (denied.status !== 403 || off.status !== 503) throw new Error("handler " + denied.status + " " + off.status);
+if (off.status !== 503) throw new Error("handler off " + off.status);
 console.log("unbundled handler ok");
 `);
 try {
@@ -74,12 +84,14 @@ const ready = new Promise((resolve, reject) => {
 });
 ready.then(async () => {
   const address = (log.match(/Listening on (http:\/\/\S+)/) || [])[1];
-  const origin = await fetch(address + "field-compare/start", {
-    method: "POST",
-    headers: { origin: "https://lukebiasi11.github.io", "content-type": "application/json" },
-    body: "{}"
-  });
-  t("unbundled index rejects the public origin", origin.status === 403);
+  for (const origin of publicOrigins) {
+    const denied = await fetch(address + "field-compare/start", {
+      method: "POST",
+      headers: { origin, "content-type": "application/json" },
+      body: "{}"
+    });
+    t("unbundled index rejects " + origin, denied.status === 403);
+  }
   child.kill("SIGTERM");
 }).catch(err => {
   bad++;
