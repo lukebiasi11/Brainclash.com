@@ -3972,6 +3972,49 @@ window.CONTENT_ES = {
       ],
       "explain": "Un pavo. En inglés se llama turkey, igual que el país Turquía (Turkey), y a menudo se asa relleno."
     }
+  ],
+  [
+    {
+      "q": "Un camión se queda atorado bajo un puente bajo. Le faltan solo 2 cm para pasar, el chofer no puede dar marcha atrás y no tiene herramientas. Un niño que pasa le sugiere una solución fácil. ¿Cuál es?",
+      "options": [
+        "Desinflar un poco las llantas",
+        "Empujar el camión por detrás",
+        "Esperar a que levanten el puente",
+        "Quitar los espejos"
+      ],
+      "a": 0,
+      "explain": "Desinflar un poco las llantas. El camión baja unos centímetros y puede pasar bajo el puente."
+    },
+    {
+      "q": "¿Qué árbol puedes llevar en la mano?",
+      "answers": [
+        "palm",
+        "a palm",
+        "palm tree",
+        "palma",
+        "la palma",
+        "palmera"
+      ],
+      "aliases": [
+        "the palm",
+        "a palm tree",
+        "your palm",
+        "palms",
+        "una palma",
+        "una palmera",
+        "tu palma",
+        "la palmera"
+      ],
+      "wrong": [
+        "pine",
+        "oak",
+        "bonsai",
+        "pino",
+        "roble",
+        "bonsái"
+      ],
+      "explain": "¡La palma! La palma de la mano se llama igual que la palma, el árbol."
+    }
   ]
   ],
  "wordFlip": [

@@ -5020,6 +5020,52 @@ window.CONTENT = {
         ],
         "explain": "A turkey. It shares its name with the country Turkey, and it's often roasted with stuffing."
       }
+    ],
+    [
+      {
+        "kind": "logic",
+        "type": "mc",
+        "q": "A truck gets stuck under a low bridge. It's only 2 cm too tall to fit, the driver can't back up, and he has no tools. A kid walking by suggests an easy fix. What is it?",
+        "options": [
+          "Let some air out of the tires",
+          "Push the truck from behind",
+          "Wait for the bridge to be raised",
+          "Take the mirrors off"
+        ],
+        "a": 0,
+        "explain": "Let some air out of the tires. The truck sits a few centimeters lower and can roll under the bridge."
+      },
+      {
+        "kind": "riddle",
+        "q": "What kind of tree can you carry in your hand?",
+        "answers": [
+          "palm",
+          "a palm",
+          "palm tree",
+          "palma",
+          "la palma",
+          "palmera"
+        ],
+        "aliases": [
+          "the palm",
+          "a palm tree",
+          "your palm",
+          "palms",
+          "una palma",
+          "una palmera",
+          "tu palma",
+          "la palmera"
+        ],
+        "wrong": [
+          "pine",
+          "oak",
+          "bonsai",
+          "pino",
+          "roble",
+          "bonsái"
+        ],
+        "explain": "A palm! The palm of your hand shares its name with the palm tree."
+      }
     ]
   ]
 };
@@ -5038,10 +5084,11 @@ window.DAY_OVERRIDES["2026-11-18"] = {"worldRush":51,"history":51,"sports":51,"t
 window.DAY_OVERRIDES["2026-11-19"] = {"worldRush":52,"history":52,"sports":52,"thinkFast":54,"wordBridge":12};
 window.DAY_OVERRIDES["2026-11-20"] = {"worldRush":53,"history":53,"sports":58,"thinkFast":60,"connections":13};
 window.DAY_OVERRIDES["2026-11-21"] = {"worldRush":58,"history":58,"sports":54,"thinkFast":61,"oddOneOut":12};
-window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":59,"history":59,"sports":55,"thinkFast":62,"anagram":14};
+window.DAY_OVERRIDES["2026-11-22"] = {"worldRush":59,"history":59,"sports":55,"thinkFast":65,"anagram":14};
 window.DAY_OVERRIDES["banked-1120"] = {"sports":53,"thinkFast":55,"connections":12};
 window.DAY_OVERRIDES["banked-1121"] = {"worldRush":54,"history":54,"thinkFast":56};
 window.DAY_OVERRIDES["banked-1122"] = {"worldRush":55,"history":55,"thinkFast":57};
+window.DAY_OVERRIDES["banked-1122b"] = {"thinkFast":62};
 window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":60,"history":60,"sports":59,"thinkFast":63,"wordFlip":12};
 window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"thinkFast":64,"wordBridge":13};
 window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
