@@ -30,7 +30,7 @@ end $$;
 grant usage on schema private to board_runtime, board_retention;
 
 create table private.board_term (
-  kind text not null check (kind in ('imp', 'impword', 'sub', 'word')),
+  kind text not null check (kind in ('imp', 'impword', 'sub', 'word', 'compound')),
   term text not null,
   primary key (kind, term)
 );
@@ -47,17 +47,26 @@ insert into private.board_term (kind, term) values
   ('imp', 'support'),
   ('impword', 'mod'),
   ('impword', 'mods'),
+  ('compound', 'cooladmin'),
+  ('compound', 'modteam'),
+  ('compound', 'staffer'),
+  ('sub', '1488'),
   ('sub', 'asshole'),
   ('sub', 'badass'),
   ('sub', 'bastard'),
+  ('sub', 'beaner'),
   ('sub', 'bitch'),
   ('sub', 'blowjob'),
+  ('sub', 'bollocks'),
+  ('sub', 'boobs'),
   ('sub', 'cabron'),
   ('sub', 'cabrona'),
   ('sub', 'capullo'),
+  ('sub', 'chinga'),
   ('sub', 'chingada'),
   ('sub', 'chingado'),
   ('sub', 'chingar'),
+  ('sub', 'cocksucker'),
   ('sub', 'cojones'),
   ('sub', 'culero'),
   ('sub', 'cunt'),
@@ -71,18 +80,22 @@ insert into private.board_term (kind, term) values
   ('sub', 'gilipollas'),
   ('sub', 'handjob'),
   ('sub', 'hentai'),
+  ('sub', 'hitler'),
   ('sub', 'horny'),
   ('sub', 'hostia'),
   ('sub', 'jackass'),
   ('sub', 'jizz'),
   ('sub', 'joder'),
-  ('sub', 'mamon'),
-  ('sub', 'mamona'),
+  ('sub', 'kkk'),
+  ('sub', 'mamaguevo'),
   ('sub', 'maricon'),
   ('sub', 'mierda'),
+  ('sub', 'nazi'),
   ('sub', 'nigga'),
   ('sub', 'nigg'),
   ('sub', 'nigger'),
+  ('sub', 'niqqer'),
+  ('sub', 'nlgger'),
   ('sub', 'nude'),
   ('sub', 'orgasm'),
   ('sub', 'pendeja'),
@@ -91,37 +104,54 @@ insert into private.board_term (kind, term) values
   ('sub', 'phuck'),
   ('sub', 'phuk'),
   ('sub', 'pinche'),
+  ('sub', 'pinga'),
   ('sub', 'polla'),
-  ('sub', 'porn'),
   ('sub', 'pussy'),
-  ('sub', 'rape'),
+  ('sub', 'raghead'),
   ('sub', 'rapist'),
   ('sub', 'retard'),
+  ('sub', 'semen'),
   ('sub', 'sexual'),
   ('sub', 'sexy'),
-  ('sub', 'shit'),
   ('sub', 'slut'),
+  ('sub', 'tranny'),
   ('sub', 'twat'),
   ('sub', 'vagina'),
-  ('sub', 'wank'),
+  ('sub', 'wanker'),
+  ('sub', 'wetback'),
   ('sub', 'whore'),
-  ('sub', 'xxx'),
   ('word', 'anal'),
   ('word', 'ass'),
+  ('word', 'chink'),
   ('word', 'cock'),
   ('word', 'cono'),
+  ('word', 'coon'),
+  ('word', 'culo'),
   ('word', 'cum'),
   ('word', 'dick'),
+  ('word', 'dyke'),
   ('word', 'fag'),
+  ('word', 'gook'),
+  ('word', 'kike'),
+  ('word', 'mamon'),
+  ('word', 'mamona'),
   ('word', 'marica'),
+  ('word', 'nig'),
+  ('word', 'paki'),
   ('word', 'perra'),
   ('word', 'pito'),
+  ('word', 'porn'),
+  ('word', 'pron'),
   ('word', 'puta'),
   ('word', 'puto'),
+  ('word', 'rape'),
   ('word', 'sex'),
   ('word', 'sexo'),
+  ('word', 'shit'),
+  ('word', 'spic'),
   ('word', 'tit'),
   ('word', 'verga'),
+  ('word', 'wank'),
   ('word', 'zorra');
 
 create table private.board_post (
@@ -270,6 +300,104 @@ insert into private.board_allow (token) values
 ('wessex'),
 ('woodcock');
 
+create table private.board_phrase (
+  phrase text primary key,
+  reason text not null check (reason in ('allow', 'impersonation'))
+);
+insert into private.board_phrase (phrase, reason) values
+  ('dick van dyke', 'allow'),
+  ('daily dose', 'impersonation');
+
+create or replace function private.board_leet(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select translate(coalesce(p, ''), '01345789', 'oieastbg');
+$$;
+
+create or replace function private.board_repeats(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select regexp_replace(coalesce(p, ''), '(.)\1+', '\1', 'g');
+$$;
+
+create or replace function private.board_long_hit(p_text text, p_loose boolean)
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from private.board_term t
+    where t.kind = 'sub'
+      and (
+        position(t.term in p_text) > 0
+        or (
+          (
+            p_loose
+            or private.board_repeats(regexp_replace(p_text, '[^a-z0-9]', '', 'g'))
+               <> regexp_replace(p_text, '[^a-z0-9]', '', 'g')
+          )
+          and (
+            private.board_repeats(regexp_replace(p_text, '[^a-z0-9]', '', 'g')) = private.board_repeats(t.term)
+            or (
+              char_length(private.board_repeats(t.term)) >= 4
+              and position(
+                private.board_repeats(t.term)
+                in private.board_repeats(regexp_replace(p_text, '[^a-z0-9]', '', 'g'))
+              ) > 0
+            )
+          )
+        )
+      )
+  );
+$$;
+
+create or replace function private.board_word_hit(p_stem text, p_full text, p_trail text, p_loose boolean)
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select p_stem ~ '^x{3,}$' or p_full ~ '^x{3,}$' or exists (
+    select 1
+    from private.board_term t
+    where t.kind = 'word'
+      and (
+        p_stem = t.term or p_full = t.term
+        or p_stem = t.term || 's' or p_full = t.term || 's'
+        or (p_trail ~ '^[0-9]+$' and p_trail <> '' and p_stem = t.term)
+        or (p_loose and (position(t.term in p_stem) > 0 or position(t.term in p_full) > 0))
+      )
+  );
+$$;
+
+create or replace function private.board_imp_hit(p_stem text, p_full text, p_trail text)
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select exists (
+    select 1 from private.board_term t
+    where t.kind = 'compound'
+      and (position(t.term in p_stem) > 0 or position(t.term in p_full) > 0)
+  ) or exists (
+    select 1 from private.board_term t
+    where (t.kind = 'imp' or t.kind = 'impword')
+      and (
+        p_stem = t.term or p_full = t.term
+        or (p_trail ~ '^[0-9]+$' and p_trail <> '' and p_stem = t.term)
+      )
+  );
+$$;
+
 create or replace function private.board_name_status(p_name text)
 returns jsonb
 language plpgsql
@@ -278,74 +406,154 @@ set search_path = ''
 as $$
 declare
   v text := coalesce(p_name, '');
-  v_fold text;
-  v_sq text;
-  v_toks text[];
-  v_digits text;
+  v_norm text;
   v_scan text;
-  v_rest text;
-  v_tok text;
+  v_tag text := '';
+  v_piece text;
+  v_raw text[] := '{}';
+  v_stem text[] := '{}';
+  v_full text[] := '{}';
+  v_trail text[] := '{}';
+  v_syn boolean[] := '{}';
+  v_i int;
+  v_j int;
+  v_k int;
+  v_st text;
+  v_fu text;
+  v_tr text;
+  v_phrase text;
+  v_loose boolean;
 begin
   v := translate(v, chr(8203) || chr(8204) || chr(8205) || chr(65279), '');
   v := btrim(regexp_replace(v, '[[:space:]]+', ' ', 'g'));
   if v = '' then
     return jsonb_build_object('ok', true, 'skip', true);
   end if;
-  if lower(regexp_replace(v, '[[:space:]]+', '', 'g')) ~ '^(player|jugador)[0-9]{4}$' then
-    return jsonb_build_object('ok', false, 'reason', 'tag');
-  end if;
-  if char_length(v) < 3 or char_length(v) > 20 then
+  v_norm := normalize(v, NFKC);
+  if char_length(v_norm) < 3 or char_length(v_norm) > 20 then
     return jsonb_build_object('ok', false, 'reason', 'length');
   end if;
-  v_fold := regexp_replace(v, '[[:space:]]+', '', 'g');
-  if position('@' in v_fold) > 0 or v_fold ~* 'https?:|www\.|//' then
+  v_piece := regexp_replace(v_norm, '[[:space:]]+', '', 'g');
+  if position('@' in v_piece) > 0 or v_piece ~* 'https?:|www\.|//' then
     return jsonb_build_object('ok', false, 'reason', 'contact');
   end if;
-  if v_fold ~* '(^|[^[:alnum:]])[[:alnum:]-]+\.(com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)([^[:alnum:]]|$)' then
+  if v_piece ~* '(^|[^[:alnum:]])[[:alnum:]-]+\.(com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)([^[:alnum:]]|$)' then
     return jsonb_build_object('ok', false, 'reason', 'contact');
   end if;
-  v_digits := regexp_replace(v, '\D', '', 'g');
-  if char_length(v_digits) >= 7 then
+  if char_length(regexp_replace(v_norm, '\D', '', 'g')) >= 7 then
     return jsonb_build_object('ok', false, 'reason', 'contact');
   end if;
-  if v !~ '^[[:alnum:]]([[:alnum:]''’ -]*[[:alnum:]])?$' then
-    return jsonb_build_object('ok', false, 'reason', 'chars');
-  end if;
-  v_scan := replace(lower(translate(v,
-    'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÑÇÝŸàáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
-    'aaaaaaeeeeiiiiooooouuuuncyyaaaaaaeeeeiiiiooooouuuuncyy')), 'ß', 'ss');
-  v_rest := '';
-  for v_tok in
-    select m[1] from regexp_matches(v_scan, '[a-z0-9]+', 'g') as m
+  v_scan := lower(translate(v_norm,
+    'ıİіїӏаАеЕоОрРсСуУхХѕһαΑεΕοΟρΡιΙκΚτΤυΥχΧΝæÆœŒ',
+    'iiiiiaaeeooppccyyxxshaaeeooppiikkttyyxxnaaoo'));
+  v_scan := replace(translate(v_scan,
+    'àáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
+    'aaaaaaeeeeiiiiooooouuuuncyy'), 'ß', 'ss');
+  for v_piece in
+    select m[1] from regexp_matches(v_scan, '[a-z0-9]+|[^a-z0-9]+', 'g') as m
   loop
-    if not exists (select 1 from private.board_allow a where a.token = v_tok) then
-      v_rest := v_rest || v_tok;
+    if v_piece ~ '^[a-z0-9]+$' then
+      if v_piece ~ '^[0-9]+$' then
+        v_tag := v_tag || v_piece;
+      elsif v_piece ~ '[a-z]' and v_piece ~ '[0-9]$' then
+        v_tag := v_tag || private.board_leet(regexp_replace(v_piece, '[0-9]+$', '')) || substring(v_piece from '[0-9]+$');
+      else
+        v_tag := v_tag || private.board_leet(v_piece);
+      end if;
+    else
+      v_tag := v_tag || v_piece;
     end if;
   end loop;
-  if v_rest = '' then
+  if v_tag ~ '(player|jugador)[^a-z0-9]*[0-9]{4}([^0-9]|$)' then
+    return jsonb_build_object('ok', false, 'reason', 'tag');
+  end if;
+  if v_norm !~ '^[[:alnum:]]([[:alnum:]''’ -]*[[:alnum:]])?$' then
+    return jsonb_build_object('ok', false, 'reason', 'chars');
+  end if;
+  for v_piece in
+    select m[1] from regexp_matches(v_scan, '[a-z0-9]+', 'g') as m
+  loop
+    v_raw := array_append(v_raw, v_piece);
+  end loop;
+  v_i := 1;
+  while v_i <= coalesce(array_length(v_raw, 1), 0) loop
+    if v_raw[v_i] ~ '^[a-z]$' then
+      v_j := v_i;
+      while v_j <= array_length(v_raw, 1) and v_raw[v_j] ~ '^[a-z]$' loop
+        v_j := v_j + 1;
+      end loop;
+      if v_j - v_i >= 2 then
+        v_st := '';
+        for v_k in v_i..(v_j - 1) loop
+          v_st := v_st || private.board_leet(v_raw[v_k]);
+        end loop;
+        v_stem := array_append(v_stem, v_st);
+        v_full := array_append(v_full, v_st);
+        v_trail := array_append(v_trail, '');
+        v_syn := array_append(v_syn, true);
+      else
+        v_st := private.board_leet(v_raw[v_i]);
+        v_stem := array_append(v_stem, v_st);
+        v_full := array_append(v_full, v_st);
+        v_trail := array_append(v_trail, '');
+        v_syn := array_append(v_syn, false);
+      end if;
+      v_i := v_j;
+    else
+      if v_raw[v_i] ~ '^[0-9]+$' then
+        v_fu := v_raw[v_i]; v_st := v_fu; v_tr := '';
+      elsif v_raw[v_i] ~ '[a-z]' and v_raw[v_i] ~ '[0-9]$' then
+        v_tr := substring(v_raw[v_i] from '[0-9]+$');
+        v_st := private.board_leet(regexp_replace(v_raw[v_i], '[0-9]+$', ''));
+        v_fu := private.board_leet(v_raw[v_i]);
+      else
+        v_fu := private.board_leet(v_raw[v_i]);
+        v_st := v_fu;
+        v_tr := '';
+      end if;
+      v_stem := array_append(v_stem, v_st);
+      v_full := array_append(v_full, v_fu);
+      v_trail := array_append(v_trail, v_tr);
+      v_syn := array_append(v_syn, false);
+      v_i := v_i + 1;
+    end if;
+  end loop;
+  select string_agg(s, ' ' order by ord) into v_phrase
+  from unnest(v_stem) with ordinality as u(s, ord);
+  if exists (select 1 from private.board_phrase p where p.phrase = v_phrase and p.reason = 'allow') then
     return jsonb_build_object('ok', true, 'skip', false, 'name', v);
   end if;
-  v_sq := private.board_squeeze(v_rest);
-  v_digits := private.board_squeeze_digits(v_rest);
-  select s.kind into v_fold
-  from (
-    select t.kind, private.board_squeeze(t.term) as norm
-    from private.board_term t
-  ) s
-  where s.norm <> ''
-    and (
-      v_sq = s.norm
-      or (char_length(s.norm) >= 3 and position(s.norm in v_sq) > 0)
-      or (position(s.norm in v_digits) = 1 and substring(v_digits from char_length(s.norm) + 1) ~ '^[0-9]+$')
-    )
-  order by case s.kind when 'imp' then 1 when 'impword' then 2 when 'sub' then 3 else 4 end
-  limit 1;
-  if v_fold = 'imp' or v_fold = 'impword' then
-    return jsonb_build_object('ok', false, 'reason', 'impersonation');
-  end if;
-  if v_fold = 'sub' or v_fold = 'word' then
-    return jsonb_build_object('ok', false, 'reason', 'profanity');
-  end if;
+  for v_i in 1..(coalesce(array_length(v_stem, 1), 0) - 1) loop
+    if v_stem[v_i] = 'daily' and v_stem[v_i + 1] = 'dose' then
+      return jsonb_build_object('ok', false, 'reason', 'impersonation');
+    end if;
+  end loop;
+  for v_i in 1..coalesce(array_length(v_stem, 1), 0) loop
+    if not v_syn[v_i] and v_trail[v_i] = '' and exists (select 1 from private.board_allow a where a.token = v_stem[v_i]) then
+      if v_i > 1 and v_i < array_length(v_stem, 1) then
+        v_st := v_stem[v_i - 1] || v_stem[v_i + 1];
+        v_fu := v_full[v_i - 1] || v_full[v_i + 1];
+        if private.board_imp_hit(v_st, v_fu, '') then
+          return jsonb_build_object('ok', false, 'reason', 'impersonation');
+        end if;
+        if private.board_long_hit(v_st, true) or private.board_long_hit(v_fu, true) or private.board_word_hit(v_st, v_fu, '', true) then
+          return jsonb_build_object('ok', false, 'reason', 'profanity');
+        end if;
+      end if;
+      continue;
+    end if;
+    if v_stem[v_i] = 'dyke' and v_i > 1 and v_stem[v_i - 1] = 'van' then
+      continue;
+    end if;
+    v_loose := v_syn[v_i];
+    if private.board_imp_hit(v_stem[v_i], v_full[v_i], v_trail[v_i]) then
+      return jsonb_build_object('ok', false, 'reason', 'impersonation');
+    end if;
+    if private.board_long_hit(v_stem[v_i], v_loose) or private.board_long_hit(v_full[v_i], v_loose)
+       or private.board_word_hit(v_stem[v_i], v_full[v_i], v_trail[v_i], v_loose) then
+      return jsonb_build_object('ok', false, 'reason', 'profanity');
+    end if;
+  end loop;
   return jsonb_build_object('ok', true, 'skip', false, 'name', v);
 end;
 $$;
@@ -514,16 +722,15 @@ declare
   v_today date := (timezone('America/New_York', now()))::date;
   v_section text := coalesce(p_section, '');
   v_rows jsonb;
+  v_total int;
 begin
   if v_section not in ('overall', 'world', 'history', 'sports', 'word', 'think') then
     return jsonb_build_object('ok', false, 'error', 'invalid_section', 'served', false, 'rows', '[]'::jsonb);
   end if;
   if p_day is null or p_day > v_today or p_day < v_today - 30 then
-    return jsonb_build_object('ok', true, 'served', false, 'day', p_day, 'section', v_section, 'rows', '[]'::jsonb);
+    return jsonb_build_object('ok', true, 'served', false, 'day', p_day, 'section', v_section, 'rows', '[]'::jsonb, 'total', 0);
   end if;
-  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'tag', player_tag, 'score', score, 'token', id) order by place), '[]'::jsonb)
-    into v_rows
-  from (
+  with ranked as (
     select id, display_name, player_tag,
       case v_section
         when 'world' then scores[1]
@@ -550,10 +757,67 @@ begin
     where day_key = p_day
       and removed_at is null
       and name_hidden_at is null
-    order by score desc, display_name asc, id asc
+  ),
+  top as (
+    select * from ranked
+    order by place, id
     limit 100
-  ) q;
-  return jsonb_build_object('ok', true, 'served', true, 'day', p_day, 'section', v_section, 'rows', v_rows);
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'tag', player_tag, 'score', score, 'token', id) order by place, id), '[]'::jsonb),
+         (select count(*)::int from ranked)
+    into v_rows, v_total
+  from top;
+  return jsonb_build_object('ok', true, 'served', true, 'day', p_day, 'section', v_section, 'rows', v_rows, 'total', coalesce(v_total, 0));
+end;
+$$;
+
+create or replace function private.board_me(p_day date, p_section text, p_token uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_today date := (timezone('America/New_York', now()))::date;
+  v_section text := coalesce(p_section, '');
+  v_rank int;
+  v_total int;
+begin
+  if v_section not in ('overall', 'world', 'history', 'sports', 'word', 'think') or p_token is null then
+    return jsonb_build_object('ok', false, 'found', false);
+  end if;
+  if p_day is null or p_day > v_today or p_day < v_today - 30 then
+    return jsonb_build_object('ok', true, 'found', false, 'total', 0);
+  end if;
+  with ranked as (
+    select id,
+      rank() over (
+        order by
+          case v_section
+            when 'world' then scores[1]
+            when 'history' then scores[2]
+            when 'sports' then scores[3]
+            when 'word' then scores[4]
+            when 'think' then scores[5]
+            else total
+          end desc,
+          display_name asc,
+          id asc
+      ) as place
+    from private.board_post
+    where day_key = p_day
+      and removed_at is null
+      and name_hidden_at is null
+  )
+  select place, (select count(*)::int from ranked)
+    into v_rank, v_total
+  from ranked
+  where id = p_token;
+  if v_rank is null then
+    return jsonb_build_object('ok', true, 'found', false, 'total', coalesce(v_total, 0));
+  end if;
+  return jsonb_build_object('ok', true, 'found', true, 'rank', v_rank, 'total', v_total);
 end;
 $$;
 
@@ -701,17 +965,23 @@ begin
 end;
 $$;
 
-revoke all on table private.board_term, private.board_allow, private.board_post, private.board_agg, private.board_rate
+revoke all on table private.board_term, private.board_allow, private.board_phrase, private.board_post, private.board_agg, private.board_rate
   from public, anon, authenticated, app_writer, field_runtime, board_runtime, board_retention;
 revoke all on function
   private.board_squeeze(text),
   private.board_squeeze_digits(text),
+  private.board_leet(text),
+  private.board_repeats(text),
+  private.board_long_hit(text, boolean),
+  private.board_word_hit(text, text, text, boolean),
+  private.board_imp_hit(text, text, text),
   private.board_name_status(text),
   private.board_scores_ok(int[]),
   private.board_pick_tag(date),
   private.board_add_agg(date, int, int, int[]),
   private.board_post(uuid, date, text, int[]),
   private.board_public(date, text),
+  private.board_me(date, text, uuid),
   private.board_admin_list(date),
   private.board_rename(uuid, text),
   private.board_remove(uuid),
@@ -724,6 +994,7 @@ revoke all on function private.retain_board_names() from board_runtime;
 grant execute on function
   private.board_post(uuid, date, text, int[]),
   private.board_public(date, text),
+  private.board_me(date, text, uuid),
   private.board_admin_list(date),
   private.board_rename(uuid, text),
   private.board_remove(uuid),

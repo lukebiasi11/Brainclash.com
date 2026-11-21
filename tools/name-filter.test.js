@@ -9,7 +9,7 @@ const Board = require(path.join(root, "leaderboard.js"));
 let bad = 0;
 const t = (name, ok, extra) => { if (!ok) { bad++; console.log("FAIL", name, extra == null ? "" : extra); } else console.log("ok", name); };
 
-const okNames = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Ana-Maria", "Max", "Player1", "Sol", "Paz", "Niño", "Ashley", "Lucas"];
+const okNames = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Ana-Maria", "Max", "Player1", "Sol", "Paz", "Niño", "Ashley", "Lucas", "Knight", "Nigella", "Niger", "Petit", "Cumbria", "Annalise", "Conor", "Zora", "Fagan", "Grape", "Drapes", "Badminton", "Moderna", "Commodore", "Yoshito", "Hoshitani", "Pornchai", "Swank", "Mammon", "Pola", "Shitake", "Therapeutic", "Pitot", "Dick Van Dyke", "Ana Luz", "Ana-Luz", "Diana Lopez", "Hana Lee", "Juana Lima", "Matt Ito", "Nigel", "Titan", "Night", "Tito", "Dickens", "Stafford", "Sexton", "Essex", "Modesto", "Peacock", "Scunthorpe", "Nigeria", "Document", "Canal", "Cassie", "Bass", "Van Dyke"];
 const blocked = [
   ["Al", "length"],
   ["thisnameistoolongnowx", "length"],
@@ -60,7 +60,73 @@ const blocked = [
   ["Player  4821", "tag"],
   ["Jugador  0001", "tag"],
   ["JUGADOR0001", "tag"],
-  ["jugador 1234", "tag"]
+  ["jugador 1234", "tag"],
+  ["nіgger", "profanity"],
+  ["fuсk", "profanity"],
+  ["nıgger", "profanity"],
+  ["ｎｉｇｇｅｒ", "profanity"],
+  ["ｆｕｃｋ", "profanity"],
+  ["𝐟𝐮𝐜𝐤𝐞𝐫", "profanity"],
+  ["Ⓕⓤⓒⓚ", "profanity"],
+  ["Nigel nіgger", "profanity"],
+  ["Nigel ｎｉｇｇｅｒ", "profanity"],
+  ["niqqer", "profanity"],
+  ["nlgger", "profanity"],
+  ["fæggot", "profanity"],
+  ["Titan fuck", "profanity"],
+  ["fu Titan ck", "profanity"],
+  ["sh Night it", "profanity"],
+  ["cu Nigel nt", "profanity"],
+  ["Peacock cock", "profanity"],
+  ["Nigel n1gg3r", "profanity"],
+  ["ass", "profanity"],
+  ["a s s", "profanity"],
+  ["ass99", "profanity"],
+  ["tits", "profanity"],
+  ["s3x", "profanity"],
+  ["p0rn", "profanity"],
+  ["cum shot", "profanity"],
+  ["cocksucker", "profanity"],
+  ["wanker", "profanity"],
+  ["hijo de puta", "profanity"],
+  ["coño", "profanity"],
+  ["maricón", "profanity"],
+  ["coon", "profanity"],
+  ["tranny", "profanity"],
+  ["kike", "profanity"],
+  ["spic", "profanity"],
+  ["chink", "profanity"],
+  ["gook", "profanity"],
+  ["beaner", "profanity"],
+  ["wetback", "profanity"],
+  ["dyke", "profanity"],
+  ["paki", "profanity"],
+  ["raghead", "profanity"],
+  ["kkk", "profanity"],
+  ["nazi", "profanity"],
+  ["hitler", "profanity"],
+  ["1488", "profanity"],
+  ["Heil Hitler", "profanity"],
+  ["c o o n", "profanity"],
+  ["t r a n n y", "profanity"],
+  ["bollocks", "profanity"],
+  ["culo", "profanity"],
+  ["chinga", "profanity"],
+  ["mamaguevo", "profanity"],
+  ["pinga", "profanity"],
+  ["pr0n", "profanity"],
+  ["boobs", "profanity"],
+  ["semen", "profanity"],
+  ["Player-1234", "tag"],
+  ["Player'1234", "tag"],
+  ["Pl4yer 1234", "tag"],
+  ["Player １２３４", "tag"],
+  ["Plаyer 1234", "tag"],
+  ["Nigel Player1234", "tag"],
+  ["Titan player 1234", "tag"],
+  ["Player 1234 Nigel", "tag"],
+  ["Player 1234", "tag"],
+  ["Player_1234", "tag"]
 ];
 okNames.forEach(name => {
   const got = Filter.checkName(name);
@@ -75,13 +141,14 @@ const dumped = JSON.stringify(Filter.checkName("Daily Dose"));
 t("rejected result hides the text", dumped.indexOf("Daily") < 0);
 
 const sql = fs.readFileSync(path.join(root, "supabase/migrations/20261121180000_display_name_board.sql"), "utf8");
-const terms = { imp: [], impword: [], sub: [], word: [] };
-for (const m of sql.matchAll(/\('(imp|impword|sub|word)', '([a-z0-9]+)'\)/g)) terms[m[1]].push(m[2]);
+const terms = { imp: [], impword: [], sub: [], word: [], compound: [] };
+for (const m of sql.matchAll(/\('(imp|impword|sub|word|compound)', '([a-z0-9]+)'\)/g)) terms[m[1]].push(m[2]);
 const same = (a, b) => a.slice().sort().join(",") === b.slice().sort().join(",");
 t("imp list matches sql", same(Filter.TERMS.imp, terms.imp));
 t("impWord list matches sql", same(Filter.TERMS.impWord, terms.impword));
 t("sub list matches sql", same(Filter.TERMS.sub, terms.sub));
 t("word list matches sql", same(Filter.TERMS.word, terms.word));
+t("compound list matches sql", same(Filter.TERMS.compound, terms.compound));
 const allowSql = (sql.match(/insert into private\.board_allow \(token\) values([\s\S]*?);/) || ["", ""])[1];
 const allowRows = [...allowSql.matchAll(/\('([a-z0-9]+)'\)/g)].map(m => m[1]);
 t("allow list matches sql", same(Filter.ALLOW, allowRows));
@@ -160,6 +227,7 @@ t("anonymous own row is only its token", Board.isOwnRow(tie[0], entry, "", day) 
 t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico", score: 1 }, entry, "Luna", day) === true && Board.isOwnRow({ token: "nope", name: "Luna", score: 100 }, entry, "Luna", day) === false);
 const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
 t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
+t("rank below 100 uses the server total", JSON.stringify(Board.rankFromRows([{ token: "z", rank: 140 }], "z", 180)) === JSON.stringify({ rank: 140, total: 180 }));
 t("Nov 21 fifth tab is Brain Teaser", Board.fifthName("2026-11-21") === "Brain Teaser");
 t("Nov 22 fifth tab is still Brain Teaser", Board.fifthName("2026-11-22") === "Brain Teaser");
 t("Nov 23 fifth tab is Eagle Eye", Board.fifthName("2026-11-23") === "Eagle Eye");
@@ -184,8 +252,68 @@ delete global.EagleEye;
   const saved = await Board.acceptName("Luna");
   t("client accept saves when the server is unreachable", saved.ok === true && bag["bc-board-name"] === "Luna");
   global.fetch = async () => ({ ok: false, status: 400, async json() { return { ok: false, error: "name_rejected" }; } });
+  bag["bc-board-name-skip"] = "1";
   const rejected = await Board.acceptName("Luna");
-  t("explicit rejection clears that saved name", rejected.ok === false && !bag["bc-board-name"]);
+  t("explicit rejection clears that saved name", rejected.ok === false && !bag["bc-board-name"] && bag["bc-board-name-skip"] !== "1");
+  global.fetch = () => Promise.reject(new Error("down"));
+  const kept = await Board.acceptName("Luna");
+  t("a later outage keeps the name", kept.ok === true && bag["bc-board-name"] === "Luna");
+  global.BCDaily = { todayKey: () => "2026-11-21" };
+  global.location = { pathname: "/index.html", search: "" };
+  global.BC_NO_BOOT = false;
+  bag["bc-board-eligible"] = "yes";
+  bag["bc-board-name-skip"] = "1";
+  bag["bc-board-entry"] = JSON.stringify({ day: "2026-11-21", token: "low" });
+  let rankUrl = "";
+  global.fetch = async (url) => { rankUrl = String(url); return { ok: true, async json() { return { ok: true, served: true, total: 180, rows: [], me: { found: true, rank: 140, total: 180 } }; } }; };
+  const phrase = await Board.rankPhrase();
+  t("below 100 rank comes from the server", phrase === "Rank #140 of 180 today" && rankUrl.includes("token=low"));
+  delete bag["bc-board-eligible"];
+  delete bag["bc-board-name"];
+  delete bag["bc-board-name-skip"];
+  function domNode(tag) {
+    return {
+      tagName: tag, children: [], parentNode: null, attrs: {}, className: "", textContent: "", value: "", hidden: false, disabled: false, listeners: {},
+      setAttribute(k, v) { this.attrs[k] = String(v); },
+      getAttribute(k) { return Object.prototype.hasOwnProperty.call(this.attrs, k) ? this.attrs[k] : null; },
+      removeAttribute(k) { delete this.attrs[k]; },
+      append(...kids) { kids.forEach(kid => { if (!kid) return; kid.parentNode = this; this.children.push(kid); }); },
+      addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); },
+      removeEventListener() {},
+      querySelector(sel) { const all = []; collect(this, all); return all.find(node => match(node, sel)) || null; },
+      querySelectorAll(sel) { const all = []; collect(this, all); return all.filter(node => sel.split(",").some(part => match(node, part.trim()))); },
+      contains(node) { if (node === this) return true; return this.children.some(kid => kid.contains && kid.contains(node)); },
+      remove() { if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(kid => kid !== this); this.parentNode = null; },
+      focus() {
+        let parent = this, connected = false;
+        while (parent) { if (parent === global.document.body) connected = true; parent = parent.parentNode; }
+        this.connectedOnFocus = connected;
+        global.document.activeElement = this;
+        (this.listeners.focus || []).forEach(fn => fn());
+      }
+    };
+  }
+  function collect(node, out) { out.push(node); (node.children || []).forEach(kid => { if (kid && kid.children) collect(kid, out); }); }
+  function match(node, sel) {
+    if (sel === "input" || sel === "button") return node.tagName === sel;
+    if (sel.charAt(0) === "#") return node.attrs.id === sel.slice(1);
+    if (sel.charAt(0) === ".") return String(node.className || "").split(/\s+/).indexOf(sel.slice(1)) >= 0;
+    if (sel.charAt(0) === "[") return Object.prototype.hasOwnProperty.call(node.attrs, sel.slice(1, -1).replace(/["']/g, ""));
+    return node.tagName === sel;
+  }
+  const body = domNode("body");
+  global.document = {
+    body: body,
+    activeElement: null,
+    addEventListener() {},
+    removeEventListener() {},
+    createElement: domNode,
+    contains(node) { return body.contains(node); },
+    querySelector() { return null; }
+  };
+  Board.beforeStart({}).catch(() => {});
+  const year = global.document.activeElement;
+  t("year field is focused after the pop-up is appended", !!year && year.attrs && year.attrs.id === "board-year" && year.connectedOnFocus === true);
   console.log(bad ? bad + " failures" : "name-filter.test.js: all pass");
   process.exit(bad ? 1 : 0);
 })().catch(err => { console.error(err); process.exit(1); });

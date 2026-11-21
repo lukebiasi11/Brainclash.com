@@ -225,10 +225,10 @@
     const checked = filter() ? filter().checkName(raw) : { ok: false, reason: "chars" };
     if (checked.skip) return { ok: true, skip: true };
     if (!checked.ok) return { ok: false, reason: checked.reason || "chars" };
-    const previous = readName();
     const server = await serverCheck(checked.name);
     if (server.reason === "name_rejected") {
-      if (previous === checked.name) writeName("");
+      writeName("");
+      writeSkip(false);
       noteBlocked();
       return { ok: false, reason: "name_rejected" };
     }
@@ -313,8 +313,8 @@
         if (field) { try { field.focus(); } catch (e) {} }
         else if (list[0]) { try { list[0].focus(); } catch (e) {} }
       }
-      render();
       doc.body.append(host);
+      render();
     });
   }
 
@@ -323,7 +323,13 @@
     if (opts.started || opts.practice) return true;
     if (isTester(null)) return true;
     if (readFlag() === "no") { forgetIds(); return true; }
-    if (readName()) return true;
+    if (readName()) {
+      const saved = filter() ? filter().checkName(readName()) : { ok: true };
+      if (saved.ok && saved.skip !== true) return true;
+      writeName("");
+      writeSkip(false);
+      noteBlocked();
+    }
     if (readSkip() && !opts.add) return true;
     return openAsk(opts.add ? "add" : "start");
   }
@@ -656,17 +662,18 @@
         clearTimeout(timer);
         let body = {};
         try { body = await res.json(); } catch (e) { body = {}; }
-        if (body && body.error === "name_rejected") { writeName(""); noteBlocked(); }
+        if (body && body.error === "name_rejected") { writeName(""); writeSkip(false); noteBlocked(); }
         else if (body && typeof body.token === "string" && body.token) writeEntry(day, body.token);
       }, () => { clearTimeout(timer); });
     }).catch(() => {});
   }
 
-  function rankFromRows(rows, token) {
+  function rankFromRows(rows, token, total) {
     if (!Array.isArray(rows) || typeof token !== "string" || !token) return null;
+    const count = Number.isFinite(Number(total)) ? Number(total) : rows.length;
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      if (row && row.token === token && Number.isFinite(Number(row.rank))) return { rank: Number(row.rank), total: rows.length };
+      if (row && row.token === token && Number.isFinite(Number(row.rank))) return { rank: Number(row.rank), total: count };
     }
     return null;
   }
@@ -676,7 +683,10 @@
     const entry = readEntry();
     if (!entry || entry.day !== todayKey()) return null;
     const canned = fixture("overall");
-    if (canned && Array.isArray(canned.rows)) return rankFromRows(canned.rows, entry.token);
+    if (canned && canned.me && Number.isFinite(Number(canned.me.rank)) && Number.isFinite(Number(canned.me.total))) {
+      return { rank: Number(canned.me.rank), total: Number(canned.me.total) };
+    }
+    if (canned && Array.isArray(canned.rows)) return rankFromRows(canned.rows, entry.token, canned.total);
     if (!enabled()) return null;
     const day = todayKey();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
@@ -684,7 +694,7 @@
       const c = cfg();
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 2000);
-      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=overall", {
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=overall&token=" + encodeURIComponent(entry.token), {
         method: "GET",
         headers: { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey },
         signal: ctrl ? ctrl.signal : undefined
@@ -692,7 +702,10 @@
       clearTimeout(timer);
       const body = await res.json();
       if (!res.ok || !body || body.ok === false || body.error === "board_off" || body.served === false) return null;
-      return rankFromRows(Array.isArray(body.rows) ? body.rows : [], entry.token);
+      if (body.me && body.me.found === true && Number.isFinite(Number(body.me.rank)) && Number.isFinite(Number(body.me.total))) {
+        return { rank: Number(body.me.rank), total: Number(body.me.total) };
+      }
+      return rankFromRows(Array.isArray(body.rows) ? body.rows : [], entry.token, body.total);
     } catch (e) { return null; }
   }
   async function rankPhrase() {

@@ -97,7 +97,7 @@ const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("migrations do not schedule cron", !/cron\.schedule/.test(sql));
 const Filter = require(path.join(root, "name-filter.js"));
 const quote = s => "'" + String(s).replace(/'/g, "''") + "'";
-const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel", "Night", "Tito", "Stafford", "Sexton", "Esperanza", "Analía", "nigel nigger", "nigelnigger", "n i g e l", "Niggel", "ni Nigel ger", "Dick", "cock", "player4821", "PLAYER 4821", "Player  4821", "Jugador  0001", "JUGADOR0001", "jugador 1234", "Player", "player 482", "player48210"].concat(Filter.ALLOW);
+const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel", "Night", "Tito", "Stafford", "Sexton", "Esperanza", "Analía", "nigel nigger", "nigelnigger", "n i g e l", "Niggel", "ni Nigel ger", "Dick", "cock", "player4821", "PLAYER 4821", "Player  4821", "Jugador  0001", "JUGADOR0001", "jugador 1234", "Player", "player 482", "player48210"].concat(Filter.ALLOW, ["Knight", "Nigella", "Niger", "Petit", "Cumbria", "Annalise", "Conor", "Zora", "Fagan", "Grape", "Drapes", "Badminton", "Moderna", "Commodore", "Yoshito", "Hoshitani", "Pornchai", "Swank", "Mammon", "Pola", "Shitake", "Therapeutic", "Pitot", "Dick Van Dyke", "Ana Luz", "Ana-Luz", "Diana Lopez", "Hana Lee", "Juana Lima", "Matt Ito", "Cassie", "Bass", "Van Dyke", "nіgger", "fuсk", "nıgger", "ｎｉｇｇｅｒ", "ｆｕｃｋ", "𝐟𝐮𝐜𝐤𝐞𝐫", "Ⓕⓤⓒⓚ", "Nigel nіgger", "Nigel ｎｉｇｇｅｒ", "niqqer", "nlgger", "fæggot", "Titan fuck", "fu Titan ck", "sh Night it", "cu Nigel nt", "Peacock cock", "Nigel n1gg3r", "ass", "a s s", "ass99", "tits", "s3x", "p0rn", "cum shot", "cocksucker", "wanker", "hijo de puta", "coño", "maricón", "coon", "tranny", "kike", "spic", "chink", "gook", "beaner", "wetback", "dyke", "paki", "raghead", "kkk", "nazi", "hitler", "1488", "Heil Hitler", "c o o n", "t r a n n y", "bollocks", "culo", "chinga", "mamaguevo", "pinga", "pr0n", "boobs", "semen", "Player-1234", "Player'1234", "Pl4yer 1234", "Player １２３４", "Plаyer 1234", "Nigel Player1234", "Titan player 1234", "Player 1234 Nigel", "Player 1234", "Player_1234", "staff", "admin", "mod", "sex", "tit", "DailyDose", "d4ily d0se", "sh1t", "f-u-c-k"]);
 let parityBad = 0;
 parity.forEach(name => {
   const js = Filter.checkName(name);
@@ -143,6 +143,15 @@ t("admin can rename an anonymous row", renamedAnon.ok === true && renamedAnon.na
 q(`update private.board_post set display_name = null where id = '${anonId}'`);
 const removedAnon = JSON.parse(q(`select private.board_remove('${anonId}'::uuid)::text`));
 t("admin can remove an anonymous row", removedAnon.removed === true && !board(today, "overall").rows.some(r => r.token === anonId));
+const crowdDay = q(`select ('${today}'::date - 2)::text`);
+q(`insert into private.board_post (day_key, auth_uid, display_name, scores, total)
+  select '${crowdDay}'::date, gen_random_uuid(), 'Row' || i, array[i, 0, 0, 0, 0], i
+  from generate_series(1, 105) as i`);
+const crowd = board(crowdDay, "overall");
+const lowId = q(`select id::text from private.board_post where day_key = '${crowdDay}' and total = 1`);
+const low = JSON.parse(q(`select private.board_me('${crowdDay}'::date, 'overall', '${lowId}'::uuid)::text`));
+t("board serves 100 of the true total", crowd.served === true && crowd.rows.length === 100 && crowd.total === 105);
+t("a player below 100 still has a rank", low.found === true && low.rank === 105 && low.total === 105);
 psqlDb("postgres", ["-c", `drop database if exists ${db}`]);
 console.log(bad ? bad + " failures" : "leaderboard.pg.test.js: all pass");
 process.exit(bad ? 1 : 0);

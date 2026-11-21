@@ -153,7 +153,13 @@ export function createBoardHandler(options = {}) {
       const got = await callDb(db, "board_public", "board_public", [day, section]);
       if (got.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (got.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
-      return json(200, got.result, headers);
+      const payload = got.result || {};
+      const token = url.searchParams.get("token") || "";
+      if (UID.test(token)) {
+        const mine = await callDb(db, "board_me", "board_me", [day, section, token]);
+        if (mine.kind === "ok" && mine.result) payload.me = mine.result;
+      }
+      return json(200, payload, headers);
     }
     if (op === "check") {
       if (body.eligible !== true) return json(400, { ok: false, error: "not_eligible" }, headers);
