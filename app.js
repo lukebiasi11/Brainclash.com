@@ -2625,19 +2625,17 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
-  // 375px-wide results only. Time Warp's Next and the MVP "Next: Word Nerd" button were
-  // clipped by the bottom edge (the page could scroll at exactly 667px tall, but nothing
-  // scrolled the button into view; any other height kept overflow hidden). 360, 390, and
-  // desktop keep the fit pass. Word Nerd's Skip/Lock in row is not a result screen.
-  if (innerWidth === 375 && (body.classList.contains("tw-done") || body.querySelector(":scope > .order-reveal") || body.querySelector(":scope > .cat-score"))) {
+  // Narrow or short windows: a result Next button used to be clipped unless the width was
+  // exactly 375. Let the page scroll instead of the fit-zoom pass. Word Nerd's Skip row is
+  // not a result screen, so this does not change that layout.
+  const compact = matchMedia("(max-width: 380px), (max-height: 700px)").matches;
+  const result = body.classList.contains("tw-done") || !!body.querySelector(":scope > .order-reveal") || !!body.querySelector(":scope > .cat-score");
+  if (compact && result) {
     body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
     body.classList.remove("fit-scroll");
     body.classList.add("page-scroll");
-    const next = body.querySelector(":scope > .cat-score + .btn.big");
-    if (next) {
-      const over = Math.ceil(next.getBoundingClientRect().bottom + 20 - innerHeight);
-      if (over > 1) window.scrollBy(0, over);
-    }
+    placeAction(body);
+    requestAnimationFrame(() => placeAction(body));
     return;
   }
   // nov2a: keyboard open (typed answer focused, or visual viewport much shorter than the layout viewport) -> never refit/shrink;
@@ -2654,6 +2652,7 @@ function fitScreen() {
     if (act && typing) requestAnimationFrame(() => { const r = act.getBoundingClientRect(); if (r.bottom > (vv ? vv.height : innerHeight)) { act.scrollIntoView({ block: "end" }); const pr = body.querySelector(".prompt"), bt = body.getBoundingClientRect().top; if (pr && pr.getBoundingClientRect().top < bt) body.scrollTop -= Math.min(bt - pr.getBoundingClientRect().top + 2, Math.max(0, (vv ? vv.height : innerHeight) - act.getBoundingClientRect().bottom)); } });
     return;
   }
+  body.classList.remove("page-scroll");
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
   const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
@@ -2675,6 +2674,30 @@ function fitScreen() {
     if (z >= cur - 0.005) { body.classList.add("fit-scroll"); break; }
     kids.forEach(k => { k.style.zoom = z.toFixed(3); k.dataset.fitz = ""; });
   }
+  // Any size: if Next or Lock in is still past the viewport, scroll the page so it can be reached.
+  const act = actionButton(body);
+  if (act && act.getBoundingClientRect().bottom > viewBottom() - 12) {
+    body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
+    body.classList.remove("fit-scroll");
+    body.classList.add("page-scroll");
+    placeAction(body);
+    requestAnimationFrame(() => placeAction(body));
+  }
+}
+function viewBottom() { return (vv ? vv.offsetTop + vv.height : innerHeight); }
+function actionButton(body) {
+  return body.querySelector(":scope > .cat-score + .btn.big")
+    || [...body.querySelectorAll(":scope > .action-bar .btn.primary, :scope > .btn.big, :scope > form.answer .btn.primary")].pop()
+    || null;
+}
+function placeAction(body) {
+  const btn = actionButton(body);
+  if (!btn) return;
+  const top = vv ? vv.offsetTop : 0;
+  const bottom = viewBottom();
+  const r = btn.getBoundingClientRect();
+  if (r.bottom > bottom - 16) window.scrollBy(0, Math.ceil(r.bottom + 20 - bottom));
+  else if (r.top < top) window.scrollBy(0, Math.floor(r.top - 12));
 }
 new MutationObserver(m => { if (m.some(r => !(r.target.closest && r.target.closest(".timer, .runtotal, .cat-score b")))) scheduleFit(); }).observe(document.getElementById("app"), { childList: true, subtree: true });
 (vv || window).addEventListener("resize", scheduleFit);

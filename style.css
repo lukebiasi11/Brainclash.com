@@ -1223,19 +1223,17 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
-/* 375px wide, any height. A phone's innerHeight is rarely exactly 667 once browser chrome
-   is up, and the Next button was clipped by overflow:hidden. Same page-scroll rules,
-   plus room under the button so its shadow clears the bottom edge. */
-@media (width: 375px) {
-  body.in-game:has(.page-scroll) {
-    height: auto;
-    min-height: var(--app-h);
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
-  body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
-  body.in-game .game-body.page-scroll > .cat-score + .btn.big {
-    margin-bottom: max(20px, env(safe-area-inset-bottom));
-  }
+/* Result and action screens that set .page-scroll (narrow, short, or any size once Next
+   or Lock in would sit past the edge). Not gated on an exact width. */
+body.in-game:has(.page-scroll) {
+  height: auto;
+  min-height: var(--app-h);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
+body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
+body.in-game .game-body.page-scroll > .cat-score + .btn.big,
+body.in-game .game-body.page-scroll > .action-bar {
+  margin-bottom: max(20px, env(safe-area-inset-bottom));
 }
