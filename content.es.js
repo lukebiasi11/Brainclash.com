@@ -596,30 +596,16 @@ window.CONTENT_ES = {
         "name": "Delta del Okavango, Botsuana"
       }
     ],
-    "pair": {
-      "prompt": "¿Qué isla es MÁS GRANDE?",
-      "rounds": [
-        {
-          "left": "Manhattan (Nueva York)",
-          "right": "Long Island (Nueva York)"
-        },
-        {
-          "left": "Taiwán",
-          "right": "Chipre"
-        },
-        {
-          "left": "Ibiza (España)",
-          "right": "Mallorca (España)"
-        },
-        {
-          "left": "Oahu (islas hawaianas)",
-          "right": "Aruba"
-        },
-        {
-          "left": "Bermudas",
-          "right": "Barbados"
-        }
-      ]
+    "mc": {
+      "q": "¿De qué país es esta bandera?",
+      "options": [
+        "Nicaragua",
+        "El Salvador",
+        "Haití",
+        "Costa Rica"
+      ],
+      "a": 3,
+      "explain": "La bandera de Costa Rica tiene franjas azul, blanca, roja, blanca y azul, y la roja del centro es el doble de ancha."
     }
   },
   {

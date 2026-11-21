@@ -1091,7 +1091,7 @@ window.CONTENT = {
         "explain": "Heights from Wikipedia. Mountains are compared by height above sea level."
       }
     },
-    // 2026-11-22 Cape Canaveral pin + island pair, then 2026-11-23 elevation pair.
+    // 2026-11-22 Cape Canaveral pins + flag, then 2026-11-23 elevation pair.
     {
       "pins": [
         {
@@ -1105,75 +1105,18 @@ window.CONTENT = {
           "lon": 22.9
         }
       ],
-      "pair": {
-        "type": "pair",
-        "prompt": {
-          "en": "Which island is BIGGER?",
-          "es": "¿Qué isla es MÁS GRANDE?"
-        },
-        "rounds": [
-          {
-            "left": {
-              "en": "Manhattan (New York)",
-              "es": "Manhattan (Nueva York)"
-            },
-            "right": {
-              "en": "Long Island (New York)",
-              "es": "Long Island (Nueva York)"
-            },
-            "correct": "right",
-            "note": "Long Island is about 3,600 km². Manhattan is about 59 km²."
-          },
-          {
-            "left": {
-              "en": "Taiwan",
-              "es": "Taiwán"
-            },
-            "right": {
-              "en": "Cyprus",
-              "es": "Chipre"
-            },
-            "correct": "left",
-            "note": "Taiwan's main island is about 35,800 km². Cyprus is about 9,250 km²."
-          },
-          {
-            "left": {
-              "en": "Ibiza (Spain)",
-              "es": "Ibiza (España)"
-            },
-            "right": {
-              "en": "Mallorca (Spain)",
-              "es": "Mallorca (España)"
-            },
-            "correct": "right",
-            "note": "Mallorca is about 3,640 km², roughly six times Ibiza's 573 km²."
-          },
-          {
-            "left": {
-              "en": "Oahu (Hawaiian Islands)",
-              "es": "Oahu (islas hawaianas)"
-            },
-            "right": {
-              "en": "Aruba",
-              "es": "Aruba"
-            },
-            "correct": "left",
-            "note": "Oahu is about 1,545 km². Aruba is about 179 km²."
-          },
-          {
-            "left": {
-              "en": "Bermuda",
-              "es": "Bermudas"
-            },
-            "right": {
-              "en": "Barbados",
-              "es": "Barbados"
-            },
-            "correct": "right",
-            "note": "Barbados is about 439 km². Bermuda's land area is about 54 km²."
-          }
+      "mc": {
+        "type": "mc",
+        "q": "Which country's flag is this?",
+        "options": [
+          "Nicaragua",
+          "El Salvador",
+          "Haiti",
+          "Costa Rica"
         ],
-        "explain": "Areas from Wikipedia: Long Island 3,600 km²; Manhattan 59 km²; Taiwan 35,808 km²; Cyprus 9,251 km²; Mallorca about 3,640 km² (Ibiza is 'almost one-sixth the size of Mallorca'); Ibiza 573 km²; Oahu 1,545 km²; Aruba 179 km²; Barbados 439 km²; Bermuda 54 km²."
+        "a": 3,
+        "explain": "Costa Rica's flag has blue, white, red, white and blue stripes, with the red stripe in the middle twice as wide.",
+        "img": "flag-n22"
       }
     },
     {
