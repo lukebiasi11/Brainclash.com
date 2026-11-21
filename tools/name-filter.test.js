@@ -46,12 +46,15 @@ const blocked = [
   ["support99", "impersonation"],
   ["staffer", "impersonation"],
   ["modteam", "impersonation"],
-  ["Modesto", "impersonation"],
-  ["Essex", "profanity"],
-  ["Peacock", "profanity"],
-  ["Dickens", "profanity"],
-  ["Titan", "profanity"],
-  ["Scunthorpe", "profanity"],
+  ["nigel nigger", "profanity"],
+  ["nigelnigger", "profanity"],
+  ["n i g e l", "profanity"],
+  ["Niggel", "profanity"],
+  ["ni Nigel ger", "profanity"],
+  ["Dick", "profanity"],
+  ["cock", "profanity"],
+  ["sex", "profanity"],
+  ["tit", "profanity"],
   ["player4821", "tag"],
   ["PLAYER 4821", "tag"],
   ["Player  4821", "tag"],
@@ -79,6 +82,9 @@ t("imp list matches sql", same(Filter.TERMS.imp, terms.imp));
 t("impWord list matches sql", same(Filter.TERMS.impWord, terms.impword));
 t("sub list matches sql", same(Filter.TERMS.sub, terms.sub));
 t("word list matches sql", same(Filter.TERMS.word, terms.word));
+const allowSql = (sql.match(/insert into private\.board_allow \(token\) values([\s\S]*?);/) || ["", ""])[1];
+const allowRows = [...allowSql.matchAll(/\('([a-z0-9]+)'\)/g)].map(m => m[1]);
+t("allow list matches sql", same(Filter.ALLOW, allowRows));
 
 const bag = {};
 global.localStorage = {
@@ -155,18 +161,19 @@ t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico",
 const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
 t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
 t("Nov 21 fifth tab is Brain Teaser", Board.fifthName("2026-11-21") === "Brain Teaser");
-t("Nov 22 fifth tab is Eagle Eye", Board.fifthName("2026-11-22") === "Eagle Eye");
+t("Nov 22 fifth tab is still Brain Teaser", Board.fifthName("2026-11-22") === "Brain Teaser");
+t("Nov 23 fifth tab is Eagle Eye", Board.fifthName("2026-11-23") === "Eagle Eye");
 const esMap = require(path.join(root, "i18n.js")).ES;
-t("es Nov 21 label", esMap["Brain Teaser"] === "Rompecocos");
-t("es Nov 22 label", esMap["Eagle Eye"] === "Ojo de Águila");
+t("es Nov 22 label", esMap["Brain Teaser"] === "Rompecocos");
+t("es Nov 23 label", esMap["Eagle Eye"] === "Ojo de Águila");
 const underEn = "Leaderboard names aren't available on this device. You can still play!";
 const underEs = "Los nombres en la clasificación no están disponibles en este dispositivo. ¡Igual puedes jugar!";
 t("under 13 home line stays neutral", esMap[underEn] === underEs && !/13|age|edad|años/i.test(underEn + " " + underEs));
 t("player tag label", esMap["Player {0}"] === "Jugador {0}" && esMap["Play without a name"] === "Jugar sin nombre" && esMap["Add a name"] === "Agregar un nombre");
 t("quick check title", esMap["Quick check"] === "Verificación rápida");
 t("plain Player is not a tag", Filter.checkName("Player").ok === true && Filter.checkName("player 482").ok === true && Filter.checkName("player48210").ok === true);
-global.EagleEye = { on: (key) => key === "2099-01-01" };
-t("fifth tab uses EagleEye.on", Board.fifthName("2099-01-01") === "Eagle Eye" && Board.fifthName("2026-11-22") === "Brain Teaser");
+global.EagleEye = { on: () => true };
+t("fifth tab ignores EagleEye.on", Board.fifthName("2026-11-22") === "Brain Teaser" && Board.fifthName("2026-11-23") === "Eagle Eye");
 delete global.EagleEye;
 
 (async () => {

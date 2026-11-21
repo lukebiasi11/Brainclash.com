@@ -22,12 +22,11 @@
     ["word", "Word Nerd"],
     ["think", "Brain Teaser"]
   ];
-  // Same gate as eagle-eye.js EagleEye.on / FROM "2026-11-22". Slot id stays think.
+  // Fifth tab label only. Brain Teaser through 2026-11-22, Eagle Eye from 2026-11-23.
+  // Slot id stays think. This date is not EagleEye.on.
+  const FIFTH_FROM = "2026-11-23";
   function fifthName(day) {
-    const eagle = root.EagleEye && typeof root.EagleEye.on === "function"
-      ? root.EagleEye.on(day)
-      : (typeof day === "string" && day >= "2026-11-22");
-    return eagle ? "Eagle Eye" : "Brain Teaser";
+    return typeof day === "string" && day >= FIFTH_FROM ? "Eagle Eye" : "Brain Teaser";
   }
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
   let clientP = null;

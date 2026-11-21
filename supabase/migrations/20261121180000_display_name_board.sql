@@ -187,6 +187,89 @@ as $$
     'aaaaaaeeeeiiiiooooouuuuncyyaaaaaaeeeeiiiiooooouuuuncyy')), 'ß', 'ss'), '@$+|!', 'asati'), '[^a-z0-9]', '', 'g'), '(.)\1+', '\1', 'g');
 $$;
 
+-- Whole tokens excused from the squeeze check. Same spellings as name-filter.js ALLOW.
+create table private.board_allow (
+  token text primary key
+);
+insert into private.board_allow (token) values
+('actitud'),
+('analia'),
+('analog'),
+('analogy'),
+('analysis'),
+('analyst'),
+('aptitud'),
+('aptitude'),
+('attitude'),
+('banal'),
+('banality'),
+('beatitude'),
+('benedick'),
+('canal'),
+('certitude'),
+('cockatoo'),
+('cockburn'),
+('cockerel'),
+('cockrell'),
+('cocktail'),
+('cockroach'),
+('competitor'),
+('constitution'),
+('cumming'),
+('cummings'),
+('dickens'),
+('dickerson'),
+('dickinson'),
+('dickson'),
+('document'),
+('enigma'),
+('esperanza'),
+('essex'),
+('exactitude'),
+('fortitude'),
+('gratitud'),
+('gratitude'),
+('hancock'),
+('hitchcock'),
+('identity'),
+('ineptitude'),
+('latitud'),
+('latitude'),
+('leacock'),
+('middlesex'),
+('model'),
+('modelo'),
+('moderno'),
+('modest'),
+('modestia'),
+('modesto'),
+('modificar'),
+('modulo'),
+('multitude'),
+('night'),
+('nightingale'),
+('nigel'),
+('nigeria'),
+('peacock'),
+('petite'),
+('promptitude'),
+('rectitude'),
+('scunthorpe'),
+('sexton'),
+('stafford'),
+('stitch'),
+('sussex'),
+('titan'),
+('titanic'),
+('titania'),
+('titian'),
+('titmouse'),
+('tito'),
+('titulo'),
+('titus'),
+('wessex'),
+('woodcock');
+
 create or replace function private.board_name_status(p_name text)
 returns jsonb
 language plpgsql
@@ -199,6 +282,9 @@ declare
   v_sq text;
   v_toks text[];
   v_digits text;
+  v_scan text;
+  v_rest text;
+  v_tok text;
 begin
   v := translate(v, chr(8203) || chr(8204) || chr(8205) || chr(65279), '');
   v := btrim(regexp_replace(v, '[[:space:]]+', ' ', 'g'));
@@ -225,8 +311,22 @@ begin
   if v !~ '^[[:alnum:]]([[:alnum:]''’ -]*[[:alnum:]])?$' then
     return jsonb_build_object('ok', false, 'reason', 'chars');
   end if;
-  v_sq := private.board_squeeze(v);
-  v_digits := private.board_squeeze_digits(v);
+  v_scan := replace(lower(translate(v,
+    'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÑÇÝŸàáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
+    'aaaaaaeeeeiiiiooooouuuuncyyaaaaaaeeeeiiiiooooouuuuncyy')), 'ß', 'ss');
+  v_rest := '';
+  for v_tok in
+    select m[1] from regexp_matches(v_scan, '[a-z0-9]+', 'g') as m
+  loop
+    if not exists (select 1 from private.board_allow a where a.token = v_tok) then
+      v_rest := v_rest || v_tok;
+    end if;
+  end loop;
+  if v_rest = '' then
+    return jsonb_build_object('ok', true, 'skip', false, 'name', v);
+  end if;
+  v_sq := private.board_squeeze(v_rest);
+  v_digits := private.board_squeeze_digits(v_rest);
   select s.kind into v_fold
   from (
     select t.kind, private.board_squeeze(t.term) as norm
@@ -601,7 +701,7 @@ begin
 end;
 $$;
 
-revoke all on table private.board_term, private.board_post, private.board_agg, private.board_rate
+revoke all on table private.board_term, private.board_allow, private.board_post, private.board_agg, private.board_rate
   from public, anon, authenticated, app_writer, field_runtime, board_runtime, board_retention;
 revoke all on function
   private.board_squeeze(text),

@@ -44,6 +44,12 @@
   // Banned terms go through the same squeeze as the name. A normalized term
   // of 3+ characters is a substring. Shorter ones ("ass" -> "as", "xxx" -> "x")
   // match the whole name or a digit suffix only, so they do not ban every "as" or "x".
+  // Whole tokens only. A token is excused when it equals one of these after
+  // case and accent folding. The squeeze check still runs on every other token,
+  // including text joined across an excused token.
+  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "attitude", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "document", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "identity", "ineptitude", "latitud", "latitude", "leacock", "middlesex", "model", "modelo", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "night", "nightingale", "nigel", "nigeria", "peacock", "petite", "promptitude", "rectitude", "scunthorpe", "sexton", "stafford", "stitch", "sussex", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock"];
+  const ALLOW_SET = new Set(ALLOW);
+
   const NORM = {
     imp: TERMS.imp.map(squeeze),
     impWord: TERMS.impWord.map(squeeze),
@@ -79,12 +85,14 @@
     if (chars.length < 3 || chars.length > 20) return { ok: false, reason: "length", name: "" };
     if (contact(name)) return { ok: false, reason: "contact", name: "" };
     if (!/^[\p{L}\p{N}](?:[\p{L}\p{N}'’ -]*[\p{L}\p{N}])?$/u.test(name)) return { ok: false, reason: "chars", name: "" };
-    const sq = squeeze(name);
-    const digits = squeezeDigits(name);
+    const folded = name.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+    const kept = folded.split(/[^a-z0-9]+/).filter(part => part && !ALLOW_SET.has(part)).join("");
+    const sq = squeeze(kept);
+    const digits = squeezeDigits(kept);
     if (hits("imp", sq, digits) || hits("impWord", sq, digits)) return { ok: false, reason: "impersonation", name: "" };
     if (hits("sub", sq, digits) || hits("word", sq, digits)) return { ok: false, reason: "profanity", name: "" };
     return { ok: true, skip: false, name: name };
   }
 
-  return { TERMS: TERMS, clean: clean, fold: fold, squeeze: squeeze, tokens: tokens, checkName: checkName };
+  return { TERMS: TERMS, ALLOW: ALLOW, clean: clean, fold: fold, squeeze: squeeze, tokens: tokens, checkName: checkName };
 });

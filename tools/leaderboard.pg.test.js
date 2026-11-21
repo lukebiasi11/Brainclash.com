@@ -97,7 +97,7 @@ const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("migrations do not schedule cron", !/cron\.schedule/.test(sql));
 const Filter = require(path.join(root, "name-filter.js"));
 const quote = s => "'" + String(s).replace(/'/g, "''") + "'";
-const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel", "player4821", "PLAYER 4821", "Player  4821", "Jugador  0001", "JUGADOR0001", "jugador 1234", "Player", "player 482", "player48210"];
+const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel", "Night", "Tito", "Stafford", "Sexton", "Esperanza", "Analía", "nigel nigger", "nigelnigger", "n i g e l", "Niggel", "ni Nigel ger", "Dick", "cock", "player4821", "PLAYER 4821", "Player  4821", "Jugador  0001", "JUGADOR0001", "jugador 1234", "Player", "player 482", "player48210"].concat(Filter.ALLOW);
 let parityBad = 0;
 parity.forEach(name => {
   const js = Filter.checkName(name);
