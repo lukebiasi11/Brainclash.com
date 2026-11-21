@@ -122,8 +122,21 @@ document.addEventListener("keydown", e => {
 function globeBase(W, H) { return Math.max(20, H > W * 1.3 ? Math.min(W * 0.56, H / 2 - 8) : Math.min(W, H) / 2 - 8); }
 window.globeBase = globeBase;
 function countUp(el, to, ms = 900, onDone) {
+  // Ease-out is only defined on [0, 1]. A frame timestamp can be slightly before t0
+  // (Chrome's rAF clock), and the cubic then goes negative — the modal flashed "-8"
+  // on the way to 3,950. Clamp the clock and the shown value so every frame is
+  // between 0 and the rounded total, and the last frame is that total exactly.
+  const target = Math.max(0, Math.round(Number(to) || 0));
+  const dur = Math.max(1, ms);
   const t0 = performance.now();
-  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); else if (onDone) onDone(); };
+  const step = now => {
+    const k = Math.max(0, Math.min(1, (now - t0) / dur));
+    const e = 1 - Math.pow(1 - k, 3);
+    const shown = k >= 1 ? target : Math.max(0, Math.min(target, Math.round(target * e)));
+    el.textContent = fmt(shown);
+    if (k < 1) requestAnimationFrame(step);
+    else if (onDone) onDone();
+  };
   requestAnimationFrame(step);
 }
 function burst(x, y, n = 18) {
@@ -514,9 +527,10 @@ function runNext() {
 }
 function catDone(body, score, detail) {
   commitCat(score, detail);
-  const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
+  const shown = session.scores[session.scores.length - 1];
+  const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(shown, session.scores.length - 1));
   body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
-  countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
+  countUp(b, shown, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", CATS[session.scores.length].name), runNext);
 }
@@ -646,6 +660,7 @@ function globeMap(el, onPick) {
   cv.addEventListener("focus", () => { focusX = cv.matches(":focus-visible"); req(); });
   cv.addEventListener("blur", () => { focusX = false; req(); });
   const ro = window.ResizeObserver ? new ResizeObserver(() => size()) : null; ro ? ro.observe(el) : window.addEventListener("resize", size);
+  size(); // layout is already known; don't wait a frame or the first Lock in aims at a 0×0 globe
   requestAnimationFrame(size);
   function flyTo(rot, kk, ms = 900) {
     stopAnim(); const r0 = proj.rotate(), ka = k, t0 = performance.now();
@@ -663,7 +678,7 @@ function globeMap(el, onPick) {
       kk = Math.max(K_MIN, Math.min(4, 0.7 / Math.max(Math.sin(Math.min(half, Math.PI / 2 - 0.05)), 0.12))); if (half > 1.2) kk = K_MIN; }
     flyTo([-c[0], -c[1]], kk);
   },
-    aim() { if (!locked && !guess) pickAt(W / 2, H / 2); return guess; }, touched: () => touched,
+    aim() { if (!locked && !guess) { if (W < 2 || H < 2) size(); if (W >= 2 && H >= 2) pickAt(W / 2, H / 2); } return guess; }, touched: () => touched,
     // test hooks
     _proj: proj, _draw: draw, _gl: () => !!(gl && gl.ready), _state: () => ({ k, rotate: proj.rotate(), guess, target }) };
   el._globe = api;
@@ -724,17 +739,52 @@ function worldRush() {
     ["pointerdown", "wheel", "touchstart", "keydown"].forEach(ev => wrap.addEventListener(ev, hideHint, { once: true, passive: true }));
     let guess = null, locked = false, api;
     const bar = actionBar(body);
-    const btn = h("button", { class: "btn primary big", disabled: true, onclick: () => submit() }, tr("📍 Lock in pin"));
+    // type=button: a bare <button> is type=submit and can double-fire inside a form.
+    const btn = h("button", { class: "btn primary big", type: "button", disabled: true }, tr("📍 Lock in pin"));
     bar.append(btn);
+    // Touch: commit on pointerup with the pointer captured, so a layout shift between
+    // touchstart and the synthetic click (globe sizing, font swap) can't drop the first tap.
+    // Click still covers mouse and keyboard. submit() is one-shot, so both events are safe.
+    let arm = null;
+    btn.addEventListener("pointerdown", e => {
+      if (btn.disabled || (e.pointerType === "mouse" && e.button !== 0)) return;
+      arm = { id: e.pointerId, x: e.clientX, y: e.clientY, type: e.pointerType };
+      try { btn.setPointerCapture(e.pointerId); } catch {}
+    });
+    btn.addEventListener("pointerup", e => {
+      if (!arm || e.pointerId !== arm.id) return;
+      const a = arm; arm = null;
+      if (a.type === "mouse" || Math.hypot(e.clientX - a.x, e.clientY - a.y) > 18) return;
+      submit(false);
+    });
+    btn.addEventListener("pointercancel", e => { if (arm && e.pointerId === arm.id) arm = null; });
+    btn.addEventListener("click", () => submit(false));
     const onPick = p => { if (locked) return; guess = p; btn.disabled = false; hideHint(); };
     api = window.d3 && window.d3.geoOrthographic && window.topojson && window.WORLD_ATLAS_110M ? globeMap(mapEl, onPick) : svgMap(mapEl, onPick);
     if (api.aim) btn.disabled = false; // globe: Lock in with no pin drops it at the aim crosshair
     const timer = Timer(TBD.pin, () => submit(true), body.parentNode.querySelector(".game-head"));
+    let pinPending = false;
     function submit(timedOut) {
+      if (locked || (pinPending && !timedOut)) return;
+      if (!timedOut) {
+        pinPending = true;
+        const attempt = n => {
+          if (locked) return;
+          if (!guess && api.aim) api.aim();
+          if (!guess && n < 12) { requestAnimationFrame(() => attempt(n + 1)); return; }
+          pinPending = false;
+          if (!guess) return; // map still has no coordinate; leave Lock in up so the tap isn't a fake timeout
+          commit();
+        };
+        attempt(0);
+        return;
+      }
+      if (!guess && api.aim && api.touched()) api.aim();
+      commit();
+    }
+    function commit() {
       if (locked) return;
-      // Aim fallback: player spun the globe (or pressed Lock in) without tapping → pin at the crosshair.
-      if (!guess && api.aim && (!timedOut || api.touched())) api.aim();
-      locked = true; timer.stop(); btn.remove();
+      locked = true; pinPending = false; timer.stop(); btn.remove();
       let pts = 0, msg;
       if (guess) {
         const d = haversine(guess, target); pts = pinPoints(d);
@@ -2575,12 +2625,19 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
-  // 375x667 results only. The order list was clipping its last cities, and Time Warp's Next
-  // button lived inside the results scroller. Let the page scroll instead. 360, 390, and desktop keep the fit pass.
-  if (innerWidth === 375 && innerHeight === 667 && (body.classList.contains("tw-done") || body.querySelector(":scope > .order-reveal"))) {
+  // 375px-wide results only. Time Warp's Next and the MVP "Next: Word Nerd" button were
+  // clipped by the bottom edge (the page could scroll at exactly 667px tall, but nothing
+  // scrolled the button into view; any other height kept overflow hidden). 360, 390, and
+  // desktop keep the fit pass. Word Nerd's Skip/Lock in row is not a result screen.
+  if (innerWidth === 375 && (body.classList.contains("tw-done") || body.querySelector(":scope > .order-reveal") || body.querySelector(":scope > .cat-score"))) {
     body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
     body.classList.remove("fit-scroll");
     body.classList.add("page-scroll");
+    const next = body.querySelector(":scope > .cat-score + .btn.big");
+    if (next) {
+      const over = Math.ceil(next.getBoundingClientRect().bottom + 20 - innerHeight);
+      if (over > 1) window.scrollBy(0, over);
+    }
     return;
   }
   // nov2a: keyboard open (typed answer focused, or visual viewport much shorter than the layout viewport) -> never refit/shrink;
