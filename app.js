@@ -2653,6 +2653,7 @@ function fitScreen() {
     return;
   }
   body.classList.remove("page-scroll");
+  releaseMap(body);
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
   const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
@@ -2674,15 +2675,43 @@ function fitScreen() {
     if (z >= cur - 0.005) { body.classList.add("fit-scroll"); break; }
     kids.forEach(k => { k.style.zoom = z.toFixed(3); k.dataset.fitz = ""; });
   }
-  // Any size: if Next or Lock in is still past the viewport, scroll the page so it can be reached.
+  // Any size: if Next or Lock in is actually past the viewport, scroll the page to it.
+  // A button sitting on the 12px bottom margin is already reachable. Switching to
+  // page-scroll there made the globe's flex height collapse to its 120px minimum.
   const act = actionButton(body);
-  if (act && act.getBoundingClientRect().bottom > viewBottom() - 12) {
+  if (act && act.getBoundingClientRect().bottom > viewBottom() + 1) {
+    holdMap(body);
     body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
     body.classList.remove("fit-scroll");
     body.classList.add("page-scroll");
     placeAction(body);
     requestAnimationFrame(() => placeAction(body));
   }
+}
+// page-scroll makes the game column height:auto, so a flex map falls to min-height:120px.
+// Remember the viewport flex height and keep it. The page scrolls; the map does not shrink.
+function holdMap(body) {
+  const map = body.querySelector(":scope > .map-wrap > .lmap, :scope > .lmap");
+  if (!map || map.dataset.mapHold) return;
+  const h = Math.round(map.getBoundingClientRect().height);
+  if (h <= 120) return;
+  const lock = el => {
+    el.dataset.mapHold = "1";
+    el.style.setProperty("height", h + "px", "important");
+    el.style.setProperty("min-height", h + "px", "important");
+    el.style.setProperty("flex", "none", "important");
+  };
+  lock(map);
+  const wrap = map.closest(".map-wrap");
+  if (wrap && wrap.parentElement === body) lock(wrap);
+}
+function releaseMap(body) {
+  body.querySelectorAll("[data-map-hold]").forEach(el => {
+    el.style.removeProperty("height");
+    el.style.removeProperty("min-height");
+    el.style.removeProperty("flex");
+    delete el.dataset.mapHold;
+  });
 }
 function viewBottom() { return (vv ? vv.offsetTop + vv.height : innerHeight); }
 function actionButton(body) {

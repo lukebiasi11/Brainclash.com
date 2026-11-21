@@ -138,14 +138,18 @@ function reachable(box, name) {
         await shot("next-" + w + "x" + h + "-" + lang + ".png");
         reachable(box, "next " + w + "x" + h + " " + lang);
       }
-      await ev(cdp, `DGTest.at("2026-11-21", 0)`);
-      await sleep(500);
-      if (!await clickRe("/^(Start |Empezar )/")) throw new Error("world start " + lang);
-      await sleep(500);
       for (const [w, h] of SIZES) {
         await setSize(w, h);
+        await ev(cdp, `DGTest.at("2026-11-21", 0)`);
+        await sleep(500);
+        if (!await clickRe("/^(Start |Empezar )/")) throw new Error("world start " + lang + " " + w);
+        await sleep(600);
         const box = await ev(cdp, boxExpr("/Lock in pin|Confirmar pin/"));
         reachable(box, "lock " + w + "x" + h + " " + lang);
+        const mapH = await ev(cdp, `Math.round((document.querySelector(".lmap") || document.createElement("div")).getBoundingClientRect().height)`);
+        if (mapH < 280) fail("map collapsed " + w + "x" + h + " " + lang, mapH);
+        else pass("map " + w + "x" + h + " " + lang + " " + mapH + "px");
+        if (lang === "en" && [[320, 568], [375, 667], [390, 844], [1280, 800]].some(([a, b]) => a === w && b === h)) await shot("world-rush-pin-" + w + "x" + h + ".png");
       }
     }
   } catch (e) {
