@@ -586,6 +586,68 @@ window.CONTENT_ES = {
         }
       ]
     }
+  },
+  {
+    "pins": [
+      {
+        "name": "Cabo Cañaveral, Florida (zona de lanzamiento de cohetes)"
+      },
+      {
+        "name": "Delta del Okavango, Botsuana"
+      }
+    ],
+    "pair": {
+      "prompt": "¿Qué isla es MÁS GRANDE?",
+      "rounds": [
+        {
+          "left": "Manhattan (Nueva York)",
+          "right": "Long Island (Nueva York)"
+        },
+        {
+          "left": "Taiwán",
+          "right": "Chipre"
+        },
+        {
+          "left": "Ibiza (España)",
+          "right": "Mallorca (España)"
+        },
+        {
+          "left": "Oahu (islas hawaianas)",
+          "right": "Aruba"
+        },
+        {
+          "left": "Bermudas",
+          "right": "Barbados"
+        }
+      ]
+    }
+  },
+  {
+    "pair": {
+      "prompt": "¿Cuál está a MAYOR altitud?",
+      "rounds": [
+        {
+          "left": "Aspen, Colorado (pueblo de esquí en la montaña)",
+          "right": "Houston, Texas"
+        },
+        {
+          "left": "El Tíbet",
+          "right": "Las Bahamas"
+        },
+        {
+          "left": "El lago Tahoe (California-Nevada)",
+          "right": "Las playas de Acapulco (México)"
+        },
+        {
+          "left": "Dallas, Texas",
+          "right": "El monte Sinaí (Egipto)"
+        },
+        {
+          "left": "Malibú, California (ciudad de playa)",
+          "right": "El K2 (la 2.ª montaña más alta del mundo)"
+        }
+      ]
+    }
   }
   ],
  "history": [
@@ -1826,6 +1888,120 @@ window.CONTENT_ES = {
         ]
       ]
     }
+  },
+  {
+    "r1": {
+      "theme": "Juegos y deportes",
+      "events": [
+        [
+          null,
+          "James Naismith inventa el básquetbol",
+          null
+        ],
+        [
+          null,
+          "El equipo que luego será los Harlem Globetrotters empieza a jugar en Chicago",
+          null
+        ],
+        [
+          null,
+          "Nace la NBA, entonces llamada Basketball Association of America",
+          null
+        ],
+        [
+          null,
+          "ESPN celebra los primeros X Games, entonces llamados Extreme Games",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Grandes momentos de la historia",
+      "events": [
+        [
+          null,
+          "Paul Revere hace su famosa cabalgata de medianoche",
+          null
+        ],
+        [
+          null,
+          "El vagabundo de Charlie Chaplin aparece por primera vez en el cine",
+          null
+        ],
+        [
+          null,
+          "Se funda la Organización de las Naciones Unidas",
+          null
+        ],
+        [
+          null,
+          "Alemania se reunifica",
+          null
+        ],
+        [
+          null,
+          "Francisco se convierte en el primer papa del continente americano",
+          null
+        ]
+      ]
+    }
+  },
+  {
+    "r1": {
+      "theme": "Los orígenes de Acción de Gracias",
+      "events": [
+        [
+          null,
+          "El banquete de cosecha de los Peregrinos en Plymouth",
+          null
+        ],
+        [
+          null,
+          "El presidente George Washington emite la primera proclamación de Acción de Gracias bajo la Constitución",
+          null
+        ],
+        [
+          null,
+          "Abraham Lincoln proclama un día nacional de Acción de Gracias",
+          null
+        ],
+        [
+          null,
+          "Macy's realiza su primer Desfile del Día de Acción de Gracias",
+          null
+        ]
+      ]
+    },
+    "r2": {
+      "theme": "Ayudantes de cocina",
+      "events": [
+        [
+          null,
+          "Josephine Cochrane patenta el primer lavavajillas exitoso",
+          null
+        ],
+        [
+          null,
+          "KitchenAid presenta su primera batidora de pedestal",
+          null
+        ],
+        [
+          null,
+          "Se fabrican los primeros sartenes antiadherentes de teflón",
+          null
+        ],
+        [
+          null,
+          "Se presentan los procesadores de alimentos Cuisinart",
+          null
+        ],
+        [
+          null,
+          "Philips lanza la Airfryer y populariza las freidoras de aire",
+          null
+        ]
+      ]
+    }
   }
   ],
  "sports": [
@@ -2894,6 +3070,50 @@ window.CONTENT_ES = {
       "explain": "Rapinoe: fútbol (Balón de Oro y Bota de Oro del Mundial Femenino 2019). Gordon: automovilismo en NASCAR (cuatro títulos de la Copa). Roddick: tenis (campeón del US Open 2003). Pacquiao: boxeo (títulos mundiales en ocho divisiones de peso).",
       "hint": "Toca a una estrella y luego el deporte para emparejarlos."
     }
+  ],
+  [
+    {
+      "type": "text",
+      "q": "¿Qué programa de futbol americano universitario tiene equipos apodados los 'Fighting Irish' (Irlandeses Combatientes)?",
+      "answers": [
+        "notre dame",
+        "notre-dame",
+        "university of notre dame"
+      ],
+      "aliases": [
+        "notre dame fighting irish",
+        "the university of notre dame",
+        "notredame",
+        "notre dam",
+        "notre damn",
+        "notre damme",
+        "norte dame",
+        "notre dame university",
+        "u of notre dame",
+        "universidad de notre dame",
+        "nd"
+      ],
+      "exactOnly": [
+        "nd"
+      ],
+      "wrong": [
+        "boston college",
+        "penn state",
+        "michigan state",
+        "irish",
+        "notre",
+        "fighting irish",
+        "the fighting irish",
+        "irlandeses",
+        "irlandeses combatientes",
+        "los irlandeses combatientes"
+      ],
+      "explain": "Notre Dame. La universidad reconoce oficialmente 11 campeonatos nacionales y NBC transmite sus partidos de local desde 1991."
+    },
+    null,
+    {
+      "hint": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
+    }
   ]
   ],
  "thinkFast": [
@@ -3621,6 +3841,179 @@ window.CONTENT_ES = {
         "cumpleaños"
       ],
       "explain": "Tu nombre. Tus papás te lo dieron gratis y es solo tuyo, pero los demás dicen, escriben y llaman tu nombre mucho más seguido que tú."
+    }
+  ],
+  [
+    {
+      "q": "Un camión se queda atorado bajo un puente bajo. Le faltan solo 2 cm para pasar, el chofer no puede dar marcha atrás y no tiene herramientas. Un niño que pasa le sugiere una solución fácil. ¿Cuál es?",
+      "options": [
+        "Desinflar un poco las llantas",
+        "Empujar el camión por detrás",
+        "Esperar a que levanten el puente",
+        "Quitar los espejos"
+      ],
+      "a": 0,
+      "explain": "Desinflar un poco las llantas. El camión baja unos centímetros y puede pasar bajo el puente."
+    },
+    {
+      "q": "¿Qué puedes sostener con la mano izquierda pero nunca con la mano derecha?",
+      "answers": [
+        "your right hand",
+        "right hand",
+        "tu mano derecha",
+        "mano derecha"
+      ],
+      "aliases": [
+        "my right hand",
+        "the right hand",
+        "ur right hand",
+        "your other hand",
+        "mi mano derecha",
+        "la mano derecha",
+        "tu otra mano",
+        "la otra mano"
+      ],
+      "wrong": [
+        "left hand",
+        "ball",
+        "cup",
+        "mano izquierda",
+        "pelota",
+        "taza"
+      ],
+      "explain": "Tu mano derecha. La mano izquierda puede agarrarla, pero la derecha no puede sostenerse a sí misma."
+    }
+  ],
+  [
+    {
+      "q": "IMAGEN: una ecuación hecha con cerillos dice 5 + 7 = 2. Mueve exactamente UN cerillo para que la ecuación sea correcta. ¿Qué dice ahora?",
+      "options": [
+        "9 − 7 = 2",
+        "5 + 7 = 12",
+        "3 + 7 = 10",
+        "6 + 1 = 7"
+      ],
+      "a": 0,
+      "explain": "Quita el cerillo vertical del '+' (se convierte en '−') y ponlo arriba a la derecha del 5, que así se vuelve un 9: 9 − 7 = 2.",
+      "image": "assets/tf-n23-sticks.jpg"
+    },
+    {
+      "q": "Los marineros me echan al agua cuando me necesitan y me suben cuando ya no. ¿Qué soy?",
+      "answers": [
+        "anchor",
+        "an anchor",
+        "ancla",
+        "el ancla",
+        "un ancla"
+      ],
+      "aliases": [
+        "the anchor",
+        "boat anchor",
+        "ship anchor",
+        "anchors",
+        "anclas",
+        "el ancla del barco"
+      ],
+      "wrong": [
+        "net",
+        "fishing net",
+        "sail",
+        "rope",
+        "red",
+        "red de pesca",
+        "cuerda"
+      ],
+      "explain": "Un ancla. Se echa al agua cuando el barco necesita quedarse quieto y se sube cuando es hora de navegar."
+    }
+  ],
+  [
+    {
+      "q": "Lanzas una pelota con todas tus fuerzas. Se detiene y regresa directo a ti, y nada la toca: ni una pared, ni una red, ni un hilo, ni una persona. ¿Cómo?",
+      "options": [
+        "La lanzaste hacia arriba",
+        "El viento la regresó",
+        "Es una pelota bumerán especial",
+        "Rebotó en el techo"
+      ],
+      "a": 0,
+      "explain": "La lanzaste hacia arriba. La gravedad la frena y la hace caer de vuelta hacia ti."
+    },
+    {
+      "q": "En inglés me llamo igual que un país, y casi siempre me sirven relleno. ¿Qué ave soy?",
+      "answers": [
+        "turkey",
+        "pavo",
+        "un pavo",
+        "el pavo"
+      ],
+      "aliases": [
+        "a turkey",
+        "the turkey",
+        "turkeys",
+        "turky",
+        "turkey bird",
+        "pavos",
+        "guajolote",
+        "chompipe"
+      ],
+      "wrong": [
+        "chicken",
+        "duck",
+        "goose",
+        "canary",
+        "peacock",
+        "pheasant",
+        "pollo",
+        "pato",
+        "ganso",
+        "canario",
+        "pavo real",
+        "faisán"
+      ],
+      "explain": "Un pavo. En inglés se llama turkey, igual que el país Turquía (Turkey), y a menudo se asa relleno."
+    }
+  ],
+  [
+    {
+      "q": "Un camión se queda atorado bajo un puente bajo. Le faltan solo 2 cm para pasar, el chofer no puede dar marcha atrás y no tiene herramientas. Un niño que pasa le sugiere una solución fácil. ¿Cuál es?",
+      "options": [
+        "Desinflar un poco las llantas",
+        "Empujar el camión por detrás",
+        "Esperar a que levanten el puente",
+        "Quitar los espejos"
+      ],
+      "a": 0,
+      "explain": "Desinflar un poco las llantas. El camión baja unos centímetros y puede pasar bajo el puente."
+    },
+    {
+      "q": "¿Qué árbol puedes llevar en la mano?",
+      "answers": [
+        "palm",
+        "a palm",
+        "palm tree",
+        "palma",
+        "la palma",
+        "palmera"
+      ],
+      "aliases": [
+        "the palm",
+        "a palm tree",
+        "your palm",
+        "palms",
+        "una palma",
+        "una palmera",
+        "tu palma",
+        "la palmera"
+      ],
+      "wrong": [
+        "pine",
+        "oak",
+        "bonsai",
+        "pino",
+        "roble",
+        "bonsái"
+      ],
+      "explain": "¡La palma! La palma de la mano se llama igual que la palma, el árbol."
     }
   ]
   ],
