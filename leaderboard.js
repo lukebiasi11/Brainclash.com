@@ -225,7 +225,13 @@
     if (!cta || !root.document || !filter()) return;
     opts = opts || {};
     const flag = readFlag();
-    if (flag === "no") return;
+    if (flag === "no") {
+      const note = el("p", { class: "board-help", "data-board-under": "1", text: tr("Leaderboard names aren't available on this device. You can still play!") });
+      const button = cta.querySelector(".btn.primary");
+      if (button) button.insertAdjacentElement("afterend", note);
+      else cta.append(note);
+      return;
+    }
     if (opts.started) {
       if (flag === "yes" && readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
       return;

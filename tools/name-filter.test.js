@@ -153,6 +153,9 @@ t("Nov 22 fifth tab is Eagle Eye", Board.fifthName("2026-11-22") === "Eagle Eye"
 const esMap = require(path.join(root, "i18n.js")).ES;
 t("es Nov 21 label", esMap["Brain Teaser"] === "Rompecocos");
 t("es Nov 22 label", esMap["Eagle Eye"] === "Ojo de Águila");
+const underEn = "Leaderboard names aren't available on this device. You can still play!";
+const underEs = "Los nombres en la clasificación no están disponibles en este dispositivo. ¡Igual puedes jugar!";
+t("under 13 home line stays neutral", esMap[underEn] === underEs && !/13|age|edad|años/i.test(underEn + " " + underEs));
 global.EagleEye = { on: (key) => key === "2099-01-01" };
 t("fifth tab uses EagleEye.on", Board.fifthName("2099-01-01") === "Eagle Eye" && Board.fifthName("2026-11-22") === "Brain Teaser");
 delete global.EagleEye;

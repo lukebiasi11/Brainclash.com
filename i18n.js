@@ -102,6 +102,7 @@
     "This name is shown publicly. Use a nickname, not your full name.": "Este nombre se muestra públicamente. Usa un apodo, no tu nombre completo.",
     "That name can't be used. Try a different nickname, or play without a name.": "Ese nombre no se puede usar. Prueba con otro apodo, o juega sin un nombre.",
     "Change name": "Cambiar nombre",
+    "Leaderboard names aren't available on this device. You can still play!": "Los nombres en la clasificación no están disponibles en este dispositivo. ¡Igual puedes jugar!",
     "Save name": "Guardar nombre",
     "(you)": "(tú)",
     "Daily leaderboard": "Clasificación del día",

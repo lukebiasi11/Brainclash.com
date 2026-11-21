@@ -142,8 +142,8 @@ const hook = `(() => {
     const keysOf = `(() => { const keys = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("bc-board") === 0) keys.push(k + "=" + localStorage.getItem(k)); } return keys.sort(); })()`;
 
     const under = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','no');");
-    const underInfo = await evalJson(under, `({ name: !!document.querySelector('[data-board-name]'), saved: !!document.querySelector('[data-board-saved]'), change: !!document.querySelector('[data-board-change]'), gate: !!document.querySelector('[data-board-gate]') })`);
-    if (underInfo.name || underInfo.saved || underInfo.change || underInfo.gate) fail("under 13 name ui", underInfo); else pass("under 13 never sees a name or change control");
+    const underInfo = await evalJson(under, `(() => { const note = document.querySelector('[data-board-under]'); const start = document.querySelector('.cta .btn.primary'); const text = note ? note.textContent : ''; return { name: !!document.querySelector('[data-board-name]'), saved: !!document.querySelector('[data-board-saved]'), change: !!document.querySelector('[data-board-change]'), gate: !!document.querySelector('[data-board-gate]'), text, underStart: !!(note && start && start.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING), mentionsAge: /13|\\bage\\b|edad|años/i.test(text) }; })()`);
+    if (underInfo.name || underInfo.saved || underInfo.change || underInfo.gate || underInfo.text !== "Leaderboard names aren't available on this device. You can still play!" || !underInfo.underStart || underInfo.mentionsAge) fail("under 13 name ui", underInfo); else pass("under 13 never sees a name or change control");
 
     const skip = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes');");
     const skipState = await evalJson(skip, `(async () => { document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 200)); return { game: document.body.classList.contains('in-game'), keys: ${keysOf} }; })()`);
