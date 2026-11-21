@@ -38,6 +38,7 @@ alter table private.board_term enable row level security;
 
 insert into private.board_term (kind, term) values
   ('imp', 'admin'),
+  ('imp', 'brainclash'),
   ('imp', 'dailydose'),
   ('imp', 'moderator'),
   ('imp', 'oficial'),
@@ -48,17 +49,20 @@ insert into private.board_term (kind, term) values
   ('impword', 'mod'),
   ('impword', 'mods'),
   ('compound', 'cooladmin'),
+  ('compound', 'modsquad'),
   ('compound', 'modteam'),
   ('compound', 'staffer'),
   ('sub', '1488'),
+  ('sub', 'asshat'),
   ('sub', 'asshole'),
+  ('sub', 'asswipe'),
   ('sub', 'badass'),
   ('sub', 'bastard'),
-  ('sub', 'beaner'),
   ('sub', 'bitch'),
   ('sub', 'blowjob'),
   ('sub', 'bollocks'),
   ('sub', 'boobs'),
+  ('sub', 'bullshit'),
   ('sub', 'cabron'),
   ('sub', 'cabrona'),
   ('sub', 'capullo'),
@@ -66,13 +70,19 @@ insert into private.board_term (kind, term) values
   ('sub', 'chingada'),
   ('sub', 'chingado'),
   ('sub', 'chingar'),
+  ('sub', 'cockhead'),
   ('sub', 'cocksucker'),
   ('sub', 'cojones'),
+  ('sub', 'coonass'),
   ('sub', 'culero'),
   ('sub', 'cunt'),
+  ('sub', 'dickface'),
   ('sub', 'dickhead'),
   ('sub', 'dildo'),
   ('sub', 'dumbass'),
+  ('sub', 'dumbshit'),
+  ('sub', 'fagg'),
+  ('sub', 'faggy'),
   ('sub', 'faggot'),
   ('sub', 'fock'),
   ('sub', 'fuck'),
@@ -94,6 +104,7 @@ insert into private.board_term (kind, term) values
   ('sub', 'nigga'),
   ('sub', 'nigg'),
   ('sub', 'nigger'),
+  ('sub', 'nignog'),
   ('sub', 'niqqer'),
   ('sub', 'nlgger'),
   ('sub', 'nude'),
@@ -106,6 +117,8 @@ insert into private.board_term (kind, term) values
   ('sub', 'pinche'),
   ('sub', 'pinga'),
   ('sub', 'polla'),
+  ('sub', 'pornhub'),
+  ('sub', 'pornstar'),
   ('sub', 'pussy'),
   ('sub', 'raghead'),
   ('sub', 'rapist'),
@@ -113,15 +126,21 @@ insert into private.board_term (kind, term) values
   ('sub', 'semen'),
   ('sub', 'sexual'),
   ('sub', 'sexy'),
+  ('sub', 'shithead'),
+  ('sub', 'shitty'),
   ('sub', 'slut'),
+  ('sub', 'spick'),
+  ('sub', 'titty'),
   ('sub', 'tranny'),
   ('sub', 'twat'),
   ('sub', 'vagina'),
   ('sub', 'wanker'),
+  ('sub', 'wanking'),
   ('sub', 'wetback'),
   ('sub', 'whore'),
   ('word', 'anal'),
   ('word', 'ass'),
+  ('word', 'beaner'),
   ('word', 'chink'),
   ('word', 'cock'),
   ('word', 'cono'),
@@ -144,6 +163,7 @@ insert into private.board_term (kind, term) values
   ('word', 'pron'),
   ('word', 'puta'),
   ('word', 'puto'),
+  ('word', 'raghead'),
   ('word', 'rape'),
   ('word', 'sex'),
   ('word', 'sexo'),
@@ -152,6 +172,7 @@ insert into private.board_term (kind, term) values
   ('word', 'tit'),
   ('word', 'verga'),
   ('word', 'wank'),
+  ('word', 'wetback'),
   ('word', 'zorra');
 
 create table private.board_post (
@@ -230,7 +251,9 @@ insert into private.board_allow (token) values
 ('analyst'),
 ('aptitud'),
 ('aptitude'),
+('ashkenazi'),
 ('attitude'),
+('badminton'),
 ('banal'),
 ('banality'),
 ('beatitude'),
@@ -243,6 +266,7 @@ insert into private.board_allow (token) values
 ('cockrell'),
 ('cocktail'),
 ('cockroach'),
+('commodore'),
 ('competitor'),
 ('constitution'),
 ('cumming'),
@@ -252,6 +276,7 @@ insert into private.board_allow (token) values
 ('dickinson'),
 ('dickson'),
 ('document'),
+('dykes'),
 ('enigma'),
 ('esperanza'),
 ('essex'),
@@ -266,9 +291,11 @@ insert into private.board_allow (token) values
 ('latitud'),
 ('latitude'),
 ('leacock'),
+('mammon'),
 ('middlesex'),
 ('model'),
 ('modelo'),
+('moderna'),
 ('moderno'),
 ('modest'),
 ('modestia'),
@@ -276,19 +303,24 @@ insert into private.board_allow (token) values
 ('modificar'),
 ('modulo'),
 ('multitude'),
+('nazia'),
+('nazir'),
 ('night'),
 ('nightingale'),
 ('nigel'),
 ('nigeria'),
 ('peacock'),
+('penistone'),
 ('petite'),
 ('promptitude'),
 ('rectitude'),
 ('scunthorpe'),
+('semenov'),
 ('sexton'),
 ('stafford'),
 ('stitch'),
 ('sussex'),
+('therapist'),
 ('titan'),
 ('titanic'),
 ('titania'),
@@ -422,7 +454,11 @@ declare
   v_fu text;
   v_tr text;
   v_phrase text;
-  v_loose boolean;
+  v_joined text := '';
+  v_sq text;
+  v_spaced boolean;
+  v_parts int;
+  v_hit text;
 begin
   v := translate(v, chr(8203) || chr(8204) || chr(8205) || chr(65279), '');
   v := btrim(regexp_replace(v, '[[:space:]]+', ' ', 'g'));
@@ -445,115 +481,144 @@ begin
   end if;
   v_scan := lower(translate(v_norm,
     'ıİіїӏаАеЕоОрРсСуУхХѕһαΑεΕοΟρΡιΙκΚτΤυΥχΧΝæÆœŒ',
-    'iiiiiaaeeooppccyyxxshaaeeooppiikkttyyxxnaaoo'));
+    'iiiiiaaeeooppccyyxxshaaeeooppiikkttuuxxnaaoo'));
   v_scan := replace(translate(v_scan,
     'àáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
     'aaaaaaeeeeiiiiooooouuuuncyy'), 'ß', 'ss');
+  v_scan := translate(v_scan,
+    $conf$ηΗνυΥᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻᶰᶦ$conf$,
+    $conf$nnvuuabcdefghijklmnoprstuvwyzabcdefghijklmnoprstuvwxyzni$conf$);
+
+  v_joined := '';
+  v_tag := '';
+  v_spaced := true;
+  v_parts := 0;
   for v_piece in
-    select m[1] from regexp_matches(v_scan, '[a-z0-9]+|[^a-z0-9]+', 'g') as m
+    select m[1] from regexp_matches(v_scan, '[a-z0-9]+', 'g') as m
   loop
-    if v_piece ~ '^[a-z0-9]+$' then
-      if v_piece ~ '^[0-9]+$' then
-        v_tag := v_tag || v_piece;
-      elsif v_piece ~ '[a-z]' and v_piece ~ '[0-9]$' then
-        v_tag := v_tag || private.board_leet(regexp_replace(v_piece, '[0-9]+$', '')) || substring(v_piece from '[0-9]+$');
-      else
-        v_tag := v_tag || private.board_leet(v_piece);
-      end if;
+    v_parts := v_parts + 1;
+    if v_piece !~ '^[a-z]$' then v_spaced := false; end if;
+    if v_piece ~ '^[0-9]+$' then
+      v_st := v_piece; v_tr := '';
+    elsif v_piece ~ '[a-z]' and v_piece ~ '[0-9]$' then
+      v_tr := substring(v_piece from '[0-9]+$');
+      v_st := private.board_leet(regexp_replace(v_piece, '[0-9]+$', ''));
     else
-      v_tag := v_tag || v_piece;
+      v_st := private.board_leet(v_piece); v_tr := '';
     end if;
+    v_joined := v_joined || v_st || v_tr;
+    if v_piece ~ '^[0-9]+$' then
+      v_tag := v_tag || v_piece;
+    else
+      v_fu := private.board_leet(replace(replace(case when v_tr = '' then v_piece else regexp_replace(v_piece, '[0-9]+$', '') end, '1', 'l'), 'i', 'l'));
+      v_tag := v_tag || v_fu || v_tr;
+    end if;
+    v_stem := array_append(v_stem, v_st);
   end loop;
-  if v_tag ~ '(player|jugador)[^a-z0-9]*[0-9]{4}([^0-9]|$)' then
+  if v_parts < 2 then v_spaced := false; end if;
+  if v_tag ~ '(player|jugador)[0-9]{4}([^0-9]|$)' then
     return jsonb_build_object('ok', false, 'reason', 'tag');
   end if;
   if v_norm !~ '^[[:alnum:]]([[:alnum:]''’ -]*[[:alnum:]])?$' then
     return jsonb_build_object('ok', false, 'reason', 'chars');
   end if;
-  for v_piece in
-    select m[1] from regexp_matches(v_scan, '[a-z0-9]+', 'g') as m
-  loop
-    v_raw := array_append(v_raw, v_piece);
-  end loop;
-  v_i := 1;
-  while v_i <= coalesce(array_length(v_raw, 1), 0) loop
-    if v_raw[v_i] ~ '^[a-z]$' then
-      v_j := v_i;
-      while v_j <= array_length(v_raw, 1) and v_raw[v_j] ~ '^[a-z]$' loop
-        v_j := v_j + 1;
-      end loop;
-      if v_j - v_i >= 2 then
-        v_st := '';
-        for v_k in v_i..(v_j - 1) loop
-          v_st := v_st || private.board_leet(v_raw[v_k]);
-        end loop;
-        v_stem := array_append(v_stem, v_st);
-        v_full := array_append(v_full, v_st);
-        v_trail := array_append(v_trail, '');
-        v_syn := array_append(v_syn, true);
-      else
-        v_st := private.board_leet(v_raw[v_i]);
-        v_stem := array_append(v_stem, v_st);
-        v_full := array_append(v_full, v_st);
-        v_trail := array_append(v_trail, '');
-        v_syn := array_append(v_syn, false);
-      end if;
-      v_i := v_j;
-    else
-      if v_raw[v_i] ~ '^[0-9]+$' then
-        v_fu := v_raw[v_i]; v_st := v_fu; v_tr := '';
-      elsif v_raw[v_i] ~ '[a-z]' and v_raw[v_i] ~ '[0-9]$' then
-        v_tr := substring(v_raw[v_i] from '[0-9]+$');
-        v_st := private.board_leet(regexp_replace(v_raw[v_i], '[0-9]+$', ''));
-        v_fu := private.board_leet(v_raw[v_i]);
-      else
-        v_fu := private.board_leet(v_raw[v_i]);
-        v_st := v_fu;
-        v_tr := '';
-      end if;
-      v_stem := array_append(v_stem, v_st);
-      v_full := array_append(v_full, v_fu);
-      v_trail := array_append(v_trail, v_tr);
-      v_syn := array_append(v_syn, false);
-      v_i := v_i + 1;
-    end if;
-  end loop;
+  v_sq := regexp_replace(v_joined, '([a-z])\1+', '\1', 'g');
+  v_fu := private.board_leet(v_joined);
   select string_agg(s, ' ' order by ord) into v_phrase
   from unnest(v_stem) with ordinality as u(s, ord);
-  if exists (select 1 from private.board_phrase p where p.phrase = v_phrase and p.reason = 'allow') then
+  if not v_spaced and (
+    exists (select 1 from private.board_phrase p where p.phrase = v_phrase and p.reason = 'allow')
+    or exists (select 1 from private.board_allow a where a.token = v_joined)
+  ) then
     return jsonb_build_object('ok', true, 'skip', false, 'name', v);
   end if;
-  for v_i in 1..(coalesce(array_length(v_stem, 1), 0) - 1) loop
-    if v_stem[v_i] = 'daily' and v_stem[v_i + 1] = 'dose' then
+  select t.term into v_hit
+  from private.board_term t
+  where t.kind in ('sub', 'compound', 'imp')
+    and (
+      position(t.term in v_joined) > 0
+      or position(t.term in v_fu) > 0
+      or (v_sq <> v_joined and position(t.term in v_sq) > 0 and regexp_replace(t.term, '([a-z])\1+', '\1', 'g') = t.term)
+    )
+  limit 1;
+  if v_hit is not null then
+    if exists (select 1 from private.board_term t where t.term = v_hit and (t.kind = 'imp' or t.kind = 'compound')) then
       return jsonb_build_object('ok', false, 'reason', 'impersonation');
     end if;
-  end loop;
-  for v_i in 1..coalesce(array_length(v_stem, 1), 0) loop
-    if not v_syn[v_i] and v_trail[v_i] = '' and exists (select 1 from private.board_allow a where a.token = v_stem[v_i]) then
-      if v_i > 1 and v_i < array_length(v_stem, 1) then
-        v_st := v_stem[v_i - 1] || v_stem[v_i + 1];
-        v_fu := v_full[v_i - 1] || v_full[v_i + 1];
-        if private.board_imp_hit(v_st, v_fu, '') then
+    return jsonb_build_object('ok', false, 'reason', 'profanity');
+  end if;
+  if not v_spaced then
+    for v_i in 1..coalesce(array_length(v_stem, 1), 0) loop
+      if v_i > 1 and v_stem[v_i] = 'dyke' and v_stem[v_i - 1] = 'van' then
+        continue;
+      end if;
+      if exists (select 1 from private.board_allow a where a.token = v_stem[v_i]) then
+        if v_i > 1 and v_i < array_length(v_stem, 1) then
+          v_st := v_stem[v_i - 1] || v_stem[v_i + 1];
+          if exists (
+            select 1 from private.board_term t
+            where t.kind in ('sub', 'compound', 'imp')
+              and (position(t.term in v_st) > 0 or regexp_replace(v_st, '([a-z])\1+', '\1', 'g') = regexp_replace(t.term, '([a-z])\1+', '\1', 'g'))
+          ) then
+            if exists (select 1 from private.board_term t where (t.kind = 'imp' or t.kind = 'compound') and (position(t.term in v_st) > 0 or regexp_replace(v_st, '([a-z])\1+', '\1', 'g') = regexp_replace(t.term, '([a-z])\1+', '\1', 'g'))) then
+              return jsonb_build_object('ok', false, 'reason', 'impersonation');
+            end if;
+            return jsonb_build_object('ok', false, 'reason', 'profanity');
+          end if;
+          if exists (
+            select 1 from private.board_term t
+            where (t.kind = 'word' or t.kind = 'impword')
+              and (v_st = t.term or v_st = t.term || 's' or v_st = 'the' || t.term or v_st = t.term || 'lover' or v_st ~ ('^' || t.term || '[0-9]+$') or v_st ~ ('^x+' || t.term || 'x+$'))
+          ) then
+            if exists (select 1 from private.board_term t where t.kind = 'impword' and (v_st = t.term or v_st = t.term || 's' or v_st ~ ('^' || t.term || '[0-9]+$'))) then
+              return jsonb_build_object('ok', false, 'reason', 'impersonation');
+            end if;
+            return jsonb_build_object('ok', false, 'reason', 'profanity');
+          end if;
+        end if;
+        continue;
+      end if;
+      if exists (
+        select 1 from private.board_term t
+        where (t.kind = 'word' or t.kind = 'impword')
+          and (
+            v_stem[v_i] = t.term or v_stem[v_i] = t.term || 's' or v_stem[v_i] = 'the' || t.term or v_stem[v_i] = t.term || 'lover'
+            or v_stem[v_i] ~ ('^' || t.term || '[0-9]+$') or v_stem[v_i] ~ ('^x+' || t.term || 'x+$')
+            or private.board_leet(v_stem[v_i]) = t.term
+          )
+      ) then
+        if exists (select 1 from private.board_term t where t.kind = 'impword' and (v_stem[v_i] = t.term or v_stem[v_i] ~ ('^' || t.term || '[0-9]+$'))) then
           return jsonb_build_object('ok', false, 'reason', 'impersonation');
         end if;
-        if private.board_long_hit(v_st, true) or private.board_long_hit(v_fu, true) or private.board_word_hit(v_st, v_fu, '', true) then
-          return jsonb_build_object('ok', false, 'reason', 'profanity');
-        end if;
+        return jsonb_build_object('ok', false, 'reason', 'profanity');
       end if;
-      continue;
-    end if;
-    if v_stem[v_i] = 'dyke' and v_i > 1 and v_stem[v_i - 1] = 'van' then
-      continue;
-    end if;
-    v_loose := v_syn[v_i];
-    if private.board_imp_hit(v_stem[v_i], v_full[v_i], v_trail[v_i]) then
+    end loop;
+  end if;
+  if exists (
+    select 1 from private.board_term t
+    where (t.kind = 'word' or t.kind = 'impword')
+      and (
+        (v_spaced and (position(t.term in v_joined) > 0 or position(t.term in v_sq) > 0))
+        or (not v_spaced and (
+          v_joined = t.term or v_joined = t.term || 's' or v_joined = 'the' || t.term or v_joined = t.term || 'lover'
+          or v_joined ~ ('^' || t.term || '[0-9]+$') or v_joined ~ ('^x+' || t.term || 'x+$')
+          or v_fu = t.term or v_fu = t.term || 's' or v_fu ~ ('^' || t.term || '[0-9]+$')
+          or (v_sq <> v_joined and (v_sq = t.term or v_sq = regexp_replace(t.term, '([a-z])\1+', '\1', 'g')))
+        ))
+      )
+  ) then
+    if exists (
+      select 1 from private.board_term t
+      where t.kind = 'impword'
+        and (v_joined = t.term or v_joined ~ ('^' || t.term || '[0-9]+$') or (v_spaced and position(t.term in v_joined) > 0))
+    ) then
       return jsonb_build_object('ok', false, 'reason', 'impersonation');
     end if;
-    if private.board_long_hit(v_stem[v_i], v_loose) or private.board_long_hit(v_full[v_i], v_loose)
-       or private.board_word_hit(v_stem[v_i], v_full[v_i], v_trail[v_i], v_loose) then
-      return jsonb_build_object('ok', false, 'reason', 'profanity');
-    end if;
-  end loop;
+    return jsonb_build_object('ok', false, 'reason', 'profanity');
+  end if;
+  if v_joined ~ '^x{3,}$' or v_sq ~ '^x{3,}$' then
+    return jsonb_build_object('ok', false, 'reason', 'profanity');
+  end if;
   return jsonb_build_object('ok', true, 'skip', false, 'name', v);
 end;
 $$;

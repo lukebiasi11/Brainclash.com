@@ -190,7 +190,7 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-collection'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, privacy: !!g1.querySelector('a[href^=\"privacy.html\"]') }; })()`);
       const footer = await evalJson(cdp, `(() => { const a = document.querySelector('footer a[data-privacy]'); return { href: a && a.getAttribute('href'), text: a && a.textContent, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0 }; })()`);
       if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag override off keeps the collection-off card");
-      if (!footer || footer.href !== "privacy.html?v=lb4" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
+      if (!footer || footer.href !== "privacy.html?v=lb5" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
       const after = await evalJson(cdp, snapExpr());
       const changed = sameStore(before, after);
       if (changed) fail("flag off storage", changed); else pass("flag off storage untouched");

@@ -321,6 +321,18 @@ delete global.EagleEye;
     contains(node) { return body.contains(node); },
     querySelector() { return null; }
   };
+  let boardGets = 0;
+  global.fetch = async (url) => {
+    if (String(url).indexOf("/leaderboard/board") >= 0) boardGets += 1;
+    return { ok: false, status: 503, async json() { return { ok: false, error: "board_off" }; } };
+  };
+  delete require.cache[require.resolve(path.join(root, "leaderboard.js"))];
+  const freshBoard = require(path.join(root, "leaderboard.js"));
+  const firstBoard = freshBoard.section();
+  const secondBoard = freshBoard.section();
+  body.append(firstBoard, secondBoard);
+  await new Promise(r => setTimeout(r, 40));
+  t("a closed board is requested once", boardGets === 1 && firstBoard.getAttribute("data-board-off") === "1" && secondBoard.getAttribute("data-board-off") === "1");
   Board.beforeStart({}).catch(() => {});
   const year = global.document.activeElement;
   t("year field is focused after the pop-up is appended", !!year && year.attrs && year.attrs.id === "board-year" && year.connectedOnFocus === true);

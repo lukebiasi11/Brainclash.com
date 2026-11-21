@@ -158,7 +158,8 @@
       if (!c.url || !c.publishableKey) throw new Error("config");
       let create = c.createClient;
       if (typeof create !== "function") {
-        const mod = await import(c.supabaseJs);
+        const load = typeof c.loadSdk === "function" ? c.loadSdk : (url => import(url));
+        const mod = await load(c.supabaseJs);
         create = mod && mod.createClient;
       }
       if (typeof create !== "function") throw new Error("sdk");
@@ -191,16 +192,29 @@
     return tokenP;
   }
 
+  function deadlineMs() {
+    const n = Number(cfg().deadlineMs);
+    return Number.isFinite(n) && n > 0 ? n : 8000;
+  }
+  function within(started, work) {
+    const left = Math.max(0, deadlineMs() - (Date.now() - started));
+    if (left === 0) return Promise.resolve(null);
+    let timer;
+    const timeout = new Promise(resolve => { timer = setTimeout(() => resolve(null), left); });
+    return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
+  }
   async function call(op, session, scores) {
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
       const day = session && session.key;
       const runId = runIdFor(day);
       if (!runId || !validDay(day)) return quiet("invalid");
-      const token = await tokenFor();
+      const token = await within(started, () => tokenFor());
+      if (!token) { tokenP = null; clientP = null; return quiet("network"); }
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, Math.max(0, deadlineMs() - (Date.now() - started)));
       const base = String(c.url).replace(/\/$/, "") + "/functions/v1/field-compare/";
       let url = base + op;
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + token };
@@ -266,15 +280,17 @@
     try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
   }
   async function rawCall(op, session, scores) {
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
       const day = session && session.key;
       const runId = runIdFor(day);
       if (!runId || !validDay(day)) return { ok: false, error: "invalid" };
-      const token = await tokenFor();
+      const token = await within(started, () => tokenFor());
+      if (!token) { tokenP = null; clientP = null; return { ok: false, error: "network" }; }
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, Math.max(0, deadlineMs() - (Date.now() - started)));
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" };
       const init = { method: "POST", headers: headers, body: JSON.stringify(op === "finish" ? { runId: runId, day: day, scores: scores } : { runId: runId, day: day }) };
       if (ctrl) init.signal = ctrl.signal;

@@ -31,6 +31,35 @@
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
   let clientP = null;
   let tokenP = null;
+  let boardOff = false;
+  let boardProbe = null;
+
+  function fetchBoard(url, ms) {
+    const run = () => {
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, ms);
+      const c = cfg();
+      return root.fetch(url, {
+        method: "GET",
+        headers: { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey },
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(async (res) => {
+        clearTimeout(timer);
+        const body = await res.json();
+        if (body && body.error === "board_off") boardOff = true;
+        return { res: res, body: body };
+      }, (err) => { clearTimeout(timer); throw err; });
+    };
+    if (boardOff) return Promise.resolve({ off: true });
+    if (!boardProbe) {
+      boardProbe = run().then(got => got, (err) => { boardProbe = null; throw err; });
+      return boardProbe;
+    }
+    return boardProbe.then(first => {
+      if (boardOff || (first && first.body && first.body.error === "board_off")) return { off: true };
+      return run();
+    }, () => run());
+  }
 
   function tr(s) {
     const i18n = root.BC_I18N;
@@ -591,20 +620,17 @@
     const canned = fixture(sectionId);
     if (canned) { host.hidden = false; host.removeAttribute("data-board-off"); paint(host, canned); return; }
     if (isTester(null)) { host.hidden = false; paint(host, { served: true, rows: [] }); return; }
-    if (!enabled()) { hideBoard(host); return; }
+    if (!enabled() || boardOff) { hideBoard(host); return; }
     const day = todayKey();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { hideBoard(host); return; }
     try {
       const c = cfg();
-      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
-      const headers = { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey };
       const entry = readEntry();
       const tokenQ = entry && entry.day === day && entry.token ? "&token=" + encodeURIComponent(entry.token) : "";
-      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId) + tokenQ, { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
-      clearTimeout(timer);
-      const body = await res.json();
-      if (body && body.error === "board_off") { hideBoard(host); return; }
+      const got = await fetchBoard(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId) + tokenQ, 8000);
+      if (!got || got.off || (got.body && got.body.error === "board_off")) { hideBoard(host); return; }
+      const res = got.res;
+      const body = got.body;
       if (!res.ok || !body || body.ok === false) { host.hidden = false; paint(host, { unavailable: true, rows: [] }); return; }
       host.hidden = false;
       host.removeAttribute("data-board-off");
@@ -710,21 +736,16 @@
       return { rank: Number(canned.me.rank), total: Number(canned.me.total) };
     }
     if (canned && Array.isArray(canned.rows)) return rankFromRows(canned.rows, entry.token, canned.total);
-    if (!enabled()) return null;
+    if (!enabled() || boardOff) return null;
     const day = todayKey();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
     try {
       const c = cfg();
-      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 2000);
-      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=overall&token=" + encodeURIComponent(entry.token), {
-        method: "GET",
-        headers: { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey },
-        signal: ctrl ? ctrl.signal : undefined
-      });
-      clearTimeout(timer);
-      const body = await res.json();
-      if (!res.ok || !body || body.ok === false || body.error === "board_off" || body.served === false) return null;
+      const got = await fetchBoard(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=overall&token=" + encodeURIComponent(entry.token), 2000);
+      if (!got || got.off || !got.body || got.body.error === "board_off") return null;
+      const res = got.res;
+      const body = got.body;
+      if (!res.ok || !body || body.ok === false || body.served === false) return null;
       if (body.me && body.me.found === true && Number.isFinite(Number(body.me.rank)) && Number.isFinite(Number(body.me.total))) {
         return { rank: Number(body.me.rank), total: Number(body.me.total) };
       }

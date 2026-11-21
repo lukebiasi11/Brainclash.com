@@ -238,16 +238,50 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1under1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb4"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1t8"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb5"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb4"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb5"'));
   ok("empty snapshot names the status", app.includes('tr("Loading…")') && app.includes('tr("No other results yet")'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);
   ok("app has no field POST", !/functions\/v1|method:\s*["']POST["']/.test(app));
+  ok("one deadline covers the sdk", /const token = await within\(started, \(\) => tokenFor\(\)\)/.test(fcSrc) && fcSrc.includes("loadSdk") && fcSrc.includes("deadlineMs"));
+
+  function freshField() {
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    return require(path.join(root, "field-compare.js"));
+  }
+  global.FIELD_COMPARE.deadlineMs = 120;
+  global.FIELD_COMPARE.createClient = () => ({
+    auth: {
+      getSession: () => new Promise(resolve => { setTimeout(() => resolve({ data: { session: { access_token: "late" } } }), 400); }),
+      signInAnonymously: () => new Promise(() => {})
+    }
+  });
+  const sessionHangs = [];
+  global.fetch = async () => { sessionHangs.push(Date.now()); return { status: 200, async text() { return "{}"; } }; };
+  const sessionClient = freshField();
+  const sessionStart = Date.now();
+  const sessionQuiet = await sessionClient.dayFor(liveSession({ key: "2026-11-06" }));
+  t("getSession hang falls back", [sessionQuiet.state, sessionQuiet.reason, sessionHangs.length, Date.now() - sessionStart < 1000], ["quiet", "network", 0, true]);
+  await new Promise(r => setTimeout(r, 500));
+  t("a late session does not fetch", sessionHangs, []);
+
+  delete global.FIELD_COMPARE.createClient;
+  global.FIELD_COMPARE.loadSdk = () => new Promise(resolve => { setTimeout(() => resolve({ createClient: () => ({ auth: { getSession: async () => ({ data: { session: { access_token: "late" } } }) } }) }), 400); });
+  const importHangs = [];
+  global.fetch = async () => { importHangs.push(1); return { status: 200, async text() { return "{}"; } }; };
+  const importClient = freshField();
+  const importStart = Date.now();
+  const importQuiet = await importClient.dayFor(liveSession({ key: "2026-11-05" }));
+  t("sdk import hang falls back", [importQuiet.state, importQuiet.reason, importHangs.length, Date.now() - importStart < 1000], ["quiet", "network", 0, true]);
+  await new Promise(r => setTimeout(r, 500));
+  t("a late sdk does not fetch", importHangs, []);
+  delete global.FIELD_COMPARE.loadSdk;
+  delete global.FIELD_COMPARE.deadlineMs;
 
   console.log(bad ? bad + " failures" : "field-client.test.js: all pass");
   process.exit(bad ? 1 : 0);
