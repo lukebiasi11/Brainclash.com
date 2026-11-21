@@ -15,7 +15,7 @@
 <nav class="top"><a class="brand" href="index.html"><span class="bolt">⚡</span>DAILY<b>DOSE</b></a><span class="beta">BETA</span></nav>
 <main class="privacy-page" id="privacy">
   <article class="privacy-card" aria-labelledby="privacy-title">
-    <p class="privacy-updated" data-updated>Last updated: GO_LIVE_DATE_TBD</p>
+    <p class="privacy-updated" data-updated>Last updated: November 22, 2026</p>
     <h1 id="privacy-title" data-en="Daily comparison">Daily comparison</h1>
     <p data-en="If this changes, we'll update this notice and the date above.">If this changes, we'll update this notice and the date above.</p>
     <p data-en="Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. You can add an optional nickname to a public daily leaderboard. Daily Dose does not ask for your email.">Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. You can add an optional nickname to a public daily leaderboard. Daily Dose does not ask for your email.</p>
@@ -45,8 +45,8 @@
     </div>
   </article>
 </main>
-<script src="i18n.js?v=lb2"></script>
-<script src="field-config.js?v=lb2"></script>
+<script src="i18n.js?v=lb3"></script>
+<script src="field-config.js?v=lb3"></script>
 <script>
 (function () {
   const I = window.BC_I18N, tr = I ? I.t : function (s) { return s; };
@@ -54,12 +54,15 @@
   const email = cfg.OPERATOR_CONTACT || "";
   if (I && I.LANG === "es") document.documentElement.lang = "es";
   function formatDate(iso) {
-    if (iso === "GO_LIVE_DATE_TBD") return iso;
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
     if (!m) return iso || "";
-    const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-    try { return dt.toLocaleDateString(I && I.locale, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }); }
-    catch (e) { return iso; }
+    const month = +m[2];
+    const day = String(+m[3]);
+    const en = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const es = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    if (month < 1 || month > 12) return iso;
+    if (I && I.LANG === "es") return day + " de " + es[month - 1] + " de " + m[1];
+    return en[month - 1] + " " + day + ", " + m[1];
   }
   function linkMail(el, template) {
     const text = tr(template, email);

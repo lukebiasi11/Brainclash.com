@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=lb2, i18n at v=lb2, style.css at v=lb1, English and Spanish content at v=nov22w, and icons at v=nov22w.
+// New HTML must request answers at v=nov17a, app.js at v=lb3, i18n at v=lb3, style.css at v=lb2, and English and Spanish content at v=nov22w, and icons at v=nov22w.
 // nov22w stays on content.js, content.es.js, and icons.js. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
@@ -8,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "lb2";
+const APP_V = "lb3";
 const CONTENT_V = "nov22w";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -34,7 +34,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=lb1"], ["i18n", "i18n.js?v=lb2"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=lb2"]].forEach(([n, s]) => {
+[["style", "style.css?v=lb2"], ["i18n", "i18n.js?v=lb3"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=lb3"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {

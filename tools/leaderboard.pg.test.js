@@ -86,6 +86,12 @@ t("runtime cannot read the board table", attempt("anon", "select display_name fr
 t("field runtime cannot post a nickname", attempt("field_runtime", `select private.board_post('${uidA}'::uuid, '${today}'::date, 'Luna', '{1,1,1,1,1}'::int[])`) === "42501");
 t("retention role cannot select posts", attempt("board_retention", "select display_name from private.board_post") === "42501");
 t("board runtime can read the public board", attempt("board_runtime", `select private.board_public('${today}'::date, 'overall')`) === "allowed");
+const checked = JSON.parse(q("select private.board_check_name('Luna')::text"));
+t("check accepts a nickname", checked.ok === true && checked.name === "Luna" && !checked.year);
+const checkedBad = JSON.parse(q("select private.board_check_name('Daily Dose')::text"));
+t("check rejects on the server", checkedBad.ok === false && checkedBad.reason === "impersonation" && !JSON.stringify(checkedBad).includes("Daily"));
+t("runtime can check a name", attempt("board_runtime", "select private.board_check_name('Luna')") === "allowed");
+t("anon cannot check a name", attempt("anon", "select private.board_check_name('Luna')") === "42501");
 t("no cron and no field rows touched", q("select count(*) from pg_extension where extname = 'pg_cron'") === "0" && q("select (select count(*) from private.attempts)::text || ',' || (select count(*) from private.runs) || ',' || (select count(*) from private.dedup) || ',' || (select count(*) from private.day_agg)") === before);
 const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("migrations do not schedule cron", !/cron\.schedule/.test(sql));

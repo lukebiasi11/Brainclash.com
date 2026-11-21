@@ -97,9 +97,9 @@ t("a daily run is not a tester run", Board.isTester({ practice: false, key: "202
 let fetched = 0;
 global.fetch = () => { fetched++; return Promise.reject(new Error("no")); };
 bag["bc-board-eligible"] = "yes";
-bag["bc-board-pending"] = JSON.stringify({ day: "2026-11-21", name: "Luna" });
+bag["bc-board-name"] = "Luna";
 Board.noteFinish({ key: "2026-11-21", practice: true, scores: [100, 100, 100, 100, 100] });
-t("practice does not post", fetched === 0 && bag["bc-board-pending"] == null);
+t("practice does not post", fetched === 0 && bag["bc-board-name"] === "Luna");
 
 const i18n = fs.readFileSync(path.join(root, "i18n.js"), "utf8");
 [
@@ -118,6 +118,7 @@ t("year field is cleared before it is judged", /input\.value = "";\s*const resul
 t("year field is numeric and not autofilled", yearFn.includes('autocomplete: "off"') && yearFn.includes('inputmode: "numeric"') && yearFn.includes('type: "text"'));
 t("posted body has eligible and no year", /JSON\.stringify\(\{ day: day, name: name, scores: scores, eligible: true \}\)/.test(lb) && !/birthYear|birth_year/.test(lb));
 t("only yes or no is written", /setItem\(FLAG, eligible \? "yes" : "no"\)/.test(lb));
+t("the saved name is one key", lb.includes('const NAME = "bc-board-name"') && /writeName\(server\.name\)/.test(lb) && !/setItem\("bc-board-pending"|setItem\("bc-board-nick"/.test(lb));
 const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");
 t("rankings stay off the notice", !privacy.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "docs/privacy-notice-draft.md"), "utf8").split("## English")[1].includes("Rankings are for fun"));
 

@@ -2,11 +2,11 @@
 
 Draft pending the lawyer's review. This header is not shown on the site. The sentences below are what `privacy.html` shows, in English and in Latin American Spanish.
 
-Last updated in the site config: GO_LIVE_DATE_TBD. Replace that sentinel with the go-live day (YYYY-MM-DD) before the public board is turned on. Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
+Last updated in the site config: 2026-11-22. The public board stays off until LEADERBOARD_PUBLIC is set to on. Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 ## English
 
-Last updated: GO_LIVE_DATE_TBD
+Last updated: November 22, 2026
 
 If this changes, we'll update this notice and the date above.
 
@@ -54,7 +54,7 @@ Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)
 
 ## Español (Latinoamérica)
 
-Última actualización: GO_LIVE_DATE_TBD
+Última actualización: 22 de noviembre de 2026
 
 Si esto cambia, vamos a actualizar este aviso y la fecha de arriba.
 

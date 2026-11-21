@@ -1,6 +1,6 @@
-// Not part of the default test suite. Exits 1 while the notice date is still
-// the placeholder, so a go-live check fails until the real day is set.
-// Run this after editing field-config.js and before LEADERBOARD_PUBLIC=on.
+// Not part of the default test suite. Exits 0 when NOTICE_LAST_UPDATED is a
+// YYYY-MM-DD. Exits 1 if that value is missing or still the placeholder.
+// The public board stays off until LEADERBOARD_PUBLIC=on.
 const fs = require("fs");
 const path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "field-config.js"), "utf8");

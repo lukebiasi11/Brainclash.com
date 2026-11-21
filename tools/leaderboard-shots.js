@@ -114,10 +114,25 @@ async function shot(cdp, name, sel, width) {
           const want = lang === "es" ? "Este nombre se muestra públicamente. Usa un apodo, no tu nombre completo." : "This name is shown publicly. Use a nickname, not your full name.";
           if (help !== want) throw new Error("helper " + tag + " " + help);
           await shot(cdp, "lb-name-" + tag + ".png", "[data-board-name]", width);
-          await evalJson(cdp, `document.querySelector('[data-board-name-input]').value = 'Daily Dose'; document.querySelector('.cta .btn.primary').click();`);
+          await evalJson(cdp, `(async () => { document.querySelector('[data-board-name-input]').value = 'Daily Dose'; document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 40)); })()`);
           const blocked = await evalJson(cdp, `({ err: (document.querySelector('[data-board-error]')||{}).textContent || '', game: document.body.classList.contains('in-game'), value: document.querySelector('[data-board-name-input]').value })`);
           if (!blocked.err || blocked.game || blocked.value !== "Daily Dose") throw new Error("blocked " + tag + " " + JSON.stringify(blocked));
           await shot(cdp, "lb-blocked-" + tag + ".png", "[data-board-name]", width);
+          await fetch("http://127.0.0.1:" + port + "/json/close/" + cdp.id).catch(() => {});
+        }
+        {
+          const seed = "localStorage.clear(); localStorage.setItem('bc-board-eligible','yes'); localStorage.setItem('bc-board-name','Luna');";
+          const cdp = await openPage(port, origin + "/index.html?lbshot=1&lang=" + lang, seed, vp);
+          const back = await evalJson(cdp, `({ saved: !!document.querySelector('[data-board-saved]'), change: (document.querySelector('[data-board-change]')||{}).textContent || '', name: (document.querySelector('[data-board-current]')||{}).textContent || '', gate: !!document.querySelector('[data-board-gate]'), entry: !!document.querySelector('[data-board-name]') })`);
+          const changeWord = lang === "es" ? "Cambiar nombre" : "Change name";
+          if (!back.saved || back.change !== changeWord || back.name !== "Luna" || back.gate || back.entry) throw new Error("returning " + tag + " " + JSON.stringify(back));
+          await shot(cdp, "lb-returning-" + tag + ".png", "[data-board-saved]", width);
+          await evalJson(cdp, `document.querySelector('[data-board-change]').click()`);
+          await shot(cdp, "lb-change-" + tag + ".png", "[data-board-saved]", width);
+          await evalJson(cdp, `(async () => { document.querySelector('[data-board-name-input]').value = 'Daily Dose'; document.querySelector('[data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); })()`);
+          const blockedChange = await evalJson(cdp, `({ err: (document.querySelector('[data-board-error]')||{}).textContent || '', name: (document.querySelector('[data-board-current]')||{}).textContent || '', stored: localStorage.getItem('bc-board-name'), gate: !!document.querySelector('[data-board-gate]') })`);
+          if (!blockedChange.err || blockedChange.name !== "Luna" || blockedChange.stored !== "Luna" || blockedChange.gate) throw new Error("change blocked " + tag + " " + JSON.stringify(blockedChange));
+          await shot(cdp, "lb-change-blocked-" + tag + ".png", "[data-board-saved]", width);
           await fetch("http://127.0.0.1:" + port + "/json/close/" + cdp.id).catch(() => {});
         }
         {

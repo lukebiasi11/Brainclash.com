@@ -23,6 +23,11 @@ function req(pathname, { method = "POST", body, headers = {}, search = "" } = {}
     async call(name, args) {
       calls.push({ name, args });
       if (name === "board_consume_rate") return { ok: true };
+      if (name === "board_check_name") {
+        const n = String(args[0] || "");
+        if (/daily/i.test(n)) return { ok: false, reason: "impersonation" };
+        return { ok: true, skip: false, name: n };
+      }
       if (name === "board_post" && String(args[2]).toLowerCase().includes("daily")) return { ok: false, error: "name_rejected", reason: "impersonation" };
       if (name === "board_public") return { ok: true, served: true, rows: [{ rank: 1, name: "Luna", score: 100 }] };
       if (name === "board_rename") return { ok: true, name: args[1] };
@@ -45,6 +50,12 @@ function req(pathname, { method = "POST", body, headers = {}, search = "" } = {}
   const slur = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Daily Dose", scores: [1, 1, 1, 1, 1], eligible: true } }));
   const slurBody = await slur.json();
   t("server rejects the name", slur.status === 400 && slurBody.error === "name_rejected" && !JSON.stringify(slurBody).includes("Daily"));
+  const checked = await on(req("/leaderboard/check", { body: { name: "Luna", eligible: true } }));
+  const checkedBody = await checked.json();
+  t("check accepts a nickname", checked.status === 200 && checkedBody.ok === true && checkedBody.name === "Luna");
+  const checkedBad = await on(req("/leaderboard/check", { body: { name: "Daily Dose", eligible: true } }));
+  const checkedBadBody = await checkedBad.json();
+  t("check rejects on the server", checkedBad.status === 400 && checkedBadBody.error === "name_rejected" && !JSON.stringify(checkedBadBody).includes("Daily"));
   calls.length = 0;
   const posted = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Luna", scores: [10, 20, 30, 40, 50], eligible: true } }));
   const postedBody = await posted.json();

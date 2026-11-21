@@ -30,7 +30,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("live key is present", /publishableKey:\s*"sb_publishable_[^"]+"/.test(cfgSrc));
   ok("live project url", cfgSrc.includes('url: "https://xhgrcbsshhpvmfwzjtmp.supabase.co"'));
   ok("live function path", fcSrc.includes('"/functions/v1/field-compare/"'));
-  ok("notice date is the go-live placeholder", cfgSrc.includes('NOTICE_LAST_UPDATED: "GO_LIVE_DATE_TBD"') && !cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
+  ok("notice date is the go-live day", cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-22"') && !cfgSrc.includes("GO_LIVE_DATE_TBD") && !cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
   ok("off mode is an override", global.FIELD_COMPARE_ENABLED === false);
 
   FC.onPlay(liveSession({ scores: [] }));
@@ -230,11 +230,11 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb2") && indexHtml.includes("field-compare.js?v=g1hist1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb2"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb3") && indexHtml.includes("field-compare.js?v=g1hist1"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb3"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb2"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb3"'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);

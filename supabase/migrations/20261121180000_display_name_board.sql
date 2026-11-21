@@ -509,6 +509,17 @@ begin
 end;
 $$;
 
+create or replace function private.board_check_name(p_name text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return private.board_name_status(p_name);
+end;
+$$;
+
 create or replace function private.retain_board_names()
 returns int
 language plpgsql
@@ -541,6 +552,7 @@ revoke all on function
   private.board_remove(uuid),
   private.board_bump(text, interval, int),
   private.board_consume_rate(uuid),
+  private.board_check_name(text),
   private.retain_board_names()
   from public, anon, authenticated, app_writer, field_runtime;
 revoke all on function private.retain_board_names() from board_runtime;
@@ -550,6 +562,7 @@ grant execute on function
   private.board_admin_list(date),
   private.board_rename(uuid, text),
   private.board_remove(uuid),
-  private.board_consume_rate(uuid)
+  private.board_consume_rate(uuid),
+  private.board_check_name(text)
   to board_runtime;
 grant execute on function private.retain_board_names() to board_retention;

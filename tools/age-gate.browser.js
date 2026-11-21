@@ -114,6 +114,54 @@ const hook = `(() => {
     if (stored.field) fail("input still holds a value", stored.field); else pass("year field is cleared");
     const offHost = (stored.net || []).filter(r => { try { return new URL(r.url, origin).hostname !== "127.0.0.1"; } catch (e) { return true; } });
     if (offHost.some(r => String(r.url).includes(YEAR) || String(r.body).includes(YEAR))) fail("off-host year", offHost); else pass("no off-host request carries the year");
+    await fetch("http://127.0.0.1:" + port + "/json/close/" + created.id).catch(() => {});
+
+    async function openSeed(source) {
+      const createdRes2 = await fetch("http://127.0.0.1:" + port + "/json/new?" + encodeURIComponent("about:blank"), { method: "PUT" });
+      const created2 = JSON.parse(await createdRes2.text());
+      const page = new CDP(await wsOpen(created2.webSocketDebuggerUrl));
+      await page.send("Page.enable");
+      await page.send("Runtime.enable");
+      await page.send("Network.enable");
+      await page.send("Page.addScriptToEvaluateOnNewDocument", { source: source });
+      await page.send("Page.navigate", { url: origin + "/index.html?lbshot=1" });
+      const ok = await evalJson(page, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelector('.cta .btn.primary')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
+      if (!ok) throw new Error("home did not render");
+      return page;
+    }
+    const checkMock = `window.fetch = function(url, opts) {
+      const body = opts && opts.body ? JSON.parse(opts.body) : {};
+      window.__net = window.__net || [];
+      window.__net.push({ url: String(url), method: (opts && opts.method) || "GET", body: opts && opts.body || "" });
+      if (String(url).indexOf("/leaderboard/check") >= 0) {
+        if (body.name === "Sol") return Promise.resolve({ ok: false, status: 400, async json() { return { ok: false, error: "name_rejected" }; } });
+        return Promise.resolve({ ok: true, status: 200, async json() { return { ok: true, name: body.name }; } });
+      }
+      return Promise.resolve({ ok: true, status: 200, async json() { return { ok: true, served: true, rows: [] }; } });
+    };`;
+    const keysOf = `(() => { const keys = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("bc-board") === 0) keys.push(k + "=" + localStorage.getItem(k)); } return keys.sort(); })()`;
+
+    const under = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','no');");
+    const underInfo = await evalJson(under, `({ name: !!document.querySelector('[data-board-name]'), saved: !!document.querySelector('[data-board-saved]'), change: !!document.querySelector('[data-board-change]'), gate: !!document.querySelector('[data-board-gate]') })`);
+    if (underInfo.name || underInfo.saved || underInfo.change || underInfo.gate) fail("under 13 name ui", underInfo); else pass("under 13 never sees a name or change control");
+
+    const skip = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes');");
+    const skipState = await evalJson(skip, `(async () => { document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 200)); return { game: document.body.classList.contains('in-game'), keys: ${keysOf} }; })()`);
+    if (!skipState.game || JSON.stringify(skipState.keys) !== JSON.stringify(["bc-board-eligible=yes"])) fail("skip stores only the flag", skipState); else pass("skip keeps today's behaviour and stores no name");
+
+    const back = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes'); localStorage.setItem('bc-board-name','Luna'); " + checkMock);
+    const backInfo = await evalJson(back, `(async () => { const used = await window.DailyBoard.beforeStart({ started: false }); return { gate: !!document.querySelector('[data-board-gate]'), entry: !!document.querySelector('[data-board-name]'), saved: (document.querySelector('[data-board-current]')||{}).textContent || '', change: !!document.querySelector('[data-board-change]'), used, stored: localStorage.getItem('bc-board-name') }; })()`);
+    if (backInfo.gate || backInfo.entry || backInfo.saved !== "Luna" || !backInfo.change || backInfo.used !== true || backInfo.stored !== "Luna") fail("returning player", backInfo); else pass("returning player skips the age gate and name entry");
+    await evalJson(back, `(async () => { document.querySelector('[data-board-change]').click(); document.querySelector('[data-board-name-input]').value = 'Daily Dose'; document.querySelector('[data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); })()`);
+    const clientNo = await evalJson(back, `({ name: (document.querySelector('[data-board-current]')||{}).textContent, stored: localStorage.getItem('bc-board-name'), err: (document.querySelector('[data-board-error]')||{}).textContent || '', gate: !!document.querySelector('[data-board-gate]') })`);
+    if (clientNo.name !== "Luna" || clientNo.stored !== "Luna" || !clientNo.err || clientNo.gate) fail("rejected change", clientNo); else pass("a blocked change keeps the old name");
+    await evalJson(back, `(async () => { document.querySelector('[data-board-name-input]').value = 'Sol'; document.querySelector('[data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); })()`);
+    const serverNo = await evalJson(back, `({ name: (document.querySelector('[data-board-current]')||{}).textContent, stored: localStorage.getItem('bc-board-name') })`);
+    if (serverNo.name !== "Luna" || serverNo.stored !== "Luna") fail("server rejected change", serverNo); else pass("a server rejection keeps the old name");
+    await evalJson(back, `(async () => { document.querySelector('[data-board-name-input]').value = 'Nico'; document.querySelector('[data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); })()`);
+    const accepted = await evalJson(back, `({ name: (document.querySelector('[data-board-current]')||{}).textContent, stored: localStorage.getItem('bc-board-name'), gate: !!document.querySelector('[data-board-gate]'), keys: ${keysOf} })`);
+    if (accepted.name !== "Nico" || accepted.stored !== "Nico" || accepted.gate || JSON.stringify(accepted.keys) !== JSON.stringify(["bc-board-eligible=yes", "bc-board-name=Nico"])) fail("accepted change", accepted); else pass("an accepted change replaces only the current name");
+
     console.log(bad ? bad + " failures" : "age-gate.browser.js: all pass");
   } finally {
     chrome.kill("SIGKILL");
