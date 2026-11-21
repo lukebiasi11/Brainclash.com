@@ -14,7 +14,7 @@
     impWord: ["mod", "mods"],
     compound: ["cooladmin", "modsquad", "modteam", "staffer"],
     sub: ["1488", "assclown", "asshat", "asshole", "asslicker", "asswipe", "badass", "bastard", "bigcock", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumdump", "cumshot", "cunt", "dickbutt", "dickface", "dickhead", "dickweed", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shit", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
-    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chink", "cock", "cono", "coon", "culo", "cum", "dick", "dyke", "fag", "fck", "fuk", "fukk", "gook", "kike", "mamon", "mamona", "marica", "nibba", "nig", "niga", "nikka", "paki", "perra", "phag", "pito", "porn", "pron", "puta", "puto", "raghead", "rape", "sex", "sexo", "sht", "spic", "tit", "verga", "wank", "wetback", "zorra"]
+    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chinc", "chink", "cock", "cono", "coon", "coonz", "culo", "cum", "dick", "dyke", "fag", "faget", "fagot", "fagz", "fck", "fcker", "fcking", "fckn", "fgt", "fkn", "fuggin", "fuk", "fuking", "fukk", "fukker", "gook", "hitlr", "jewfag", "kike", "kikez", "kyke", "mamon", "mamona", "marica", "nibba", "nig", "nigah", "niga", "nigar", "nigha", "niglet", "nigr", "nikka", "niqqa", "paki", "paky", "perra", "phag", "phaggot", "pito", "porn", "pron", "puta", "puto", "raghead", "raghed", "rape", "sex", "sexo", "sht", "shtty", "slvt", "spic", "spik", "tit", "tranni", "trany", "verga", "wank", "wetback", "wetbak", "zorra"]
   };
 
   const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "attitude", "badminton", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "commodore", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "dikshit", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "hoshitani", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "night", "nightingale", "nigel", "nigeria", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "scunthorpe", "semenov", "semenya", "sexton", "shiteh", "shitake", "shitterton", "shittu", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock", "yoshito"];
@@ -231,7 +231,7 @@
       const term = subs[i];
       if (exposed(text, term, ranges) || (attached(text, term) && !covered(ranges, 0, text.length))) return term;
       const tsq = squeezeLetters(term);
-      if (!collapsed) continue;
+      if (!collapsed || term === "boobs") continue;
       if (mapped.sq === tsq && !covered(ranges, 0, text.length)) return term;
       let from = 0;
       while (tsq.length >= 4 && from <= mapped.sq.length - tsq.length) {
@@ -294,7 +294,7 @@
     const sq = squeezeLetters(text);
     const subs = TERMS.sub.concat(TERMS.compound, TERMS.imp);
     for (let i = 0; i < subs.length; i++) {
-      if (sq === squeezeLetters(subs[i])) return reasonFor(subs[i]);
+      if (subs[i] !== "boobs" && sq === squeezeLetters(subs[i])) return reasonFor(subs[i]);
     }
     const shorts = TERMS.word.concat(TERMS.impWord);
     for (let i = 0; i < shorts.length; i++) {
@@ -332,8 +332,21 @@
     const stems = parts.map(part => part.stem);
     const phrase = stems.join(" ");
     if (PHRASE_ALLOW.has(phrase)) return { ok: true, skip: false, name: name };
+    const joinedTokens = [];
+    let phraseRun = [];
+    function flushPhrase() {
+      if (phraseRun.length) joinedTokens.push(phraseRun.map(part => part.stem).join(""));
+      phraseRun = [];
+    }
+    parts.forEach(part => {
+      const prev = phraseRun[phraseRun.length - 1];
+      if (!prev || prev.raw.length <= 3 || part.raw.length <= 3) phraseRun.push(part);
+      else { flushPhrase(); phraseRun = [part]; }
+    });
+    flushPhrase();
+    const phraseForms = [stems, stems.map(stem => squeezeLetters(stem)), joinedTokens, joinedTokens.map(token => squeezeLetters(token))];
     for (let p = 0; p < PHRASE_BLOCK.length; p++) {
-      if (hasPhrase(stems, PHRASE_BLOCK[p])) return { ok: false, reason: "impersonation", name: "" };
+      if (phraseForms.some(form => hasPhrase(form, PHRASE_BLOCK[p]))) return { ok: false, reason: "impersonation", name: "" };
     }
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];

@@ -155,45 +155,77 @@ insert into private.board_term (kind, term) values
   ('word', 'beaner'),
   ('word', 'beyotch'),
   ('word', 'biatch'),
+  ('word', 'chinc'),
   ('word', 'chink'),
   ('word', 'cock'),
   ('word', 'cono'),
   ('word', 'coon'),
+  ('word', 'coonz'),
   ('word', 'culo'),
   ('word', 'cum'),
   ('word', 'dick'),
   ('word', 'dyke'),
   ('word', 'fag'),
+  ('word', 'faget'),
+  ('word', 'fagot'),
+  ('word', 'fagz'),
   ('word', 'fck'),
+  ('word', 'fcker'),
+  ('word', 'fcking'),
+  ('word', 'fckn'),
+  ('word', 'fgt'),
+  ('word', 'fkn'),
+  ('word', 'fuggin'),
   ('word', 'fuk'),
+  ('word', 'fuking'),
   ('word', 'fukk'),
+  ('word', 'fukker'),
   ('word', 'gook'),
+  ('word', 'hitlr'),
+  ('word', 'jewfag'),
   ('word', 'kike'),
+  ('word', 'kikez'),
+  ('word', 'kyke'),
   ('word', 'mamon'),
   ('word', 'mamona'),
   ('word', 'marica'),
   ('word', 'nibba'),
   ('word', 'nig'),
+  ('word', 'nigah'),
   ('word', 'niga'),
+  ('word', 'nigar'),
+  ('word', 'nigha'),
+  ('word', 'niglet'),
+  ('word', 'nigr'),
   ('word', 'nikka'),
+  ('word', 'niqqa'),
   ('word', 'paki'),
+  ('word', 'paky'),
   ('word', 'perra'),
   ('word', 'phag'),
+  ('word', 'phaggot'),
   ('word', 'pito'),
   ('word', 'porn'),
   ('word', 'pron'),
   ('word', 'puta'),
   ('word', 'puto'),
   ('word', 'raghead'),
+  ('word', 'raghed'),
   ('word', 'rape'),
   ('word', 'sex'),
   ('word', 'sexo'),
   ('word', 'sht'),
+  ('word', 'shtty'),
+  ('word', 'slvt'),
   ('word', 'spic'),
+  ('word', 'spik'),
   ('word', 'tit'),
+  ('word', 'tranni'),
+  ('word', 'trany'),
   ('word', 'verga'),
   ('word', 'wank'),
   ('word', 'wetback'),
+  ('word', 'wetbak'),
   ('word', 'zorra');
 
 create table private.board_post (
@@ -550,7 +582,8 @@ as $$
       position(t.term in p_text) > 0
       or private.board_attached(p_text, t.term)
       or (
-        private.board_letters_sq(p_text) <> p_text
+        t.term <> 'boobs'
+        and private.board_letters_sq(p_text) <> p_text
         and (
           private.board_letters_sq(p_text) = private.board_letters_sq(t.term)
           or (
@@ -636,6 +669,7 @@ begin
   select t.term into v_term
   from private.board_term t
   where (t.kind = 'sub' or t.kind = 'compound' or t.kind = 'imp')
+    and t.term <> 'boobs'
     and v_sq = private.board_letters_sq(t.term)
   limit 1;
   if v_term is not null then
@@ -717,6 +751,9 @@ begin
       where t.kind = 'sub' or t.kind = 'compound' or t.kind = 'imp'
     loop
       v_tsq := private.board_letters_sq(v_term);
+      if v_term = 'boobs' then
+        continue;
+      end if;
       if v_sq = v_tsq and p_mark !~ '^A+$' then
         return private.board_term_reason(v_term);
       end if;
@@ -793,6 +830,10 @@ declare
   v_fu text;
   v_tr text;
   v_phrase text;
+  v_phrase_sq text;
+  v_joined_phrase text;
+  v_joined_sq text;
+  v_ptok text[] := '{}';
   v_joined text := '';
   v_sq text;
   v_spaced boolean;
@@ -876,10 +917,36 @@ begin
   if exists (select 1 from private.board_phrase p where p.phrase = v_phrase and p.reason = 'allow') then
     return jsonb_build_object('ok', true, 'skip', false, 'name', v);
   end if;
+  v_run := '';
+  v_run_n := 0;
+  v_run_last := 0;
+  for v_i in 1..coalesce(array_length(v_stem, 1), 0) loop
+    if v_run_n > 0 and v_run_last > 3 and v_len[v_i] > 3 then
+      v_ptok := array_append(v_ptok, v_run);
+      v_run := '';
+      v_run_n := 0;
+    end if;
+    v_run := v_run || v_stem[v_i];
+    v_run_n := v_run_n + 1;
+    v_run_last := v_len[v_i];
+  end loop;
+  if v_run_n > 0 then
+    v_ptok := array_append(v_ptok, v_run);
+  end if;
+  select string_agg(private.board_letters_sq(s), ' ' order by ord) into v_phrase_sq
+  from unnest(v_stem) with ordinality as u(s, ord);
+  v_joined_phrase := array_to_string(v_ptok, ' ');
+  select string_agg(private.board_letters_sq(s), ' ' order by ord) into v_joined_sq
+  from unnest(v_ptok) with ordinality as u(s, ord);
   if exists (
     select 1 from private.board_phrase p
     where p.reason = 'impersonation'
-      and v_phrase ~ ('(^| )' || p.phrase || '($| )')
+      and (
+        v_phrase ~ ('(^| )' || p.phrase || '($| )')
+        or coalesce(v_phrase_sq, '') ~ ('(^| )' || p.phrase || '($| )')
+        or coalesce(v_joined_phrase, '') ~ ('(^| )' || p.phrase || '($| )')
+        or coalesce(v_joined_sq, '') ~ ('(^| )' || p.phrase || '($| )')
+      )
   ) then
     return jsonb_build_object('ok', false, 'reason', 'impersonation');
   end if;

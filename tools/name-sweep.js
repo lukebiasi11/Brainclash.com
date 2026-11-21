@@ -56,7 +56,7 @@ function hitTerm(text) {
   for (const term of longs) {
     const tsq = squeeze(term);
     if (text.indexOf(term) >= 0 || attached(text, term)) return term;
-    if (collapsed && (sq === tsq || (tsq.length >= 4 && sq.indexOf(tsq) >= 0))) return term;
+    if (term !== "boobs" && collapsed && (sq === tsq || (tsq.length >= 4 && sq.indexOf(tsq) >= 0))) return term;
   }
   const shorts = Filter.TERMS.word.concat(Filter.TERMS.impWord);
   for (const term of shorts) {
