@@ -4,7 +4,8 @@ name: retain board names
 # There is no schedule. The job condition is false, so a manual run does nothing
 # and does not connect. Opening a pull request does not run it.
 #
-# To enable later, after migration 20261121180000_display_name_board is applied:
+# To enable later, after migrations 20261121180000_display_name_board and
+# 20261121190000_weekly_board are applied:
 # 1. Set a password on role board_retention outside this repository.
 # 2. Add the Actions secret BOARD_RETENTION_DB_URL for that role (session pooler,
 #    port 5432, user board_retention.xhgrcbsshhpvmfwzjtmp). Do not use the
@@ -23,7 +24,7 @@ jobs:
     if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - name: Drop nicknames older than 90 days
+      - name: Unlink nicknames and device ids older than 90 days
         env:
           BOARD_RETENTION_DB_URL: ${{ secrets.BOARD_RETENTION_DB_URL }}
         run: |

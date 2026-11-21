@@ -1179,6 +1179,10 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .board-change{min-height:44px;padding:8px 4px;font:800 14px/1.2 var(--body);background:transparent;color:var(--ink-bc);border:0;text-decoration:underline;cursor:pointer}
 .day-board{position:relative;z-index:1;max-width:100%;box-sizing:border-box;margin:14px 0 8px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);text-align:left}
 .board-title{margin:0 0 8px;font-family:var(--display);font-weight:400;font-size:clamp(22px,7vw,28px);letter-spacing:.03em;text-transform:uppercase;overflow-wrap:anywhere}
+.board-span{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.board-span-btn{min-height:44px;padding:8px 12px;font:800 14px/1.2 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);cursor:pointer}
+.board-span-btn.on{background:var(--ink-bc);color:var(--cream)}
+.board-range{margin:0 0 8px;font-size:14px;line-height:1.3;font-weight:800;color:var(--ink-bc)}
 .board-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
 .board-tab{min-height:44px;padding:8px 10px;font:800 13px/1.2 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);cursor:pointer}
 .board-tab.on{background:var(--ink-bc);color:var(--cream)}

@@ -42,6 +42,11 @@ function validDay(day) {
   const dt = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
   return dt.getUTCFullYear() === p[0] && dt.getUTCMonth() === p[1] - 1 && dt.getUTCDate() === p[2];
 }
+function validDevice(value) {
+  if (value == null) return null;
+  if (typeof value !== "string" || !UID.test(value)) return false;
+  return value.toLowerCase();
+}
 function validScores(scores) {
   if (!Array.isArray(scores) || scores.length !== 5) return null;
   const out = [];
@@ -146,11 +151,16 @@ export function createBoardHandler(options = {}) {
     if (op === "board") {
       const day = url.searchParams.get("day");
       const section = url.searchParams.get("section") || "overall";
-      if (!validDay(day) || !SECTIONS.has(section)) return json(400, { ok: false, error: "invalid_input" }, headers);
+      const span = url.searchParams.get("span") || "day";
+      if (!validDay(day) || !SECTIONS.has(section) || (span !== "day" && span !== "week")) return json(400, { ok: false, error: "invalid_input" }, headers);
       const limited = await callDb(db, "board_consume_rate", "board_consume_rate", [null]);
       if (limited.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (limited.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
-      const got = await callDb(db, "board_public", "board_public", [day, section]);
+      // The week is the server's New York day, the same boundary as the daily
+      // key. The day query is checked, and it is not the week source.
+      const got = span === "week"
+        ? await callDb(db, "board_week", "board_week", [section])
+        : await callDb(db, "board_public", "board_public", [day, section]);
       if (got.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (got.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
       return json(200, got.result, headers);
@@ -174,11 +184,12 @@ export function createBoardHandler(options = {}) {
       if (!identity.ok) return json(401, identity, headers);
       if (body.eligible !== true) return json(400, { ok: false, error: "not_eligible" }, headers);
       const scores = validScores(body.scores);
-      if (!validDay(body.day) || !scores || typeof body.name !== "string") return json(400, { ok: false, error: "invalid_input" }, headers);
+      const device = validDevice(body.deviceId);
+      if (!validDay(body.day) || !scores || typeof body.name !== "string" || device === false) return json(400, { ok: false, error: "invalid_input" }, headers);
       const limited = await callDb(db, "board_consume_rate", "board_consume_rate", [identity.uid]);
       if (limited.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (limited.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
-      const posted = await callDb(db, "board_post", "board_post", [identity.uid, body.day, body.name, scores]);
+      const posted = await callDb(db, "board_post", "board_post", [identity.uid, body.day, body.name, scores, device]);
       if (posted.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (posted.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
       const result = posted.result || {};

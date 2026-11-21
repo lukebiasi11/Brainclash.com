@@ -1,7 +1,11 @@
-/* Optional public nickname and the daily board.
+/* Optional public nickname, the daily board, and the weekly board.
    Practice, preview, admin, and ?dgtest are the tester runs already kept
    out of the daily field. They do not post and they are not counted.
-   The birth year is read once and discarded. Only yes/no is stored. */
+   The birth year is read once and discarded. Only yes/no is stored.
+   A random device id is minted only when an eligible player posts a
+   nickname, so that player's days can be added up. It is not a fingerprint.
+   The field comparison's id is a per-day run id on a different storage
+   prefix, so it is not reused here. */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -11,7 +15,11 @@
 
   const FLAG = "bc-board-eligible";
   const NAME = "bc-board-name";
+  const DEVICE = "bc-board-device";
   const STORAGE_PREFIX = "sb-board-";
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const EN_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const ES_MON = ["ene.", "feb.", "mar.", "abr.", "may.", "jun.", "jul.", "ago.", "sep.", "oct.", "nov.", "dic."];
   const SECTIONS = [
     ["overall", "Overall"],
     ["world", "World Rush"],
@@ -114,6 +122,74 @@
       out.push(r);
     }
     return out;
+  }
+
+  function lang() {
+    const i18n = root.BC_I18N;
+    return i18n && i18n.LANG === "es" ? "es" : "en";
+  }
+  function parseKey(key) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key || "");
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+    return dt;
+  }
+  function weekBounds(key) {
+    const dt = parseKey(key);
+    if (!dt) return null;
+    const iso = dt.getUTCDay() === 0 ? 7 : dt.getUTCDay();
+    const start = new Date(dt.getTime());
+    start.setUTCDate(start.getUTCDate() - (iso - 1));
+    const end = new Date(start.getTime());
+    end.setUTCDate(end.getUTCDate() + 6);
+    return { from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) };
+  }
+  function formatWeek(from, to, which) {
+    const a = parseKey(from), b = parseKey(to);
+    if (!a || !b) return "";
+    const use = which === "es" || which === "en" ? which : lang();
+    const ad = a.getUTCDate(), am = a.getUTCMonth(), ay = a.getUTCFullYear();
+    const bd = b.getUTCDate(), bm = b.getUTCMonth(), by = b.getUTCFullYear();
+    if (use === "es") {
+      if (ay === by && am === bm) return ad + " – " + bd + " de " + ES_MON[am];
+      if (ay === by) return ad + " de " + ES_MON[am] + " – " + bd + " de " + ES_MON[bm];
+      return ad + " de " + ES_MON[am] + " de " + ay + " – " + bd + " de " + ES_MON[bm] + " de " + by;
+    }
+    if (ay !== by) return EN_MON[am] + " " + ad + ", " + ay + " – " + EN_MON[bm] + " " + bd + ", " + by;
+    return EN_MON[am] + " " + ad + " – " + EN_MON[bm] + " " + bd;
+  }
+  function weekLabel(key) {
+    const bounds = weekBounds(key);
+    return bounds ? formatWeek(bounds.from, bounds.to) : "";
+  }
+  function rememberDeviceId() {
+    try {
+      const store = storage();
+      if (!store) return "";
+      const existing = store.getItem(DEVICE);
+      if (typeof existing === "string" && UUID.test(existing)) return existing.toLowerCase();
+      let id = "";
+      try { if (root.crypto && root.crypto.randomUUID) id = root.crypto.randomUUID(); } catch (e) { id = ""; }
+      if (!UUID.test(id)) return "";
+      id = id.toLowerCase();
+      store.setItem(DEVICE, id);
+      return id;
+    } catch (e) { return ""; }
+  }
+  function postBody(session) {
+    if (!session || isTester(session) || shot() || readFlag() !== "yes") return null;
+    const name = readName();
+    const scores = wireScores(session.scores);
+    if (!name || !scores || !filter()) return null;
+    const checked = filter().checkName(name);
+    if (!checked.ok || checked.skip) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(session.key || "")) return null;
+    const body = { day: session.key, name: checked.name, scores: scores, eligible: true };
+    const deviceId = rememberDeviceId();
+    if (deviceId) body.deviceId = deviceId;
+    return body;
   }
 
   function nameInput(scope) {
@@ -299,12 +375,16 @@
 
   function section() {
     if (!root.document) return null;
-    const host = el("section", { class: "day-board", "data-day-board": "1", "aria-label": tr("Daily leaderboard") });
+    const host = el("section", { class: "day-board", "data-day-board": "1", "data-board-view": "day", "aria-label": tr("Daily leaderboard") });
+    const spans = el("div", { class: "board-span", role: "group", "aria-label": tr("Daily leaderboard") });
+    const range = el("p", { class: "board-range", "data-board-range": "1", hidden: "hidden" });
     const tabs = el("div", { class: "board-tabs", role: "tablist", "aria-label": tr("Daily leaderboard") });
     const list = el("ol", { class: "board-rows" });
     const empty = el("p", { class: "board-empty" });
     host.append(
       el("h2", { class: "board-title", text: tr("Daily leaderboard") }),
+      spans,
+      range,
       tabs,
       el("p", { class: "board-note", text: tr("Rankings are for fun, with no prizes.") }),
       list,
@@ -312,6 +392,30 @@
       el("p", { class: "board-report" }, el("a", { href: MAIL, text: tr("Report a name") }))
     );
     let current = "overall";
+    function applySpan(next) {
+      host.setAttribute("data-board-view", next);
+      Array.prototype.forEach.call(spans.querySelectorAll("[data-board-span]"), tab => {
+        const on = tab.getAttribute("data-board-span") === next;
+        tab.classList.toggle("on", on);
+        tab.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      if (next === "week") {
+        range.hidden = false;
+        range.textContent = weekLabel(todayKey());
+      } else {
+        range.hidden = true;
+        range.textContent = "";
+      }
+      load(host, current);
+    }
+    [["day", "Today"], ["week", "This Week"]].forEach(pair => {
+      const id = pair[0];
+      const button = el("button", { type: "button", class: "board-span-btn" + (id === "day" ? " on" : ""), "aria-pressed": id === "day" ? "true" : "false", "data-board-span": id, text: tr(pair[1]) });
+      button.addEventListener("click", () => applySpan(id));
+      spans.append(button);
+    });
+    // Tabs stay on the category slot. "think" is the Brain Teaser slot
+    // (scores[5]), so a week that spans Think Fast and Eagle Eye still sums.
     SECTIONS.forEach(pair => {
       const id = pair[0];
       const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(pair[1]) });
@@ -333,11 +437,17 @@
   function paint(host, model) {
     const list = host.querySelector(".board-rows");
     const empty = host.querySelector(".board-empty");
+    const range = host.querySelector("[data-board-range]");
+    const week = model && model.span === "week";
+    if (range && week && model.from && model.to) {
+      const label = formatWeek(model.from, model.to);
+      if (label) { range.hidden = false; range.textContent = label; }
+    }
     list.textContent = "";
     const rows = model && Array.isArray(model.rows) ? model.rows : [];
     if (!model || model.served === false) {
       empty.hidden = false;
-      empty.textContent = tr("That day's leaderboard is no longer shown.");
+      empty.textContent = week ? tr("This week's leaderboard is no longer shown.") : tr("That day's leaderboard is no longer shown.");
       return;
     }
     if (model.unavailable) {
@@ -347,7 +457,7 @@
     }
     if (!rows.length) {
       empty.hidden = false;
-      empty.textContent = tr("No public names for this day yet.");
+      empty.textContent = week ? tr("No public names for this week yet.") : tr("No public names for this day yet.");
       return;
     }
     empty.hidden = true;
@@ -369,25 +479,37 @@
     return fix[section] || { served: true, rows: [] };
   }
 
+  function viewOf(host) {
+    return host && host.getAttribute("data-board-view") === "week" ? "week" : "day";
+  }
   async function load(host, sectionId) {
+    const span = viewOf(host);
     const canned = fixture(sectionId);
-    if (canned) { paint(host, canned); return; }
-    if (isTester(null)) { paint(host, { served: true, rows: [] }); return; }
-    if (!enabled()) { paint(host, { unavailable: true, rows: [] }); return; }
+    if (canned) {
+      const model = { served: canned.served !== false, rows: Array.isArray(canned.rows) ? canned.rows : [], span: span };
+      if (span === "week") {
+        const bounds = weekBounds(todayKey());
+        if (bounds) { model.from = bounds.from; model.to = bounds.to; }
+      }
+      paint(host, model);
+      return;
+    }
+    if (isTester(null)) { paint(host, { served: true, rows: [], span: span }); return; }
+    if (!enabled()) { paint(host, { unavailable: true, rows: [], span: span }); return; }
     const day = todayKey();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { paint(host, { unavailable: true, rows: [] }); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { paint(host, { unavailable: true, rows: [], span: span }); return; }
     try {
       const c = cfg();
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey };
-      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId), { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId) + "&span=" + encodeURIComponent(span), { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
       clearTimeout(timer);
       const body = await res.json();
-      if (!res.ok || !body || body.ok === false) { paint(host, { unavailable: true, rows: [] }); return; }
-      paint(host, { served: body.served !== false, rows: Array.isArray(body.rows) ? body.rows : [] });
+      if (!res.ok || !body || body.ok === false || (span === "week" && body.span !== "week")) { paint(host, { unavailable: true, rows: [], span: span }); return; }
+      paint(host, { served: body.served !== false, rows: Array.isArray(body.rows) ? body.rows : [], span: span, from: body.from, to: body.to });
     } catch (e) {
-      paint(host, { unavailable: true, rows: [] });
+      paint(host, { unavailable: true, rows: [], span: span });
     }
   }
 
@@ -430,18 +552,14 @@
 
   function noteFinish(session) {
     try {
-      if (!session || isTester(session) || shot() || readFlag() !== "yes") return;
-      const name = readName();
-      const scores = wireScores(session.scores);
-      if (!name || !scores || !filter()) return;
-      const checked = filter().checkName(name);
-      if (!checked.ok || checked.skip) return;
-      send(session.key, checked.name, scores);
+      if (!enabled() || shot()) return;
+      const body = postBody(session);
+      if (!body) return;
+      send(body);
     } catch (e) {}
   }
 
-  function send(day, name, scores) {
-    if (!enabled()) return;
+  function send(body) {
     const c = cfg();
     tokenFor().then(token => {
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -449,7 +567,7 @@
       return root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/post", {
         method: "POST",
         headers: { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" },
-        body: JSON.stringify({ day: day, name: name, scores: scores, eligible: true }),
+        body: JSON.stringify(body),
         signal: ctrl ? ctrl.signal : undefined
       }).then(() => { clearTimeout(timer); }, () => { clearTimeout(timer); });
     }).catch(() => {});
@@ -468,6 +586,10 @@
     writeName: writeName,
     acceptName: acceptName,
     nameKey: NAME,
-    flagKey: FLAG
+    flagKey: FLAG,
+    deviceKey: DEVICE,
+    postBody: postBody,
+    weekBounds: weekBounds,
+    formatWeek: formatWeek
   };
 });

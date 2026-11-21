@@ -30,6 +30,7 @@ function req(pathname, { method = "POST", body, headers = {}, search = "" } = {}
       }
       if (name === "board_post" && String(args[2]).toLowerCase().includes("daily")) return { ok: false, error: "name_rejected", reason: "impersonation" };
       if (name === "board_public") return { ok: true, served: true, rows: [{ rank: 1, name: "Luna", score: 100 }] };
+      if (name === "board_week") return { ok: true, served: true, span: "week", from: "2026-11-16", to: "2026-11-22", section: args[0], rows: [{ rank: 1, name: "Luna", score: 250 }] };
       if (name === "board_rename") return { ok: true, name: args[1] };
       if (name === "board_remove") return { ok: true, removed: true };
       if (name === "board_admin_list") return { ok: true, rows: [{ id, name: "Luna", score: 100, scores: [20, 20, 20, 20, 20] }] };
@@ -57,12 +58,24 @@ function req(pathname, { method = "POST", body, headers = {}, search = "" } = {}
   const checkedBadBody = await checkedBad.json();
   t("check rejects on the server", checkedBad.status === 400 && checkedBadBody.error === "name_rejected" && !JSON.stringify(checkedBadBody).includes("Daily"));
   calls.length = 0;
-  const posted = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Luna", scores: [10, 20, 30, 40, 50], eligible: true } }));
+  const posted = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Luna", scores: [10, 20, 30, 40, 50], eligible: true, deviceId: "CCCCCCCC-CCCC-4CCC-8CCC-CCCCCCCCCCCC" } }));
   const postedBody = await posted.json();
-  t("eligible post reaches sql", posted.status === 200 && postedBody.ok === true && calls.some(c => c.name === "board_post" && c.args[0] === uid && c.args[2] === "Luna"));
+  t("eligible post reaches sql", posted.status === 200 && postedBody.ok === true && calls.some(c => c.name === "board_post" && c.args[0] === uid && c.args[2] === "Luna" && c.args[4] === "cccccccc-cccc-4ccc-8ccc-cccccccccccc"));
+  calls.length = 0;
+  const badDevice = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Luna", scores: [1, 1, 1, 1, 1], eligible: true, deviceId: "not-a-uuid" } }));
+  t("bad device id is rejected", badDevice.status === 400 && calls.length === 0);
+  const ineligibleDevice = await on(req("/leaderboard/post", { body: { day: "2026-11-21", name: "Luna", scores: [1, 1, 1, 1, 1], eligible: false, deviceId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" } }));
+  t("ineligible does not store a device id", ineligibleDevice.status === 400 && calls.length === 0);
   const board = await on(req("/leaderboard/board", { method: "GET", search: "?day=2026-11-21&section=world" }));
   const boardBody = await board.json();
   t("public rows are name and score", board.status === 200 && boardBody.rows[0].name === "Luna" && boardBody.rows[0].score === 100 && !("id" in boardBody.rows[0]) && !JSON.stringify(boardBody).includes(uid));
+  calls.length = 0;
+  const weekRes = await on(req("/leaderboard/board", { method: "GET", search: "?day=2026-11-21&section=think&span=week" }));
+  const weekBody = await weekRes.json();
+  t("week uses the category slot and hides the device id", weekRes.status === 200 && weekBody.span === "week" && weekBody.rows[0].name === "Luna" && weekBody.rows[0].score === 250 && !("id" in weekBody.rows[0]) && !JSON.stringify(weekBody).includes(uid) && calls.some(c => c.name === "board_week" && c.args[0] === "think"));
+  calls.length = 0;
+  const badSpan = await on(req("/leaderboard/board", { method: "GET", search: "?day=2026-11-21&section=overall&span=top10" }));
+  t("a top-10 span is rejected", badSpan.status === 400 && calls.length === 0);
   const noKey = await off(req("/leaderboard/rename", { body: { id, name: "Nico" }, headers: { "x-board-operator": "op-secret" } }));
   t("unset operator key stays closed", noKey.status === 503 && (await noKey.json()).error === "operator_unconfigured");
   const badKey = await on(req("/leaderboard/remove", { body: { id }, headers: { "x-board-operator": "nope" } }));
@@ -73,6 +86,7 @@ function req(pathname, { method = "POST", body, headers = {}, search = "" } = {}
   t("operator remove", removed.status === 200 && (await removed.json()).removed === true);
   const src = require("fs").readFileSync(path.join(__dirname, "../supabase/functions/leaderboard/index.ts"), "utf8");
   t("runtime login is board_runtime", src.includes('role !== "board_runtime"') && !src.includes("set_config('role'") && !src.includes("SERVICE_ROLE"));
+  t("week and device id are wired", src.includes("board_week") && src.includes("${args[4]}::uuid"));
   const wf = require("fs").readFileSync(path.join(__dirname, "../.github/workflows/retain-board-names.yml"), "utf8");
   t("retention workflow is disabled", /if:\s*\$\{\{\s*false\s*\}\}/.test(wf) && !/^on:\s*\n\s*schedule:/m.test(wf) && wf.includes("select private.retain_board_names();"));
   console.log(bad ? bad + " failures" : "leaderboard-http.test.js: all pass");

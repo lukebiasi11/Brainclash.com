@@ -116,7 +116,7 @@ const yearFn = lb.slice(lb.indexOf("function yearCard"), lb.indexOf("function na
 t("year gate is a div", yearFn.includes('el("div"') && !/el\("form"/.test(yearFn));
 t("year field is cleared before it is judged", /input\.value = "";\s*const result = lockYear\(raw, todayKey\(\)\);\s*raw = "";/.test(yearFn));
 t("year field is numeric and not autofilled", yearFn.includes('autocomplete: "off"') && yearFn.includes('inputmode: "numeric"') && yearFn.includes('type: "text"'));
-t("posted body has eligible and no year", /JSON\.stringify\(\{ day: day, name: name, scores: scores, eligible: true \}\)/.test(lb) && !/birthYear|birth_year/.test(lb));
+t("posted body has eligible and no year", /eligible: true/.test(lb) && /deviceId/.test(lb) && !/birthYear|birth_year/.test(lb));
 t("only yes or no is written", /setItem\(FLAG, eligible \? "yes" : "no"\)/.test(lb));
 t("the saved name is one key", lb.includes('const NAME = "bc-board-name"') && /writeName\(server\.name\)/.test(lb) && !/setItem\("bc-board-pending"|setItem\("bc-board-nick"/.test(lb));
 const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");

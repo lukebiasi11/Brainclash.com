@@ -16,7 +16,7 @@ const sql = postgres(Deno.env.get("BOARD_DB_URL") ?? "", { max: 1, prepare: fals
 
 type SqlArg = string | number | number[] | null;
 
-const NAMES = new Set(["board_consume_rate", "board_post", "board_public", "board_admin_list", "board_rename", "board_remove", "board_check_name"]);
+const NAMES = new Set(["board_consume_rate", "board_post", "board_public", "board_week", "board_admin_list", "board_rename", "board_remove", "board_check_name"]);
 
 async function call(name: string, args: SqlArg[]) {
   if (!NAMES.has(name)) return { ok: false, error: "db_unavailable" };
@@ -34,8 +34,9 @@ async function call(name: string, args: SqlArg[]) {
       }
       stage = name;
       if (name === "board_consume_rate") return await tx`select private.board_consume_rate(${args[0]}::uuid) as result`;
-      if (name === "board_post") return await tx`select private.board_post(${args[0]}::uuid, ${args[1]}::date, ${args[2]}::text, ${args[3]}::int[]) as result`;
+      if (name === "board_post") return await tx`select private.board_post(${args[0]}::uuid, ${args[1]}::date, ${args[2]}::text, ${args[3]}::int[], ${args[4]}::uuid) as result`;
       if (name === "board_public") return await tx`select private.board_public(${args[0]}::date, ${args[1]}::text) as result`;
+      if (name === "board_week") return await tx`select private.board_week(${args[0]}::text) as result`;
       if (name === "board_admin_list") return await tx`select private.board_admin_list(${args[0]}::date) as result`;
       if (name === "board_rename") return await tx`select private.board_rename(${args[0]}::uuid, ${args[1]}::text) as result`;
       if (name === "board_check_name") return await tx`select private.board_check_name(${args[0]}::text) as result`;
