@@ -62,7 +62,7 @@
     "Today's Competition": "La competencia de hoy", "Total Score": "Puntaje total", "By Category": "Por categoría",
     "Player average": "Promedio de los jugadores", "Percentile": "Percentil", "Top {0}%": "Top {0}%",
     "Your score range": "Tu rango de puntaje", "Other completed games": "Otros juegos terminados",
-    "No other results yet": "Todavía no hay otros resultados", "vs average": "vs el promedio",
+    "No other results yet": "Aún no hay otros resultados", "Loading…": "Cargando…", "More players": "Más jugadores", "vs average": "vs el promedio",
     "↑ Number of completed games": "↑ Número de juegos terminados",
     "Blue bars are other completed games. The orange bar includes your game.": "Las barras azules son otros juegos terminados. La barra naranja incluye tu juego.",
     "You": "Tú", "Everyone else": "Los demás", "You and everyone else": "Tú y los demás",

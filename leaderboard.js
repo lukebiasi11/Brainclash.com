@@ -566,6 +566,9 @@
       list.append(rowEl(row, !!(place.highlight && row.token === place.highlight)));
     });
     if (place.below) {
+      const gap = el("li", { class: "board-more", role: "separator", "aria-label": tr("More players") });
+      gap.append(el("span", { "aria-hidden": "true", text: "⋯" }));
+      list.append(gap);
       const item = rowEl(place.below, true);
       item.setAttribute("data-own-below", "1");
       list.append(item);

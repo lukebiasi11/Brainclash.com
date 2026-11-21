@@ -248,7 +248,7 @@ const YOU = [700, 680, 660, 640, 680];
     {
       const cdp = await armed("es");
       const info = await show(cdp, "below", YOU, false);
-      if (info.state !== "quiet" || info.svg !== 0 || info.text.indexOf("Todavía no hay otros resultados") < 0) fail("es fallback", info.text); else pass("es fallback copy");
+      if (info.state !== "quiet" || info.svg !== 0 || info.text.indexOf("Aún no hay otros resultados") < 0) fail("es fallback", info.text); else pass("es fallback copy");
       if (cdp.errors.length || cdp.logs.length) fail("es fallback console", cdp.errors.concat(cdp.logs)); else pass("es fallback no console errors");
       await closePage(cdp);
     }

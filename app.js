@@ -2225,7 +2225,7 @@ function g1OnSection() {
     status.textContent = "";
     note.textContent = "";
     if (!ready) {
-      if (!skipped && snap) status.textContent = tr("No other results yet");
+      if (!skipped) status.textContent = snap ? tr("No other results yet") : (window.FieldCompare && session ? tr("Loading…") : tr("No other results yet"));
       return;
     }
     const total = youScores.reduce((a, b) => a + b, 0);
@@ -2284,7 +2284,7 @@ function g1OnSection() {
     const load = fromWatch => {
       if (fromWatch && !section.isConnected) { if (stop) stop(); return; }
       const job = window.FieldCompare.backfillToday ? window.FieldCompare.backfillToday(session, clock) : Promise.resolve();
-      Promise.resolve(job).then(() => { if (!section.isConnected) { if (stop) stop(); return null; } return window.FieldCompare.dayFor(session); }).then(result => { if (result) apply(result); }).catch(() => apply(null));
+      Promise.resolve(job).then(() => { if (!section.isConnected) { if (stop) stop(); return null; } return window.FieldCompare.dayFor(session); }).then(result => apply(result)).catch(() => apply(null));
     };
     if (window.FieldCompare.watch) stop = window.FieldCompare.watch(() => load(true));
     load(false);
@@ -2302,6 +2302,7 @@ function g1OffSection() {
   const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total score"));
   const catBtn = h("button", { type: "button", "data-g1-view": "category", "aria-pressed": "false" }, tr("By category"));
   const plot = h("div", { class: "g1-plot" });
+  const status = h("p", { class: "g1-quiet" }, tr("No other results yet"));
   const paint = () => {
     totalBtn.setAttribute("aria-pressed", mode === "total" ? "true" : "false");
     catBtn.setAttribute("aria-pressed", mode === "category" ? "true" : "false");
@@ -2319,6 +2320,7 @@ function g1OffSection() {
   section.append(
     h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), h("p", { class: "g-sub" }, dateLine)), h("span", { class: "g1-badge" }, tr("Not live"))),
     h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
+    status,
     h("h3", {}, tr("Comparison unavailable")),
     h("p", { class: "g1-unavail" }, tr("Daily field collection is off. Daily Dose is not gathering other completed games, so there is no average, distribution, or percentile.")),
     plot, yours,

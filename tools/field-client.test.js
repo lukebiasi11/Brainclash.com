@@ -232,7 +232,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("docs header stays a lawyer draft", notice.startsWith("# Daily Dose daily comparison — privacy notice (draft)") && notice.includes("Draft pending the lawyer's review."));
   ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
   ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
-  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Todavía no hay otros resultados"));
+  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Aún no hay otros resultados") && i18n.includes('"Loading…": "Cargando…"'));
   ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "Blue bars are other completed games. The orange bar includes your game."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
@@ -243,6 +243,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
   ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb4"'));
+  ok("empty snapshot names the status", app.includes('tr("Loading…")') && app.includes('tr("No other results yet")'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);
