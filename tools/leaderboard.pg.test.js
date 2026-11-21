@@ -151,7 +151,7 @@ const crowd = board(crowdDay, "overall");
 const lowId = q(`select id::text from private.board_post where day_key = '${crowdDay}' and total = 1`);
 const low = JSON.parse(q(`select private.board_me('${crowdDay}'::date, 'overall', '${lowId}'::uuid)::text`));
 t("board serves 100 of the true total", crowd.served === true && crowd.rows.length === 100 && crowd.total === 105);
-t("a player below 100 still has a rank", low.found === true && low.rank === 105 && low.total === 105);
+t("a player below 100 still has a rank", low.found === true && low.rank === 105 && low.total === 105 && low.name === "Row1" && low.score === 1 && low.token === lowId);
 psqlDb("postgres", ["-c", `drop database if exists ${db}`]);
 console.log(bad ? bad + " failures" : "leaderboard.pg.test.js: all pass");
 process.exit(bad ? 1 : 0);

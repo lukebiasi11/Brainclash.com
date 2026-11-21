@@ -225,6 +225,15 @@ const dup = [{ token: "other", name: "Luna", score: 100 }, { token: "own", name:
 t("a duplicate name highlights only the saved entry", Board.isOwnRow(dup[0], entry, "Luna", day) === false && Board.isOwnRow(dup[1], entry, "Luna", day) === true);
 t("anonymous own row is only its token", Board.isOwnRow(tie[0], entry, "", day) === true && Board.isOwnRow(tie[1], entry, "", day) === false && Board.isOwnRow(tie[0], null, "", day) === false);
 t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico", score: 1 }, entry, "Luna", day) === true && Board.isOwnRow({ token: "nope", name: "Luna", score: 100 }, entry, "Luna", day) === false);
+const dupRows = [
+  { rank: 1, name: "Luna", score: 3700, token: "aaa" },
+  { rank: 2, name: "Luna", score: 3700, token: "bbb" },
+  { rank: 3, name: "Nico", score: 3700, token: "ccc" }
+];
+const inTop = Board.ownPlacement({ rows: dupRows, me: { found: true, rank: 2, total: 40, token: "bbb", name: "Luna", score: 3700 } }, { day: day, token: "aaa" }, day);
+t("duplicate names or scores highlight only the server row", inTop.highlight === "bbb" && inTop.below == null && dupRows.filter(row => row.token === inTop.highlight).length === 1 && dupRows.filter(row => row.name === "Luna" && row.score === 3700).length === 2);
+const outside = Board.ownPlacement({ rows: dupRows, me: { found: true, rank: 140, total: 180, token: "aaa", name: "Luna", score: 1339 } }, { day: day, token: "aaa" }, day);
+t("a rank outside the top 100 highlights nothing", outside.highlight === "" && outside.below && outside.below.rank === 140 && outside.below.name === "Luna" && outside.below.score === 1339);
 const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
 t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
 t("rank below 100 uses the server total", JSON.stringify(Board.rankFromRows([{ token: "z", rank: 140 }], "z", 180)) === JSON.stringify({ rank: 140, total: 180 }));

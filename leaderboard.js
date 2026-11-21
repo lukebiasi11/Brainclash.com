@@ -104,6 +104,19 @@
     if (entry.day !== day || typeof entry.token !== "string" || !entry.token) return false;
     return typeof row.token === "string" && row.token === entry.token;
   }
+  // Highlight only the post id the server named. me.rank above 100 is not in the
+  // returned list, so nothing in that list is highlighted. Name, tag, and score
+  // are never compared. The name argument on isOwnRow is ignored for that reason.
+  function ownPlacement(model, entry, day) {
+    const me = model && model.me && typeof model.me === "object" ? model.me : null;
+    const rank = me && Number.isFinite(Number(me.rank)) ? Number(me.rank) : null;
+    const serverToken = me && typeof me.token === "string" ? me.token : "";
+    const entryToken = entry && entry.day === day && typeof entry.token === "string" ? entry.token : "";
+    if (rank != null && rank > 100) {
+      return { highlight: "", below: { rank: rank, name: me.name, tag: me.tag, score: me.score, token: serverToken } };
+    }
+    return { highlight: serverToken || entryToken, below: null };
+  }
   function readSkip() {
     try { return !!(storage() && storage().getItem(SKIP) === "1"); } catch (e) { return false; }
   }
@@ -539,19 +552,24 @@
     }
     empty.hidden = true;
     empty.textContent = "";
-    const mineName = readName();
-    const mineEntry = readEntry();
-    const day = todayKey();
-    rows.forEach(row => {
+    const place = ownPlacement(model, readEntry(), todayKey());
+    const rowEl = (row, mine) => {
       const score = Number(row.score);
-      const mine = isOwnRow(row, mineEntry, mineName, day);
       const item = el("li", { class: "board-row" + (mine ? " you" : ""), "aria-current": mine ? "true" : false },
         el("span", { class: "board-rank", text: String(row.rank || "") }),
         el("span", { class: "board-name", text: publicName(row) }),
         el("span", { class: "board-score", text: Number.isFinite(score) ? score.toLocaleString() : "" }));
       if (mine) item.append(el("span", { class: "sr-only", text: tr("(you)") }));
-      list.append(item);
+      return item;
+    };
+    rows.forEach(row => {
+      list.append(rowEl(row, !!(place.highlight && row.token === place.highlight)));
     });
+    if (place.below) {
+      const item = rowEl(place.below, true);
+      item.setAttribute("data-own-below", "1");
+      list.append(item);
+    }
   }
 
   function fixture(section) {
@@ -578,14 +596,16 @@
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey };
-      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId), { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
+      const entry = readEntry();
+      const tokenQ = entry && entry.day === day && entry.token ? "&token=" + encodeURIComponent(entry.token) : "";
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId) + tokenQ, { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
       clearTimeout(timer);
       const body = await res.json();
       if (body && body.error === "board_off") { hideBoard(host); return; }
       if (!res.ok || !body || body.ok === false) { host.hidden = false; paint(host, { unavailable: true, rows: [] }); return; }
       host.hidden = false;
       host.removeAttribute("data-board-off");
-      paint(host, { served: body.served !== false, rows: Array.isArray(body.rows) ? body.rows : [] });
+      paint(host, { served: body.served !== false, rows: Array.isArray(body.rows) ? body.rows : [], total: body.total, me: body.me || null });
     } catch (e) {
       host.hidden = false;
       paint(host, { unavailable: true, rows: [] });
@@ -754,6 +774,7 @@
     forgetIds: forgetIds,
     readSkip: readSkip,
     isOwnRow: isOwnRow,
+    ownPlacement: ownPlacement,
     rankFromRows: rankFromRows,
     rankPhrase: rankPhrase,
     rankLine: rankLine,

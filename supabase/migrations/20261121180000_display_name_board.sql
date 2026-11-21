@@ -781,8 +781,7 @@ as $$
 declare
   v_today date := (timezone('America/New_York', now()))::date;
   v_section text := coalesce(p_section, '');
-  v_rank int;
-  v_total int;
+  v_row record;
 begin
   if v_section not in ('overall', 'world', 'history', 'sports', 'word', 'think') or p_token is null then
     return jsonb_build_object('ok', false, 'found', false);
@@ -791,7 +790,15 @@ begin
     return jsonb_build_object('ok', true, 'found', false, 'total', 0);
   end if;
   with ranked as (
-    select id,
+    select id, display_name, player_tag,
+      case v_section
+        when 'world' then scores[1]
+        when 'history' then scores[2]
+        when 'sports' then scores[3]
+        when 'word' then scores[4]
+        when 'think' then scores[5]
+        else total
+      end as score,
       rank() over (
         order by
           case v_section
@@ -810,14 +817,14 @@ begin
       and removed_at is null
       and name_hidden_at is null
   )
-  select place, (select count(*)::int from ranked)
-    into v_rank, v_total
+  select place, display_name, player_tag, score, id, (select count(*)::int from ranked) as total
+    into v_row
   from ranked
   where id = p_token;
-  if v_rank is null then
-    return jsonb_build_object('ok', true, 'found', false, 'total', coalesce(v_total, 0));
+  if v_row.place is null then
+    return jsonb_build_object('ok', true, 'found', false, 'total', coalesce(v_row.total, 0));
   end if;
-  return jsonb_build_object('ok', true, 'found', true, 'rank', v_rank, 'total', v_total);
+  return jsonb_build_object('ok', true, 'found', true, 'rank', v_row.place, 'total', v_row.total, 'name', v_row.display_name, 'tag', v_row.player_tag, 'score', v_row.score, 'token', v_row.id);
 end;
 $$;
 
