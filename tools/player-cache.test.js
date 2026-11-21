@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov18g, i18n at v=nov18b, style.css at v=nov18b, and English and Spanish content at v=nov18g.
-// nov18g is the Nov 22-24 content cache key, and the Think Fast photo renderer. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
+// New HTML must request answers at v=nov17a, app.js at v=nov18g, i18n at v=nov18b, style.css at v=nov18b, English and Spanish content at v=nov22w, and icons at v=nov22w.
+// nov22w is the Nov 22 World flag content cache key (content.js, content.es.js, and icons.js). nov18g stays on app.js: it was the Nov 22-24 content cache key and the Think Fast photo renderer. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -9,7 +9,7 @@ const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const APP_V = "nov18g";
-const CONTENT_V = "nov18g";
+const CONTENT_V = "nov22w";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
@@ -36,6 +36,9 @@ if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish c
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
 [["style", "style.css?v=nov18b"], ["i18n", "i18n.js?v=nov18b"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1hist1"], ["field-config", "field-config.js?v=g1live1"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
+});
+[["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {
+  if (!has(list, s) || has(list, "assets/icons.js?v=nov3k")) fail(n, s); else pass(n);
 });
 // feedback.js bumped to nov18e with the custom-domain preview URL. map.js stays on nov3k.
 if (!has(adminSrc, "feedback.js?v=nov18e") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18d")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
