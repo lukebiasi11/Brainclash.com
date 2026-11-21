@@ -14,8 +14,7 @@ function verdict(name) {
 }
 const acceptAnyway = { Dykes: 1, Nazir: 1, Nazia: 1, Ashkenazi: 1, Semenov: 1, Therapist: 1, Penistone: 1 };
 const rejectAnyway = { xcoonx: 0, Fucking: 0, Dildo: 0, Bitche: 0, Twatt: 0 };
-// Rule 1 no longer joins a 3+ character word to its neighbor.
-const rule1Flip = { "fuc k": 1, "f uck": 1, "ch ink": 1, "hit ler": 1 };
+const rule1Flip = {};
 
 function report(label, decide) {
   const summary = {};
@@ -52,7 +51,6 @@ function report(label, decide) {
   return summary;
 }
 
-console.log("rule 1 flips (no longer joined):", Object.keys(rule1Flip).join(", "));
 report("client", verdict);
 const total = Object.values(corpus).reduce((n, rows) => n + rows.length, 0);
 console.log("corpus cases", total);

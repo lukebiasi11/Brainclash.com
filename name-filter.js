@@ -13,11 +13,11 @@
     imp: ["admin", "brainclash", "dailydose", "moderator", "oficial", "official", "soporte", "staff", "support"],
     impWord: ["mod", "mods"],
     compound: ["cooladmin", "modsquad", "modteam", "staffer"],
-    sub: ["1488", "asshat", "asshole", "asswipe", "badass", "bastard", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumshot", "cunt", "dickface", "dickhead", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
-    word: ["anal", "ass", "beaner", "chink", "cock", "cono", "coon", "culo", "cum", "dick", "dyke", "fag", "gook", "kike", "mamon", "mamona", "marica", "nig", "paki", "perra", "pito", "porn", "pron", "puta", "puto", "raghead", "rape", "sex", "sexo", "shit", "spic", "tit", "verga", "wank", "wetback", "zorra"]
+    sub: ["1488", "assclown", "asshat", "asshole", "asslicker", "asswipe", "badass", "bastard", "bigcock", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumdump", "cumshot", "cunt", "dickbutt", "dickface", "dickhead", "dickweed", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shit", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
+    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chink", "cock", "cono", "coon", "culo", "cum", "dick", "dyke", "fag", "fck", "fuk", "fukk", "gook", "kike", "mamon", "mamona", "marica", "nibba", "nig", "niga", "nikka", "paki", "perra", "phag", "pito", "porn", "pron", "puta", "puto", "raghead", "rape", "sex", "sexo", "sht", "spic", "tit", "verga", "wank", "wetback", "zorra"]
   };
 
-  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "attitude", "badminton", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "commodore", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "night", "nightingale", "nigel", "nigeria", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "scunthorpe", "semenov", "semenya", "sexton", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock"];
+  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "attitude", "badminton", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "commodore", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "dikshit", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "hoshitani", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "night", "nightingale", "nigel", "nigeria", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "scunthorpe", "semenov", "semenya", "sexton", "shiteh", "shitake", "shitterton", "shittu", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock", "yoshito"];
   const ALLOW_SET = new Set(ALLOW);
   const PHRASE_ALLOW = new Set(["dick van dyke"]);
 
@@ -173,7 +173,7 @@
   }
 
   const TAILS = ["boys", "boy", "lord", "eyes", "eye", "face", "man", "ies", "es", "s"];
-  const PHRASE_BLOCK = ["daily dose"];
+  const PHRASE_BLOCK = ["brain clash", "daily dose"];
 
   function reasonFor(term) {
     if (TERMS.imp.indexOf(term) >= 0 || TERMS.compound.indexOf(term) >= 0 || TERMS.impWord.indexOf(term) >= 0) return "impersonation";
@@ -195,15 +195,53 @@
     return false;
   }
 
-  function longTerm(text) {
+  function covered(ranges, start, len) {
+    if (!ranges) return false;
+    return ranges.some(range => range.allow && start >= range.start && start + len <= range.end);
+  }
+
+  function exposed(text, term, ranges) {
+    let from = 0;
+    while (from <= text.length - term.length) {
+      const at = text.indexOf(term, from);
+      if (at < 0) return false;
+      if (!covered(ranges, at, term.length)) return true;
+      from = at + 1;
+    }
+    return false;
+  }
+
+  function squeezeMap(text) {
+    let sq = "";
+    const map = [];
+    for (let i = 0; i < text.length; i++) {
+      const ch = text.charAt(i);
+      if (sq.length && ch === sq.charAt(sq.length - 1) && ch >= "a" && ch <= "z") continue;
+      map.push(i);
+      sq += ch;
+    }
+    return { sq: sq, map: map };
+  }
+
+  function longTerm(text, ranges) {
     const subs = TERMS.sub.concat(TERMS.compound, TERMS.imp);
-    const sq = squeezeLetters(text);
-    const collapsed = sq !== text;
+    const mapped = squeezeMap(text);
+    const collapsed = mapped.sq !== text;
     for (let i = 0; i < subs.length; i++) {
       const term = subs[i];
-      if (text.indexOf(term) >= 0 || attached(text, term)) return term;
+      if (exposed(text, term, ranges) || (attached(text, term) && !covered(ranges, 0, text.length))) return term;
       const tsq = squeezeLetters(term);
-      if (collapsed && (sq === tsq || (tsq.length >= 4 && sq.indexOf(tsq) >= 0))) return term;
+      if (!collapsed) continue;
+      if (mapped.sq === tsq && !covered(ranges, 0, text.length)) return term;
+      let from = 0;
+      while (tsq.length >= 4 && from <= mapped.sq.length - tsq.length) {
+        const at = mapped.sq.indexOf(tsq, from);
+        if (at < 0) break;
+        const start = mapped.map[at];
+        const end = mapped.map[at + tsq.length - 1] + 1;
+        if (!covered(ranges, start, end - start)) return term;
+        from = at + 1;
+      }
     }
     return "";
   }
@@ -213,27 +251,41 @@
     return new RegExp("^x+" + term + "x+$").test(text);
   }
 
-  function shortTerm(text, loose) {
+  function shortTerm(text, loose, ranges) {
     const shorts = TERMS.word.concat(TERMS.impWord);
-    const sq = squeezeLetters(text);
-    const collapsed = sq !== text;
+    const mapped = squeezeMap(text);
+    const collapsed = mapped.sq !== text;
     for (let i = 0; i < shorts.length; i++) {
       const term = shorts[i];
       const tsq = squeezeLetters(term);
-      if (text === term || attached(text, term) || padded(text, term) || (loose && text.indexOf(term) >= 0)) return term;
-      if (collapsed && (sq === tsq || attached(sq, tsq) || padded(sq, tsq) || (loose && sq.indexOf(tsq) >= 0))) return term;
+      if ((text === term || attached(text, term) || padded(text, term)) && !covered(ranges, 0, text.length)) return term;
+      if (loose && exposed(text, term, ranges)) return term;
+      if (!collapsed) continue;
+      if ((mapped.sq === tsq || attached(mapped.sq, tsq) || padded(mapped.sq, tsq)) && !covered(ranges, 0, text.length)) return term;
+      if (loose && exposed(mapped.sq, tsq, null)) return term;
     }
     return "";
   }
 
-  function judge(text, loose) {
+  function judge(text, loose, ranges) {
     if (!text) return "";
-    if (/^x{3,}$/.test(text) || /^x{3,}$/.test(squeezeLetters(text))) return "profanity";
-    const longHit = longTerm(text);
+    if ((/^x{3,}$/.test(text) || /^x{3,}$/.test(squeezeLetters(text))) && !covered(ranges, 0, text.length)) return "profanity";
+    const longHit = longTerm(text, ranges);
     if (longHit) return reasonFor(longHit);
-    const shortHit = shortTerm(text, loose);
+    const shortHit = shortTerm(text, loose, ranges);
     if (shortHit) return reasonFor(shortHit);
     return "";
+  }
+
+  function rangesFor(run) {
+    const ranges = [];
+    let at = 0;
+    run.forEach(part => {
+      const len = part.stem.length;
+      ranges.push({ start: at, end: at + len, allow: ALLOW_SET.has(part.full) });
+      at += len;
+    });
+    return ranges;
   }
 
   function glueJudge(text) {
@@ -303,15 +355,18 @@
       if (run.length < 2) { run = []; return ""; }
       const joined = run.map(part => part.stem).join("");
       const loose = run.every(part => part.raw.length === 1);
-      const why = judge(joined, loose) || judge(leetAll(joined), loose);
+      const ranges = rangesFor(run);
+      const why = judge(joined, loose, ranges) || judge(leetAll(joined), loose, ranges);
       run = [];
       return why;
     }
     for (let i = 0; i < parts.length; i++) {
-      if (parts[i].raw.length <= 2) run.push(parts[i]);
+      const prev = run[run.length - 1];
+      if (!prev || prev.raw.length <= 3 || parts[i].raw.length <= 3) run.push(parts[i]);
       else {
         const why = flushRun();
         if (why) return { ok: false, reason: why, name: "" };
+        run = [parts[i]];
       }
     }
     const tail = flushRun();
