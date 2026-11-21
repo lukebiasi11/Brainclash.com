@@ -26,7 +26,7 @@
     "Finish a category to unlock the next. No skipping or replays.": "Termina una categoría para desbloquear la siguiente. No se puede saltar ni repetir.",
     "Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.": "Palabrólogo rota cada día entre Descifra, Puente de Palabras, Grupos, Impostor y Anagramas Exprés.",
     "Played": "Jugadas", "Best": "Mejor", "Streak": "Racha",
-    "Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. Friends and prize pools come later. ": "Prototipo beta · los puntajes se guardan solo en este dispositivo. Un apodo opcional puede aparecer en la clasificación de hoy. Amigos y premios llegan después. ",
+    "Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. ": "Prototipo beta · los puntajes se guardan solo en este dispositivo. Un apodo opcional puede aparecer en la clasificación de hoy. ",
     "Credits & licenses": "Créditos y licencias", "Next Clash in ": "Próximo Clash en ", "Resets in ": "Se reinicia en ", " · Clash #": " · Clash #",
     "Practice mode (doesn't count)": "Modo práctica (no cuenta)", "Language": "Idioma",
     // results graph
@@ -92,6 +92,7 @@
     "Public daily leaderboards are shown for 30 days. After 90 days, Daily Dose deletes the link between a nickname and a score and keeps only combined totals with no nickname attached.": "Las clasificaciones públicas del día se muestran durante 30 días. A los 90 días, Daily Dose borra el vínculo entre un apodo y un puntaje y conserva solo totales combinados, sin apodo.",
     "To ask us to remove a nickname sooner, email {0}.": "Para pedir que quitemos un apodo antes, escribe a {0}.",
     "We may remove or change nicknames that are offensive, impersonate someone, or include contact details.": "Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto.",
+    "Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both.": "Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos.",
     "Players under 13 can't post a nickname or appear on a leaderboard.": "Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.",
     "We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.": "Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.",
     "What year were you born?": "¿En qué año naciste?",
@@ -194,7 +195,10 @@
     // results
     "Clash complete": "Clash terminado", "Practice complete": "Práctica terminada", "Clash complete!": "¡Clash terminado!", "See full results": "Ver resultados completos",
     "Practice run complete": "Práctica terminada", "Today's Clash complete": "Clash de hoy terminado", "Final score": "Puntaje final", "Share result": "Compartir resultado", "Home": "Inicio", "Copied!": "¡Copiado!",
-    "Global & friends leaderboards arrive with accounts in a future version.": "Las clasificaciones globales y con amigos llegarán con las cuentas en una versión futura.",
+    "Add a nickname to appear on today's leaderboard.": "Agrega un apodo para aparecer en la clasificación de hoy.",
+    "Rank #{0} of {1} today": "Puesto #{0} de {1} hoy",
+    "See leaderboard": "Ver clasificación",
+    "That name isn't allowed. Choose another.": "Ese nombre no está permitido. Elige otro.",
     // quips
     "Flawless. Are you cheating, or just insufferable?": "Impecable. ¿Haces trampa o nada más eres insoportable?", "5,000. Go outside, you've earned it.": "5,000. Sal a tomar aire, te lo ganaste.", "Perfect score. We're calling your mom to brag.": "Puntaje perfecto. Le vamos a llamar a tu mamá para presumir.",
     "Big brain energy. Mildly annoying, honestly.": "Energía de cerebrito. Medio molesto, la verdad.", "Strong showing. Don't let it go to your head.": "Buen papel. Que no se te suba.", "Impressive. The other brains are taking notes.": "Impresionante. Los otros cerebros están tomando notas.",

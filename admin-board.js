@@ -51,10 +51,10 @@
     line.append(rename, remove);
     rename.addEventListener("click", async () => {
       const checked = window.NameFilter.checkName(input.value);
-      if (!checked.ok || checked.skip) { msg(tr("That name can't be used. Try a different nickname, or play without a name.")); return; }
+      if (!checked.ok || checked.skip) { msg(tr("That name isn't allowed. Choose another.")); return; }
       if (shot && window.BOARD_ADMIN_FIXTURE) { title.textContent = checked.name + " · " + Number(row.score || 0).toLocaleString(); msg(tr("Saved.")); return; }
       const got = await call("rename", { id: row.id, name: checked.name }).catch(() => null);
-      if (!got || got.body.ok !== true) { msg(tr("That name can't be used. Try a different nickname, or play without a name.")); return; }
+      if (!got || got.body.ok !== true) { msg(tr("That name isn't allowed. Choose another.")); return; }
       title.textContent = checked.name + " · " + Number(row.score || 0).toLocaleString();
       msg(tr("Saved."));
     });

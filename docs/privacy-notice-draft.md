@@ -36,6 +36,8 @@ To ask us to remove a nickname sooner, email [thedailydosetrivia@gmail.com](mail
 
 We may remove or change nicknames that are offensive, impersonate someone, or include contact details.
 
+Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both.
+
 Rate-limit records and request metadata are deleted after 7 days.
 
 To delete your scores, email [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
@@ -83,6 +85,8 @@ Las clasificaciones públicas del día se muestran durante 30 días. A los 90 d�
 Para pedir que quitemos un apodo antes, escribe a [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto.
+
+Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos.
 
 Los registros de límite de solicitudes y los datos técnicos de la solicitud se borran a los 7 días.
 

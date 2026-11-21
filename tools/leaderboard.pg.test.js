@@ -95,6 +95,18 @@ t("anon cannot check a name", attempt("anon", "select private.board_check_name('
 t("no cron and no field rows touched", q("select count(*) from pg_extension where extname = 'pg_cron'") === "0" && q("select (select count(*) from private.attempts)::text || ',' || (select count(*) from private.runs) || ',' || (select count(*) from private.dedup) || ',' || (select count(*) from private.day_agg)") === before);
 const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("migrations do not schedule cron", !/cron\.schedule/.test(sql));
+const Filter = require(path.join(root, "name-filter.js"));
+const quote = s => "'" + String(s).replace(/'/g, "''") + "'";
+const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel"];
+let parityBad = 0;
+parity.forEach(name => {
+  const js = Filter.checkName(name);
+  const sql = JSON.parse(q("select private.board_name_status(" + quote(name) + ")::text"));
+  const jsReason = js.skip ? "skip" : js.ok ? "ok" : js.reason;
+  const sqlReason = sql.skip ? "skip" : sql.ok ? "ok" : sql.reason;
+  if (jsReason !== sqlReason) { parityBad++; console.log("FAIL parity", name, jsReason, sqlReason); }
+});
+t("client and sql verdicts match", parityBad === 0, String(parityBad));
 psqlDb("postgres", ["-c", `drop database if exists ${db}`]);
 console.log(bad ? bad + " failures" : "leaderboard.pg.test.js: all pass");
 process.exit(bad ? 1 : 0);

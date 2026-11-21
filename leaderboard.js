@@ -143,6 +143,18 @@
     if (!p) return;
     p.hidden = false;
     p.textContent = tr("That name can't be used. Try a different nickname, or play without a name.");
+    try { p.scrollIntoView({ block: "nearest" }); } catch (e) {}
+  }
+  function noteBlocked() {
+    try { if (root.sessionStorage) root.sessionStorage.setItem("bc-board-name-note", "1"); } catch (e) {}
+  }
+  function takeNote() {
+    try {
+      const store = root.sessionStorage;
+      if (!store || store.getItem("bc-board-name-note") !== "1") return false;
+      store.removeItem("bc-board-name-note");
+      return true;
+    } catch (e) { return false; }
   }
 
   async function serverCheck(name) {
@@ -171,13 +183,15 @@
     const checked = filter() ? filter().checkName(raw) : { ok: false, reason: "chars" };
     if (checked.skip) return { ok: true, skip: true };
     if (!checked.ok) return { ok: false, reason: checked.reason || "chars" };
+    const previous = readName();
     const server = await serverCheck(checked.name);
-    if (!server.ok) {
-      if (server.reason === "name_rejected") return { ok: false, reason: "name_rejected" };
-      return { ok: true };
+    if (server.reason === "name_rejected") {
+      if (previous === checked.name) writeName("");
+      noteBlocked();
+      return { ok: false, reason: "name_rejected" };
     }
-    writeName(server.name);
-    return { ok: true, name: server.name };
+    writeName(server.ok && server.name ? server.name : checked.name);
+    return { ok: true, name: readName() };
   }
 
   async function beforeStart(opts) {
@@ -211,7 +225,11 @@
     }
     if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh), cta.firstChild); return; }
     if (readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
-    else cta.insertBefore(nameCard(), cta.firstChild);
+    else {
+      const card = nameCard();
+      cta.insertBefore(card, cta.firstChild);
+      if (takeNote()) showNameError(card);
+    }
   }
 
   function yearCard(refresh) {
@@ -270,8 +288,8 @@
     if (prefill) input.value = prefill;
     return {
       input: input,
-      help: el("p", { class: "board-help", id: "board-name-help", text: tr("This name is shown publicly. Use a nickname, not your full name.") }),
-      err: el("p", { class: "board-error", "data-board-error": "1", hidden: "hidden" })
+      err: el("p", { class: "board-error", "data-board-error": "1", hidden: "hidden" }),
+      help: el("p", { class: "board-help", id: "board-name-help", text: tr("This name is shown publicly. Use a nickname, not your full name.") })
     };
   }
 
@@ -279,7 +297,7 @@
     const fields = nameFields("");
     return el("div", { class: "board-ask", "data-board-name": "1" },
       el("label", { class: "board-label", text: tr("Display name (optional)") }),
-      fields.input, fields.help, fields.err);
+      fields.input, fields.err, fields.help);
   }
 
   function savedCard(refresh) {
@@ -289,7 +307,7 @@
     const line = el("p", { class: "board-saved-line" }, shown, change);
     const fields = nameFields(current);
     const save = el("button", { type: "button", class: "btn board-save-change", "data-board-save": "1" }, tr("Save name"));
-    const editor = el("div", { "data-board-editor": "1", hidden: "hidden" }, fields.input, save, fields.help, fields.err);
+    const editor = el("div", { "data-board-editor": "1", hidden: "hidden" }, fields.input, fields.err, save, fields.help);
     change.addEventListener("click", () => {
       fields.input.value = readName();
       fields.err.hidden = true;
@@ -345,6 +363,13 @@
       });
       tabs.append(button);
     });
+    const refresh = () => { if (host.isConnected) load(host, host.getAttribute("data-board-current") || "overall"); };
+    if (root.document && root.document.addEventListener) {
+      root.document.addEventListener("visibilitychange", () => {
+        if (root.document.visibilityState === "visible") refresh();
+      });
+    }
+    if (root.addEventListener) root.addEventListener("pageshow", refresh);
     load(host, current);
     return host;
   }
@@ -393,13 +418,18 @@
     return fix[section] || { served: true, rows: [] };
   }
 
+  function hideBoard(host) {
+    host.hidden = true;
+    host.setAttribute("data-board-off", "1");
+  }
   async function load(host, sectionId) {
+    host.setAttribute("data-board-current", sectionId || "overall");
     const canned = fixture(sectionId);
-    if (canned) { paint(host, canned); return; }
-    if (isTester(null)) { paint(host, { served: true, rows: [] }); return; }
-    if (!enabled()) { paint(host, { unavailable: true, rows: [] }); return; }
+    if (canned) { host.hidden = false; host.removeAttribute("data-board-off"); paint(host, canned); return; }
+    if (isTester(null)) { host.hidden = false; paint(host, { served: true, rows: [] }); return; }
+    if (!enabled()) { hideBoard(host); return; }
     const day = todayKey();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { paint(host, { unavailable: true, rows: [] }); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { hideBoard(host); return; }
     try {
       const c = cfg();
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -408,9 +438,13 @@
       const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=" + encodeURIComponent(sectionId), { method: "GET", headers: headers, signal: ctrl ? ctrl.signal : undefined });
       clearTimeout(timer);
       const body = await res.json();
-      if (!res.ok || !body || body.ok === false) { paint(host, { unavailable: true, rows: [] }); return; }
+      if (body && body.error === "board_off") { hideBoard(host); return; }
+      if (!res.ok || !body || body.ok === false) { host.hidden = false; paint(host, { unavailable: true, rows: [] }); return; }
+      host.hidden = false;
+      host.removeAttribute("data-board-off");
       paint(host, { served: body.served !== false, rows: Array.isArray(body.rows) ? body.rows : [] });
     } catch (e) {
+      host.hidden = false;
       paint(host, { unavailable: true, rows: [] });
     }
   }
@@ -479,9 +513,68 @@
         clearTimeout(timer);
         let body = {};
         try { body = await res.json(); } catch (e) { body = {}; }
-        if (body && typeof body.token === "string" && body.token) writeEntry(day, body.token);
+        if (body && body.error === "name_rejected") { writeName(""); noteBlocked(); }
+        else if (body && typeof body.token === "string" && body.token) writeEntry(day, body.token);
       }, () => { clearTimeout(timer); });
     }).catch(() => {});
+  }
+
+  function rankFromRows(rows, token) {
+    if (!Array.isArray(rows) || typeof token !== "string" || !token) return null;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (row && row.token === token && Number.isFinite(Number(row.rank))) return { rank: Number(row.rank), total: rows.length };
+    }
+    return null;
+  }
+  async function fetchRank() {
+    if (readFlag() !== "yes" || !readName() || isTester(null)) return null;
+    const entry = readEntry();
+    if (!entry || entry.day !== todayKey()) return null;
+    const canned = fixture("overall");
+    if (canned && Array.isArray(canned.rows)) return rankFromRows(canned.rows, entry.token);
+    if (!enabled()) return null;
+    const day = todayKey();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+    try {
+      const c = cfg();
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 2000);
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/board?day=" + encodeURIComponent(day) + "&section=overall", {
+        method: "GET",
+        headers: { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey },
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      clearTimeout(timer);
+      const body = await res.json();
+      if (!res.ok || !body || body.ok === false || body.error === "board_off" || body.served === false) return null;
+      return rankFromRows(Array.isArray(body.rows) ? body.rows : [], entry.token);
+    } catch (e) { return null; }
+  }
+  async function rankPhrase() {
+    const got = await fetchRank();
+    return got ? tr("Rank #{0} of {1} today", got.rank, got.total) : "";
+  }
+  function rankLine() {
+    const line = el("p", { class: "board-rankline", "data-board-rank": "1", hidden: "hidden" });
+    const paint = async () => {
+      const text = await rankPhrase();
+      line.textContent = "";
+      if (!text) { line.hidden = true; return; }
+      line.hidden = false;
+      line.textContent = text;
+    };
+    paint();
+    if (root.document && root.document.addEventListener) {
+      root.document.addEventListener("visibilitychange", () => {
+        if (root.document.visibilityState === "visible") paint();
+      });
+    }
+    if (root.addEventListener) {
+      root.addEventListener("focus", () => { paint(); });
+      root.addEventListener("pageshow", () => { paint(); });
+    }
+    return line;
   }
 
   return {
@@ -499,6 +592,9 @@
     nameKey: NAME,
     flagKey: FLAG,
     isOwnRow: isOwnRow,
+    rankFromRows: rankFromRows,
+    rankPhrase: rankPhrase,
+    rankLine: rankLine,
     entryKey: ENTRY
   };
 });

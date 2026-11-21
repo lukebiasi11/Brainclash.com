@@ -457,7 +457,7 @@ function home() {
       h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
       h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
       h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak")))),
-    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. Friends and prize pools come later. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
+    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
   if (!done && window.DailyBoard) window.DailyBoard.decorate($(".cta"), { started: !!(s && s.scores.length), refresh: home });
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
@@ -2114,7 +2114,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb3" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb4" }, tr("Privacy"))); }
 function g1Date(key) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
   const [y, m, d] = key.split("-").map(Number);
@@ -2438,16 +2438,34 @@ function myStats(nodes) {
   });
   return details;
 }
+function resultsNickFoot() {
+  const board = window.DailyBoard;
+  if (!board || board.readFlag() !== "yes" || board.readName()) return null;
+  return h("p", { class: "fine", "data-results-nick": "1" }, tr("Add a nickname to appear on today's leaderboard."));
+}
 function bcGraphs() {
-  try { const wrap = h("div", { class: "bc-graphs" }); wrap.append(g1Section(), myStats([g2Section()])); return wrap; }
+  try {
+    const wrap = h("div", { class: "bc-graphs" });
+    const rank = window.DailyBoard && DailyBoard.rankLine ? DailyBoard.rankLine() : null;
+    const board = window.DailyBoard && DailyBoard.section ? DailyBoard.section() : null;
+    wrap.append(g1Section(), rank, board, myStats([g2Section()]));
+    return wrap;
+  }
   catch (e) { return h("div", { class: "bc-graphs" }, h("p", { class: "g-fallback" }, tr("Results charts couldn't be read from this device. Saved games were left as they are."))); }
 }
 
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
 const SITE_URL = "https://dailydosetrivia.com/";
-const shareText = () => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
-async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch {} }
+const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
+async function doShare(btn) {
+  let rankLine = "";
+  try { if (window.DailyBoard && DailyBoard.rankPhrase) rankLine = await DailyBoard.rankPhrase() || ""; } catch (e) { rankLine = ""; }
+  const pre = document.querySelector("pre.share");
+  if (pre) pre.textContent = shareText(rankLine);
+  const t = shareText(rankLine);
+  try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch (e) {}
+}
 // Lightweight confetti on a single canvas (~2 s, no library).
 // Fix (Oct 26): the canvas used to sit at z-index 1 INSIDE the modal, under the card (z-index 2), which covers
 // nearly the whole phone width, so the burst was hidden. It now sits ABOVE the card (pointer-events: none),
@@ -2577,7 +2595,7 @@ function results() {
     h("div", { class: "row center" },
       h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
       h("button", { class: "btn", onclick: home }, tr("Home"))),
-    h("p", { class: "fine" }, tr("Global & friends leaderboards arrive with accounts in a future version.")));
+    resultsNickFoot());
   countUp($("#finalnum"), tot, 1600);
   setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
 }

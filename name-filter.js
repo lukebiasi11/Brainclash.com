@@ -41,15 +41,33 @@
     return s.replace(/[^a-z0-9]/g, "").replace(/(.)\1+/g, "$1");
   }
 
-  function listed(kind, sq, toks) {
-    const list = TERMS[kind];
+  // Banned terms go through the same squeeze as the name. A normalized term
+  // of 3+ characters is a substring. Shorter ones ("ass" -> "as", "xxx" -> "x")
+  // match the whole name or a digit suffix only, so they do not ban every "as" or "x".
+  const NORM = {
+    imp: TERMS.imp.map(squeeze),
+    impWord: TERMS.impWord.map(squeeze),
+    sub: TERMS.sub.map(squeeze),
+    word: TERMS.word.map(squeeze)
+  };
+
+  function hits(kind, sq, digits) {
+    const list = NORM[kind];
     for (let i = 0; i < list.length; i++) {
       const term = list[i];
+      if (!term) continue;
       if (sq === term) return true;
-      if (toks.indexOf(term) >= 0) return true;
-      if (sq.indexOf(term) === 0 && /^\d+$/.test(sq.slice(term.length))) return true;
-      if ((kind === "imp" || kind === "sub") && term.length >= 3 && sq.indexOf(term) >= 0) return true;
+      if (term.length >= 3 && sq.indexOf(term) >= 0) return true;
+      if (digits.indexOf(term) === 0 && /^\d+$/.test(digits.slice(term.length))) return true;
     }
+    return false;
+  }
+
+  function contact(name) {
+    const packed = name.replace(/\s+/g, "");
+    if (packed.indexOf("@") >= 0 || /https?:|www\.|\/\//i.test(packed)) return true;
+    if (/(^|[^\p{L}\p{N}])[\p{L}\p{N}-]+\.(?:com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)(?![\p{L}\p{N}])/iu.test(packed)) return true;
+    if (name.replace(/\D/g, "").length >= 7) return true;
     return false;
   }
 
@@ -58,16 +76,12 @@
     if (!name) return { ok: true, skip: true, name: "" };
     const chars = Array.from(name);
     if (chars.length < 3 || chars.length > 20) return { ok: false, reason: "length", name: "" };
-    if (name.indexOf("@") >= 0 || /https?:|www\.|\/\//i.test(name)) return { ok: false, reason: "contact", name: "" };
-    if (/(^|[^\p{L}\p{N}])[\p{L}\p{N}-]+\.(?:com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)(?![\p{L}\p{N}])/iu.test(name)) return { ok: false, reason: "contact", name: "" };
-    if (name.replace(/\D/g, "").length >= 7) return { ok: false, reason: "contact", name: "" };
+    if (contact(name)) return { ok: false, reason: "contact", name: "" };
     if (!/^[\p{L}\p{N}](?:[\p{L}\p{N}'’ -]*[\p{L}\p{N}])?$/u.test(name)) return { ok: false, reason: "chars", name: "" };
     const sq = squeeze(name);
     const digits = squeezeDigits(name);
-    const toks = tokens(name);
-    const prefixed = kind => TERMS[kind].some(term => digits.indexOf(term) === 0 && /^\d+$/.test(digits.slice(term.length)));
-    if (listed("imp", sq, toks) || listed("impWord", sq, toks) || prefixed("imp") || prefixed("impWord")) return { ok: false, reason: "impersonation", name: "" };
-    if (listed("sub", sq, toks) || listed("word", sq, toks) || prefixed("sub") || prefixed("word")) return { ok: false, reason: "profanity", name: "" };
+    if (hits("imp", sq, digits) || hits("impWord", sq, digits)) return { ok: false, reason: "impersonation", name: "" };
+    if (hits("sub", sq, digits) || hits("word", sq, digits)) return { ok: false, reason: "profanity", name: "" };
     return { ok: true, skip: false, name: name };
   }
 

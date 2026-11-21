@@ -158,6 +158,30 @@ create table private.board_rate (
 );
 alter table private.board_rate enable row level security;
 
+create or replace function private.board_squeeze(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select regexp_replace(regexp_replace(translate(translate(replace(lower(translate(
+    btrim(regexp_replace(translate(coalesce(p, ''), chr(8203) || chr(8204) || chr(8205) || chr(65279), ''), '[[:space:]]+', ' ', 'g')),
+    'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÑÇÝŸàáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
+    'aaaaaaeeeeiiiiooooouuuuncyyaaaaaaeeeeiiiiooooouuuuncyy')), 'ß', 'ss'), '@$+|!', 'asati'), '01345789', 'oieastbg'), '[^a-z0-9]', '', 'g'), '(.)\1+', '\1', 'g');
+$$;
+
+create or replace function private.board_squeeze_digits(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select regexp_replace(regexp_replace(translate(replace(lower(translate(
+    btrim(regexp_replace(translate(coalesce(p, ''), chr(8203) || chr(8204) || chr(8205) || chr(65279), ''), '[[:space:]]+', ' ', 'g')),
+    'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÑÇÝŸàáâãäåèéêëìíîïòóôõöùúûüñçýÿ',
+    'aaaaaaeeeeiiiiooooouuuuncyyaaaaaaeeeeiiiiooooouuuuncyy')), 'ß', 'ss'), '@$+|!', 'asati'), '[^a-z0-9]', '', 'g'), '(.)\1+', '\1', 'g');
+$$;
+
 create or replace function private.board_name_status(p_name text)
 returns jsonb
 language plpgsql
@@ -179,10 +203,11 @@ begin
   if char_length(v) < 3 or char_length(v) > 20 then
     return jsonb_build_object('ok', false, 'reason', 'length');
   end if;
-  if position('@' in v) > 0 or v ~* 'https?:|www\.|//' then
+  v_fold := regexp_replace(v, '[[:space:]]+', '', 'g');
+  if position('@' in v_fold) > 0 or v_fold ~* 'https?:|www\.|//' then
     return jsonb_build_object('ok', false, 'reason', 'contact');
   end if;
-  if v ~* '(^|[^[:alnum:]])[[:alnum:]-]+\.(com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)([^[:alnum:]]|$)' then
+  if v_fold ~* '(^|[^[:alnum:]])[[:alnum:]-]+\.(com|net|org|io|gg|co|me|tv|app|dev|xyz|info|ly|link|site|us|uk|mx|es|gl)([^[:alnum:]]|$)' then
     return jsonb_build_object('ok', false, 'reason', 'contact');
   end if;
   v_digits := regexp_replace(v, '\D', '', 'g');
@@ -192,58 +217,25 @@ begin
   if v !~ '^[[:alnum:]]([[:alnum:]''’ -]*[[:alnum:]])?$' then
     return jsonb_build_object('ok', false, 'reason', 'chars');
   end if;
-  v_fold := translate(v, 'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÑÇÝŸ', 'aaaaaaeeeeiiiiooooouuuuncyy');
-  v_fold := lower(v_fold);
-  v_fold := translate(v_fold, 'àáâãäåèéêëìíîïòóôõöùúûüñçýÿ', 'aaaaaaeeeeiiiiooooouuuuncyy');
-  v_fold := replace(v_fold, 'ß', 'ss');
-  v_fold := translate(v_fold, '@$+|!', 'asati');
-  v_digits := regexp_replace(regexp_replace(v_fold, '[^a-z0-9]', '', 'g'), '(.)\1+', '\1', 'g');
-  v_fold := translate(v_fold, '01345789', 'oieastbg');
-  v_sq := regexp_replace(regexp_replace(v_fold, '[^a-z0-9]', '', 'g'), '(.)\1+', '\1', 'g');
-  v_toks := regexp_split_to_array(btrim(regexp_replace(v_fold, '[^a-z0-9]+', ' ', 'g')), ' ');
-  if v_toks is null or v_toks = array['']::text[] then
-    v_toks := array[]::text[];
-  end if;
-  if exists (
-    select 1 from private.board_term t
-    where t.kind = 'imp'
-      and char_length(t.term) >= 3
-      and (
-        v_sq = t.term
-        or t.term = any(v_toks)
-        or (position(t.term in v_digits) = 1 and substring(v_digits from char_length(t.term) + 1) ~ '^[0-9]+$')
-        or position(t.term in v_sq) > 0
-      )
-  ) or exists (
-    select 1 from private.board_term t
-    where t.kind = 'impword'
-      and (
-        v_sq = t.term
-        or t.term = any(v_toks)
-        or (position(t.term in v_digits) = 1 and substring(v_digits from char_length(t.term) + 1) ~ '^[0-9]+$')
-      )
-  ) then
+  v_sq := private.board_squeeze(v);
+  v_digits := private.board_squeeze_digits(v);
+  select s.kind into v_fold
+  from (
+    select t.kind, private.board_squeeze(t.term) as norm
+    from private.board_term t
+  ) s
+  where s.norm <> ''
+    and (
+      v_sq = s.norm
+      or (char_length(s.norm) >= 3 and position(s.norm in v_sq) > 0)
+      or (position(s.norm in v_digits) = 1 and substring(v_digits from char_length(s.norm) + 1) ~ '^[0-9]+$')
+    )
+  order by case s.kind when 'imp' then 1 when 'impword' then 2 when 'sub' then 3 else 4 end
+  limit 1;
+  if v_fold = 'imp' or v_fold = 'impword' then
     return jsonb_build_object('ok', false, 'reason', 'impersonation');
   end if;
-  if exists (
-    select 1 from private.board_term t
-    where t.kind = 'sub'
-      and char_length(t.term) >= 3
-      and (
-        v_sq = t.term
-        or t.term = any(v_toks)
-        or (position(t.term in v_digits) = 1 and substring(v_digits from char_length(t.term) + 1) ~ '^[0-9]+$')
-        or position(t.term in v_sq) > 0
-      )
-  ) or exists (
-    select 1 from private.board_term t
-    where t.kind = 'word'
-      and (
-        v_sq = t.term
-        or t.term = any(v_toks)
-        or (position(t.term in v_digits) = 1 and substring(v_digits from char_length(t.term) + 1) ~ '^[0-9]+$')
-      )
-  ) then
+  if v_fold = 'sub' or v_fold = 'word' then
     return jsonb_build_object('ok', false, 'reason', 'profanity');
   end if;
   return jsonb_build_object('ok', true, 'skip', false, 'name', v);
@@ -543,6 +535,8 @@ $$;
 revoke all on table private.board_term, private.board_post, private.board_agg, private.board_rate
   from public, anon, authenticated, app_writer, field_runtime, board_runtime, board_retention;
 revoke all on function
+  private.board_squeeze(text),
+  private.board_squeeze_digits(text),
   private.board_name_status(text),
   private.board_scores_ok(int[]),
   private.board_add_agg(date, int, int, int[]),

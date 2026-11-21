@@ -9,7 +9,7 @@ const Board = require(path.join(root, "leaderboard.js"));
 let bad = 0;
 const t = (name, ok, extra) => { if (!ok) { bad++; console.log("FAIL", name, extra == null ? "" : extra); } else console.log("ok", name); };
 
-const okNames = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Ana-Maria", "Max", "Player1", "Modesto", "Essex", "Titan", "Peacock", "Dickens", "Sol", "Paz", "Niño"];
+const okNames = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Ana-Maria", "Max", "Player1", "Sol", "Paz", "Niño", "Ashley", "Lucas"];
 const blocked = [
   ["Al", "length"],
   ["thisnameistoolongnowx", "length"],
@@ -34,7 +34,24 @@ const blocked = [
   ["a55", "profanity"],
   ["púta", "profanity"],
   ["pendejo", "profanity"],
-  ["xxx", "profanity"]
+  ["xxx", "profanity"],
+  ["hello .com", "contact"],
+  ["n i g g e r", "profanity"],
+  ["xnigger", "profanity"],
+  ["nigger99", "profanity"],
+  ["pussy99", "profanity"],
+  ["a s s h o l e", "profanity"],
+  ["j i z z", "profanity"],
+  ["f a g g o t", "profanity"],
+  ["support99", "impersonation"],
+  ["staffer", "impersonation"],
+  ["modteam", "impersonation"],
+  ["Modesto", "impersonation"],
+  ["Essex", "profanity"],
+  ["Peacock", "profanity"],
+  ["Dickens", "profanity"],
+  ["Titan", "profanity"],
+  ["Scunthorpe", "profanity"]
 ];
 okNames.forEach(name => {
   const got = Filter.checkName(name);
@@ -118,7 +135,7 @@ t("year field is cleared before it is judged", /input\.value = "";\s*const resul
 t("year field is numeric and not autofilled", yearFn.includes('autocomplete: "off"') && yearFn.includes('inputmode: "numeric"') && yearFn.includes('type: "text"'));
 t("posted body has eligible and no year", /JSON\.stringify\(\{ day: day, name: name, scores: scores, eligible: true \}\)/.test(lb) && !/birthYear|birth_year/.test(lb));
 t("only yes or no is written", /setItem\(FLAG, eligible \? "yes" : "no"\)/.test(lb));
-t("the saved name is one key", lb.includes('const NAME = "bc-board-name"') && /writeName\(server\.name\)/.test(lb) && !/setItem\("bc-board-pending"|setItem\("bc-board-nick"/.test(lb));
+t("the saved name is one key", lb.includes('const NAME = "bc-board-name"') && /writeName\(server\.ok && server\.name \? server\.name : checked\.name\)/.test(lb) && !/setItem\("bc-board-pending"|setItem\("bc-board-nick"/.test(lb));
 const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");
 t("rankings stay off the notice", !privacy.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "docs/privacy-notice-draft.md"), "utf8").split("## English")[1].includes("Rankings are for fun"));
 const day = "2026-11-21";
@@ -129,7 +146,19 @@ const dup = [{ token: "other", name: "Luna", score: 100 }, { token: "own", name:
 t("a duplicate name highlights only the saved entry", Board.isOwnRow(dup[0], entry, "Luna", day) === false && Board.isOwnRow(dup[1], entry, "Luna", day) === true);
 t("no name highlights nothing", Board.isOwnRow(tie[0], entry, "", day) === false && Board.isOwnRow(tie[0], null, "Luna", day) === false);
 t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico", score: 1 }, entry, "Luna", day) === true && Board.isOwnRow({ token: "nope", name: "Luna", score: 100 }, entry, "Luna", day) === false);
+const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
+t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
 
-assert.ok;
-console.log(bad ? bad + " failures" : "name-filter.test.js: all pass");
-process.exit(bad ? 1 : 0);
+(async () => {
+  global.LEADERBOARD_ENABLED = true;
+  global.LEADERBOARD = { url: "https://xhgrcbsshhpvmfwzjtmp.supabase.co", publishableKey: "k" };
+  delete bag["bc-board-name"];
+  global.fetch = () => Promise.reject(new Error("down"));
+  const saved = await Board.acceptName("Luna");
+  t("client accept saves when the server is unreachable", saved.ok === true && bag["bc-board-name"] === "Luna");
+  global.fetch = async () => ({ ok: false, status: 400, async json() { return { ok: false, error: "name_rejected" }; } });
+  const rejected = await Board.acceptName("Luna");
+  t("explicit rejection clears that saved name", rejected.ok === false && !bag["bc-board-name"]);
+  console.log(bad ? bad + " failures" : "name-filter.test.js: all pass");
+  process.exit(bad ? 1 : 0);
+})().catch(err => { console.error(err); process.exit(1); });
