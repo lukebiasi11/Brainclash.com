@@ -945,6 +945,10 @@ body.in-game form.answer input,body.in-game .answer .txt{font-size:max(16px,1em)
 body.in-game .game-body.fit-scroll{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 
 /* nov2b: after-play results graph (Designer layout-simple-bars) */
+.my-stats{margin:8px 0 14px;text-align:left}
+.my-stats>summary{min-height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font:800 16px/1.2 var(--body);color:var(--ink-bc);background:var(--cream);border:3px solid var(--ink-bc);box-shadow:4px 4px 0 var(--navy);padding:8px 12px;list-style:none}
+.my-stats>summary::-webkit-details-marker{display:none}
+.my-stats[open]>summary{margin-bottom:10px}
 .score-graph{margin:4px auto 14px;max-width:520px;text-align:left}
 .score-graph .sg-date{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink-bc);margin:0 0 10px}
 .sg-card{background:var(--navy);color:#fff;padding:20px 18px 18px;box-shadow:8px 8px 0 var(--ink-bc)}
@@ -1004,6 +1008,7 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   #app:has(> .cta) > .cta > p:first-child { order: 1; }
   #app:has(> .cta) > .cta #countdown { order: 2; }
   #app:has(> .cta) > .cta .score-graph { order: 3; }
+  #app:has(> .cta) > .cta .my-stats { order: 4; }
   .rules summary { min-height: 44px; display: flex; align-items: center; }
   .cta .btn.primary.big { font-size: 34px; gap: 10px; padding: 0 10px; height: 72px; min-height: 64px; }
   .cta .btn.primary.big::before { flex-basis: 28px; width: 28px; height: 28px; }

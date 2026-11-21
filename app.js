@@ -432,9 +432,9 @@ function home() {
     })),
     done
       ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
-          scoreGraph(s.scores, day),
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
-          h("p", { class: "muted", id: "countdown" }))
+          h("p", { class: "muted", id: "countdown" }),
+          myStats([scoreGraph(s.scores, day)]))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => {
           const go = () => { session = newSession(false); runNext(); };
           if (!window.DailyBoard) return go();
@@ -2423,8 +2423,23 @@ function g2Section() {
   paint();
   return section;
 }
+function myStats(nodes) {
+  const body = h("div", { class: "my-stats-body" });
+  (nodes || []).forEach(node => { if (node) body.append(node); });
+  const details = h("details", { class: "my-stats" }, h("summary", {}, tr("My stats")), body);
+  details.addEventListener("toggle", () => {
+    if (!details.open) return;
+    const graph = body.querySelector(".score-graph");
+    if (graph && graph.classList.contains("anim")) {
+      graph.classList.remove("in");
+      requestAnimationFrame(() => requestAnimationFrame(() => graph.classList.add("in")));
+    }
+    body.querySelectorAll("svg").forEach(svg => { svg.style.width = "100%"; svg.getBoundingClientRect(); });
+  });
+  return details;
+}
 function bcGraphs() {
-  try { const wrap = h("div", { class: "bc-graphs" }); wrap.append(g1Section(), g2Section()); return wrap; }
+  try { const wrap = h("div", { class: "bc-graphs" }); wrap.append(g1Section(), myStats([g2Section()])); return wrap; }
   catch (e) { return h("div", { class: "bc-graphs" }, h("p", { class: "g-fallback" }, tr("Results charts couldn't be read from this device. Saved games were left as they are."))); }
 }
 

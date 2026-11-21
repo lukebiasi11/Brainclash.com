@@ -32,6 +32,7 @@
     // results graph
     "Today's points by category": "Puntos de hoy por categoría", "Today's scores · ": "Puntajes de hoy · ", "Points by category": "Puntos por categoría", "Total": "Total",
     // personal history (Graph 2) and field comparison while collection is off (Graph 1)
+    "My stats": "Mis estadísticas",
     "Your history": "Tu historial", "Completed games, earlier → today": "Juegos terminados, del más antiguo a hoy", "Completed games, earlier → {0}": "Juegos terminados, del más antiguo al {0}",
     "Completed games saved on this device": "Juegos terminados guardados en este dispositivo", "Overall": "General", "History metric": "Dato del historial",
     "Today · {0} · {1}": "Hoy · {0} · {1}", "Completed · {0} · {1}": "Terminado · {0} · {1}", "Latest saved · {0} · {1}": "Último guardado · {0} · {1}",
