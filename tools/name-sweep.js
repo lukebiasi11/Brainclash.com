@@ -1,4 +1,6 @@
 // node tools/name-sweep.js — first/last/place singles and short pairs through the client name check.
+const fs = require("fs");
+const path = require("path");
 const Filter = require("../name-filter.js");
 const data = require("./name-sweep-data.js");
 
@@ -111,3 +113,27 @@ console.log("singles rejected", singleRejects.length);
 singleRejects.forEach(line => console.log("  " + line));
 console.log("pairs rejected only because of a join", pairRejects.length);
 pairRejects.forEach(line => console.log("  " + line));
+
+function loadLines(file) {
+  return fs.readFileSync(path.join(__dirname, file), "utf8").split(/\s+/).filter(Boolean);
+}
+function sweepFile(label, file) {
+  const rows = loadLines(file);
+  let checked = 0;
+  let rejected = 0;
+  const samples = [];
+  rows.forEach(name => {
+    if (name.length < 3 || name.length > 20) return;
+    checked += 1;
+    const why = verdict(name);
+    if (why !== "ok") {
+      rejected += 1;
+      if (samples.length < 40) samples.push(name + " (" + why + ")");
+    }
+  });
+  console.log(label, "checked", checked, "rejected", rejected);
+  samples.forEach(line => console.log("  " + line));
+}
+sweepFile("common words", "common-words.txt");
+sweepFile("common first names", "common-first-names.txt");
+sweepFile("common surnames", "common-surnames.txt");

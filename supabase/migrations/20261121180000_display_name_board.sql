@@ -163,10 +163,13 @@ insert into private.board_term (kind, term) values
   ('word', 'coonz'),
   ('word', 'culo'),
   ('word', 'cum'),
+  ('word', 'cvnt'),
   ('word', 'dick'),
+  ('word', 'dyk'),
   ('word', 'dyke'),
   ('word', 'fag'),
   ('word', 'faget'),
+  ('word', 'fagit'),
   ('word', 'fagot'),
   ('word', 'fagz'),
   ('word', 'fck'),
@@ -182,13 +185,16 @@ insert into private.board_term (kind, term) values
   ('word', 'fukker'),
   ('word', 'gook'),
   ('word', 'hitlr'),
+  ('word', 'jewboy'),
   ('word', 'jewfag'),
   ('word', 'kike'),
   ('word', 'kikez'),
+  ('word', 'kunt'),
   ('word', 'kyke'),
   ('word', 'mamon'),
   ('word', 'mamona'),
   ('word', 'marica'),
+  ('word', 'nggr'),
   ('word', 'nibba'),
   ('word', 'nig'),
   ('word', 'nigah'),
@@ -197,6 +203,7 @@ insert into private.board_term (kind, term) values
   ('word', 'nigha'),
   ('word', 'niglet'),
   ('word', 'nigr'),
+  ('word', 'nigur'),
   ('word', 'nikka'),
   ('word', 'niqqa'),
   ('word', 'paki'),
@@ -204,6 +211,7 @@ insert into private.board_term (kind, term) values
   ('word', 'perra'),
   ('word', 'phag'),
   ('word', 'phaggot'),
+  ('word', 'phagot'),
   ('word', 'pito'),
   ('word', 'porn'),
   ('word', 'pron'),
@@ -214,13 +222,14 @@ insert into private.board_term (kind, term) values
   ('word', 'rape'),
   ('word', 'sex'),
   ('word', 'sexo'),
+  ('word', 'shemale'),
   ('word', 'sht'),
   ('word', 'shtty'),
   ('word', 'slvt'),
   ('word', 'spic'),
   ('word', 'spik'),
   ('word', 'tit'),
-  ('word', 'tranni'),
+  ('word', 'trannie'),
   ('word', 'trany'),
   ('word', 'verga'),
   ('word', 'wank'),
@@ -296,7 +305,9 @@ create table private.board_allow (
   token text primary key
 );
 insert into private.board_allow (token) values
+('acker'),
 ('actitud'),
+('aggy'),
 ('analia'),
 ('analog'),
 ('analogy'),
@@ -305,50 +316,126 @@ insert into private.board_allow (token) values
 ('aptitud'),
 ('aptitude'),
 ('ashkenazi'),
+('ashlee'),
+('assess'),
 ('attitude'),
 ('badminton'),
+('baggett'),
 ('banal'),
 ('banality'),
+('banking'),
+('banner'),
+('basement'),
+('batch'),
 ('beatitude'),
+('beaver'),
 ('benedick'),
+('benner'),
+('bigger'),
+('birch'),
+('blocks'),
 ('canal'),
+('caputo'),
+('caron'),
 ('certitude'),
+('chick'),
+('chin'),
+('china'),
+('ching'),
+('chuck'),
 ('cockatoo'),
 ('cockburn'),
 ('cockerel'),
 ('cockrell'),
-('cocktail'),
 ('cockroach'),
+('cocktail'),
 ('commodore'),
 ('competitor'),
+('con'),
+('cone'),
+('conn'),
+('conni'),
+('conny'),
 ('constitution'),
+('coonan'),
+('coppola'),
+('cora'),
+('corny'),
 ('cumming'),
 ('cummings'),
+('damon'),
+('dennis'),
 ('dickens'),
 ('dickerson'),
 ('dickinson'),
 ('dickson'),
+('dido'),
 ('dikshit'),
 ('document'),
+('dora'),
+('dumas'),
 ('dykes'),
 ('enigma'),
+('ennis'),
 ('esperanza'),
 ('essex'),
 ('exactitude'),
+('fagin'),
+('fagotti'),
+('fagotto'),
+('fanny'),
+('farica'),
+('fatty'),
+('fay'),
+('fitch'),
 ('fortitude'),
+('frannie'),
+('franny'),
+('fuller'),
+('granny'),
 ('gratitud'),
 ('gratitude'),
+('gussy'),
 ('hancock'),
+('hestia'),
+('hiller'),
 ('hitchcock'),
+('horn'),
+('horne'),
 ('hoshitani'),
 ('identity'),
 ('ignazio'),
 ('ineptitude'),
+('inga'),
+('jodee'),
+('jonas'),
+('kitty'),
+('kora'),
 ('latitud'),
 ('latitude'),
 ('leacock'),
 ('lightwater'),
+('lola'),
+('lora'),
+('macon'),
+('madonna'),
+('maggy'),
+('mahon'),
 ('mammon'),
+('manon'),
+('maria'),
+('marice'),
+('marika'),
+('marina'),
+('marinna'),
+('marion'),
+('marisa'),
+('marissa'),
+('marita'),
+('mariya'),
+('marrissa'),
+('martica'),
+('mason'),
 ('middlesex'),
 ('model'),
 ('modelo'),
@@ -359,46 +446,136 @@ insert into private.board_allow (token) values
 ('modesto'),
 ('modificar'),
 ('modulo'),
+('mora'),
 ('multitude'),
+('nagy'),
 ('nazia'),
 ('nazir'),
+('nigar'),
+('nigel'),
+('niger'),
+('nigeria'),
 ('night'),
 ('nightingale'),
-('nigel'),
-('nigeria'),
+('nike'),
+('niki'),
+('nikki'),
+('nina'),
+('nissa'),
+('nita'),
+('nola'),
+('nora'),
+('ola'),
+('opera'),
+('ora'),
+('paola'),
+('parra'),
 ('peacock'),
+('peers'),
+('pena'),
 ('penistone'),
+('penni'),
+('pennie'),
+('perea'),
+('peri'),
+('peria'),
+('perl'),
+('perla'),
+('perri'),
+('perry'),
+('peta'),
 ('petite'),
+('petra'),
+('pettis'),
+('phuc'),
 ('phuket'),
+('pina'),
+('pitch'),
+('pola'),
+('polar'),
+('polk'),
 ('pollack'),
 ('pollard'),
+('polls'),
+('polly'),
+('pool'),
+('poole'),
+('pools'),
 ('promptitude'),
+('puppy'),
+('pusey'),
 ('pussycat'),
+('ramon'),
+('ramona'),
+('ranking'),
 ('rectitude'),
+('regard'),
+('reward'),
+('rora'),
 ('scunthorpe'),
+('seemed'),
 ('semenov'),
 ('semenya'),
+('seven'),
 ('sexton'),
-('shiteh'),
+('shay'),
 ('shitake'),
+('shiteh'),
 ('shitterton'),
 ('shittu'),
+('shore'),
+('spice'),
+('spicy'),
+('spikes'),
 ('stafford'),
 ('staffordshire'),
+('stick'),
 ('stitch'),
 ('sussex'),
+('susy'),
+('tennis'),
+('tera'),
+('terra'),
 ('therapist'),
+('think'),
+('tiffy'),
+('tiger'),
+('tilly'),
+('timmy'),
 ('titan'),
-('titanic'),
 ('titania'),
+('titanic'),
 ('titian'),
 ('titmouse'),
 ('tito'),
 ('titulo'),
 ('titus'),
+('tracie'),
+('tracy'),
+('tran'),
+('trance'),
+('trans'),
+('valina'),
+('vega'),
+('vera'),
+('verla'),
+('verna'),
+('walker'),
+('walking'),
+('wanting'),
 ('wessex'),
+('where'),
+('whole'),
+('whose'),
+('witch'),
 ('woodcock'),
-('yoshito');
+('yemen'),
+('yoder'),
+('yoshito'),
+('zara'),
+('zola'),
+('zora'),
+('zorah');
 
 create table private.board_phrase (
   phrase text primary key,
@@ -508,6 +685,98 @@ as $$
   select regexp_replace(coalesce(p, ''), '([a-z])\1+', '\1', 'g');
 $$;
 
+create or replace function private.board_canon(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select replace(replace(coalesce(p, ''), 'q', 'g'), 'v', 'u');
+$$;
+
+create or replace function private.board_edit1(a text, b text)
+returns boolean
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  la int := char_length(coalesce(a, ''));
+  lb int := char_length(coalesce(b, ''));
+  i int;
+  j int;
+  skipped int := 0;
+  longer text;
+  shorter text;
+begin
+  if a is not distinct from b then
+    return true;
+  end if;
+  if a is null or b is null or abs(la - lb) > 1 then
+    return false;
+  end if;
+  if la = lb then
+    for i in 1..la loop
+      if substring(a from i for 1) <> substring(b from i for 1) then
+        skipped := skipped + 1;
+        if skipped > 1 then
+          return false;
+        end if;
+      end if;
+    end loop;
+    return skipped = 1;
+  end if;
+  if la > lb then
+    longer := a; shorter := b;
+  else
+    longer := b; shorter := a;
+  end if;
+  i := 1;
+  j := 1;
+  while i <= char_length(longer) and j <= char_length(shorter) loop
+    if substring(longer from i for 1) = substring(shorter from j for 1) then
+      i := i + 1;
+      j := j + 1;
+    else
+      skipped := skipped + 1;
+      if skipped > 1 then
+        return false;
+      end if;
+      i := i + 1;
+    end if;
+  end loop;
+  return true;
+end;
+$$;
+
+create or replace function private.board_boob(p_text text)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(p_text, '') ~ 'bo{2,}b(s|z|ies)?';
+$$;
+
+create or replace function private.board_edit_hit(p_text text)
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from private.board_term t
+    where (t.kind = 'sub' or t.kind = 'word')
+      and t.term <> 'boobs'
+      and char_length(t.term) >= 5
+      and private.board_edit1(
+        private.board_letters_sq(private.board_canon(t.term)),
+        private.board_letters_sq(coalesce(p_text, ''))
+      )
+  );
+$$;
+
 create or replace function private.board_attached(p_text text, p_term text)
 returns boolean
 language plpgsql
@@ -576,19 +845,22 @@ stable
 set search_path = ''
 as $$
   select t.term
-  from private.board_term t
-  where (t.kind = 'sub' or t.kind = 'compound' or t.kind = 'imp')
-    and (
-      position(t.term in p_text) > 0
-      or private.board_attached(p_text, t.term)
+  from (
+    select term, private.board_canon(term) as c
+    from private.board_term
+    where kind = 'sub' or kind = 'compound' or kind = 'imp'
+  ) t
+  where (
+      position(t.c in p_text) > 0
+      or private.board_attached(p_text, t.c)
       or (
         t.term <> 'boobs'
         and private.board_letters_sq(p_text) <> p_text
         and (
-          private.board_letters_sq(p_text) = private.board_letters_sq(t.term)
+          private.board_letters_sq(p_text) = private.board_letters_sq(t.c)
           or (
-            char_length(private.board_letters_sq(t.term)) >= 4
-            and position(private.board_letters_sq(t.term) in private.board_letters_sq(p_text)) > 0
+            char_length(private.board_letters_sq(t.c)) >= 4
+            and position(private.board_letters_sq(t.c) in private.board_letters_sq(p_text)) > 0
           )
         )
       )
@@ -603,20 +875,23 @@ stable
 set search_path = ''
 as $$
   select t.term
-  from private.board_term t
-  where (t.kind = 'word' or t.kind = 'impword')
-    and (
-      p_text = t.term
-      or private.board_attached(p_text, t.term)
-      or private.board_padded(p_text, t.term)
-      or (p_loose and position(t.term in p_text) > 0)
+  from (
+    select term, private.board_canon(term) as c
+    from private.board_term
+    where kind = 'word' or kind = 'impword'
+  ) t
+  where (
+      p_text = t.c
+      or private.board_attached(p_text, t.c)
+      or private.board_padded(p_text, t.c)
+      or (p_loose and position(t.c in p_text) > 0)
       or (
         private.board_letters_sq(p_text) <> p_text
         and (
-          private.board_letters_sq(p_text) = private.board_letters_sq(t.term)
-          or private.board_attached(private.board_letters_sq(p_text), private.board_letters_sq(t.term))
-          or private.board_padded(private.board_letters_sq(p_text), private.board_letters_sq(t.term))
-          or (p_loose and position(private.board_letters_sq(t.term) in private.board_letters_sq(p_text)) > 0)
+          private.board_letters_sq(p_text) = private.board_letters_sq(t.c)
+          or private.board_attached(private.board_letters_sq(p_text), private.board_letters_sq(t.c))
+          or private.board_padded(private.board_letters_sq(p_text), private.board_letters_sq(t.c))
+          or (p_loose and position(private.board_letters_sq(t.c) in private.board_letters_sq(p_text)) > 0)
         )
       )
     )
@@ -670,7 +945,7 @@ begin
   from private.board_term t
   where (t.kind = 'sub' or t.kind = 'compound' or t.kind = 'imp')
     and t.term <> 'boobs'
-    and v_sq = private.board_letters_sq(t.term)
+    and v_sq = private.board_letters_sq(private.board_canon(t.term))
   limit 1;
   if v_term is not null then
     return private.board_term_reason(v_term);
@@ -679,8 +954,8 @@ begin
   from private.board_term t
   where (t.kind = 'word' or t.kind = 'impword')
     and (
-      v_sq = private.board_letters_sq(t.term)
-      or private.board_attached(v_sq, private.board_letters_sq(t.term))
+      v_sq = private.board_letters_sq(private.board_canon(t.term))
+      or private.board_attached(v_sq, private.board_letters_sq(private.board_canon(t.term)))
     )
   limit 1;
   if v_term is not null then
@@ -725,7 +1000,7 @@ begin
   loop
     v_from := 0;
     loop
-      v_pos := position(v_term in substring(p_text from v_from + 1));
+      v_pos := position(private.board_canon(v_term) in substring(p_text from v_from + 1));
       exit when v_pos = 0;
       v_at := v_from + v_pos;
       if substring(p_mark from v_at for char_length(v_term)) !~ '^A+$' then
@@ -733,7 +1008,7 @@ begin
       end if;
       v_from := v_at;
     end loop;
-    if private.board_attached(p_text, v_term) and p_mark !~ '^A+$' then
+    if private.board_attached(p_text, private.board_canon(v_term)) and p_mark !~ '^A+$' then
       return private.board_term_reason(v_term);
     end if;
   end loop;
@@ -750,7 +1025,7 @@ begin
       select t.term from private.board_term t
       where t.kind = 'sub' or t.kind = 'compound' or t.kind = 'imp'
     loop
-      v_tsq := private.board_letters_sq(v_term);
+      v_tsq := private.board_letters_sq(private.board_canon(v_term));
       if v_term = 'boobs' then
         continue;
       end if;
@@ -778,14 +1053,14 @@ begin
     select t.term from private.board_term t
     where t.kind = 'word' or t.kind = 'impword'
   loop
-    if (p_text = v_term or private.board_attached(p_text, v_term) or private.board_padded(p_text, v_term))
+    if (p_text = private.board_canon(v_term) or private.board_attached(p_text, private.board_canon(v_term)) or private.board_padded(p_text, private.board_canon(v_term)))
        and p_mark !~ '^A+$' then
       return private.board_term_reason(v_term);
     end if;
     if p_loose then
       v_from := 0;
       loop
-        v_pos := position(v_term in substring(p_text from v_from + 1));
+        v_pos := position(private.board_canon(v_term) in substring(p_text from v_from + 1));
         exit when v_pos = 0;
         v_at := v_from + v_pos;
         if substring(p_mark from v_at for char_length(v_term)) !~ '^A+$' then
@@ -795,7 +1070,7 @@ begin
       end loop;
     end if;
     if v_sq <> p_text then
-      v_tsq := private.board_letters_sq(v_term);
+      v_tsq := private.board_letters_sq(private.board_canon(v_term));
       if (v_sq = v_tsq or private.board_attached(v_sq, v_tsq) or private.board_padded(v_sq, v_tsq))
          and p_mark !~ '^A+$' then
         return private.board_term_reason(v_term);
@@ -876,6 +1151,7 @@ begin
   v_scan := translate(v_scan,
     $conf$ηΗνυΥᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻᶰᶦ$conf$,
     $conf$nnvuuabcdefghijklmnoprstuvwyzabcdefghijklmnoprstuvwxyzni$conf$);
+  v_scan := translate(v_scan, 'qvѳѲѵѴǫǪᴏ', 'guuuuuggg');
 
   v_joined := '';
   v_tag := '';
@@ -914,7 +1190,7 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'chars');
   end if;
   v_phrase := array_to_string(v_stem, ' ');
-  if exists (select 1 from private.board_phrase p where p.phrase = v_phrase and p.reason = 'allow') then
+  if exists (select 1 from private.board_phrase p where p.reason = 'allow' and (p.phrase = v_phrase or private.board_canon(p.phrase) = v_phrase)) then
     return jsonb_build_object('ok', true, 'skip', false, 'name', v);
   end if;
   v_run := '';
@@ -951,7 +1227,7 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'impersonation');
   end if;
   for v_i in 1..coalesce(array_length(v_stem, 1), 0) loop
-    if exists (select 1 from private.board_allow a where a.token = v_full[v_i]) then
+    if exists (select 1 from private.board_allow a where private.board_canon(a.token) = v_full[v_i]) then
       if v_i > 1 and v_i < array_length(v_stem, 1) then
         v_why := private.board_glue(v_stem[v_i - 1] || v_stem[v_i + 1]);
         if v_why <> '' then
@@ -960,12 +1236,15 @@ begin
       end if;
       continue;
     end if;
-    if v_i > 1 and v_stem[v_i] = 'dyke' and v_stem[v_i - 1] = 'van' then
+    if v_i > 1 and v_stem[v_i] = 'dyke' and (v_stem[v_i - 1] = 'van' or v_stem[v_i - 1] = 'uan') then
       continue;
     end if;
-    v_why := private.board_judge(v_full[v_i], false);
+      v_why := private.board_judge(v_full[v_i], false);
     if v_why = '' and v_whole[v_i] is distinct from v_full[v_i] then
       v_why := private.board_judge(v_whole[v_i], false);
+    end if;
+    if v_why = '' and (private.board_boob(v_full[v_i]) or private.board_boob(v_whole[v_i]) or private.board_edit_hit(v_stem[v_i]) or private.board_edit_hit(v_whole[v_i])) then
+      v_why := 'profanity';
     end if;
     if v_why <> '' then
       return jsonb_build_object('ok', false, 'reason', v_why);
@@ -983,6 +1262,9 @@ begin
         if v_why = '' then
           v_why := private.board_join_reason(private.board_leet(v_run), v_mark, v_run_single);
         end if;
+        if v_why = '' and (private.board_boob(v_run) or private.board_boob(private.board_leet(v_run)) or private.board_edit_hit(v_run) or private.board_edit_hit(private.board_leet(v_run))) then
+          v_why := 'profanity';
+        end if;
         if v_why <> '' then
           return jsonb_build_object('ok', false, 'reason', v_why);
         end if;
@@ -993,7 +1275,7 @@ begin
       v_run_single := true;
     end if;
     v_run := v_run || v_stem[v_i];
-    if exists (select 1 from private.board_allow a where a.token = v_full[v_i]) then
+    if exists (select 1 from private.board_allow a where private.board_canon(a.token) = v_full[v_i]) then
       v_mark := v_mark || repeat('A', char_length(v_stem[v_i]));
     else
       v_mark := v_mark || repeat('.', char_length(v_stem[v_i]));
@@ -1008,6 +1290,9 @@ begin
     v_why := private.board_join_reason(v_run, v_mark, v_run_single);
     if v_why = '' then
       v_why := private.board_join_reason(private.board_leet(v_run), v_mark, v_run_single);
+    end if;
+    if v_why = '' and (private.board_boob(v_run) or private.board_boob(private.board_leet(v_run)) or private.board_edit_hit(v_run) or private.board_edit_hit(private.board_leet(v_run))) then
+      v_why := 'profanity';
     end if;
     if v_why <> '' then
       return jsonb_build_object('ok', false, 'reason', v_why);
@@ -1435,6 +1720,10 @@ revoke all on table private.board_term, private.board_allow, private.board_phras
   from public, anon, authenticated, app_writer, field_runtime, board_runtime, board_retention;
 revoke all on function
   private.board_letters_sq(text),
+  private.board_canon(text),
+  private.board_edit1(text, text),
+  private.board_boob(text),
+  private.board_edit_hit(text),
   private.board_attached(text, text),
   private.board_padded(text, text),
   private.board_term_reason(text),

@@ -1,2 +1,5 @@
 tools/*
 !tools/*.js
+!tools/common-words.txt
+!tools/common-first-names.txt
+!tools/common-surnames.txt
