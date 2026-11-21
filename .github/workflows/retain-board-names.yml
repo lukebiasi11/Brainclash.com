@@ -1,0 +1,31 @@
+name: retain board names
+
+# NOT ENABLED. This workflow does not run.
+# There is no schedule. The job condition is false, so a manual run does nothing
+# and does not connect. Opening a pull request does not run it.
+#
+# To enable later, after migration 20261121180000_display_name_board is applied:
+# 1. Set a password on role board_retention outside this repository.
+# 2. Add the Actions secret BOARD_RETENTION_DB_URL for that role (session pooler,
+#    port 5432, user board_retention.xhgrcbsshhpvmfwzjtmp). Do not use the
+#    service-role key, FIELD_DB_URL, or the migration-owner URL.
+# 3. Add a schedule under `on:` (for example "45 8 * * *") and remove `if: ${{ false }}`.
+# The only SQL is:
+#   select private.retain_board_names();
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  retain:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Drop nicknames older than 90 days
+        env:
+          BOARD_RETENTION_DB_URL: ${{ secrets.BOARD_RETENTION_DB_URL }}
+        run: |
+          echo "This job is not enabled."
+          exit 0

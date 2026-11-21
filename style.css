@@ -998,6 +998,8 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   #app:has(> .cta) > .btn.ghost { order: 6; }
   /* How it works sits under Play, fully below the first phone screen. */
   #app:has(> .cta) > .rules { order: 8; margin-top: 56px; }
+  #app:has(> .cta) > .day-board { order: 7; }
+  #app:has(> .cta) .board-ask { order: 4; }
   #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
   #app:has(> .cta) > .cta > p:first-child { order: 1; }
   #app:has(> .cta) > .cta #countdown { order: 2; }
@@ -1165,6 +1167,29 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .privacy-card .lang-toggle{margin:8px 0 0}
 .privacy-updated{color:#8b93a7;font-size:13px;font-weight:800}
 .privacy-card a{color:#1F2C7A;font-weight:800}
+
+/* Daily nickname leaderboard. In normal flow, so it does not cover the bottom bar. */
+.board-ask{position:relative;z-index:1;margin:0 0 10px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:4px 4px 0 var(--navy);text-align:left}
+.board-label{display:block;font-weight:800;margin:0 0 6px}
+.board-input{display:block;width:100%;box-sizing:border-box;min-height:44px;margin:0 0 8px;padding:8px 10px;font:700 16px/1.3 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);border-radius:0}
+.board-help,.board-error,.board-note,.board-empty,.board-report{margin:0;font-size:13px;line-height:1.4;font-weight:700}
+.board-help,.board-note,.board-empty,.board-report{color:var(--ink-bc)}
+.board-error{color:#8A0E22;margin-top:8px}
+.board-year-go{margin-top:4px}
+.day-board{position:relative;z-index:1;max-width:100%;box-sizing:border-box;margin:14px 0 8px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);text-align:left}
+.board-title{margin:0 0 8px;font-family:var(--display);font-weight:400;font-size:clamp(22px,7vw,28px);letter-spacing:.03em;text-transform:uppercase;overflow-wrap:anywhere}
+.board-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.board-tab{min-height:44px;padding:8px 10px;font:800 13px/1.2 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);cursor:pointer}
+.board-tab.on{background:var(--ink-bc);color:var(--cream)}
+.board-note{margin-bottom:8px}
+.board-rows{list-style:none;margin:0;padding:0}
+.board-row{display:grid;grid-template-columns:2.4rem minmax(0,1fr) auto;gap:8px;align-items:center;min-height:44px;border-top:1px solid #120B2E33}
+.board-row:first-child{border-top:0}
+.board-rank,.board-score{font-weight:800}
+.board-name{overflow-wrap:anywhere}
+.board-report{margin-top:8px}
+.board-report a{color:var(--ink-bc);font-weight:800}
+.board-empty{margin-top:8px}
 
 /* Pair, reveal, and slider. Tap targets stay at least 44px. Cards stack so 360px doesn't overflow sideways. */
 .q-diff{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}

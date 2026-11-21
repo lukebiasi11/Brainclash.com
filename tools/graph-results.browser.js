@@ -117,9 +117,12 @@ async function shot(cdp, name) {
   const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width, height, scale: 1 } }, 20000);
   fs.writeFileSync(path.join(SHOTS, name), Buffer.from(img.data, "base64"));
 }
+function isBoardRead(r) {
+  return (r.method === "GET" || r.method === "OPTIONS") && /\/\/xhgrcbsshhpvmfwzjtmp\.supabase\.co\/functions\/v1\/leaderboard\/board(?:\?|$)/.test(r.url);
+}
 function forbid(cdp, label) {
-  const badReqs = cdp.reqs.filter(r => r.method !== "GET" && r.method !== "HEAD" || /\/v1\/|stats-client|day_agg|workers\.dev/i.test(r.url));
-  const offHost = cdp.reqs.filter(r => { try { const u = new URL(r.url); if (u.protocol === "data:") return false; return u.hostname !== "127.0.0.1" && u.hostname !== "fonts.googleapis.com" && u.hostname !== "fonts.gstatic.com"; } catch (e) { return true; } });
+  const badReqs = cdp.reqs.filter(r => !isBoardRead(r) && (r.method !== "GET" && r.method !== "HEAD" || /\/v1\/|stats-client|day_agg|workers\.dev/i.test(r.url)));
+  const offHost = cdp.reqs.filter(r => { if (isBoardRead(r)) return false; try { const u = new URL(r.url); if (u.protocol === "data:") return false; return u.hostname !== "127.0.0.1" && u.hostname !== "fonts.googleapis.com" && u.hostname !== "fonts.gstatic.com"; } catch (e) { return true; } });
   if (badReqs.length || offHost.length) fail(label + " network", { badReqs, offHost });
   else pass(label + " network");
   if (cdp.errors.length) fail(label + " exceptions", cdp.errors.slice(0, 4));
