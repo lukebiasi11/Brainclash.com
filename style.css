@@ -195,7 +195,8 @@ img.ico{display:inline-block;width:1em;height:1em;vertical-align:-.15em;object-f
 .visual img.ico{width:96px;height:96px}
 .big-ic img.ico{width:88px;height:88px}
 .step .ic img.ico{width:34px;height:34px}
-.inline-flag{width:1.6em;height:1.6em;vertical-align:-.45em;filter:none;margin:0 .15em}
+/* World flag questions share withFlag()'s inline-flag class. Fill the card, keep the flag's own ratio, and outline it so white stripes stay visible on the orange page. */
+img.ico.inline-flag{display:block;width:100%;height:auto;margin:10px 0 4px;border:1px solid #1a1a1a;box-sizing:border-box;filter:none;object-fit:contain;background:#fff}
 .opt img.ico.flag{width:64px;height:64px;filter:none}
 @media (max-width:560px){
   .lmap{height:clamp(280px,46vh,420px)}
