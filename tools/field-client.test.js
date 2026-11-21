@@ -238,7 +238,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1t8"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1t9"));
   ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb5"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
@@ -280,6 +280,51 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   t("sdk import hang falls back", [importQuiet.state, importQuiet.reason, importHangs.length, Date.now() - importStart < 1000], ["quiet", "network", 0, true]);
   await new Promise(r => setTimeout(r, 500));
   t("a late sdk does not fetch", importHangs, []);
+  delete global.FIELD_COMPARE.loadSdk;
+  delete global.FIELD_COMPARE.deadlineMs;
+
+  function freshReal() {
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    delete global.FIELD_COMPARE.deadlineMs;
+    return require(path.join(root, "field-compare.js"));
+  }
+  const readyAuth = {
+    getSession: async () => ({ data: { session: { access_token: "tok" } } }),
+    signInAnonymously: async () => ({ data: { session: { access_token: "tok" } } })
+  };
+  async function eight(label, prepare, run) {
+    prepare();
+    const client = freshReal();
+    const started = Date.now();
+    const result = await run(client);
+    const ms = Date.now() - started;
+    console.log(label, ms + "ms", JSON.stringify(result && result.state ? result : { reason: result && result.reason }));
+    const quiet = result && (result.state === "quiet" || result.reason === "network" || result.ok === false);
+    t(label, [quiet, ms < 9000, ms >= 7000], [true, true, true]);
+    return ms;
+  }
+  await eight("sdk import stall falls back at 8s", () => {
+    delete global.FIELD_COMPARE.createClient;
+    global.FIELD_COMPARE.loadSdk = () => new Promise(() => {});
+  }, client => client.dayFor(liveSession({ key: "2026-11-04" })));
+  await eight("sign-in stall falls back at 8s", () => {
+    delete global.FIELD_COMPARE.loadSdk;
+    global.FIELD_COMPARE.createClient = () => ({ auth: { getSession: async () => ({ data: { session: null } }), signInAnonymously: () => new Promise(() => {}) } });
+  }, client => client.dayFor(liveSession({ key: "2026-11-03" })));
+  await eight("getSession stall falls back at 8s", () => {
+    global.FIELD_COMPARE.createClient = () => ({ auth: { getSession: () => new Promise(() => {}), signInAnonymously: () => new Promise(() => {}) } });
+  }, client => client.dayFor(liveSession({ key: "2026-11-02" })));
+  await eight("field calls share one 8s deadline", () => {
+    global.FIELD_COMPARE.createClient = () => ({ auth: readyAuth });
+    global.fetch = (url, init) => new Promise((resolve, reject) => {
+      const signal = init && init.signal;
+      if (signal) signal.addEventListener("abort", () => reject(new Error("abort")));
+    });
+  }, async client => {
+    const session = liveSession({ key: "2026-11-01" });
+    await client.backfillToday(session, "2026-11-01");
+    return client.dayFor(session);
+  });
   delete global.FIELD_COMPARE.loadSdk;
   delete global.FIELD_COMPARE.deadlineMs;
 

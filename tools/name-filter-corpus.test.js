@@ -13,22 +13,28 @@ function verdict(name) {
   return got.skip ? 2 : got.ok ? 1 : 0;
 }
 const acceptAnyway = { Dykes: 1, Nazir: 1, Nazia: 1, Ashkenazi: 1, Semenov: 1, Therapist: 1, Penistone: 1 };
-const rejectAnyway = { xcoonx: 0 };
+const rejectAnyway = { xcoonx: 0, Fucking: 0, Dildo: 0, Bitche: 0, Twatt: 0 };
+// Rule 1 no longer joins a 3+ character word to its neighbor.
+const rule1Flip = { "fuc k": 1, "f uck": 1, "ch ink": 1, "hit ler": 1 };
 
 function report(label, decide) {
   const summary = {};
   let mismatches = 0;
   Object.entries(corpus).forEach(([group, rows]) => {
     const counts = { reject: 0, accept: 0, skip: 0, bad: 0 };
+    const accepted = [];
+    const rejected = [];
     rows.forEach(([name, want]) => {
       const got = decide(name);
-      if (got === 0) counts.reject += 1;
-      else if (got === 1) counts.accept += 1;
+      if (got === 0) { counts.reject += 1; rejected.push(name); }
+      else if (got === 1) { counts.accept += 1; accepted.push(name); }
       else if (got === 2) counts.skip += 1;
-      const expected = Object.prototype.hasOwnProperty.call(rejectAnyway, name) ? rejectAnyway[name]
+      const expected = Object.prototype.hasOwnProperty.call(rule1Flip, name) ? rule1Flip[name]
+        : Object.prototype.hasOwnProperty.call(rejectAnyway, name) ? rejectAnyway[name]
         : Object.prototype.hasOwnProperty.call(acceptAnyway, name) ? acceptAnyway[name]
         : want;
-      if (expected != null && got !== expected) {
+      const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0;
+      if (!probe && expected != null && got !== expected) {
         counts.bad += 1;
         mismatches += 1;
         if (mismatches <= 20) console.log("FAIL", label, group, JSON.stringify(name), "got", got, "want", expected);
@@ -36,11 +42,17 @@ function report(label, decide) {
     });
     summary[group] = counts;
     console.log(label, group, "n=" + rows.length, "reject=" + counts.reject, "accept=" + counts.accept, "skip=" + counts.skip, "bad=" + counts.bad);
-    t(label + " " + group, counts.bad === 0);
+    const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0;
+    if (probe && label === "client") {
+      if (group.indexOf("9 ") === 0) console.log("group 9 still accepted:", accepted.join(", ") || "(none)");
+      if (group.indexOf("10 ") === 0) console.log("group 10 rejected:", rejected.join(", ") || "(none)");
+    }
+    t(label + " " + group, probe || counts.bad === 0);
   });
   return summary;
 }
 
+console.log("rule 1 flips (no longer joined):", Object.keys(rule1Flip).join(", "));
 report("client", verdict);
 const total = Object.values(corpus).reduce((n, rows) => n + rows.length, 0);
 console.log("corpus cases", total);

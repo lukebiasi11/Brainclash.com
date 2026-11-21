@@ -13,11 +13,11 @@
     imp: ["admin", "brainclash", "dailydose", "moderator", "oficial", "official", "soporte", "staff", "support"],
     impWord: ["mod", "mods"],
     compound: ["cooladmin", "modsquad", "modteam", "staffer"],
-    sub: ["1488", "asshat", "asshole", "asswipe", "badass", "bastard", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cunt", "dickface", "dickhead", "dildo", "dumbass", "dumbshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
+    sub: ["1488", "asshat", "asshole", "asswipe", "badass", "bastard", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumshot", "cunt", "dickface", "dickhead", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
     word: ["anal", "ass", "beaner", "chink", "cock", "cono", "coon", "culo", "cum", "dick", "dyke", "fag", "gook", "kike", "mamon", "mamona", "marica", "nig", "paki", "perra", "pito", "porn", "pron", "puta", "puto", "raghead", "rape", "sex", "sexo", "shit", "spic", "tit", "verga", "wank", "wetback", "zorra"]
   };
 
-  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "attitude", "badminton", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "commodore", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "identity", "ineptitude", "latitud", "latitude", "leacock", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "night", "nightingale", "nigel", "nigeria", "peacock", "penistone", "petite", "promptitude", "rectitude", "scunthorpe", "semenov", "sexton", "stafford", "stitch", "sussex", "therapist", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock"];
+  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "attitude", "badminton", "banal", "banality", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cocktail", "cockroach", "commodore", "competitor", "constitution", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fortitude", "gratitud", "gratitude", "hancock", "hitchcock", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "night", "nightingale", "nigel", "nigeria", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "scunthorpe", "semenov", "semenya", "sexton", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titanic", "titania", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock"];
   const ALLOW_SET = new Set(ALLOW);
   const PHRASE_ALLOW = new Set(["dick van dyke"]);
 
@@ -52,7 +52,7 @@
   }
 
   function leetAll(s) {
-    return s.replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/7/g, "t").replace(/8/g, "b").replace(/9/g, "g");
+    return s.replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/6/g, "g").replace(/7/g, "t").replace(/8/g, "b").replace(/9/g, "g");
   }
 
   function splitToken(token) {
@@ -172,6 +172,95 @@
     return false;
   }
 
+  const TAILS = ["boys", "boy", "lord", "eyes", "eye", "face", "man", "ies", "es", "s"];
+  const PHRASE_BLOCK = ["daily dose"];
+
+  function reasonFor(term) {
+    if (TERMS.imp.indexOf(term) >= 0 || TERMS.compound.indexOf(term) >= 0 || TERMS.impWord.indexOf(term) >= 0) return "impersonation";
+    return "profanity";
+  }
+
+  function attached(text, term) {
+    if (!text || !term || text === term) return false;
+    for (let i = 0; i < TAILS.length; i++) {
+      const tail = TAILS[i];
+      if (text.indexOf(term + tail) !== 0) continue;
+      if (/^\d*$/.test(text.slice(term.length + tail.length))) return true;
+    }
+    if (text.indexOf(term) === 0 && /^\d+$/.test(text.slice(term.length))) return true;
+    if (term.charAt(term.length - 1) === "y") {
+      const plural = term.slice(0, -1) + "ies";
+      if (text.indexOf(plural) === 0 && /^\d*$/.test(text.slice(plural.length))) return true;
+    }
+    return false;
+  }
+
+  function longTerm(text) {
+    const subs = TERMS.sub.concat(TERMS.compound, TERMS.imp);
+    const sq = squeezeLetters(text);
+    const collapsed = sq !== text;
+    for (let i = 0; i < subs.length; i++) {
+      const term = subs[i];
+      if (text.indexOf(term) >= 0 || attached(text, term)) return term;
+      const tsq = squeezeLetters(term);
+      if (collapsed && (sq === tsq || (tsq.length >= 4 && sq.indexOf(tsq) >= 0))) return term;
+    }
+    return "";
+  }
+
+  function padded(text, term) {
+    if (text === "the" + term || text === term + "lover") return true;
+    return new RegExp("^x+" + term + "x+$").test(text);
+  }
+
+  function shortTerm(text, loose) {
+    const shorts = TERMS.word.concat(TERMS.impWord);
+    const sq = squeezeLetters(text);
+    const collapsed = sq !== text;
+    for (let i = 0; i < shorts.length; i++) {
+      const term = shorts[i];
+      const tsq = squeezeLetters(term);
+      if (text === term || attached(text, term) || padded(text, term) || (loose && text.indexOf(term) >= 0)) return term;
+      if (collapsed && (sq === tsq || attached(sq, tsq) || padded(sq, tsq) || (loose && sq.indexOf(tsq) >= 0))) return term;
+    }
+    return "";
+  }
+
+  function judge(text, loose) {
+    if (!text) return "";
+    if (/^x{3,}$/.test(text) || /^x{3,}$/.test(squeezeLetters(text))) return "profanity";
+    const longHit = longTerm(text);
+    if (longHit) return reasonFor(longHit);
+    const shortHit = shortTerm(text, loose);
+    if (shortHit) return reasonFor(shortHit);
+    return "";
+  }
+
+  function glueJudge(text) {
+    const why = judge(text, false);
+    if (why) return why;
+    const sq = squeezeLetters(text);
+    const subs = TERMS.sub.concat(TERMS.compound, TERMS.imp);
+    for (let i = 0; i < subs.length; i++) {
+      if (sq === squeezeLetters(subs[i])) return reasonFor(subs[i]);
+    }
+    const shorts = TERMS.word.concat(TERMS.impWord);
+    for (let i = 0; i < shorts.length; i++) {
+      if (sq === squeezeLetters(shorts[i]) || attached(sq, squeezeLetters(shorts[i]))) return reasonFor(shorts[i]);
+    }
+    return "";
+  }
+
+  function hasPhrase(stems, phrase) {
+    const words = phrase.split(" ");
+    for (let i = 0; i + words.length <= stems.length; i++) {
+      let same = true;
+      for (let j = 0; j < words.length; j++) if (stems[i + j] !== words[j]) same = false;
+      if (same) return true;
+    }
+    return false;
+  }
+
   function checkName(raw) {
     const name = clean(raw);
     if (!name) return { ok: true, skip: true, name: "" };
@@ -183,48 +272,50 @@
     const tagged = alnumForm(prepped, true);
     if (/(?:player|jugador)\d{4}(?!\d)/.test(tagged)) return { ok: false, reason: "tag", name: "" };
     if (!/^[\p{L}\p{N}](?:[\p{L}\p{N}'’ -]*[\p{L}\p{N}])?$/u.test(folded)) return { ok: false, reason: "chars", name: "" };
-    const joined = alnumForm(prepped, false);
-    const squeezed = squeezeLetters(joined);
-    const leetJoined = leetAll(joined);
-    const spaced = singlesOnly(prepped);
-    const tokens = tokensOf(prepped);
-    const phrase = tokens.map(t => t.stem).join(" ");
-    if (!spaced && (PHRASE_ALLOW.has(phrase) || ALLOW_SET.has(joined))) return { ok: true, skip: false, name: name };
-    const subs = TERMS.sub.concat(TERMS.compound, TERMS.imp);
-    const reasonFor = (term) => TERMS.imp.indexOf(term) >= 0 || TERMS.compound.indexOf(term) >= 0 ? "impersonation" : "profanity";
-    const longOn = (text) => {
-      for (let i = 0; i < subs.length; i++) if (text.indexOf(subs[i]) >= 0) return subs[i];
-      return "";
-    };
-    let hit = longOn(joined) || longOn(leetJoined);
-    if (!hit && squeezed !== joined) hit = longOn(squeezed);
-    if (hit) return { ok: false, reason: reasonFor(hit), name: "" };
-    const shorts = TERMS.word.concat(TERMS.impWord);
-    const shortWhy = (term) => TERMS.impWord.indexOf(term) >= 0 ? "impersonation" : "profanity";
-    const shortOn = (text, loose) => {
-      for (let i = 0; i < shorts.length; i++) {
-        const term = shorts[i];
-        const ok = loose ? text.indexOf(term) >= 0 : (wholeTerm(text, term) || (squeezeLetters(text) !== text && squeezeLetters(text) === squeezeLetters(term)));
-        if (ok) return shortWhy(term);
+    const rawParts = prepped.split(/[^a-z0-9]+/).filter(Boolean);
+    const parts = rawParts.map(part => {
+      const tok = splitToken(part);
+      return { raw: part, stem: tok.stem, full: tok.stem + tok.trail, leet: leetAll(part) };
+    });
+    const stems = parts.map(part => part.stem);
+    const phrase = stems.join(" ");
+    if (PHRASE_ALLOW.has(phrase)) return { ok: true, skip: false, name: name };
+    for (let p = 0; p < PHRASE_BLOCK.length; p++) {
+      if (hasPhrase(stems, PHRASE_BLOCK[p])) return { ok: false, reason: "impersonation", name: "" };
+    }
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (ALLOW_SET.has(part.full) || ALLOW_SET.has(part.stem)) {
+        if (part.full === part.stem || ALLOW_SET.has(part.full)) {
+          if (ALLOW_SET.has(part.full) && parts[i - 1] && parts[i + 1]) {
+            const glue = glueJudge(parts[i - 1].stem + parts[i + 1].stem);
+            if (glue) return { ok: false, reason: glue, name: "" };
+          }
+          if (ALLOW_SET.has(part.full)) continue;
+        }
       }
-      return "";
-    };
-    if (!spaced) {
-      for (let i = 0; i < tokens.length; i++) {
-        if (tokens[i].stem === "dyke" && tokens[i - 1] && tokens[i - 1].stem === "van") continue;
-        const why = shortOn(tokens[i].stem, false) || shortOn(leetAll(tokens[i].stem), false);
-        if (why && !ALLOW_SET.has(tokens[i].stem)) return { ok: false, reason: why, name: "" };
-        if (!ALLOW_SET.has(tokens[i].stem) || !tokens[i - 1] || !tokens[i + 1]) continue;
-        const glue = tokens[i - 1].stem + tokens[i + 1].stem;
-        const glued = longOn(glue) || subs.find(term => squeezeLetters(glue) === squeezeLetters(term));
-        if (glued) return { ok: false, reason: reasonFor(glued), name: "" };
-        const glueShort = shortOn(glue, false);
-        if (glueShort) return { ok: false, reason: glueShort, name: "" };
+      if (part.stem === "dyke" && parts[i - 1] && parts[i - 1].stem === "van") continue;
+      const why = judge(part.full, false) || (part.leet !== part.full ? judge(part.leet, false) : "");
+      if (why) return { ok: false, reason: why, name: "" };
+    }
+    let run = [];
+    function flushRun() {
+      if (run.length < 2) { run = []; return ""; }
+      const joined = run.map(part => part.stem).join("");
+      const loose = run.every(part => part.raw.length === 1);
+      const why = judge(joined, loose) || judge(leetAll(joined), loose);
+      run = [];
+      return why;
+    }
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].raw.length <= 2) run.push(parts[i]);
+      else {
+        const why = flushRun();
+        if (why) return { ok: false, reason: why, name: "" };
       }
     }
-    const loose = shortOn(joined, spaced) || shortOn(leetJoined, false) || (squeezed !== joined && shortOn(squeezed, spaced));
-    if (loose) return { ok: false, reason: loose, name: "" };
-    if (/^x{3,}$/.test(joined) || /^x{3,}$/.test(squeezed)) return { ok: false, reason: "profanity", name: "" };
+    const tail = flushRun();
+    if (tail) return { ok: false, reason: tail, name: "" };
     return { ok: true, skip: false, name: name };
   }
 

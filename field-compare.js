@@ -192,9 +192,15 @@
     return tokenP;
   }
 
+  let windowStart = 0;
   function deadlineMs() {
     const n = Number(cfg().deadlineMs);
     return Number.isFinite(n) && n > 0 ? n : 8000;
+  }
+  function sharedStart() {
+    const now = Date.now();
+    if (!windowStart || now - windowStart > deadlineMs() + 250) windowStart = now;
+    return windowStart;
   }
   function within(started, work) {
     const left = Math.max(0, deadlineMs() - (Date.now() - started));
@@ -204,7 +210,7 @@
     return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
   }
   async function call(op, session, scores) {
-    const started = Date.now();
+    const started = sharedStart();
     const timerBox = { id: null };
     try {
       const c = cfg();
@@ -280,7 +286,7 @@
     try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
   }
   async function rawCall(op, session, scores) {
-    const started = Date.now();
+    const started = sharedStart();
     const timerBox = { id: null };
     try {
       const c = cfg();
