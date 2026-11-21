@@ -436,8 +436,12 @@ function home() {
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => {
-          if (window.DailyBoard && window.DailyBoard.beforeStart({ started: !!(s && s.scores.length) }) === false) return;
-          session = newSession(false); runNext();
+          const go = () => { session = newSession(false); runNext(); };
+          if (!window.DailyBoard) return go();
+          const gate = window.DailyBoard.beforeStart({ started: !!(s && s.scores.length) });
+          if (gate && typeof gate.then === "function") { gate.then(ok => { if (ok !== false) go(); }); return; }
+          if (gate === false) return;
+          go();
         } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
@@ -2110,7 +2114,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb2" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb3" }, tr("Privacy"))); }
 function g1Date(key) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
   const [y, m, d] = key.split("-").map(Number);

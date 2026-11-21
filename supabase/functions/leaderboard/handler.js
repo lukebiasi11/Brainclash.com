@@ -107,6 +107,7 @@ async function callDb(db, stage, name, args) {
 function opOf(pathname, method) {
   if (pathname.endsWith("/board") && method === "GET") return "board";
   if (pathname.endsWith("/post") && method === "POST") return "post";
+  if (pathname.endsWith("/check") && method === "POST") return "check";
   if (pathname.endsWith("/admin-list") && method === "POST") return "admin-list";
   if (pathname.endsWith("/rename") && method === "POST") return "rename";
   if (pathname.endsWith("/remove") && method === "POST") return "remove";
@@ -153,6 +154,19 @@ export function createBoardHandler(options = {}) {
       if (got.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (got.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
       return json(200, got.result, headers);
+    }
+    if (op === "check") {
+      if (body.eligible !== true) return json(400, { ok: false, error: "not_eligible" }, headers);
+      if (typeof body.name !== "string") return json(400, { ok: false, error: "invalid_input" }, headers);
+      const limited = await callDb(db, "board_consume_rate", "board_consume_rate", [null]);
+      if (limited.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+      if (limited.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
+      const checked = await callDb(db, "board_check_name", "board_check_name", [body.name]);
+      if (checked.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
+      if (checked.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
+      const result = checked.result || {};
+      if (result.ok !== true || result.skip === true || typeof result.name !== "string") return json(400, { ok: false, error: "name_rejected" }, headers);
+      return json(200, { ok: true, name: result.name }, headers);
     }
     if (op === "post") {
       if (!getClaims) return json(503, { ok: false, error: "not_configured" }, headers);

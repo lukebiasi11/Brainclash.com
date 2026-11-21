@@ -99,6 +99,8 @@
     "Display name (optional)": "Nombre para mostrar (opcional)",
     "This name is shown publicly. Use a nickname, not your full name.": "Este nombre se muestra públicamente. Usa un apodo, no tu nombre completo.",
     "That name can't be used. Try a different nickname, or play without a name.": "Ese nombre no se puede usar. Prueba con otro apodo, o juega sin un nombre.",
+    "Change name": "Cambiar nombre",
+    "Save name": "Guardar nombre",
     "Daily leaderboard": "Clasificación del día",
     "Rankings are for fun, with no prizes.": "Las clasificaciones son para divertirse, sin premios.",
     "Report a name": "Reportar un nombre",

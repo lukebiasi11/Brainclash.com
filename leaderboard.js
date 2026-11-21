@@ -10,8 +10,7 @@
   "use strict";
 
   const FLAG = "bc-board-eligible";
-  const PENDING = "bc-board-pending";
-  const NICK = "bc-board-nick";
+  const NAME = "bc-board-name";
   const STORAGE_PREFIX = "sb-board-";
   const SECTIONS = [
     ["overall", "Overall"],
@@ -72,28 +71,20 @@
     try { if (storage()) storage().setItem(FLAG, eligible ? "yes" : "no"); } catch (e) {}
     return { ok: true, eligible: eligible };
   }
-  function clearPending() {
-    try { if (storage()) storage().removeItem(PENDING); } catch (e) {}
-  }
-  function readPending() {
+  function readName() {
     try {
-      const raw = storage() && storage().getItem(PENDING);
-      const o = raw ? JSON.parse(raw) : null;
-      if (!o || typeof o.day !== "string" || typeof o.name !== "string") return null;
-      return { day: o.day, name: o.name };
-    } catch (e) { return null; }
+      const v = storage() && storage().getItem(NAME);
+      return typeof v === "string" ? v : "";
+    } catch (e) { return ""; }
   }
-  function writePending(day, name) {
-    try { if (storage()) storage().setItem(PENDING, JSON.stringify({ day: day, name: name })); } catch (e) {}
-  }
-  function readNick() {
-    try { return (storage() && storage().getItem(NICK)) || ""; } catch (e) { return ""; }
-  }
-  function writeNick(name) {
+  function writeName(name) {
     try {
-      if (!storage()) return;
-      if (name) storage().setItem(NICK, name);
-      else storage().removeItem(NICK);
+      const store = storage();
+      if (!store) return;
+      if (name) store.setItem(NAME, name);
+      else store.removeItem(NAME);
+      store.removeItem("bc-board-nick");
+      store.removeItem("bc-board-pending");
     } catch (e) {}
   }
   function todayKey() {
@@ -135,30 +126,73 @@
     p.textContent = tr("That name can't be used. Try a different nickname, or play without a name.");
   }
 
-  function beforeStart(opts) {
+  async function serverCheck(name) {
+    if (!enabled()) return { ok: false, reason: "network" };
+    try {
+      const c = cfg();
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      const res = await root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/check", {
+        method: "POST",
+        headers: { apikey: c.publishableKey, Authorization: "Bearer " + c.publishableKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, eligible: true }),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      clearTimeout(timer);
+      const body = await res.json();
+      if (res.ok && body && body.ok === true && typeof body.name === "string") return { ok: true, name: body.name };
+      if (body && body.error === "name_rejected") return { ok: false, reason: "name_rejected" };
+      return { ok: false, reason: "network" };
+    } catch (e) {
+      return { ok: false, reason: "network" };
+    }
+  }
+
+  async function acceptName(raw) {
+    const checked = filter() ? filter().checkName(raw) : { ok: false, reason: "chars" };
+    if (checked.skip) return { ok: true, skip: true };
+    if (!checked.ok) return { ok: false, reason: checked.reason || "chars" };
+    const server = await serverCheck(checked.name);
+    if (!server.ok) {
+      if (server.reason === "name_rejected") return { ok: false, reason: "name_rejected" };
+      return { ok: true };
+    }
+    writeName(server.name);
+    return { ok: true, name: server.name };
+  }
+
+  async function beforeStart(opts) {
     opts = opts || {};
     if (opts.started) return true;
     if (isTester(null)) return true;
-    if (readFlag() !== "yes") { clearPending(); return true; }
+    if (readFlag() !== "yes") return true;
     const scope = opts.root || root.document;
+    const editor = scope && scope.querySelector ? scope.querySelector("[data-board-editor]") : null;
+    const editing = editor && !editor.hidden;
     const input = opts.input || nameInput(scope);
-    if (!input) { clearPending(); return true; }
-    const checked = filter() ? filter().checkName(input.value) : { ok: false, reason: "chars" };
-    if (checked.skip) { clearPending(); writeNick(""); return true; }
-    if (!checked.ok) { showNameError(scope); return false; }
-    writeNick(checked.name);
-    writePending(opts.day || todayKey(), checked.name);
+    if (readName() && !editing) return true;
+    if (!input) return true;
+    const result = await acceptName(input.value);
+    if (result.skip) {
+      if (editing) writeName("");
+      return true;
+    }
+    if (!result.ok) { showNameError(scope); return false; }
     return true;
   }
 
   function decorate(cta, opts) {
     if (!cta || !root.document || !filter()) return;
     opts = opts || {};
-    if (opts.started) return;
     const flag = readFlag();
     if (flag === "no") return;
-    if (flag === "yes") cta.insertBefore(nameCard(), cta.firstChild);
-    else cta.insertBefore(yearCard(opts.refresh), cta.firstChild);
+    if (opts.started) {
+      if (flag === "yes" && readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
+      return;
+    }
+    if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh), cta.firstChild); return; }
+    if (readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
+    else cta.insertBefore(nameCard(), cta.firstChild);
   }
 
   function yearCard(refresh) {
@@ -204,7 +238,7 @@
       input, button, err);
   }
 
-  function nameCard() {
+  function nameFields(prefill) {
     const input = el("input", {
       class: "board-input",
       "data-board-name-input": "1",
@@ -214,13 +248,53 @@
       spellcheck: "false",
       "aria-describedby": "board-name-help"
     });
-    const nick = readNick();
-    if (nick && filter().checkName(nick).ok && !filter().checkName(nick).skip) input.value = nick;
+    if (prefill) input.value = prefill;
+    return {
+      input: input,
+      help: el("p", { class: "board-help", id: "board-name-help", text: tr("This name is shown publicly. Use a nickname, not your full name.") }),
+      err: el("p", { class: "board-error", "data-board-error": "1", hidden: "hidden" })
+    };
+  }
+
+  function nameCard() {
+    const fields = nameFields("");
     return el("div", { class: "board-ask", "data-board-name": "1" },
       el("label", { class: "board-label", text: tr("Display name (optional)") }),
-      input,
-      el("p", { class: "board-help", id: "board-name-help", text: tr("This name is shown publicly. Use a nickname, not your full name.") }),
-      el("p", { class: "board-error", "data-board-error": "1", hidden: "hidden" }));
+      fields.input, fields.help, fields.err);
+  }
+
+  function savedCard(refresh) {
+    const current = readName();
+    const shown = el("b", { "data-board-current": "1", text: current });
+    const change = el("button", { type: "button", class: "board-change", "data-board-change": "1" }, tr("Change name"));
+    const line = el("p", { class: "board-saved-line" }, shown, change);
+    const fields = nameFields(current);
+    const save = el("button", { type: "button", class: "btn board-save-change", "data-board-save": "1" }, tr("Save name"));
+    const editor = el("div", { "data-board-editor": "1", hidden: "hidden" }, fields.input, save, fields.help, fields.err);
+    change.addEventListener("click", () => {
+      fields.input.value = readName();
+      fields.err.hidden = true;
+      editor.hidden = false;
+    });
+    save.addEventListener("click", async () => {
+      const previous = readName();
+      const result = await acceptName(fields.input.value);
+      if (result.skip) { writeName(""); if (typeof refresh === "function") refresh(); return; }
+      if (!result.ok) {
+        writeName(previous);
+        shown.textContent = previous;
+        showNameError(editor.parentNode || editor);
+        return;
+      }
+      if (!result.name) return;
+      shown.textContent = result.name;
+      fields.err.hidden = true;
+      editor.hidden = true;
+    });
+    fields.input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); save.click(); }
+    });
+    return el("div", { class: "board-ask", "data-board-saved": "1" }, line, editor);
   }
 
   function section() {
@@ -356,12 +430,12 @@
 
   function noteFinish(session) {
     try {
-      if (!session || isTester(session) || shot() || readFlag() !== "yes") { clearPending(); return; }
-      const pending = readPending();
+      if (!session || isTester(session) || shot() || readFlag() !== "yes") return;
+      const name = readName();
       const scores = wireScores(session.scores);
-      if (!pending || pending.day !== session.key || !scores || !filter()) return;
-      const checked = filter().checkName(pending.name);
-      if (!checked.ok || checked.skip) { clearPending(); return; }
+      if (!name || !scores || !filter()) return;
+      const checked = filter().checkName(name);
+      if (!checked.ok || checked.skip) return;
       send(session.key, checked.name, scores);
     } catch (e) {}
   }
@@ -390,8 +464,10 @@
     section: section,
     paint: paint,
     noteFinish: noteFinish,
-    clearPending: clearPending,
-    readPending: readPending,
+    readName: readName,
+    writeName: writeName,
+    acceptName: acceptName,
+    nameKey: NAME,
     flagKey: FLAG
   };
 });

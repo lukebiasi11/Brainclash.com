@@ -52,8 +52,8 @@ async function evalJson(cdp, expression) { const r = await cdp.send("Runtime.eva
         const title = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === ${JSON.stringify(want)}) resolve(t.textContent); else if (Date.now()-start>8000) resolve(t && t.textContent); else setTimeout(tick, 40); }; tick(); })`);
         if (title !== want) throw new Error("title " + lang + " " + title);
         const text = await evalJson(cdp, "document.querySelector('.privacy-card').innerText");
-        if (lang === "en" && (!text.includes("GO_LIVE_DATE_TBD") || !text.includes("We ask your birth year once") || !text.includes("We may remove or change nicknames") || text.includes("Rankings are for fun") || text.includes("November 9, 2026"))) throw new Error("en notice " + text.slice(0, 200));
-        if (lang === "es" && (!text.includes("GO_LIVE_DATE_TBD") || !text.includes("Te pedimos tu año de nacimiento una vez") || !text.includes("Podemos quitar o cambiar apodos") || text.includes("sin premios"))) throw new Error("es notice " + text.slice(0, 200));
+        if (lang === "en" && (!text.includes("Last updated: November 22, 2026") || !text.includes("We ask your birth year once") || !text.includes("We may remove or change nicknames") || text.includes("Rankings are for fun") || text.includes("November 9, 2026") || text.includes("GO_LIVE_DATE_TBD"))) throw new Error("en notice " + text.slice(0, 240));
+        if (lang === "es" && (!text.includes("Última actualización: 22 de noviembre de 2026") || !text.includes("Te pedimos tu año de nacimiento una vez") || !text.includes("Podemos quitar o cambiar apodos") || text.includes("sin premios") || text.includes("GO_LIVE_DATE_TBD"))) throw new Error("es notice " + text.slice(0, 240));
         const view = await cdp.send("Page.captureScreenshot", { format: "png" });
         fs.writeFileSync(path.join(OUT, "privacy-" + lang + "-" + width + ".png"), Buffer.from(view.data, "base64"));
         const height = await evalJson(cdp, "Math.ceil(document.documentElement.scrollHeight)");
