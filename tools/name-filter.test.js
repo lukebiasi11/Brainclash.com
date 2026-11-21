@@ -148,6 +148,14 @@ t("no name highlights nothing", Board.isOwnRow(tie[0], entry, "", day) === false
 t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico", score: 1 }, entry, "Luna", day) === true && Board.isOwnRow({ token: "nope", name: "Luna", score: 100 }, entry, "Luna", day) === false);
 const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
 t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
+t("Nov 21 fifth tab is Brain Teaser", Board.fifthName("2026-11-21") === "Brain Teaser");
+t("Nov 22 fifth tab is Eagle Eye", Board.fifthName("2026-11-22") === "Eagle Eye");
+const esMap = require(path.join(root, "i18n.js")).ES;
+t("es Nov 21 label", esMap["Brain Teaser"] === "Rompecocos");
+t("es Nov 22 label", esMap["Eagle Eye"] === "Ojo de Águila");
+global.EagleEye = { on: (key) => key === "2099-01-01" };
+t("fifth tab uses EagleEye.on", Board.fifthName("2099-01-01") === "Eagle Eye" && Board.fifthName("2026-11-22") === "Brain Teaser");
+delete global.EagleEye;
 
 (async () => {
   global.LEADERBOARD_ENABLED = true;

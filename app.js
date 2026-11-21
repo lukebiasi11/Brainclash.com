@@ -2587,6 +2587,7 @@ function results() {
   app.classList.remove("enter");
   app.innerHTML = ""; window.scrollTo(0, 0);
   const share = shareText(); // ends with SITE_URL
+  const foot = resultsNickFoot();
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
     h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
@@ -2594,8 +2595,8 @@ function results() {
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
       h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
-      h("button", { class: "btn", onclick: home }, tr("Home"))),
-    resultsNickFoot());
+      h("button", { class: "btn", onclick: home }, tr("Home"))));
+  if (foot) app.append(foot);
   countUp($("#finalnum"), tot, 1600);
   setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
 }

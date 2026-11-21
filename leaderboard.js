@@ -21,6 +21,13 @@
     ["word", "Word Nerd"],
     ["think", "Brain Teaser"]
   ];
+  // Same gate as eagle-eye.js EagleEye.on / FROM "2026-11-22". Slot id stays think.
+  function fifthName(day) {
+    const eagle = root.EagleEye && typeof root.EagleEye.on === "function"
+      ? root.EagleEye.on(day)
+      : (typeof day === "string" && day >= "2026-11-22");
+    return eagle ? "Eagle Eye" : "Brain Teaser";
+  }
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
   let clientP = null;
   let tokenP = null;
@@ -351,7 +358,7 @@
     let current = "overall";
     SECTIONS.forEach(pair => {
       const id = pair[0];
-      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(pair[1]) });
+      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(id === "think" ? fifthName(todayKey()) : pair[1]) });
       button.addEventListener("click", () => {
         current = id;
         Array.prototype.forEach.call(tabs.querySelectorAll(".board-tab"), tab => {
@@ -363,7 +370,12 @@
       });
       tabs.append(button);
     });
-    const refresh = () => { if (host.isConnected) load(host, host.getAttribute("data-board-current") || "overall"); };
+    const refresh = () => {
+      if (!host.isConnected) return;
+      const think = host.querySelector("[data-board-section=think]");
+      if (think) think.textContent = tr(fifthName(todayKey()));
+      load(host, host.getAttribute("data-board-current") || "overall");
+    };
     if (root.document && root.document.addEventListener) {
       root.document.addEventListener("visibilitychange", () => {
         if (root.document.visibilityState === "visible") refresh();
@@ -591,6 +603,7 @@
     acceptName: acceptName,
     nameKey: NAME,
     flagKey: FLAG,
+    fifthName: fifthName,
     isOwnRow: isOwnRow,
     rankFromRows: rankFromRows,
     rankPhrase: rankPhrase,
