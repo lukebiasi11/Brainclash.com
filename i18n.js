@@ -102,6 +102,7 @@
     "That name can't be used. Try a different nickname, or play without a name.": "Ese nombre no se puede usar. Prueba con otro apodo, o juega sin un nombre.",
     "Change name": "Cambiar nombre",
     "Save name": "Guardar nombre",
+    "(you)": "(tú)",
     "Daily leaderboard": "Clasificación del día",
     "Rankings are for fun, with no prizes.": "Las clasificaciones son para divertirse, sin premios.",
     "Report a name": "Reportar un nombre",

@@ -1191,6 +1191,8 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .board-note{margin-bottom:8px}
 .board-rows{list-style:none;margin:0;padding:0}
 .board-row{display:grid;grid-template-columns:2.4rem minmax(0,1fr) auto;gap:8px;align-items:center;min-height:44px;border-top:1px solid #120B2E33}
+.board-row.you{font-weight:800;background:rgba(232,119,74,.18);outline:2px solid #E8774A;outline-offset:-2px}
+.board-row.you .board-name{font-weight:800}
 .board-row:first-child{border-top:0}
 .board-rank,.board-score{font-weight:800}
 .board-name{overflow-wrap:anywhere}

@@ -2573,7 +2573,6 @@ function results() {
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
     h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
     bcGraphs(),
-    h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
       h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),

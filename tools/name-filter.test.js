@@ -121,6 +121,14 @@ t("only yes or no is written", /setItem\(FLAG, eligible \? "yes" : "no"\)/.test(
 t("the saved name is one key", lb.includes('const NAME = "bc-board-name"') && /writeName\(server\.name\)/.test(lb) && !/setItem\("bc-board-pending"|setItem\("bc-board-nick"/.test(lb));
 const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");
 t("rankings stay off the notice", !privacy.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "docs/privacy-notice-draft.md"), "utf8").split("## English")[1].includes("Rankings are for fun"));
+const day = "2026-11-21";
+const entry = { day: day, token: "own" };
+const tie = [{ token: "own", name: "Luna", score: 100 }, { token: "other", name: "Nico", score: 100 }];
+t("a tie highlights only the saved entry", Board.isOwnRow(tie[0], entry, "Luna", day) === true && Board.isOwnRow(tie[1], entry, "Luna", day) === false);
+const dup = [{ token: "other", name: "Luna", score: 100 }, { token: "own", name: "Luna", score: 90 }];
+t("a duplicate name highlights only the saved entry", Board.isOwnRow(dup[0], entry, "Luna", day) === false && Board.isOwnRow(dup[1], entry, "Luna", day) === true);
+t("no name highlights nothing", Board.isOwnRow(tie[0], entry, "", day) === false && Board.isOwnRow(tie[0], null, "Luna", day) === false);
+t("own row ignores score and name", Board.isOwnRow({ token: "own", name: "Nico", score: 1 }, entry, "Luna", day) === true && Board.isOwnRow({ token: "nope", name: "Luna", score: 100 }, entry, "Luna", day) === false);
 
 assert.ok;
 console.log(bad ? bad + " failures" : "name-filter.test.js: all pass");

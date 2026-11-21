@@ -39,7 +39,7 @@ t("spaced profanity rejected", post(uidB, today, "f u c k").reason === "profanit
 const jose = post(uidB, today, "José");
 t("accented nickname posts", jose.ok === true, JSON.stringify(jose));
 const rows = board(today, "overall");
-t("public board is names and scores", rows.served === true && rows.rows.length === 2 && rows.rows.every(r => r.name && typeof r.score === "number" && !r.id && !r.auth_uid));
+t("public board is names and scores", rows.served === true && rows.rows.length === 2 && rows.rows.every(r => r.name && typeof r.score === "number" && !r.id && !r.auth_uid && typeof r.token === "string" && r.token.length > 10));
 t("section score is that category", board(today, "world").rows.find(r => r.name === "Luna").score === 400);
 const oldDay = q(`select ('${today}'::date - 31)::text`);
 const edgeDay = q(`select ('${today}'::date - 30)::text`);

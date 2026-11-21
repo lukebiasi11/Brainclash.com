@@ -11,6 +11,7 @@
 
   const FLAG = "bc-board-eligible";
   const NAME = "bc-board-name";
+  const ENTRY = "bc-board-entry";
   const STORAGE_PREFIX = "sb-board-";
   const SECTIONS = [
     ["overall", "Overall"],
@@ -76,6 +77,24 @@
       const v = storage() && storage().getItem(NAME);
       return typeof v === "string" ? v : "";
     } catch (e) { return ""; }
+  }
+  function readEntry() {
+    try {
+      const raw = storage() && storage().getItem(ENTRY);
+      const o = raw ? JSON.parse(raw) : null;
+      if (!o || typeof o.day !== "string" || typeof o.token !== "string" || !o.token) return null;
+      return { day: o.day, token: o.token };
+    } catch (e) { return null; }
+  }
+  function writeEntry(day, token) {
+    try {
+      if (storage() && day && token) storage().setItem(ENTRY, JSON.stringify({ day: day, token: token }));
+    } catch (e) {}
+  }
+  function isOwnRow(row, entry, name, day) {
+    if (!name || !entry || !row || !day) return false;
+    if (entry.day !== day || typeof entry.token !== "string" || !entry.token) return false;
+    return typeof row.token === "string" && row.token === entry.token;
   }
   function writeName(name) {
     try {
@@ -352,12 +371,17 @@
     }
     empty.hidden = true;
     empty.textContent = "";
+    const mineName = readName();
+    const mineEntry = readEntry();
+    const day = todayKey();
     rows.forEach(row => {
       const score = Number(row.score);
-      const item = el("li", { class: "board-row" },
+      const mine = isOwnRow(row, mineEntry, mineName, day);
+      const item = el("li", { class: "board-row" + (mine ? " you" : ""), "aria-current": mine ? "true" : false },
         el("span", { class: "board-rank", text: String(row.rank || "") }),
         el("span", { class: "board-name", text: String(row.name || "") }),
         el("span", { class: "board-score", text: Number.isFinite(score) ? score.toLocaleString() : "" }));
+      if (mine) item.append(el("span", { class: "sr-only", text: tr("(you)") }));
       list.append(item);
     });
   }
@@ -451,7 +475,12 @@
         headers: { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" },
         body: JSON.stringify({ day: day, name: name, scores: scores, eligible: true }),
         signal: ctrl ? ctrl.signal : undefined
-      }).then(() => { clearTimeout(timer); }, () => { clearTimeout(timer); });
+      }).then(async (res) => {
+        clearTimeout(timer);
+        let body = {};
+        try { body = await res.json(); } catch (e) { body = {}; }
+        if (body && typeof body.token === "string" && body.token) writeEntry(day, body.token);
+      }, () => { clearTimeout(timer); });
     }).catch(() => {});
   }
 
@@ -468,6 +497,8 @@
     writeName: writeName,
     acceptName: acceptName,
     nameKey: NAME,
-    flagKey: FLAG
+    flagKey: FLAG,
+    isOwnRow: isOwnRow,
+    entryKey: ENTRY
   };
 });

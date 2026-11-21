@@ -331,12 +331,13 @@ begin
       set display_name = v_clean, scores = p_scores, total = v_total
       where id = v_row.id;
     perform private.board_add_agg(p_day, 0, v_total - v_row.total, v_delta);
-    return jsonb_build_object('ok', true, 'idempotent', true, 'total', v_total);
+    return jsonb_build_object('ok', true, 'idempotent', true, 'total', v_total, 'token', v_row.id);
   end if;
   insert into private.board_post (day_key, auth_uid, display_name, scores, total)
-  values (p_day, p_uid, v_clean, p_scores, v_total);
+  values (p_day, p_uid, v_clean, p_scores, v_total)
+  returning id into v_row.id;
   perform private.board_add_agg(p_day, 1, v_total, p_scores);
-  return jsonb_build_object('ok', true, 'idempotent', false, 'total', v_total);
+  return jsonb_build_object('ok', true, 'idempotent', false, 'total', v_total, 'token', v_row.id);
 end;
 $$;
 
@@ -358,10 +359,10 @@ begin
   if p_day is null or p_day > v_today or p_day < v_today - 30 then
     return jsonb_build_object('ok', true, 'served', false, 'day', p_day, 'section', v_section, 'rows', '[]'::jsonb);
   end if;
-  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'score', score) order by place), '[]'::jsonb)
+  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'score', score, 'token', id) order by place), '[]'::jsonb)
     into v_rows
   from (
-    select display_name,
+    select id, display_name,
       case v_section
         when 'world' then scores[1]
         when 'history' then scores[2]
@@ -388,7 +389,7 @@ begin
       and display_name is not null
       and removed_at is null
       and name_hidden_at is null
-    order by 2 desc, display_name asc, id asc
+    order by score desc, display_name asc, id asc
     limit 100
   ) q;
   return jsonb_build_object('ok', true, 'served', true, 'day', p_day, 'section', v_section, 'rows', v_rows);
