@@ -73,6 +73,22 @@ async function evalJson(cdp, expression) { const r = await cdp.send("Runtime.eva
     }; tick(); })`);
     const namedFoot = await evalJson(named, `({ nick: !!document.querySelector('[data-results-nick]'), nulls: [...document.querySelectorAll('#app *')].filter(el => el.childNodes.length === 1 && el.childNodes[0].nodeType === 3 && el.textContent.trim() === 'null').map(el => el.className) })`);
     if (!namedInfo.order || namedInfo.note.indexOf("Rankings are for fun") < 0 || !namedInfo.report || namedInfo.yous !== 1 || namedInfo.see || namedInfo.off || namedInfo.rank.indexOf("Rank #2 of 2 today") < 0 || namedFoot.nick || namedFoot.nulls.length) fail("results board with a name", { namedInfo, namedFoot }); else pass("results board highlights only the saved entry");
+    const shared = await evalJson(named, `new Promise(resolve => { document.querySelector('[data-action=share-results]').click(); const start = Date.now(); const tick = () => { const t = (document.querySelector('pre.share') || {}).textContent || ''; if (t.indexOf('Rank #2 of 2 today') >= 0) resolve(t); else if (Date.now()-start>3000) resolve(t); else setTimeout(tick, 40); }; tick(); })`);
+    if (shared.indexOf("Rank #2 of 2 today") < 0) fail("share reads the rank when tapped", shared); else pass("share reads the rank when tapped");
+    const refreshed = await evalJson(named, `new Promise(resolve => {
+      window.LEADERBOARD_FIXTURE = { overall: { served: true, rows: [{ rank: 1, name: "Zoe", score: 100, token: "z" }] }, world: { served: true, rows: [] } };
+      document.dispatchEvent(new Event("visibilitychange"));
+      window.dispatchEvent(new Event("pageshow"));
+      const start = Date.now();
+      const tick = () => {
+        const names = [...document.querySelectorAll("#app .board-name")].map(el => el.textContent);
+        if (names.indexOf("Zoe") >= 0 && names.indexOf("Luna") < 0) resolve(names);
+        else if (Date.now()-start>4000) resolve(names);
+        else setTimeout(tick, 40);
+      };
+      tick();
+    })`);
+    if (!refreshed || refreshed.indexOf("Zoe") < 0 || refreshed.indexOf("Luna") >= 0) fail("board refreshes on revisit", refreshed); else pass("board refreshes on revisit");
     await fetch("http://127.0.0.1:" + port + "/json/close/" + named.id).catch(() => {});
 
     const anon = await results("localStorage.setItem('bc-board-eligible','yes');");
