@@ -32,7 +32,25 @@
     return { loc: loc, boot: boot };
   }
 
+  function under13() {
+    try { return root.localStorage && root.localStorage.getItem("bc-board-eligible") === "no"; } catch (e) { return false; }
+  }
+  function forget() {
+    clientP = null;
+    tokenP = null;
+    try {
+      const store = root.localStorage;
+      if (!store) return;
+      const drop = [];
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        if (k && k.indexOf(STORAGE_PREFIX) === 0) drop.push(k);
+      }
+      drop.forEach(k => store.removeItem(k));
+    } catch (e) {}
+  }
   function blocked(session, extra) {
+    if (under13()) { forget(); return "under13"; }
     if (root.FIELD_COMPARE_ENABLED !== true) return "flag";
     const c = cfg();
     if (!c.url || !c.publishableKey) return "config";
@@ -158,6 +176,7 @@
   }
 
   function tokenFor() {
+    if (under13()) return Promise.reject(new Error("under13"));
     if (tokenP) return tokenP;
     tokenP = (async () => {
       const supabase = await clientFor();
@@ -328,6 +347,7 @@
     scoreBin: scoreBin,
     categoryBin: categoryBin,
     wireScores: wireScores,
+    forget: forget,
     fieldStorage: fieldStorage,
     storagePrefix: STORAGE_PREFIX
   };

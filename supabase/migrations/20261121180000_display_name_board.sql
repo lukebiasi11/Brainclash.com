@@ -141,7 +141,7 @@ create table private.board_post (
   check (total = scores[1] + scores[2] + scores[3] + scores[4] + scores[5])
 );
 alter table private.board_post enable row level security;
-create index board_post_day_idx on private.board_post (day_key) where display_name is not null;
+create index board_post_day_idx on private.board_post (day_key);
 
 create table private.board_agg (
   day_key date primary key,
@@ -298,19 +298,24 @@ begin
   if not private.board_scores_ok(p_scores) then
     return jsonb_build_object('ok', false, 'error', 'scores');
   end if;
-  v_name := private.board_name_status(p_name);
-  if coalesce((v_name ->> 'ok')::boolean, false) is not true then
-    return jsonb_build_object('ok', false, 'error', 'name_rejected', 'reason', v_name ->> 'reason');
+  if p_name is null or btrim(p_name) = '' then
+    v_clean := null;
+  else
+    v_name := private.board_name_status(p_name);
+    if coalesce((v_name ->> 'ok')::boolean, false) is not true
+       or coalesce((v_name ->> 'skip')::boolean, false) then
+      return jsonb_build_object('ok', false, 'error', 'name_rejected', 'reason', coalesce(v_name ->> 'reason', 'chars'));
+    end if;
+    v_clean := v_name ->> 'name';
   end if;
-  if coalesce((v_name ->> 'skip')::boolean, false) then
-    return jsonb_build_object('ok', false, 'error', 'name_required');
-  end if;
-  v_clean := v_name ->> 'name';
   v_total := p_scores[1] + p_scores[2] + p_scores[3] + p_scores[4] + p_scores[5];
   select * into v_row from private.board_post where day_key = p_day and auth_uid = p_uid;
   if v_row.id is not null then
-    if v_row.display_name is null or v_row.removed_at is not null or v_row.name_hidden_at is not null then
+    if v_row.removed_at is not null or v_row.name_hidden_at is not null then
       return jsonb_build_object('ok', true, 'hidden', true);
+    end if;
+    if v_clean is null then
+      v_clean := v_row.display_name;
     end if;
     v_delta := array[
       p_scores[1] - v_row.scores[1],
@@ -378,7 +383,6 @@ begin
       ) as place
     from private.board_post
     where day_key = p_day
-      and display_name is not null
       and removed_at is null
       and name_hidden_at is null
     order by score desc, display_name asc, id asc
@@ -406,7 +410,7 @@ begin
   ) order by total desc, display_name asc), '[]'::jsonb)
     into v_rows
   from private.board_post
-  where day_key = p_day and display_name is not null and removed_at is null and name_hidden_at is null;
+  where day_key = p_day and removed_at is null and name_hidden_at is null;
   return jsonb_build_object('ok', true, 'day', p_day, 'rows', v_rows);
 end;
 $$;
@@ -431,7 +435,7 @@ begin
   v_clean := v_name ->> 'name';
   update private.board_post
     set display_name = v_clean
-    where id = p_id and display_name is not null and removed_at is null and name_hidden_at is null;
+    where id = p_id and removed_at is null and name_hidden_at is null;
   if not found then
     return jsonb_build_object('ok', false, 'error', 'not_found');
   end if;
@@ -451,7 +455,7 @@ begin
   end if;
   update private.board_post
     set display_name = null, removed_at = now()
-    where id = p_id and display_name is not null and removed_at is null and name_hidden_at is null;
+    where id = p_id and removed_at is null and name_hidden_at is null;
   if not found then
     return jsonb_build_object('ok', false, 'error', 'not_found');
   end if;

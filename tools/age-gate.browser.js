@@ -92,10 +92,10 @@ const hook = `(() => {
     await cdp.send("Network.enable");
     await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: hook + "localStorage.clear(); sessionStorage.clear();" });
     await cdp.send("Page.navigate", { url: origin + "/index.html?lbshot=1" });
-    const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.getElementById('board-year')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
+    const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const b = document.querySelector('.cta .btn.primary'); if (b && !document.getElementById('board-year')) b.click(); if (document.getElementById('board-year') && document.querySelector('[role=dialog]')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
     if (!ready) throw new Error("age gate did not render");
-    const shape = await evalJson(cdp, `(() => { const gate = document.querySelector('[data-board-gate]'); const input = document.getElementById('board-year'); return { tag: gate.tagName, form: !!(gate.closest && gate.closest('form')), type: input.type, mode: input.getAttribute('inputmode'), auto: input.getAttribute('autocomplete'), readOnly: input.readOnly }; })()`);
-    if (shape.tag !== "DIV" || shape.form || shape.type !== "text" || shape.mode !== "numeric" || shape.auto !== "off") fail("year control", shape); else pass("year control is a numeric text field outside a form");
+    const shape = await evalJson(cdp, `(() => { const gate = document.querySelector('[role=dialog]'); const input = document.getElementById('board-year'); return { tag: gate.tagName, role: gate.getAttribute('role'), modal: gate.getAttribute('aria-modal'), labelled: !!document.getElementById(gate.getAttribute('aria-labelledby')), form: !!(input.closest && input.closest('form')), type: input.type, mode: input.getAttribute('inputmode'), auto: input.getAttribute('autocomplete'), readOnly: input.readOnly, homeCard: !!document.querySelector('.cta [data-board-gate]') }; })()`);
+    if (shape.tag !== "DIV" || shape.role !== "dialog" || shape.modal !== "true" || !shape.labelled || shape.form || shape.type !== "text" || shape.mode !== "numeric" || shape.auto !== "off" || shape.homeCard) fail("year control", shape); else pass("year control is a numeric text field outside a form");
     await evalJson(cdp, `(() => { const input = document.getElementById('board-year'); input.readOnly = false; input.value = ${JSON.stringify(YEAR)}; document.querySelector('.board-year-go').click(); })()`);
     await evalJson(cdp, "new Promise(r => setTimeout(r, 400))");
     const stored = await evalJson(cdp, `(() => {
@@ -116,7 +116,7 @@ const hook = `(() => {
     if (offHost.some(r => String(r.url).includes(YEAR) || String(r.body).includes(YEAR))) fail("off-host year", offHost); else pass("no off-host request carries the year");
     await fetch("http://127.0.0.1:" + port + "/json/close/" + created.id).catch(() => {});
 
-    async function openSeed(source) {
+    async function openSeed(source, search) {
       const createdRes2 = await fetch("http://127.0.0.1:" + port + "/json/new?" + encodeURIComponent("about:blank"), { method: "PUT" });
       const created2 = JSON.parse(await createdRes2.text());
       const page = new CDP(await wsOpen(created2.webSocketDebuggerUrl));
@@ -124,7 +124,7 @@ const hook = `(() => {
       await page.send("Runtime.enable");
       await page.send("Network.enable");
       await page.send("Page.addScriptToEvaluateOnNewDocument", { source: source });
-      await page.send("Page.navigate", { url: origin + "/index.html?lbshot=1" });
+      await page.send("Page.navigate", { url: origin + "/index.html?lbshot=1" + (search || "") });
       const ok = await evalJson(page, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelector('.cta .btn.primary')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
       if (!ok) throw new Error("home did not render");
       return page;
@@ -146,8 +146,14 @@ const hook = `(() => {
     if (underInfo.name || underInfo.saved || underInfo.change || underInfo.gate || underInfo.text !== "Leaderboard names aren't available on this device. You can still play!" || !underInfo.underStart || underInfo.mentionsAge) fail("under 13 name ui", underInfo); else pass("under 13 never sees a name or change control");
 
     const skip = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes');");
-    const skipState = await evalJson(skip, `(async () => { document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 200)); return { game: document.body.classList.contains('in-game'), keys: ${keysOf} }; })()`);
-    if (!skipState.game || JSON.stringify(skipState.keys) !== JSON.stringify(["bc-board-eligible=yes"])) fail("skip stores only the flag", skipState); else pass("skip keeps today's behaviour and stores no name");
+    const waiting = await evalJson(skip, `(async () => { document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 80)); return { game: document.body.classList.contains('in-game'), timer: !!document.querySelector('.timer'), dialog: !!document.querySelector('[role=dialog][data-board-name]') }; })()`);
+    if (waiting.game || waiting.timer || !waiting.dialog) fail("timer waits for the modal", waiting); else pass("timer does not start while the name modal is open");
+    await evalJson(skip, `document.querySelector('[data-board-skip]').click()`);
+    const skipState = await evalJson(skip, `new Promise(resolve => { const start = Date.now(); const tick = () => { const keys = ${keysOf}; if (document.body.classList.contains('in-game')) resolve({ game: true, keys }); else if (Date.now()-start>4000) resolve({ game: false, keys }); else setTimeout(tick, 40); }; tick(); })`);
+    if (!skipState.game || skipState.keys.indexOf("bc-board-name-skip=1") < 0 || skipState.keys.indexOf("bc-board-name=") >= 0) fail("play without a name is remembered", skipState); else pass("play without a name is remembered");
+    const again = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes'); localStorage.setItem('bc-board-name-skip','1');");
+    const againInfo = await evalJson(again, `({ add: (document.querySelector('[data-board-add]')||{}).textContent || '', dialog: !!document.querySelector('[role=dialog]'), gate: !!document.querySelector('.cta [data-board-gate]') })`);
+    if (againInfo.add !== "Add a name" || againInfo.dialog || againInfo.gate) fail("skip is not asked again", againInfo); else pass("a skipped name is not asked again");
 
     const back = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes'); localStorage.setItem('bc-board-name','Luna'); " + checkMock);
     const backInfo = await evalJson(back, `(async () => { const used = await window.DailyBoard.beforeStart({ started: false }); return { gate: !!document.querySelector('[data-board-gate]'), entry: !!document.querySelector('[data-board-name]'), saved: (document.querySelector('[data-board-current]')||{}).textContent || '', change: !!document.querySelector('[data-board-change]'), used, stored: localStorage.getItem('bc-board-name') }; })()`);
@@ -160,7 +166,51 @@ const hook = `(() => {
     if (serverNo.name !== "Luna" || serverNo.stored !== "Luna") fail("server rejected change", serverNo); else pass("a server rejection keeps the old name");
     await evalJson(back, `(async () => { document.querySelector('[data-board-name-input]').value = 'Nico'; document.querySelector('[data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); })()`);
     const accepted = await evalJson(back, `({ name: (document.querySelector('[data-board-current]')||{}).textContent, stored: localStorage.getItem('bc-board-name'), gate: !!document.querySelector('[data-board-gate]'), keys: ${keysOf} })`);
-    if (accepted.name !== "Nico" || accepted.stored !== "Nico" || accepted.gate || JSON.stringify(accepted.keys) !== JSON.stringify(["bc-board-eligible=yes", "bc-board-name=Nico"])) fail("accepted change", accepted); else pass("an accepted change replaces only the current name");
+    if (accepted.name !== "Nico" || accepted.stored !== "Nico" || accepted.gate || accepted.keys.indexOf("bc-board-name=Nico") < 0 || accepted.keys.indexOf("bc-board-name-skip=") >= 0) fail("accepted change", accepted); else pass("an accepted change replaces only the current name");
+
+    const trap = await openSeed("localStorage.clear();");
+    const trapInfo = await evalJson(trap, `(async () => {
+      document.querySelector('.cta .btn.primary').click();
+      await new Promise(r => setTimeout(r, 60));
+      const dialog = document.querySelector('[role=dialog]');
+      const list = [...dialog.querySelectorAll('button, input')].filter(el => !el.disabled);
+      list[list.length - 1].focus();
+      const last = document.activeElement;
+      last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+      const wrapped = document.activeElement === list[0];
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await new Promise(r => setTimeout(r, 80));
+      return { inside: dialog.contains(last), wrapped, role: dialog.getAttribute('role'), game: document.body.classList.contains('in-game'), flag: localStorage.getItem('bc-board-eligible'), skip: localStorage.getItem('bc-board-name-skip'), dialogGone: !document.querySelector('[role=dialog]') };
+    })()`);
+    if (!trapInfo.inside || !trapInfo.wrapped || trapInfo.role !== "dialog" || !trapInfo.game || trapInfo.flag || trapInfo.skip || !trapInfo.dialogGone) fail("focus trap and age dismiss", trapInfo); else pass("focus stays in the dialog and age dismiss stores nothing");
+
+    const practice = await openSeed("localStorage.clear();");
+    const practiceInfo = await evalJson(practice, `(async () => { document.querySelector('.btn.ghost').click(); await new Promise(r => setTimeout(r, 80)); return { dialog: !!document.querySelector('[role=dialog]'), game: document.body.classList.contains('in-game') }; })()`);
+    if (practiceInfo.dialog || !practiceInfo.game) fail("practice bypass", practiceInfo); else pass("practice never shows the modal");
+
+    const above = await openSeed("localStorage.clear();", "&nameflow=above");
+    const aboveInfo = await evalJson(above, `(() => { const card = document.querySelector('.cta [data-board-gate]'); const start = document.querySelector('.cta .btn.primary'); const dialog = document.querySelector('[role=dialog]'); return { card: !!card, above: !!(card && start && card.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING), dialog: !!dialog }; })()`);
+    if (!aboveInfo.card || !aboveInfo.above || aboveInfo.dialog) fail("above card", aboveInfo); else pass("above flow puts the year card over Start");
+
+    const kid = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','no'); localStorage.setItem('sb-field-auth','{\"access_token\":\"secret-user\"}'); localStorage.setItem('sb-board-auth','{\"access_token\":\"secret-user\"}'); localStorage.setItem('dg-2020-01-01','{\"key\":\"2020-01-01\",\"practice\":false,\"scores\":[1,2,3,4,5],\"details\":[]}'); window.__net=[]; const orig = window.fetch; window.fetch = function(u){ window.__net.push(String(u)); return Promise.resolve({ ok: true, status: 200, text: function(){ return Promise.resolve('{}'); }, json: function(){ return Promise.resolve({}); } }); };");
+    const kidInfo = await evalJson(kid, `(async () => {
+      const before = localStorage.getItem('dg-2020-01-01');
+      document.querySelector('.cta .btn.primary').click();
+      await new Promise(r => setTimeout(r, 50));
+      const day = window.BCDaily.todayKey();
+      try { await window.FieldCompare.onFinish({ key: day, practice: false, scores: [1,1,1,1,1] }); } catch (e) {}
+      try { window.DailyBoard.noteFinish({ key: day, practice: false, scores: [1,1,1,1,1] }); } catch (e) {}
+      await new Promise(r => setTimeout(r, 40));
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+      return { before: !!before, after: localStorage.getItem('dg-2020-01-01') === before, session: keys.filter(k => k && k.indexOf('sb-') === 0), net: window.__net || [], game: document.body.classList.contains('in-game') };
+    })()`);
+    const badNet = (kidInfo.net || []).filter(url => /field-compare|leaderboard\/post|signIn|grant_type|secret-user/.test(url));
+    if (!kidInfo.before || !kidInfo.after || kidInfo.session.length || badNet.length || !kidInfo.game) fail("under 13 sends no id", { kidInfo, badNet }); else pass("under 13 sends no id and keeps local results");
+
+    const blockedName = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','yes');");
+    const blockedInfo = await evalJson(blockedName, `(async () => { document.querySelector('.cta .btn.primary').click(); await new Promise(r => setTimeout(r, 40)); const input = document.querySelector('[role=dialog] [data-board-name-input]'); input.value = 'admin'; document.querySelector('[role=dialog] [data-board-save]').click(); await new Promise(r => setTimeout(r, 40)); const err = document.querySelector('[role=dialog] [data-board-error]'); return { text: err ? err.textContent : '', hidden: !err || err.hidden, game: document.body.classList.contains('in-game') }; })()`);
+    if (!blockedInfo.text || blockedInfo.hidden || blockedInfo.game) fail("blocked name stays in the modal", blockedInfo); else pass("blocked name stays in the modal");
 
     console.log(bad ? bad + " failures" : "age-gate.browser.js: all pass");
   } finally {

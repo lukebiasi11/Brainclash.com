@@ -42,7 +42,7 @@
   }
   function rowView(row) {
     const box = node("div", { class: "nrow", "data-board-id": row.id });
-    const title = node("b", null, (row.name || "") + " · " + Number(row.score || 0).toLocaleString());
+    const title = node("b", null, (row.name ? row.name : tr("Anonymous")) + " · " + Number(row.score || 0).toLocaleString());
     const input = node("input", { type: "text", maxlength: "20", "aria-label": tr("New nickname"), autocomplete: "off" });
     input.value = row.name || "";
     const rename = node("button", { type: "button", class: "ok" }, tr("Rename"));

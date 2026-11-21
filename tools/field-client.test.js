@@ -54,6 +54,10 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   });
 
   ok("practice blocked", FC.blocked(liveSession({ practice: true })) === "practice");
+  const prevStore = global.localStorage;
+  global.localStorage = { getItem: (k) => k === "bc-board-eligible" ? "no" : null, setItem() {}, removeItem() {}, key() { return null; }, get length() { return 0; } };
+  ok("under 13 blocks field calls", FC.blocked(liveSession({ practice: false })) === "under13");
+  global.localStorage = prevStore;
   ok("preview blocked", FC.blocked(liveSession(), { location: { pathname: "/index.html", search: "?preview=2026-11-01" } }) === "preview");
   ok("admin path blocked", FC.blocked(liveSession(), { location: { pathname: "/admin.html", search: "" }, boot: false }) === "admin");
   ok("admin boot blocked", FC.blocked(liveSession(), { location: { pathname: "/index.html", search: "" }, boot: true }) === "admin");
@@ -202,7 +206,8 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "Players under 13 can't post a nickname or appear on a leaderboard.",
     "We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.",
     "We may remove or change nicknames that are offensive, impersonate someone, or include contact details.",
-    "Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both."
+    "Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both.",
+    "If you skip the nickname, your score and rank may still appear on the public daily leaderboard as 'Anonymous', with no nickname or ID shown."
   ];
   const esBits = [
     "un identificador al azar que no está ligado a tu nombre ni a tu correo",
@@ -219,7 +224,8 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.",
     "Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.",
     "Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto.",
-    "Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos."
+    "Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos.",
+    "Si no agregas un apodo, tu puntaje y tu lugar pueden aparecer en la clasificación pública del día como 'Anónimo', sin apodo ni identificador."
   ];
   enBits.forEach(s => ok("notice EN " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
   esBits.forEach(s => ok("notice ES " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
@@ -232,7 +238,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb3") && indexHtml.includes("field-compare.js?v=g1hist1"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb4") && indexHtml.includes("field-compare.js?v=g1under1"));
   ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb4"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");

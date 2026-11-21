@@ -2328,7 +2328,10 @@ function g1OffSection() {
   return section;
 }
 function g1Section() {
-  try { return fieldOn() ? g1OnSection() : g1OffSection(); }
+  try {
+    if (localStorage.getItem("bc-board-eligible") === "no") return h("div", { "data-g1-under": "1", hidden: "hidden" });
+    return fieldOn() ? g1OnSection() : g1OffSection();
+  }
   catch (e) { return g1OffSection(); }
 }
 function g2Chart(points, scale, highlightDay, priorMean) {

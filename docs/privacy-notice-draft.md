@@ -22,6 +22,8 @@ Why: to show your score beside the average of everyone else who finished that da
 
 If you add a nickname, that nickname is shown publicly with that day's scores. Use a nickname, not your full name.
 
+If you skip the nickname, your score and rank may still appear on the public daily leaderboard as 'Anonymous', with no nickname or ID shown.
+
 Our hosting providers (GitHub Pages and Supabase) receive technical data such as your IP address to deliver the site.
 
 We don't sell or share this data, and there are no ads or third-party analytics.
@@ -71,6 +73,8 @@ Si agregas un apodo, ese apodo se envía con los puntajes de ese día para la cl
 Para qué: para mostrar tu puntaje junto al promedio de las demás personas que terminaron ese día.
 
 Si agregas un apodo, ese apodo se muestra públicamente con los puntajes de ese día. Usa un apodo, no tu nombre completo.
+
+Si no agregas un apodo, tu puntaje y tu lugar pueden aparecer en la clasificación pública del día como 'Anónimo', sin apodo ni identificador.
 
 Nuestros proveedores de alojamiento (GitHub Pages y Supabase) reciben datos técnicos, como tu dirección IP, para entregar el sitio.
 

@@ -107,6 +107,23 @@ parity.forEach(name => {
   if (jsReason !== sqlReason) { parityBad++; console.log("FAIL parity", name, jsReason, sqlReason); }
 });
 t("client and sql verdicts match", parityBad === 0, String(parityBad));
+const uidC = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const anonPost = JSON.parse(q(`select private.board_post('${uidC}'::uuid, '${today}'::date, null, ${scores})::text`));
+t("anonymous insert skips the filter", anonPost.ok === true && anonPost.token && q(`select display_name is null from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`) === "t");
+const blankPost = JSON.parse(q(`select private.board_post('${uidC}'::uuid, '${today}'::date, '', ${scores})::text`));
+t("blank name stays one anonymous row", blankPost.idempotent === true && q(`select count(*) from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`) === "1");
+const anonBoard = board(today, "overall");
+const anonRow = anonBoard.rows.find(r => r.name == null);
+t("anonymous rows are ranked", anonBoard.rows.length >= 1 && anonRow && anonRow.rank >= 1 && anonRow.score === 1050 && !anonRow.id);
+const named = post(uidC, today, "Nico");
+t("later name replaces anonymous", named.ok === true && named.idempotent === true && q(`select count(*)::text || ',' || display_name from private.board_post where auth_uid = '${uidC}' and day_key = '${today}' group by display_name`) === "1,Nico");
+const anonId = q(`select id::text from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`);
+q(`update private.board_post set display_name = null where id = '${anonId}'`);
+const renamedAnon = JSON.parse(q(`select private.board_rename('${anonId}'::uuid, 'Sol')::text`));
+t("admin can rename an anonymous row", renamedAnon.ok === true && renamedAnon.name === "Sol");
+q(`update private.board_post set display_name = null where id = '${anonId}'`);
+const removedAnon = JSON.parse(q(`select private.board_remove('${anonId}'::uuid)::text`));
+t("admin can remove an anonymous row", removedAnon.removed === true && !board(today, "overall").rows.some(r => r.token === anonId));
 psqlDb("postgres", ["-c", `drop database if exists ${db}`]);
 console.log(bad ? bad + " failures" : "leaderboard.pg.test.js: all pass");
 process.exit(bad ? 1 : 0);

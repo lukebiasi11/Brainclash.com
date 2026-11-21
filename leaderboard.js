@@ -11,6 +11,7 @@
 
   const FLAG = "bc-board-eligible";
   const NAME = "bc-board-name";
+  const SKIP = "bc-board-name-skip";
   const ENTRY = "bc-board-entry";
   const STORAGE_PREFIX = "sb-board-";
   const SECTIONS = [
@@ -77,6 +78,7 @@
     if (!nowYear || year < 1900 || year > nowYear) return { ok: false, reason: "year" };
     const eligible = nowYear - year >= 13;
     try { if (storage()) storage().setItem(FLAG, eligible ? "yes" : "no"); } catch (e) {}
+    if (!eligible) forgetIds();
     return { ok: true, eligible: eligible };
   }
   function readName() {
@@ -99,15 +101,51 @@
     } catch (e) {}
   }
   function isOwnRow(row, entry, name, day) {
-    if (!name || !entry || !row || !day) return false;
+    if (!entry || !row || !day) return false;
     if (entry.day !== day || typeof entry.token !== "string" || !entry.token) return false;
     return typeof row.token === "string" && row.token === entry.token;
+  }
+  function nameFlow() {
+    const picked = (search().match(/[?&]nameflow=(modal|above)\b/) || [])[1];
+    if (picked) return picked;
+    return root.NAME_FLOW === "above" ? "above" : "modal";
+  }
+  function readSkip() {
+    try { return !!(storage() && storage().getItem(SKIP) === "1"); } catch (e) { return false; }
+  }
+  function writeSkip(on) {
+    try {
+      const store = storage();
+      if (!store) return;
+      if (on) store.setItem(SKIP, "1");
+      else store.removeItem(SKIP);
+    } catch (e) {}
+  }
+  function publicName(name) {
+    if (name == null || String(name).trim() === "") return tr("Anonymous");
+    return String(name);
+  }
+  function forgetIds() {
+    clientP = null;
+    tokenP = null;
+    try {
+      const store = storage();
+      if (store) {
+        const drop = [];
+        for (let i = 0; i < store.length; i++) {
+          const k = store.key(i);
+          if (k && (k.indexOf("sb-board-") === 0 || k.indexOf("sb-field-") === 0)) drop.push(k);
+        }
+        drop.forEach(k => store.removeItem(k));
+      }
+    } catch (e) {}
+    try { if (root.FieldCompare && root.FieldCompare.forget) root.FieldCompare.forget(); } catch (e) {}
   }
   function writeName(name) {
     try {
       const store = storage();
       if (!store) return;
-      if (name) store.setItem(NAME, name);
+      if (name) { store.setItem(NAME, name); store.removeItem(SKIP); }
       else store.removeItem(NAME);
       store.removeItem("bc-board-nick");
       store.removeItem("bc-board-pending");
@@ -201,48 +239,160 @@
     return { ok: true, name: readName() };
   }
 
-  async function beforeStart(opts) {
-    opts = opts || {};
-    if (opts.started) return true;
-    if (isTester(null)) return true;
-    if (readFlag() !== "yes") return true;
-    const scope = opts.root || root.document;
-    const editor = scope && scope.querySelector ? scope.querySelector("[data-board-editor]") : null;
-    const editing = editor && !editor.hidden;
-    const input = opts.input || nameInput(scope);
-    if (readName() && !editing) return true;
+  let homeRefresh = null;
+
+  function needsPrompt() {
+    if (isTester(null)) return false;
+    if (readFlag() === "no" || readName() || readSkip()) return false;
+    return true;
+  }
+
+  async function aboveStart() {
+    const scope = root.document;
+    if (readFlag() !== "yes") {
+      const year = scope && scope.getElementById ? scope.getElementById("board-year") : null;
+      if (year) { year.readOnly = false; try { year.focus(); } catch (e) {} }
+      return false;
+    }
+    const input = nameInput(scope);
     if (!input) return true;
     const result = await acceptName(input.value);
-    if (result.skip) {
-      if (editing) writeName("");
-      return true;
-    }
+    if (result.skip) { writeSkip(true); return true; }
     if (!result.ok) { showNameError(scope); return false; }
+    writeSkip(false);
     return true;
+  }
+
+  function openAsk(purpose) {
+    return new Promise(resolve => {
+      const doc = root.document;
+      const opener = doc.activeElement;
+      let step = readFlag() === "yes" ? "name" : "age";
+      const host = el("div", { class: "board-modal", "data-board-modal": "1" });
+      const dialog = el("div", { class: "board-modal__card", role: "dialog", "aria-modal": "true", "aria-labelledby": "board-modal-title" });
+      const title = el("h2", { id: "board-modal-title", class: "board-label" });
+      const body = el("div", { "data-board-modal-body": "1" });
+      const closeBtn = el("button", { type: "button", class: "board-modal__close", "data-board-close": "1", "aria-label": tr("Close") }, "×");
+      dialog.append(closeBtn, title, body);
+      host.append(dialog);
+      let onKey = null;
+      function finish(startGame) {
+        if (onKey) doc.removeEventListener("keydown", onKey);
+        if (host.parentNode) host.remove();
+        const back = opener && opener.focus && doc.contains(opener) ? opener : doc.querySelector(".cta .btn.primary, [data-board-add]");
+        if (back && back.focus) { try { back.focus(); } catch (e) {} }
+        resolve(purpose === "start" && startGame !== false);
+        if (purpose === "add" && homeRefresh) homeRefresh();
+      }
+      function dismiss() {
+        if (step === "name") writeSkip(true);
+        finish(true);
+      }
+      function focusables() {
+        return Array.prototype.filter.call(dialog.querySelectorAll("button, input, a, [href], [tabindex]"), node => !node.disabled && node.getAttribute("tabindex") !== "-1" && !node.hidden);
+      }
+      onKey = (e) => {
+        if (e.key === "Escape") { e.preventDefault(); dismiss(); return; }
+        if (e.key !== "Tab") return;
+        const list = focusables();
+        if (!list.length) { e.preventDefault(); return; }
+        const first = list[0];
+        const last = list[list.length - 1];
+        if (e.shiftKey && doc.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && doc.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      doc.addEventListener("keydown", onKey);
+      closeBtn.addEventListener("click", dismiss);
+      function render() {
+        body.textContent = "";
+        if (step === "age") {
+          dialog.setAttribute("data-board-gate", "1");
+          dialog.removeAttribute("data-board-name");
+          title.textContent = tr("What year were you born?");
+          body.append(yearCard(() => {
+            if (readFlag() === "no") { finish(true); return; }
+            if (readFlag() === "yes") { step = "name"; render(); }
+          }));
+        } else {
+          dialog.removeAttribute("data-board-gate");
+          dialog.setAttribute("data-board-name", "1");
+          title.textContent = tr("Display name (optional)");
+          const fields = nameFields("");
+          const go = el("button", { type: "button", class: "btn board-year-go", "data-board-save": "1" }, tr("Continue"));
+          const skip = el("button", { type: "button", class: "board-skip", "data-board-skip": "1" }, tr("Play without a name"));
+          const submit = async () => {
+            const result = await acceptName(fields.input.value);
+            if (result.skip) { writeSkip(true); finish(true); return; }
+            if (!result.ok) { showNameError(body); return; }
+            writeSkip(false);
+            finish(true);
+          };
+          go.addEventListener("click", submit);
+          skip.addEventListener("click", () => { writeSkip(true); finish(true); });
+          fields.input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+          body.append(fields.input, fields.err, fields.help, go, skip);
+          if (takeNote()) showNameError(body);
+        }
+        const list = focusables();
+        const field = body.querySelector("input");
+        if (field) { try { field.focus(); } catch (e) {} }
+        else if (list[0]) { try { list[0].focus(); } catch (e) {} }
+      }
+      render();
+      doc.body.append(host);
+    });
+  }
+
+  async function beforeStart(opts) {
+    opts = opts || {};
+    if (opts.started || opts.practice) return true;
+    if (isTester(null)) return true;
+    if (readFlag() === "no") { forgetIds(); return true; }
+    if (readName()) return true;
+    if (readSkip() && !opts.add) return true;
+    if (nameFlow() === "above") return aboveStart();
+    return openAsk(opts.add ? "add" : "start");
+  }
+
+  function underLine() {
+    return el("p", { class: "board-help", "data-board-under": "1", text: tr("Leaderboard names aren't available on this device. You can still play!") });
+  }
+  function addLink(cta) {
+    const link = el("button", { type: "button", class: "board-add", "data-board-add": "1" }, tr("Add a name"));
+    link.addEventListener("click", () => {
+      if (nameFlow() === "above") {
+        writeSkip(false);
+        if (homeRefresh) homeRefresh();
+        return;
+      }
+      openAsk("add");
+    });
+    const button = cta.querySelector(".btn.primary");
+    if (button) button.insertAdjacentElement("afterend", link);
+    else cta.append(link);
   }
 
   function decorate(cta, opts) {
     if (!cta || !root.document || !filter()) return;
     opts = opts || {};
+    homeRefresh = opts.refresh || homeRefresh;
     const flag = readFlag();
+    cta.setAttribute("data-name-flow", nameFlow());
     if (flag === "no") {
-      const note = el("p", { class: "board-help", "data-board-under": "1", text: tr("Leaderboard names aren't available on this device. You can still play!") });
+      forgetIds();
       const button = cta.querySelector(".btn.primary");
+      const note = underLine();
       if (button) button.insertAdjacentElement("afterend", note);
       else cta.append(note);
       return;
     }
-    if (opts.started) {
-      if (flag === "yes" && readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
-      return;
-    }
+    if (readName()) { cta.insertBefore(savedCard(opts.refresh), cta.firstChild); return; }
+    if (readSkip()) { addLink(cta); return; }
+    if (nameFlow() !== "above" || opts.started) return;
     if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh), cta.firstChild); return; }
-    if (readName()) cta.insertBefore(savedCard(opts.refresh), cta.firstChild);
-    else {
-      const card = nameCard();
-      cta.insertBefore(card, cta.firstChild);
-      if (takeNote()) showNameError(card);
-    }
+    const card = nameCard(true);
+    cta.insertBefore(card, cta.firstChild);
+    if (takeNote()) showNameError(card);
   }
 
   function yearCard(refresh) {
@@ -306,11 +456,19 @@
     };
   }
 
-  function nameCard() {
+  function nameCard(withSkip) {
     const fields = nameFields("");
-    return el("div", { class: "board-ask", "data-board-name": "1" },
-      el("label", { class: "board-label", text: tr("Display name (optional)") }),
-      fields.input, fields.err, fields.help);
+    const kids = [el("label", { class: "board-label", text: tr("Display name (optional)") }), fields.input, fields.err, fields.help];
+    if (withSkip) {
+      const skip = el("button", { type: "button", class: "board-skip", "data-board-skip": "1" }, tr("Play without a name"));
+      skip.addEventListener("click", () => {
+        writeSkip(true);
+        const start = root.document.querySelector(".cta .btn.primary");
+        if (start) start.click();
+      });
+      kids.push(skip);
+    }
+    return el("div", { class: "board-ask", "data-board-name": "1" }, ...kids);
   }
 
   function savedCard(refresh) {
@@ -422,7 +580,7 @@
       const mine = isOwnRow(row, mineEntry, mineName, day);
       const item = el("li", { class: "board-row" + (mine ? " you" : ""), "aria-current": mine ? "true" : false },
         el("span", { class: "board-rank", text: String(row.rank || "") }),
-        el("span", { class: "board-name", text: String(row.name || "") }),
+        el("span", { class: "board-name", text: publicName(row.name) }),
         el("span", { class: "board-score", text: Number.isFinite(score) ? score.toLocaleString() : "" }));
       if (mine) item.append(el("span", { class: "sr-only", text: tr("(you)") }));
       list.append(item);
@@ -490,6 +648,7 @@
     return clientP;
   }
   function tokenFor() {
+    if (readFlag() === "no") return Promise.reject(new Error("under13"));
     if (tokenP) return tokenP;
     tokenP = (async () => {
       const supabase = await clientFor();
@@ -507,12 +666,17 @@
   function noteFinish(session) {
     try {
       if (!session || isTester(session) || shot() || readFlag() !== "yes") return;
-      const name = readName();
       const scores = wireScores(session.scores);
-      if (!name || !scores || !filter()) return;
-      const checked = filter().checkName(name);
-      if (!checked.ok || checked.skip) return;
-      send(session.key, checked.name, scores);
+      if (!scores) return;
+      const name = readName();
+      if (name) {
+        if (!filter()) return;
+        const checked = filter().checkName(name);
+        if (!checked.ok || checked.skip) return;
+        send(session.key, checked.name, scores);
+        return;
+      }
+      if (readSkip()) send(session.key, null, scores);
     } catch (e) {}
   }
 
@@ -525,7 +689,7 @@
       return root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/post", {
         method: "POST",
         headers: { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" },
-        body: JSON.stringify({ day: day, name: name, scores: scores, eligible: true }),
+        body: JSON.stringify({ day: day, name: name || null, scores: scores, eligible: true }),
         signal: ctrl ? ctrl.signal : undefined
       }).then(async (res) => {
         clearTimeout(timer);
@@ -546,7 +710,8 @@
     return null;
   }
   async function fetchRank() {
-    if (readFlag() !== "yes" || !readName() || isTester(null)) return null;
+    if (readFlag() !== "yes" || isTester(null) || readFlag() === "no") return null;
+    if (!readName() && !readSkip()) return null;
     const entry = readEntry();
     if (!entry || entry.day !== todayKey()) return null;
     const canned = fixture("overall");
@@ -595,6 +760,8 @@
     return line;
   }
 
+  if (readFlag() === "no") forgetIds();
+
   return {
     isTester: isTester,
     readFlag: readFlag,
@@ -610,6 +777,9 @@
     nameKey: NAME,
     flagKey: FLAG,
     fifthName: fifthName,
+    nameFlow: nameFlow,
+    forgetIds: forgetIds,
+    readSkip: readSkip,
     isOwnRow: isOwnRow,
     rankFromRows: rankFromRows,
     rankPhrase: rankPhrase,

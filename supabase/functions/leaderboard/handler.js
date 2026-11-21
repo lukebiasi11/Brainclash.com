@@ -174,11 +174,12 @@ export function createBoardHandler(options = {}) {
       if (!identity.ok) return json(401, identity, headers);
       if (body.eligible !== true) return json(400, { ok: false, error: "not_eligible" }, headers);
       const scores = validScores(body.scores);
-      if (!validDay(body.day) || !scores || typeof body.name !== "string") return json(400, { ok: false, error: "invalid_input" }, headers);
+      const postedName = body.name == null || body.name === "" ? null : body.name;
+      if (!validDay(body.day) || !scores || (postedName !== null && typeof postedName !== "string")) return json(400, { ok: false, error: "invalid_input" }, headers);
       const limited = await callDb(db, "board_consume_rate", "board_consume_rate", [identity.uid]);
       if (limited.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (limited.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
-      const posted = await callDb(db, "board_post", "board_post", [identity.uid, body.day, body.name, scores]);
+      const posted = await callDb(db, "board_post", "board_post", [identity.uid, body.day, postedName, scores]);
       if (posted.kind === "down") return json(503, { ok: false, error: "db_unavailable" }, headers);
       if (posted.kind === "limited") return json(429, { ok: false, error: "rate_limited" }, headers);
       const result = posted.result || {};
