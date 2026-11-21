@@ -222,7 +222,9 @@ insert into private.board_term (kind, term) values
   ('word', 'rape'),
   ('word', 'sex'),
   ('word', 'sexo'),
+  ('word', 'shemal'),
   ('word', 'shemale'),
+  ('word', 'shemali'),
   ('word', 'sht'),
   ('word', 'shtty'),
   ('word', 'slvt'),
@@ -305,7 +307,6 @@ create table private.board_allow (
   token text primary key
 );
 insert into private.board_allow (token) values
-('acker'),
 ('actitud'),
 ('analia'),
 ('analog'),
@@ -315,34 +316,16 @@ insert into private.board_allow (token) values
 ('aptitud'),
 ('aptitude'),
 ('ashkenazi'),
-('ashlee'),
 ('assess'),
 ('attitude'),
 ('badminton'),
-('baggett'),
 ('banal'),
 ('banality'),
-('banking'),
-('banner'),
 ('basement'),
-('batch'),
 ('beatitude'),
-('beaver'),
 ('benedick'),
-('benner'),
-('bigger'),
-('birch'),
-('blocks'),
 ('canal'),
-('caputo'),
-('caron'),
 ('certitude'),
-('chick'),
-('chin'),
-('china'),
-('ching'),
-('chuck'),
-('chunk'),
 ('cockatoo'),
 ('cockburn'),
 ('cockerel'),
@@ -351,83 +334,39 @@ insert into private.board_allow (token) values
 ('cocktail'),
 ('commodore'),
 ('competitor'),
-('conan'),
 ('conn'),
 ('constitution'),
-('coonan'),
 ('coppola'),
-('corny'),
 ('cumming'),
 ('cummings'),
-('damon'),
-('denis'),
-('dennis'),
 ('dickens'),
 ('dickerson'),
 ('dickinson'),
 ('dickson'),
-('dido'),
-('digger'),
 ('dikshit'),
 ('document'),
-('dumas'),
 ('dykes'),
 ('enigma'),
-('ennis'),
 ('esperanza'),
 ('essex'),
 ('exactitude'),
-('fagin'),
 ('fagotti'),
 ('fagotto'),
-('farica'),
-('fitch'),
 ('fortitude'),
-('frannie'),
-('franny'),
-('fuller'),
-('gildo'),
-('ginga'),
 ('granny'),
 ('gratitud'),
 ('gratitude'),
 ('hancock'),
-('hestia'),
-('hiller'),
 ('hitchcock'),
-('horn'),
-('horne'),
 ('hoshitani'),
 ('identity'),
 ('ignazio'),
 ('ineptitude'),
-('inga'),
-('jigger'),
-('jodee'),
-('jonas'),
-('kikey'),
 ('latitud'),
 ('latitude'),
 ('leacock'),
 ('lightwater'),
-('macon'),
-('madonna'),
-('mahon'),
 ('mammon'),
-('manon'),
-('maria'),
-('marice'),
-('marika'),
-('marina'),
-('marinna'),
-('marion'),
-('marisa'),
-('marissa'),
-('marita'),
-('mariya'),
-('marrissa'),
-('martica'),
-('mason'),
 ('middlesex'),
 ('model'),
 ('modelo'),
@@ -439,67 +378,38 @@ insert into private.board_allow (token) values
 ('modificar'),
 ('modulo'),
 ('multitude'),
-('nagar'),
-('nagger'),
 ('nazia'),
 ('nazir'),
-('nigam'),
 ('nigel'),
 ('niger'),
 ('nigeria'),
 ('night'),
 ('nightingale'),
-('nisha'),
 ('paget'),
 ('peacock'),
 ('penistone'),
-('penni'),
-('pennie'),
 ('petite'),
-('pettis'),
-('phuc'),
 ('phuket'),
-('pina'),
-('pitch'),
 ('pollack'),
 ('pollard'),
 ('promptitude'),
-('puck'),
 ('pussycat'),
-('ramon'),
-('ramona'),
-('ranking'),
 ('rectitude'),
-('regard'),
-('reward'),
-('rigger'),
 ('saget'),
 ('scunthorpe'),
-('seemed'),
-('seman'),
 ('semenov'),
 ('semenya'),
-('seven'),
 ('sexton'),
 ('shitake'),
 ('shiteh'),
 ('shitterton'),
 ('shittu'),
-('shore'),
-('spica'),
-('spice'),
-('spicy'),
 ('spikes'),
 ('stafford'),
 ('staffordshire'),
-('stick'),
 ('stitch'),
 ('sussex'),
-('tennis'),
 ('therapist'),
-('think'),
-('tiger'),
-('tigger'),
 ('titan'),
 ('titania'),
 ('titanic'),
@@ -508,31 +418,8 @@ insert into private.board_allow (token) values
 ('tito'),
 ('titulo'),
 ('titus'),
-('tracie'),
-('tracy'),
-('tran'),
-('trance'),
-('trane'),
-('trang'),
-('tranh'),
-('trani'),
-('trans'),
-('valina'),
-('vega'),
-('vera'),
-('verla'),
-('verna'),
-('walker'),
-('walking'),
-('wanting'),
 ('wessex'),
-('where'),
-('whole'),
-('whose'),
-('witch'),
 ('woodcock'),
-('yemen'),
-('yoder'),
 ('yoshito');
 
 create table private.board_phrase (
@@ -652,61 +539,6 @@ as $$
   select replace(replace(coalesce(p, ''), 'q', 'g'), 'v', 'u');
 $$;
 
-create or replace function private.board_edit1(a text, b text)
-returns boolean
-language plpgsql
-immutable
-set search_path = ''
-as $$
-declare
-  la int := char_length(coalesce(a, ''));
-  lb int := char_length(coalesce(b, ''));
-  i int;
-  j int;
-  skipped int := 0;
-  longer text;
-  shorter text;
-begin
-  if a is not distinct from b then
-    return true;
-  end if;
-  if a is null or b is null or abs(la - lb) > 1 then
-    return false;
-  end if;
-  if la = lb then
-    for i in 1..la loop
-      if substring(a from i for 1) <> substring(b from i for 1) then
-        skipped := skipped + 1;
-        if skipped > 1 then
-          return false;
-        end if;
-      end if;
-    end loop;
-    return skipped = 1;
-  end if;
-  if la > lb then
-    longer := a; shorter := b;
-  else
-    longer := b; shorter := a;
-  end if;
-  i := 1;
-  j := 1;
-  while i <= char_length(longer) and j <= char_length(shorter) loop
-    if substring(longer from i for 1) = substring(shorter from j for 1) then
-      i := i + 1;
-      j := j + 1;
-    else
-      skipped := skipped + 1;
-      if skipped > 1 then
-        return false;
-      end if;
-      i := i + 1;
-    end if;
-  end loop;
-  return true;
-end;
-$$;
-
 create or replace function private.board_boob(p_text text)
 returns boolean
 language sql
@@ -714,26 +546,6 @@ immutable
 set search_path = ''
 as $$
   select coalesce(p_text, '') ~ 'bo{2,}b(s|z|ies)?';
-$$;
-
-create or replace function private.board_edit_hit(p_text text)
-returns boolean
-language sql
-stable
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from private.board_term t
-    where (t.kind = 'sub' or t.kind = 'word')
-      and t.term <> 'boobs'
-      and char_length(t.term) >= 5
-      and char_length(private.board_letters_sq(private.board_canon(t.term))) >= 5
-      and private.board_edit1(
-        private.board_letters_sq(private.board_canon(t.term)),
-        private.board_letters_sq(coalesce(p_text, ''))
-      )
-  );
 $$;
 
 create or replace function private.board_attached(p_text text, p_term text)
@@ -1202,7 +1014,7 @@ begin
     if v_why = '' and v_whole[v_i] is distinct from v_full[v_i] then
       v_why := private.board_judge(v_whole[v_i], false);
     end if;
-    if v_why = '' and (private.board_boob(v_full[v_i]) or private.board_boob(v_whole[v_i]) or (v_len[v_i] > 3 and (private.board_edit_hit(v_stem[v_i]) or private.board_edit_hit(v_whole[v_i])))) then
+    if v_why = '' and (private.board_boob(v_full[v_i]) or private.board_boob(v_whole[v_i])) then
       v_why := 'profanity';
     end if;
     if v_why <> '' then
@@ -1680,9 +1492,7 @@ revoke all on table private.board_term, private.board_allow, private.board_phras
 revoke all on function
   private.board_letters_sq(text),
   private.board_canon(text),
-  private.board_edit1(text, text),
   private.board_boob(text),
-  private.board_edit_hit(text),
   private.board_attached(text, text),
   private.board_padded(text, text),
   private.board_term_reason(text),

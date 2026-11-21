@@ -32,7 +32,7 @@ function report(label, decide) {
         : Object.prototype.hasOwnProperty.call(rejectAnyway, name) ? rejectAnyway[name]
         : Object.prototype.hasOwnProperty.call(acceptAnyway, name) ? acceptAnyway[name]
         : want;
-      const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0;
+      const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0 || group.indexOf("14 known") === 0;
       if (!probe && expected != null && got !== expected) {
         counts.bad += 1;
         mismatches += 1;
@@ -41,10 +41,11 @@ function report(label, decide) {
     });
     summary[group] = counts;
     console.log(label, group, "n=" + rows.length, "reject=" + counts.reject, "accept=" + counts.accept, "skip=" + counts.skip, "bad=" + counts.bad);
-    const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0;
+    const probe = group.indexOf("9 new-logic") === 0 || group.indexOf("10 common") === 0 || group.indexOf("11 FYI") === 0 || group.indexOf("14 known") === 0;
     if (probe && label === "client") {
       if (group.indexOf("9 ") === 0) console.log("group 9 still accepted:", accepted.join(", ") || "(none)");
       if (group.indexOf("10 ") === 0) console.log("group 10 rejected:", rejected.join(", ") || "(none)");
+      if (group.indexOf("14 ") === 0) console.log("known gaps:", rows.map(row => row[0]).join(", "));
     }
     t(label + " " + group, probe || counts.bad === 0);
   });

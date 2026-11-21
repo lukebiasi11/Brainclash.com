@@ -14,10 +14,10 @@
     impWord: ["mod", "mods"],
     compound: ["cooladmin", "modsquad", "modteam", "staffer"],
     sub: ["1488", "assclown", "asshat", "asshole", "asslicker", "asswipe", "badass", "bastard", "bigcock", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumdump", "cumshot", "cunt", "dickbutt", "dickface", "dickhead", "dickweed", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shit", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
-    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chinc", "chink", "cock", "cono", "coon", "coonz", "culo", "cum", "cvnt", "dick", "dyk", "dyke", "fag", "faget", "fagit", "fagot", "fagz", "fck", "fcker", "fcking", "fckn", "fgt", "fkn", "fuggin", "fuk", "fuking", "fukk", "fukker", "gook", "hitlr", "jewboy", "jewfag", "kike", "kikez", "kunt", "kyke", "mamon", "mamona", "marica", "nggr", "nibba", "nig", "nigah", "niga", "nigar", "nigha", "niglet", "nigr", "nigur", "nikka", "niqqa", "paki", "paky", "perra", "phag", "phaggot", "phagot", "pito", "porn", "pron", "puta", "puto", "raghead", "raghed", "rape", "sex", "sexo", "shemale", "sht", "shtty", "slvt", "spic", "spik", "tit", "trannie", "trany", "verga", "wank", "wetback", "wetbak", "zorra"]
+    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chinc", "chink", "cock", "cono", "coon", "coonz", "culo", "cum", "cvnt", "dick", "dyk", "dyke", "fag", "faget", "fagit", "fagot", "fagz", "fck", "fcker", "fcking", "fckn", "fgt", "fkn", "fuggin", "fuk", "fuking", "fukk", "fukker", "gook", "hitlr", "jewboy", "jewfag", "kike", "kikez", "kunt", "kyke", "mamon", "mamona", "marica", "nggr", "nibba", "nig", "nigah", "niga", "nigar", "nigha", "niglet", "nigr", "nigur", "nikka", "niqqa", "paki", "paky", "perra", "phag", "phaggot", "phagot", "pito", "porn", "pron", "puta", "puto", "raghead", "raghed", "rape", "sex", "sexo", "shemal", "shemale", "shemali", "sht", "shtty", "slvt", "spic", "spik", "tit", "trannie", "trany", "verga", "wank", "wetback", "wetbak", "zorra"]
   };
 
-  const ALLOW = ["acker", "actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "ashlee", "assess", "attitude", "badminton", "baggett", "banal", "banality", "banking", "banner", "basement", "batch", "beatitude", "beaver", "benedick", "benner", "bigger", "birch", "blocks", "canal", "caputo", "caron", "certitude", "chick", "chin", "china", "ching", "chuck", "chunk", "cockatoo", "cockburn", "cockerel", "cockrell", "cockroach", "cocktail", "commodore", "competitor", "conan", "conn", "constitution", "coonan", "coppola", "corny", "cumming", "cummings", "damon", "denis", "dennis", "dickens", "dickerson", "dickinson", "dickson", "dido", "digger", "dikshit", "document", "dumas", "dykes", "enigma", "ennis", "esperanza", "essex", "exactitude", "fagin", "fagotti", "fagotto", "farica", "fitch", "fortitude", "frannie", "franny", "fuller", "gildo", "ginga", "granny", "gratitud", "gratitude", "hancock", "hestia", "hiller", "hitchcock", "horn", "horne", "hoshitani", "identity", "ignazio", "ineptitude", "inga", "jigger", "jodee", "jonas", "kikey", "latitud", "latitude", "leacock", "lightwater", "macon", "madonna", "mahon", "mammon", "manon", "maria", "marice", "marika", "marina", "marinna", "marion", "marisa", "marissa", "marita", "mariya", "marrissa", "martica", "mason", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nagar", "nagger", "nazia", "nazir", "nigam", "nigel", "niger", "nigeria", "night", "nightingale", "nisha", "paget", "peacock", "penistone", "penni", "pennie", "petite", "pettis", "phuc", "phuket", "pina", "pitch", "pollack", "pollard", "promptitude", "puck", "pussycat", "ramon", "ramona", "ranking", "rectitude", "regard", "reward", "rigger", "saget", "scunthorpe", "seemed", "seman", "semenov", "semenya", "seven", "sexton", "shitake", "shiteh", "shitterton", "shittu", "shore", "spica", "spice", "spicy", "spikes", "stafford", "staffordshire", "stick", "stitch", "sussex", "tennis", "therapist", "think", "tiger", "tigger", "titan", "titania", "titanic", "titian", "titmouse", "tito", "titulo", "titus", "tracie", "tracy", "tran", "trance", "trane", "trang", "tranh", "trani", "trans", "valina", "vega", "vera", "verla", "verna", "walker", "walking", "wanting", "wessex", "where", "whole", "whose", "witch", "woodcock", "yemen", "yoder", "yoshito"];
+  const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "assess", "attitude", "badminton", "banal", "banality", "basement", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cockroach", "cocktail", "commodore", "competitor", "conn", "constitution", "coppola", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "dikshit", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fagotti", "fagotto", "fortitude", "granny", "gratitud", "gratitude", "hancock", "hitchcock", "hoshitani", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "nigel", "niger", "nigeria", "night", "nightingale", "paget", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "saget", "scunthorpe", "semenov", "semenya", "sexton", "shitake", "shiteh", "shitterton", "shittu", "spikes", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titania", "titanic", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock", "yoshito"];
   const ALLOW_SET = new Set(ALLOW);
   const PHRASE_ALLOW = new Set(["dick van dyke", "dick uan dyke"]);
 
@@ -234,47 +234,6 @@
     return ALLOW_SET.has(token) || ALLOW_CANON.has(token);
   }
 
-  function edit1(a, b) {
-    if (a === b) return true;
-    const la = a.length;
-    const lb = b.length;
-    if (Math.abs(la - lb) > 1) return false;
-    if (la === lb) {
-      let diff = 0;
-      for (let i = 0; i < la; i++) if (a.charAt(i) !== b.charAt(i) && ++diff > 1) return false;
-      return diff === 1;
-    }
-    const longer = la > lb ? a : b;
-    const shorter = la > lb ? b : a;
-    let i = 0;
-    let j = 0;
-    let skipped = 0;
-    while (i < longer.length && j < shorter.length) {
-      if (longer.charAt(i) === shorter.charAt(j)) { i++; j++; }
-      else if (++skipped > 1) return false;
-      else i++;
-    }
-    return true;
-  }
-
-  const EDIT_TARGETS = [];
-  (function () {
-    const seen = new Set();
-    TERMS.sub.concat(TERMS.word).forEach(term => {
-      if (term === "boobs" || term.length < 5) return;
-      const sq = squeezeLetters(canon(term));
-      if (sq.length < 5 || seen.has(sq)) return;
-      seen.add(sq);
-      EDIT_TARGETS.push(sq);
-    });
-  })();
-
-  function editHit(text) {
-    const sq = squeezeLetters(canon(text));
-    for (let i = 0; i < EDIT_TARGETS.length; i++) if (edit1(sq, EDIT_TARGETS[i])) return true;
-    return false;
-  }
-
   function boobHit(text) {
     return /bo{2,}b(?:s|z|ies)?/.test(text);
   }
@@ -419,8 +378,7 @@
       }
       if (part.stem === "dyke" && parts[i - 1] && (parts[i - 1].stem === "van" || parts[i - 1].stem === "uan")) continue;
       const why = judge(part.full, false) || (part.leet !== part.full ? judge(part.leet, false) : "");
-      const edit = part.raw.length > 3 && (editHit(part.stem) || editHit(part.leet));
-      if (why || boobHit(part.full) || boobHit(part.leet) || edit) return { ok: false, reason: why || "profanity", name: "" };
+      if (why || boobHit(part.full) || boobHit(part.leet)) return { ok: false, reason: why || "profanity", name: "" };
     }
     let run = [];
     function flushRun() {
