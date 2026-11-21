@@ -295,7 +295,7 @@ body.in-game .game-head .timer{margin-top:6px;height:22px}body.in-game .timer-te
 body.in-game .game-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 body.in-game .game-body>*{flex:none}
 body.in-game .game-body>.lmap{flex:1 1 0;min-height:120px;height:auto!important}
-body.in-game .action-bar{position:relative;flex:none;margin:auto -12px 0;padding:6px 12px max(12px,env(safe-area-inset-bottom));background:none}
+body.in-game .action-bar{position:relative;z-index:6;flex:none;margin:auto -12px 0;padding:6px 12px max(12px,env(safe-area-inset-bottom));background:none}
 body.in-game .game-body>.btn.big{margin-top:auto;margin-bottom:max(12px,env(safe-area-inset-bottom))}
 body.in-game .game-body>.btn.big~.btn.big{margin-top:6px}
 body.in-game .btn.big{padding:12px;font-size:18px;margin:6px 0}
@@ -1222,4 +1222,18 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   }
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
+}
+/* Result and action screens that set .page-scroll (narrow, short, or any size once Next
+   or Lock in would sit past the edge). Not gated on an exact width. */
+body.in-game:has(.page-scroll) {
+  height: auto;
+  min-height: var(--app-h);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
+body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
+body.in-game .game-body.page-scroll > .cat-score + .btn.big,
+body.in-game .game-body.page-scroll > .action-bar {
+  margin-bottom: max(20px, env(safe-area-inset-bottom));
 }
