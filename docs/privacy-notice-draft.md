@@ -2,11 +2,11 @@
 
 Draft pending the lawyer's review. This header is not shown on the site. The sentences below are what `privacy.html` shows, in English and in Latin American Spanish.
 
-Last updated in the site config: 2026-11-09. Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
+Last updated in the site config: GO_LIVE_DATE_TBD. Replace that sentinel with the go-live day (YYYY-MM-DD) before the public board is turned on. Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 ## English
 
-Last updated: November 9, 2026
+Last updated: GO_LIVE_DATE_TBD
 
 If this changes, we'll update this notice and the date above.
 
@@ -34,6 +34,8 @@ Public daily leaderboards are shown for 30 days. After 90 days, Daily Dose delet
 
 To ask us to remove a nickname sooner, email [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
+We may remove or change nicknames that are offensive, impersonate someone, or include contact details.
+
 Rate-limit records and request metadata are deleted after 7 days.
 
 To delete your scores, email [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
@@ -46,11 +48,13 @@ Daily Dose isn't meant for children under 13. If we learn we have scores from a 
 
 Players under 13 can't post a nickname or appear on a leaderboard.
 
+We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.
+
 Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)
 
 ## Español (Latinoamérica)
 
-Última actualización: 9 de noviembre de 2026
+Última actualización: GO_LIVE_DATE_TBD
 
 Si esto cambia, vamos a actualizar este aviso y la fecha de arriba.
 
@@ -78,6 +82,8 @@ Las clasificaciones públicas del día se muestran durante 30 días. A los 90 d�
 
 Para pedir que quitemos un apodo antes, escribe a [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
+Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto.
+
 Los registros de límite de solicitudes y los datos técnicos de la solicitud se borran a los 7 días.
 
 Para borrar tus puntajes, escribe a [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
@@ -89,5 +95,7 @@ Para quién: personas de 13 años o más en Estados Unidos.
 Daily Dose no está pensado para menores de 13 años. Si nos enteramos de que tenemos puntajes de un menor de 13 años, los borramos.
 
 Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.
+
+Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.
 
 Contacto: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)

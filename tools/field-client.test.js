@@ -30,7 +30,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("live key is present", /publishableKey:\s*"sb_publishable_[^"]+"/.test(cfgSrc));
   ok("live project url", cfgSrc.includes('url: "https://xhgrcbsshhpvmfwzjtmp.supabase.co"'));
   ok("live function path", fcSrc.includes('"/functions/v1/field-compare/"'));
-  ok("notice date stays 2026-11-09", cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
+  ok("notice date is the go-live placeholder", cfgSrc.includes('NOTICE_LAST_UPDATED: "GO_LIVE_DATE_TBD"') && !cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
   ok("off mode is an override", global.FIELD_COMPARE_ENABLED === false);
 
   FC.onPlay(liveSession({ scores: [] }));
@@ -198,7 +198,10 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "To delete your scores, email",
     "Clearing your browser data gives you a new ID but doesn't delete earlier scores.",
     "Daily Dose isn't meant for children under 13.",
-    "If this changes, we'll update this notice and the date above."
+    "If this changes, we'll update this notice and the date above.",
+    "Players under 13 can't post a nickname or appear on a leaderboard.",
+    "We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.",
+    "We may remove or change nicknames that are offensive, impersonate someone, or include contact details."
   ];
   const esBits = [
     "un identificador al azar que no está ligado a tu nombre ni a tu correo",
@@ -211,7 +214,10 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "Para borrar tus puntajes, escribe a",
     "Si borras los datos de este navegador, obtienes un identificador nuevo, pero eso no borra los puntajes anteriores.",
     "Daily Dose no está pensado para menores de 13 años.",
-    "Si esto cambia, vamos a actualizar este aviso y la fecha de arriba."
+    "Si esto cambia, vamos a actualizar este aviso y la fecha de arriba.",
+    "Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.",
+    "Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.",
+    "Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto."
   ];
   enBits.forEach(s => ok("notice EN " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
   esBits.forEach(s => ok("notice ES " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
@@ -224,10 +230,11 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1live1") && indexHtml.includes("field-compare.js?v=g1hist1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1live1"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb2") && indexHtml.includes("field-compare.js?v=g1hist1"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb2"));
+  ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1live1"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb2"'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);

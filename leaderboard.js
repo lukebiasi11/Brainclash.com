@@ -162,21 +162,44 @@
   }
 
   function yearCard(refresh) {
-    const input = el("input", { id: "board-year", class: "board-input", inputmode: "numeric", maxlength: "4", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-describedby": "board-year-hint" });
+    // A div, not a form: Enter cannot submit or navigate. The year is read
+    // into a local, the field is cleared, then only yes/no is stored.
+    const input = el("input", {
+      id: "board-year",
+      class: "board-input",
+      type: "text",
+      inputmode: "numeric",
+      maxlength: "4",
+      autocomplete: "off",
+      autocorrect: "off",
+      autocapitalize: "off",
+      spellcheck: "false",
+      enterkeyhint: "done",
+      "aria-describedby": "board-year-hint"
+    });
+    input.readOnly = true;
+    const unlock = () => { input.readOnly = false; };
+    input.addEventListener("pointerdown", unlock);
+    input.addEventListener("focus", unlock);
     const err = el("p", { class: "board-error", id: "board-year-hint", hidden: "hidden" });
     const button = el("button", { type: "button", class: "btn board-year-go" }, tr("Continue"));
-    button.addEventListener("click", () => {
-      const raw = input.value;
+    const evaluate = () => {
+      let raw = input.value;
       input.value = "";
       const result = lockYear(raw, todayKey());
+      raw = "";
       if (!result.ok) {
         err.hidden = false;
         err.textContent = tr("Enter the year you were born.");
         return;
       }
       if (typeof refresh === "function") refresh();
+    };
+    button.addEventListener("click", evaluate);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); evaluate(); }
     });
-    return el("div", { class: "board-ask", "data-board-gate": "1" },
+    return el("div", { class: "board-ask", "data-board-gate": "1", autocomplete: "off" },
       el("label", { class: "board-label", for: "board-year", text: tr("What year were you born?") }),
       input, button, err);
   }

@@ -111,6 +111,15 @@ const i18n = fs.readFileSync(path.join(root, "i18n.js"), "utf8");
   "¿En qué año naciste?",
   "Players under 13 can't post a nickname or appear on a leaderboard."
 ].forEach(s => t("copy " + s.slice(0, 24), i18n.includes(s)));
+const lb = fs.readFileSync(path.join(root, "leaderboard.js"), "utf8");
+const yearFn = lb.slice(lb.indexOf("function yearCard"), lb.indexOf("function nameCard"));
+t("year gate is a div", yearFn.includes('el("div"') && !/el\("form"/.test(yearFn));
+t("year field is cleared before it is judged", /input\.value = "";\s*const result = lockYear\(raw, todayKey\(\)\);\s*raw = "";/.test(yearFn));
+t("year field is numeric and not autofilled", yearFn.includes('autocomplete: "off"') && yearFn.includes('inputmode: "numeric"') && yearFn.includes('type: "text"'));
+t("posted body has eligible and no year", /JSON\.stringify\(\{ day: day, name: name, scores: scores, eligible: true \}\)/.test(lb) && !/birthYear|birth_year/.test(lb));
+t("only yes or no is written", /setItem\(FLAG, eligible \? "yes" : "no"\)/.test(lb));
+const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");
+t("rankings stay off the notice", !privacy.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "docs/privacy-notice-draft.md"), "utf8").split("## English")[1].includes("Rankings are for fun"));
 
 assert.ok;
 console.log(bad ? bad + " failures" : "name-filter.test.js: all pass");
