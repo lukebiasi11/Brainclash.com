@@ -74,6 +74,7 @@
   function checkName(raw) {
     const name = clean(raw);
     if (!name) return { ok: true, skip: true, name: "" };
+    if (/^(player|jugador)\d{4}$/.test(name.toLowerCase().replace(/\s+/g, ""))) return { ok: false, reason: "tag", name: "" };
     const chars = Array.from(name);
     if (chars.length < 3 || chars.length > 20) return { ok: false, reason: "length", name: "" };
     if (contact(name)) return { ok: false, reason: "contact", name: "" };

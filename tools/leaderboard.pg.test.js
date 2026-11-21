@@ -97,7 +97,7 @@ const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("migrations do not schedule cron", !/cron\.schedule/.test(sql));
 const Filter = require(path.join(root, "name-filter.js"));
 const quote = s => "'" + String(s).replace(/'/g, "''") + "'";
-const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel"];
+const parity = ["Luna", "Nico", "José", "O'Brien", "Ana Maria", "Max", "Ashley", "Lucas", "Al", "Daily Dose", "mod1", "hello.com", "hello .com", "f u c k", "a55", "xxx", "n i g g e r", "xnigger", "nigger99", "pussy99", "a s s h o l e", "j i z z", "f a g g o t", "support99", "staffer", "modteam", "Modesto", "Essex", "Peacock", "Dickens", "Titan", "Scunthorpe", "Nigel", "player4821", "PLAYER 4821", "Player  4821", "Jugador  0001", "JUGADOR0001", "jugador 1234", "Player", "player 482", "player48210"];
 let parityBad = 0;
 parity.forEach(name => {
   const js = Filter.checkName(name);
@@ -109,14 +109,33 @@ parity.forEach(name => {
 t("client and sql verdicts match", parityBad === 0, String(parityBad));
 const uidC = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const anonPost = JSON.parse(q(`select private.board_post('${uidC}'::uuid, '${today}'::date, null, ${scores})::text`));
-t("anonymous insert skips the filter", anonPost.ok === true && anonPost.token && q(`select display_name is null from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`) === "t");
+const anonTag = Number(q(`select player_tag::text from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`));
+t("anonymous insert skips the filter", anonPost.ok === true && anonPost.token && q(`select display_name is null from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`) === "t" && anonTag >= 1000 && anonTag <= 9999);
+const uidD = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+const anonTwo = JSON.parse(q(`select private.board_post('${uidD}'::uuid, '${today}'::date, null, ${scores})::text`));
+const tagTwo = Number(q(`select player_tag::text from private.board_post where auth_uid = '${uidD}' and day_key = '${today}'`));
+t("tags are unique within a day", anonTwo.ok === true && tagTwo !== anonTag && tagTwo >= 1000 && tagTwo <= 9999);
+t("tag is not on the aggregate", q("select count(*) from information_schema.columns where table_schema = 'private' and column_name = 'player_tag' and table_name <> 'board_post'") === "0");
+t("tag picker ignores the user id", !q("select pg_get_functiondef('private.board_pick_tag(date)'::regprocedure)").includes("auth_uid"));
+const dupTag = q(`
+  create or replace function pg_temp.dup_tag() returns text language plpgsql as $fn$
+  begin
+    insert into private.board_post (day_key, auth_uid, display_name, player_tag, scores, total)
+    values ('${today}', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', null, ${anonTag}, '{1,1,1,1,1}', 5);
+    return 'allowed';
+  exception when unique_violation then
+    return 'unique';
+  end $fn$;
+  select pg_temp.dup_tag();
+`);
+t("same day and tag is rejected", dupTag === "unique", dupTag);
 const blankPost = JSON.parse(q(`select private.board_post('${uidC}'::uuid, '${today}'::date, '', ${scores})::text`));
 t("blank name stays one anonymous row", blankPost.idempotent === true && q(`select count(*) from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`) === "1");
 const anonBoard = board(today, "overall");
 const anonRow = anonBoard.rows.find(r => r.name == null);
 t("anonymous rows are ranked", anonBoard.rows.length >= 1 && anonRow && anonRow.rank >= 1 && anonRow.score === 1050 && !anonRow.id);
 const named = post(uidC, today, "Nico");
-t("later name replaces anonymous", named.ok === true && named.idempotent === true && q(`select count(*)::text || ',' || display_name from private.board_post where auth_uid = '${uidC}' and day_key = '${today}' group by display_name`) === "1,Nico");
+t("later name replaces anonymous", named.ok === true && named.idempotent === true && q(`select count(*)::text || ',' || display_name || ',' || (player_tag is null)::text from private.board_post where auth_uid = '${uidC}' and day_key = '${today}' group by display_name, player_tag`) === "1,Nico,true");
 const anonId = q(`select id::text from private.board_post where auth_uid = '${uidC}' and day_key = '${today}'`);
 q(`update private.board_post set display_name = null where id = '${anonId}'`);
 const renamedAnon = JSON.parse(q(`select private.board_rename('${anonId}'::uuid, 'Sol')::text`));

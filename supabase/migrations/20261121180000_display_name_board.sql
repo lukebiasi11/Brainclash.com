@@ -134,7 +134,11 @@ create table private.board_post (
   posted_at timestamptz not null default now(),
   removed_at timestamptz,
   name_hidden_at timestamptz,
+  -- Random display label for a nameless row. New each day, stored only on this row.
+  -- Not derived from auth_uid. Do not copy it onto a weekly board or any table keyed by a stable id (PR 112).
+  player_tag int,
   unique (day_key, auth_uid),
+  check (player_tag is null or (player_tag between 1000 and 9999)),
   check (display_name is null or char_length(display_name) between 3 and 20),
   check (cardinality(scores) = 5),
   check (scores[1] between 0 and 1000 and scores[2] between 0 and 1000 and scores[3] between 0 and 1000 and scores[4] between 0 and 1000 and scores[5] between 0 and 1000),
@@ -142,6 +146,7 @@ create table private.board_post (
 );
 alter table private.board_post enable row level security;
 create index board_post_day_idx on private.board_post (day_key);
+create unique index board_post_day_tag_uidx on private.board_post (day_key, player_tag) where player_tag is not null;
 
 create table private.board_agg (
   day_key date primary key,
@@ -199,6 +204,9 @@ begin
   v := btrim(regexp_replace(v, '[[:space:]]+', ' ', 'g'));
   if v = '' then
     return jsonb_build_object('ok', true, 'skip', true);
+  end if;
+  if lower(regexp_replace(v, '[[:space:]]+', '', 'g')) ~ '^(player|jugador)[0-9]{4}$' then
+    return jsonb_build_object('ok', false, 'reason', 'tag');
   end if;
   if char_length(v) < 3 or char_length(v) > 20 then
     return jsonb_build_object('ok', false, 'reason', 'length');
@@ -279,6 +287,34 @@ begin
 end;
 $$;
 
+-- Picks a free 4-digit tag for one day. Uses random() only. Does not read auth_uid.
+create or replace function private.board_pick_tag(p_day date)
+returns int
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_tag int;
+  v_try int;
+begin
+  if p_day is null then
+    return null;
+  end if;
+  for v_try in 1..40 loop
+    v_tag := 1000 + floor(random() * 9000)::int;
+    if not exists (
+      select 1 from private.board_post
+      where day_key = p_day and player_tag = v_tag
+    ) then
+      return v_tag;
+    end if;
+  end loop;
+  return null;
+end;
+$$;
+
 create or replace function private.board_post(p_uid uuid, p_day date, p_name text, p_scores int[])
 returns jsonb
 language plpgsql
@@ -291,6 +327,8 @@ declare
   v_total int;
   v_row private.board_post%rowtype;
   v_delta int[];
+  v_tag int;
+  v_try int;
 begin
   if p_uid is null or p_day is null then
     return jsonb_build_object('ok', false, 'error', 'invalid_input');
@@ -325,14 +363,41 @@ begin
       p_scores[5] - v_row.scores[5]
     ];
     update private.board_post
-      set display_name = v_clean, scores = p_scores, total = v_total
+      set display_name = v_clean,
+          player_tag = case when v_clean is null then player_tag else null end,
+          scores = p_scores,
+          total = v_total
       where id = v_row.id;
     perform private.board_add_agg(p_day, 0, v_total - v_row.total, v_delta);
     return jsonb_build_object('ok', true, 'idempotent', true, 'total', v_total, 'token', v_row.id);
   end if;
-  insert into private.board_post (day_key, auth_uid, display_name, scores, total)
-  values (p_day, p_uid, v_clean, p_scores, v_total)
-  returning id into v_row.id;
+  if v_clean is null then
+    for v_try in 1..8 loop
+      v_tag := private.board_pick_tag(p_day);
+      if v_tag is null then
+        return jsonb_build_object('ok', false, 'error', 'tag_exhausted');
+      end if;
+      begin
+        insert into private.board_post (day_key, auth_uid, display_name, player_tag, scores, total)
+        values (p_day, p_uid, null, v_tag, p_scores, v_total)
+        returning id into v_row.id;
+        exit;
+      exception when unique_violation then
+        v_tag := null;
+        select * into v_row from private.board_post where day_key = p_day and auth_uid = p_uid;
+        if v_row.id is not null then
+          exit;
+        end if;
+      end;
+    end loop;
+    if v_row.id is null then
+      return jsonb_build_object('ok', false, 'error', 'tag_exhausted');
+    end if;
+  else
+    insert into private.board_post (day_key, auth_uid, display_name, scores, total)
+    values (p_day, p_uid, v_clean, p_scores, v_total)
+    returning id into v_row.id;
+  end if;
   perform private.board_add_agg(p_day, 1, v_total, p_scores);
   return jsonb_build_object('ok', true, 'idempotent', false, 'total', v_total, 'token', v_row.id);
 end;
@@ -356,10 +421,10 @@ begin
   if p_day is null or p_day > v_today or p_day < v_today - 30 then
     return jsonb_build_object('ok', true, 'served', false, 'day', p_day, 'section', v_section, 'rows', '[]'::jsonb);
   end if;
-  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'score', score, 'token', id) order by place), '[]'::jsonb)
+  select coalesce(jsonb_agg(jsonb_build_object('rank', place, 'name', display_name, 'tag', player_tag, 'score', score, 'token', id) order by place), '[]'::jsonb)
     into v_rows
   from (
-    select id, display_name,
+    select id, display_name, player_tag,
       case v_section
         when 'world' then scores[1]
         when 'history' then scores[2]
@@ -406,7 +471,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'invalid_input', 'rows', '[]'::jsonb);
   end if;
   select coalesce(jsonb_agg(jsonb_build_object(
-    'id', id, 'name', display_name, 'score', total, 'scores', scores
+    'id', id, 'name', display_name, 'tag', player_tag, 'score', total, 'scores', scores
   ) order by total desc, display_name asc), '[]'::jsonb)
     into v_rows
   from private.board_post
@@ -434,7 +499,7 @@ begin
   end if;
   v_clean := v_name ->> 'name';
   update private.board_post
-    set display_name = v_clean
+    set display_name = v_clean, player_tag = null
     where id = p_id and removed_at is null and name_hidden_at is null;
   if not found then
     return jsonb_build_object('ok', false, 'error', 'not_found');
@@ -527,7 +592,7 @@ declare
   v_n int;
 begin
   update private.board_post
-    set display_name = null, name_hidden_at = now()
+    set display_name = null, player_tag = null, name_hidden_at = now()
     where display_name is not null
       and posted_at < now() - interval '90 days';
   get diagnostics v_n = row_count;
@@ -543,6 +608,7 @@ revoke all on function
   private.board_squeeze_digits(text),
   private.board_name_status(text),
   private.board_scores_ok(int[]),
+  private.board_pick_tag(date),
   private.board_add_agg(date, int, int, int[]),
   private.board_post(uuid, date, text, int[]),
   private.board_public(date, text),

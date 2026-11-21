@@ -105,11 +105,6 @@
     if (entry.day !== day || typeof entry.token !== "string" || !entry.token) return false;
     return typeof row.token === "string" && row.token === entry.token;
   }
-  function nameFlow() {
-    const picked = (search().match(/[?&]nameflow=(modal|above)\b/) || [])[1];
-    if (picked) return picked;
-    return root.NAME_FLOW === "above" ? "above" : "modal";
-  }
   function readSkip() {
     try { return !!(storage() && storage().getItem(SKIP) === "1"); } catch (e) { return false; }
   }
@@ -121,9 +116,12 @@
       else store.removeItem(SKIP);
     } catch (e) {}
   }
-  function publicName(name) {
-    if (name == null || String(name).trim() === "") return tr("Anonymous");
-    return String(name);
+  function publicName(row) {
+    const name = row && row.name != null ? String(row.name).trim() : "";
+    if (name) return name;
+    const tag = Number(row && row.tag);
+    if (Number.isInteger(tag) && tag >= 1000 && tag <= 9999) return tr("Player {0}", String(tag));
+    return tr("Player {0}", "----");
   }
   function forgetIds() {
     clientP = null;
@@ -241,28 +239,6 @@
 
   let homeRefresh = null;
 
-  function needsPrompt() {
-    if (isTester(null)) return false;
-    if (readFlag() === "no" || readName() || readSkip()) return false;
-    return true;
-  }
-
-  async function aboveStart() {
-    const scope = root.document;
-    if (readFlag() !== "yes") {
-      const year = scope && scope.getElementById ? scope.getElementById("board-year") : null;
-      if (year) { year.readOnly = false; try { year.focus(); } catch (e) {} }
-      return false;
-    }
-    const input = nameInput(scope);
-    if (!input) return true;
-    const result = await acceptName(input.value);
-    if (result.skip) { writeSkip(true); return true; }
-    if (!result.ok) { showNameError(scope); return false; }
-    writeSkip(false);
-    return true;
-  }
-
   function openAsk(purpose) {
     return new Promise(resolve => {
       const doc = root.document;
@@ -350,7 +326,6 @@
     if (readFlag() === "no") { forgetIds(); return true; }
     if (readName()) return true;
     if (readSkip() && !opts.add) return true;
-    if (nameFlow() === "above") return aboveStart();
     return openAsk(opts.add ? "add" : "start");
   }
 
@@ -359,14 +334,7 @@
   }
   function addLink(cta) {
     const link = el("button", { type: "button", class: "board-add", "data-board-add": "1" }, tr("Add a name"));
-    link.addEventListener("click", () => {
-      if (nameFlow() === "above") {
-        writeSkip(false);
-        if (homeRefresh) homeRefresh();
-        return;
-      }
-      openAsk("add");
-    });
+    link.addEventListener("click", () => { openAsk("add"); });
     const button = cta.querySelector(".btn.primary");
     if (button) button.insertAdjacentElement("afterend", link);
     else cta.append(link);
@@ -377,7 +345,6 @@
     opts = opts || {};
     homeRefresh = opts.refresh || homeRefresh;
     const flag = readFlag();
-    cta.setAttribute("data-name-flow", nameFlow());
     if (flag === "no") {
       forgetIds();
       const button = cta.querySelector(".btn.primary");
@@ -387,15 +354,10 @@
       return;
     }
     if (readName()) { cta.insertBefore(savedCard(opts.refresh), cta.firstChild); return; }
-    if (readSkip()) { addLink(cta); return; }
-    if (nameFlow() !== "above" || opts.started) return;
-    if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh, true), cta.firstChild); return; }
-    const card = nameCard(true);
-    cta.insertBefore(card, cta.firstChild);
-    if (takeNote()) showNameError(card);
+    if (readSkip()) addLink(cta);
   }
 
-  function yearCard(refresh, withTitle) {
+  function yearCard(refresh) {
     // A div, not a form: Enter cannot submit or navigate. The year is read
     // into a local, the field is cleared, then only yes/no is stored.
     const input = el("input", {
@@ -433,9 +395,7 @@
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") { e.preventDefault(); evaluate(); }
     });
-    const heading = withTitle ? el("h2", { class: "board-label", id: "board-year-title" }, tr("Quick check")) : null;
     return el("div", { class: "board-ask", "data-board-gate": "1", autocomplete: "off" },
-      heading,
       el("label", { class: "board-label", for: "board-year", text: tr("What year were you born?") }),
       input, button, err);
   }
@@ -582,7 +542,7 @@
       const mine = isOwnRow(row, mineEntry, mineName, day);
       const item = el("li", { class: "board-row" + (mine ? " you" : ""), "aria-current": mine ? "true" : false },
         el("span", { class: "board-rank", text: String(row.rank || "") }),
-        el("span", { class: "board-name", text: publicName(row.name) }),
+        el("span", { class: "board-name", text: publicName(row) }),
         el("span", { class: "board-score", text: Number.isFinite(score) ? score.toLocaleString() : "" }));
       if (mine) item.append(el("span", { class: "sr-only", text: tr("(you)") }));
       list.append(item);
@@ -779,7 +739,6 @@
     nameKey: NAME,
     flagKey: FLAG,
     fifthName: fifthName,
-    nameFlow: nameFlow,
     forgetIds: forgetIds,
     readSkip: readSkip,
     isOwnRow: isOwnRow,

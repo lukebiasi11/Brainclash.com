@@ -8,10 +8,6 @@
    LEADERBOARD_PUBLIC is set to on. A real date is shown in English and Spanish. */
 (function (root) {
   "use strict";
-  // Which nickname step Luke is comparing. "modal" opens on Start.
-  // "above" keeps the card on the home screen, above Start.
-  // ?nameflow=modal or ?nameflow=above overrides this for that page load only.
-  root.NAME_FLOW = "modal";
   root.FIELD_COMPARE_ENABLED = true;
   root.FIELD_COMPARE = {
     url: "https://xhgrcbsshhpvmfwzjtmp.supabase.co",

@@ -51,7 +51,13 @@ const blocked = [
   ["Peacock", "profanity"],
   ["Dickens", "profanity"],
   ["Titan", "profanity"],
-  ["Scunthorpe", "profanity"]
+  ["Scunthorpe", "profanity"],
+  ["player4821", "tag"],
+  ["PLAYER 4821", "tag"],
+  ["Player  4821", "tag"],
+  ["Jugador  0001", "tag"],
+  ["JUGADOR0001", "tag"],
+  ["jugador 1234", "tag"]
 ];
 okNames.forEach(name => {
   const got = Filter.checkName(name);
@@ -156,16 +162,9 @@ t("es Nov 22 label", esMap["Eagle Eye"] === "Ojo de Águila");
 const underEn = "Leaderboard names aren't available on this device. You can still play!";
 const underEs = "Los nombres en la clasificación no están disponibles en este dispositivo. ¡Igual puedes jugar!";
 t("under 13 home line stays neutral", esMap[underEn] === underEs && !/13|age|edad|años/i.test(underEn + " " + underEs));
-t("anonymous label", esMap["Anonymous"] === "Anónimo" && esMap["Play without a name"] === "Jugar sin nombre" && esMap["Add a name"] === "Agregar un nombre");
+t("player tag label", esMap["Player {0}"] === "Jugador {0}" && esMap["Play without a name"] === "Jugar sin nombre" && esMap["Add a name"] === "Agregar un nombre");
 t("quick check title", esMap["Quick check"] === "Verificación rápida");
-global.NAME_FLOW = "above";
-global.location = { pathname: "/index.html", search: "" };
-global.BC_NO_BOOT = false;
-t("name flow constant", Board.nameFlow() === "above");
-global.location = { pathname: "/index.html", search: "?nameflow=modal" };
-t("name flow url override", Board.nameFlow() === "modal");
-global.NAME_FLOW = "modal";
-global.location = { pathname: "/index.html", search: "" };
+t("plain Player is not a tag", Filter.checkName("Player").ok === true && Filter.checkName("player 482").ok === true && Filter.checkName("player48210").ok === true);
 global.EagleEye = { on: (key) => key === "2099-01-01" };
 t("fifth tab uses EagleEye.on", Board.fifthName("2099-01-01") === "Eagle Eye" && Board.fifthName("2026-11-22") === "Brain Teaser");
 delete global.EagleEye;

@@ -188,10 +188,6 @@ const hook = `(() => {
     const practiceInfo = await evalJson(practice, `(async () => { document.querySelector('.btn.ghost').click(); await new Promise(r => setTimeout(r, 80)); return { dialog: !!document.querySelector('[role=dialog]'), game: document.body.classList.contains('in-game') }; })()`);
     if (practiceInfo.dialog || !practiceInfo.game) fail("practice bypass", practiceInfo); else pass("practice never shows the modal");
 
-    const above = await openSeed("localStorage.clear();", "&nameflow=above");
-    const aboveInfo = await evalJson(above, `(() => { const card = document.querySelector('.cta [data-board-gate]'); const start = document.querySelector('.cta .btn.primary'); const dialog = document.querySelector('[role=dialog]'); return { card: !!card, above: !!(card && start && card.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING), dialog: !!dialog }; })()`);
-    if (!aboveInfo.card || !aboveInfo.above || aboveInfo.dialog) fail("above card", aboveInfo); else pass("above flow puts the year card over Start");
-
     const kid = await openSeed("localStorage.clear(); localStorage.setItem('bc-board-eligible','no'); localStorage.setItem('sb-field-auth','{\"access_token\":\"secret-user\"}'); localStorage.setItem('sb-board-auth','{\"access_token\":\"secret-user\"}'); localStorage.setItem('dg-2020-01-01','{\"key\":\"2020-01-01\",\"practice\":false,\"scores\":[1,2,3,4,5],\"details\":[]}'); window.__net=[]; const orig = window.fetch; window.fetch = function(u){ window.__net.push(String(u)); return Promise.resolve({ ok: true, status: 200, text: function(){ return Promise.resolve('{}'); }, json: function(){ return Promise.resolve({}); } }); };");
     const kidInfo = await evalJson(kid, `(async () => {
       const before = localStorage.getItem('dg-2020-01-01');
