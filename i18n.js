@@ -96,6 +96,7 @@
     "Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both.": "Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos.",
     "Players under 13 can't post a nickname or appear on a leaderboard.": "Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.",
     "We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.": "Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.",
+    "Quick check": "Verificación rápida",
     "What year were you born?": "¿En qué año naciste?",
     "Enter the year you were born.": "Escribe el año en que naciste.",
     "Continue": "Continuar",

@@ -157,6 +157,7 @@ const underEn = "Leaderboard names aren't available on this device. You can stil
 const underEs = "Los nombres en la clasificación no están disponibles en este dispositivo. ¡Igual puedes jugar!";
 t("under 13 home line stays neutral", esMap[underEn] === underEs && !/13|age|edad|años/i.test(underEn + " " + underEs));
 t("anonymous label", esMap["Anonymous"] === "Anónimo" && esMap["Play without a name"] === "Jugar sin nombre" && esMap["Add a name"] === "Agregar un nombre");
+t("quick check title", esMap["Quick check"] === "Verificación rápida");
 global.NAME_FLOW = "above";
 global.location = { pathname: "/index.html", search: "" };
 global.BC_NO_BOOT = false;

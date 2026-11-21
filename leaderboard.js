@@ -308,7 +308,7 @@
         if (step === "age") {
           dialog.setAttribute("data-board-gate", "1");
           dialog.removeAttribute("data-board-name");
-          title.textContent = tr("What year were you born?");
+          title.textContent = tr("Quick check");
           body.append(yearCard(() => {
             if (readFlag() === "no") { finish(true); return; }
             if (readFlag() === "yes") { step = "name"; render(); }
@@ -389,13 +389,13 @@
     if (readName()) { cta.insertBefore(savedCard(opts.refresh), cta.firstChild); return; }
     if (readSkip()) { addLink(cta); return; }
     if (nameFlow() !== "above" || opts.started) return;
-    if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh), cta.firstChild); return; }
+    if (flag !== "yes") { cta.insertBefore(yearCard(opts.refresh, true), cta.firstChild); return; }
     const card = nameCard(true);
     cta.insertBefore(card, cta.firstChild);
     if (takeNote()) showNameError(card);
   }
 
-  function yearCard(refresh) {
+  function yearCard(refresh, withTitle) {
     // A div, not a form: Enter cannot submit or navigate. The year is read
     // into a local, the field is cleared, then only yes/no is stored.
     const input = el("input", {
@@ -433,7 +433,9 @@
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") { e.preventDefault(); evaluate(); }
     });
+    const heading = withTitle ? el("h2", { class: "board-label", id: "board-year-title" }, tr("Quick check")) : null;
     return el("div", { class: "board-ask", "data-board-gate": "1", autocomplete: "off" },
+      heading,
       el("label", { class: "board-label", for: "board-year", text: tr("What year were you born?") }),
       input, button, err);
   }
