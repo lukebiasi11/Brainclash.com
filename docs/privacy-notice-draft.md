@@ -10,13 +10,17 @@ Last updated: November 9, 2026
 
 If this changes, we'll update this notice and the date above.
 
-Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. Daily Dose does not ask for your name or email.
+Daily Dose can compare your score with other people who finished the same daily game. There is no account. This browser gets a random ID that isn't tied to your name or email. You can add an optional nickname to a public daily leaderboard. Daily Dose does not ask for your email.
 
 When the daily comparison is on, finishing a daily game automatically sends your scores. Practice games don't send anything.
 
 What is sent: the five category scores, the day, and the time of the request, with that random ID.
 
+If you add a nickname, that nickname is sent with that day's scores for the public leaderboard.
+
 Why: to show your score beside the average of everyone else who finished that day.
+
+If you add a nickname, that nickname is shown publicly with that day's scores. Use a nickname, not your full name.
 
 Our hosting providers (GitHub Pages and Supabase) receive technical data such as your IP address to deliver the site.
 
@@ -25,6 +29,10 @@ We don't sell or share this data, and there are no ads or third-party analytics.
 The site doesn't respond differently to Do Not Track signals.
 
 Scores are kept indefinitely, as a combined daily total and under that random ID.
+
+Public daily leaderboards are shown for 30 days. After 90 days, Daily Dose deletes the link between a nickname and a score and keeps only combined totals with no nickname attached.
+
+To ask us to remove a nickname sooner, email [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 Rate-limit records and request metadata are deleted after 7 days.
 
@@ -36,6 +44,8 @@ Who it is for: people 13 and older in the United States.
 
 Daily Dose isn't meant for children under 13. If we learn we have scores from a child under 13, we'll delete them.
 
+Players under 13 can't post a nickname or appear on a leaderboard.
+
 Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)
 
 ## Español (Latinoamérica)
@@ -44,13 +54,17 @@ Contact: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)
 
 Si esto cambia, vamos a actualizar este aviso y la fecha de arriba.
 
-Daily Dose puede comparar tu puntaje con el de otras personas que terminaron el mismo juego del día. No hay cuenta. Este navegador recibe un identificador al azar que no está ligado a tu nombre ni a tu correo. Daily Dose no pide tu nombre ni tu correo.
+Daily Dose puede comparar tu puntaje con el de otras personas que terminaron el mismo juego del día. No hay cuenta. Este navegador recibe un identificador al azar que no está ligado a tu nombre ni a tu correo. Puedes agregar un apodo opcional a una clasificación pública del día. Daily Dose no pide tu correo.
 
 Cuando la comparación diaria está activada, terminar el juego del día envía tus puntajes automáticamente. Las prácticas no envían nada.
 
 Qué se envía: los cinco puntajes por categoría, el día y la hora de la solicitud, junto con ese identificador.
 
+Si agregas un apodo, ese apodo se envía con los puntajes de ese día para la clasificación pública.
+
 Para qué: para mostrar tu puntaje junto al promedio de las demás personas que terminaron ese día.
+
+Si agregas un apodo, ese apodo se muestra públicamente con los puntajes de ese día. Usa un apodo, no tu nombre completo.
 
 Nuestros proveedores de alojamiento (GitHub Pages y Supabase) reciben datos técnicos, como tu dirección IP, para entregar el sitio.
 
@@ -59,6 +73,10 @@ No vendemos ni compartimos estos datos, y no hay anuncios ni analítica de terce
 El sitio no responde de forma distinta a las señales de No rastrear.
 
 Los puntajes se guardan de forma indefinida, como un total combinado del día y bajo ese identificador.
+
+Las clasificaciones públicas del día se muestran durante 30 días. A los 90 días, Daily Dose borra el vínculo entre un apodo y un puntaje y conserva solo totales combinados, sin apodo.
+
+Para pedir que quitemos un apodo antes, escribe a [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com).
 
 Los registros de límite de solicitudes y los datos técnicos de la solicitud se borran a los 7 días.
 
@@ -69,5 +87,7 @@ Si borras los datos de este navegador, obtienes un identificador nuevo, pero eso
 Para quién: personas de 13 años o más en Estados Unidos.
 
 Daily Dose no está pensado para menores de 13 años. Si nos enteramos de que tenemos puntajes de un menor de 13 años, los borramos.
+
+Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.
 
 Contacto: [thedailydosetrivia@gmail.com](mailto:thedailydosetrivia@gmail.com)

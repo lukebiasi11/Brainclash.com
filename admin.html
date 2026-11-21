@@ -44,13 +44,22 @@ img.flag{height:22px;width:auto;vertical-align:-5px;margin-left:4px;border:1px s
 .it .b{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.it .b button{padding:7px 12px;font-size:13px}
 button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0262d;box-shadow:0 3px 0 #7d1419}button.sec{background:var(--y);color:var(--n);box-shadow:0 3px 0 #b48d14}
 .it.up button.ok,.it.down button.no{outline:3px solid var(--n)}
+.names{background:#fff;border:3px solid var(--n);border-radius:18px;margin:0 0 16px;padding:12px 14px;box-shadow:0 5px 0 var(--n)}
+.names h2{font:400 22px Anton,sans-serif;margin:0 0 6px}
+.names label{display:block;font-weight:800;margin:8px 0 4px}
+.names input{font:inherit;width:100%;max-width:100%;box-sizing:border-box;padding:8px;border-radius:10px;border:2px solid var(--y);background:var(--c);color:var(--n);min-height:44px}
+.names .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.nrow{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;border-top:2px dashed #e4d6bf;padding:10px 0}
+.nrow b{overflow-wrap:anywhere}
+.names .msg{font-weight:800;min-height:1.2em}
 @media(max-width:520px){h1{font-size:22px}.dh h2{font-size:19px}body{font-size:14px}header{align-items:flex-start}.pick{width:100%}}
 </style>
 </head>
 <body>
 <header><h1>BRAIN<b>CLASH</b><small>ADMIN PREVIEW</small></h1>
 <div class="pick"><input type="date" id="dp" aria-label="Pick a date"><button id="go">Show day</button><button id="week" class="ok">✅ Approve week</button><a class="btn sec" href="index.html?preview=demo" target="_blank" rel="noopener">▶ Play type demo</a></div></header>
-<main><p class="note">Days use New York time. “Play this day” runs the real game for that date as a practice run in a new tab — no saved progress, stats or streaks. Approve/Disapprove marks and notes are stored in this browser; 👎 Disapprove opens a prefilled GitHub issue — just hit Submit.</p>
+<main><section class="names" id="board-admin" aria-labelledby="board-admin-title"></section>
+<p class="note">Days use New York time. “Play this day” runs the real game for that date as a practice run in a new tab — no saved progress, stats or streaks. Approve/Disapprove marks and notes are stored in this browser; 👎 Disapprove opens a prefilled GitHub issue — just hit Submit.</p>
 <div id="days"></div></main>
 <main id="app" hidden></main>
 <script>window.BC_NO_BOOT = true;</script>
@@ -63,8 +72,12 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="content.js?v=nov18g"></script>
 <script src="assets/icons.js?v=nov3k"></script>
 <script src="answers.js?v=nov17a"></script>
-<script src="app.js?v=nov18g"></script>
+<script src="i18n.js?v=lb1"></script>
+<script src="name-filter.js?v=lb1"></script>
+<script src="leaderboard-config.js?v=lb1"></script>
+<script src="app.js?v=lb1"></script>
 <script src="feedback.js?v=nov18e"></script>
+<script src="admin-board.js?v=lb1"></script>
 <script>
 (() => {
 const B = window.BCDaily, C = window.CONTENT;

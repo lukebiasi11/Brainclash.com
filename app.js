@@ -435,7 +435,10 @@ function home() {
           scoreGraph(s.scores, day),
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }))
-      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
+      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => {
+          if (window.DailyBoard && window.DailyBoard.beforeStart({ started: !!(s && s.scores.length) }) === false) return;
+          session = newSession(false); runNext();
+        } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
@@ -445,11 +448,13 @@ function home() {
         h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
     h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 " + tr("Practice mode (doesn't count)")),
+    window.DailyBoard ? window.DailyBoard.section() : null,
     h("div", { class: "stats" },
       h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
       h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
       h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak")))),
-    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. Leaderboards, friends and prize pools coming later. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
+    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. Friends and prize pools come later. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
+  if (!done && window.DailyBoard) window.DailyBoard.decorate($(".cta"), { started: !!(s && s.scores.length), refresh: home });
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
     if (dayIndex() !== day) return home(); // new day: re-render
@@ -467,6 +472,7 @@ function commitCat(score, detail) {
   delete session.inProgress; delete session.partial; delete session.partialCat;
   save(); session.lastCat = session.scores[session.scores.length - 1]; liveTotal(); session.lastCat = null;
   if (session.scores.length >= 5) fieldNoteFinish();
+  try { if (window.DailyBoard) window.DailyBoard.noteFinish(session); } catch (e) {}
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
 function catIntro(i, start) {
