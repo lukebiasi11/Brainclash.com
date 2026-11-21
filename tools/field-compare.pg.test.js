@@ -74,7 +74,7 @@ function psqlDb(database, args, input) {
 for (const name of [db, "bc_field_hosted", "bc_role_probe"]) {
   psqlDb("postgres", ["-c", `drop database if exists ${name}`]);
 }
-for (const name of ["field_runtime", "app_writer"]) psqlDb("postgres", ["-c", `drop role if exists ${name}`]);
+for (const name of ["field_runtime", "app_writer", "retention_job"]) psqlDb("postgres", ["-c", `drop role if exists ${name}`]);
 psqlDb("postgres", ["-c", `
   do $$ begin
     if not exists (select 1 from pg_roles where rolname = 'bc_hosted_admin') then
@@ -268,6 +268,13 @@ t("runtime cannot call the snapshot until it sets the writer role", attempt("fie
 const viaRuntime = runtimeCall(`private.day_snapshot('2026-11-21'::date, '${runRandom}'::uuid, '${uidRA}'::uuid)`);
 t("runtime writer path matches the direct writer path", viaRuntime.rest_finishes === 1 && Number(viaRuntime.rest_average) === 150 && viaRuntime.histogram.join(",") === "1,0,0,0,0");
 t("runtime cannot read the contact or schedule retention", attempt("field_runtime", "select operator_contact from private.field_gate") === "42501" && attempt("app_writer", "select private.retain_technical()") === "42501" && attempt("field_runtime", "select private.deletion_request('" + uidRA + "'::uuid, '" + runHonest + "'::uuid)") === "42501" && q("select count(*) from pg_extension where extname = 'pg_cron'") === "0");
+const retainDef = psql(["-q", "-t", "-A", "-c", "select pg_get_functiondef('private.retain_technical()'::regprocedure)"]);
+const retainNames = table => new RegExp("\\b" + table + "\\b").test(retainDef);
+t("retain_technical never references attempts, runs, dedup, or day_agg", retainNames("technical_event") && retainNames("rate_window") && !retainNames("attempts") && !retainNames("runs") && !retainNames("dedup") && !retainNames("day_agg"));
+const jobFlags = q("select rolcanlogin::text || ',' || rolinherit::text || ',' || rolsuper::text || ',' || rolbypassrls::text from pg_roles where rolname = 'retention_job'");
+t("retention job is a powerless login with no password", jobFlags === "true,false,false,false" && q("select rolpassword is null from pg_authid where rolname = 'retention_job'") === "t" && q("select pg_has_role('retention_job', 'app_writer', 'member')") === "f" && q("select pg_has_role('field_runtime', 'retention_job', 'member')") === "f");
+const jobCall = attempt("retention_job", "select private.retain_technical()");
+t("scheduled role may call only retain_technical", jobCall === "allowed" && attempt("retention_job", "select count(*) from private.attempts") === "42501" && attempt("retention_job", "select count(*) from private.runs") === "42501" && attempt("retention_job", "select count(*) from private.dedup") === "42501" && attempt("retention_job", "select count(*) from private.day_agg") === "42501" && attempt("retention_job", "select count(*) from private.technical_event") === "42501" && attempt("retention_job", "select count(*) from private.rate_window") === "42501" && attempt("retention_job", "delete from private.technical_event") === "42501" && attempt("anon", "select private.retain_technical()") === "42501" && attempt("authenticated", "select private.retain_technical()") === "42501" && attempt("field_runtime", "select private.retain_technical()") === "42501" && attempt("app_writer", "select private.retain_technical()") === "42501", jobCall);
 
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const clientCfg = fs.readFileSync(path.join(root, "field-config.js"), "utf8");
@@ -275,10 +282,15 @@ const client = fs.readFileSync(path.join(root, "field-compare.js"), "utf8");
 const handler = fs.readFileSync(path.join(root, "supabase/functions/field-compare/handler.js"), "utf8");
 const entry = fs.readFileSync(path.join(root, "supabase/functions/field-compare/index.ts"), "utf8");
 const plan = fs.readFileSync(path.join(root, "supabase/staging-retention-plan.md"), "utf8");
+const workflow = fs.readFileSync(path.join(root, ".github/workflows/retain-technical.yml"), "utf8");
+const scheduleSql = fs.readFileSync(migrations.find(file => file.endsWith("retain_technical_daily.sql")), "utf8");
+const scheduledSql = [...workflow.matchAll(/-c "([^"]*)"/g)].map(match => match[1]);
 const sql = migrations.map(file => fs.readFileSync(file, "utf8")).join("\n");
 t("live field config is on with a public key", /FIELD_COMPARE_ENABLED = true/.test(clientCfg) && /publishableKey:\s*"sb_publishable_[^"]+"/.test(clientCfg) && client.includes("FIELD_COMPARE_ENABLED !== true") && !app.includes("field-api") && !app.includes("sb_secret") && !clientCfg.includes("sb_secret"));
 t("deploy path requires the runtime login and a verified session", entry.includes("Deno.serve") && entry.includes("session_user") && entry.includes("field_runtime") && entry.includes("set_config('role', 'app_writer', true)") && entry.includes("getClaims") && !entry.includes("SERVICE_ROLE") && !entry.includes("deletion_request") && !/password\s*=/i.test(entry));
-t("retention plan is explicit and not scheduled", /not enabled/i.test(plan) && /not executed by this repository/.test(plan) && /retain_technical/.test(plan) && /7 days/.test(plan) && !/cron\.schedule/.test(sql) && !/password\s+'/i.test(sql));
+t("retention plan is explicit and the repo does not execute it", /not enabled/i.test(plan) && /not executed by this repository/.test(plan) && /retain_technical/.test(plan) && /7 days/.test(plan) && /RETENTION_DB_URL/.test(plan) && !/cron\.schedule/.test(sql) && !/create\s+extension\b[^;]*pg_cron/i.test(sql) && !/password\s+'/i.test(sql));
+t("scheduled job only calls retain_technical", scheduledSql.length === 1 && scheduledSql[0] === "select private.retain_technical();" && /cron: "15 8 \* \* \*"/.test(workflow) && !/pull_request/.test(workflow) && !/private\.(attempts|runs|dedup|day_agg)/.test(workflow) && !/service_role|SERVICE_ROLE|sb_secret/i.test(workflow));
+t("schedule migration does not redefine the purge or the status view", !/create\s+(or\s+replace\s+)?function\s+private\.retain_technical/i.test(scheduleSql) && !/collection_status/.test(scheduleSql) && /grant execute on function private\.retain_technical\(\) to retention_job/.test(scheduleSql) && /revoke all on function private\.retain_technical\(\) from public, anon, authenticated, app_writer, field_runtime/.test(scheduleSql));
 t("handler has no memory counter or delete route", !handler.includes("new Map") && !handler.includes("request.text(") && !handler.includes("deletion_request"));
 t("definer functions stay private", !/create (or replace )?function public\./i.test(sql) && /enable row level security/.test(sql));
 
