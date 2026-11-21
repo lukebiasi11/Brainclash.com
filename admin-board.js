@@ -78,7 +78,6 @@
     root.append(
       node("h2", { id: "board-admin-title" }, tr("Display names")),
       node("p", null, tr("Rename or remove a public nickname. The same name rules apply.")),
-      node("p", { class: "board-note" }, tr("Rankings are for fun, with no prizes.")),
       node("label", { for: "board-operator-key" }, tr("Operator key")),
       node("input", { id: "board-operator-key", type: "password", "data-operator-key": "1", autocomplete: "off" }),
       node("label", { for: "board-admin-day" }, tr("Date")),

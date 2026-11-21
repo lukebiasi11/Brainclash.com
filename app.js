@@ -2110,7 +2110,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1live1" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb2" }, tr("Privacy"))); }
 function g1Date(key) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
   const [y, m, d] = key.split("-").map(Number);
