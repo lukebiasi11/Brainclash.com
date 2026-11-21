@@ -125,6 +125,7 @@ body.flash-bad::after{content:"";position:fixed;inset:0;pointer-events:none;box-
 .map{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:none;cursor:crosshair}
 .sea{fill:#070b1d}.land{fill:#16123a;stroke:var(--cyan);stroke-width:.7;filter:drop-shadow(0 0 3px #00f0ff)}
 .spin.guess{fill:var(--pink)}.spin.target{fill:var(--green)}.dist{stroke:var(--pink);stroke-width:1.5;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+.area{fill:rgba(242,194,48,.22);stroke:#fff6e8;stroke-width:1.75;vector-effect:non-scaling-stroke}
 .zbtns{position:absolute;right:8px;top:8px;display:grid;gap:6px}.zbtns button{width:40px;height:40px;border-radius:var(--r-sm);background:var(--panel2);border:2px solid var(--line);color:var(--cyan);font-size:22px;cursor:pointer}
 
 /* timeline */

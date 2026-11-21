@@ -84,7 +84,15 @@ if (C) {
   checkWorldDay = (w, d) => capture(() => {
     if (!d || typeof d !== "object") return E(w, "malformed");
     if (!list(d.pins, 2)) E(w, "needs exactly 2 pins");
-    else d.pins.forEach((p, j) => { if (!p || !str(p.name)) E(w, `pin ${j + 1} missing name`); if (!(p && typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`); if (!(p && typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`); });
+    else d.pins.forEach((p, j) => {
+      if (!p || !str(p.name)) E(w, `pin ${j + 1} missing name`);
+      if (!(p && typeof p.lat === "number" && Math.abs(p.lat) <= 90)) E(w, `pin ${j + 1} bad lat`);
+      if (!(p && typeof p.lon === "number" && Math.abs(p.lon) <= 180)) E(w, `pin ${j + 1} bad lon`);
+      if (p && p.area != null) {
+        if (!Array.isArray(p.area) || p.area.length < 3 || p.area.length > 80) E(w, `pin ${j + 1} area must be 3–80 [lat, lon] points`);
+        else p.area.forEach((pt, k) => { if (!Array.isArray(pt) || pt.length < 2 || typeof pt[0] !== "number" || typeof pt[1] !== "number" || Math.abs(pt[0]) > 90 || Math.abs(pt[1]) > 180) E(w, `pin ${j + 1} area point ${k + 1} is not [lat, lon]`); });
+      }
+    });
     const hasMc = d.mc != null, hasPair = d.pair != null;
     if (d.reveal != null || d.slider != null || d.type === "reveal" || d.type === "slider" || (d.mc && (d.mc.type === "reveal" || d.mc.type === "slider" || d.mc.type === "pair"))) E(w, "the third question is multiple choice or a pair. Reveal and slider are not used, and a pair does not replace the pins");
     if (d.type === "pair" && !hasPair) E(w, "put the pair on the pair field so it does not replace the two pins");
