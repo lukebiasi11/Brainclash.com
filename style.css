@@ -945,6 +945,10 @@ body.in-game form.answer input,body.in-game .answer .txt{font-size:max(16px,1em)
 body.in-game .game-body.fit-scroll{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 
 /* nov2b: after-play results graph (Designer layout-simple-bars) */
+.my-stats{margin:8px 0 14px;text-align:left}
+.my-stats>summary{min-height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font:800 16px/1.2 var(--body);color:var(--ink-bc);background:var(--cream);border:3px solid var(--ink-bc);box-shadow:4px 4px 0 var(--navy);padding:8px 12px;list-style:none}
+.my-stats>summary::-webkit-details-marker{display:none}
+.my-stats[open]>summary{margin-bottom:10px}
 .score-graph{margin:4px auto 14px;max-width:520px;text-align:left}
 .score-graph .sg-date{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink-bc);margin:0 0 10px}
 .sg-card{background:var(--navy);color:#fff;padding:20px 18px 18px;box-shadow:8px 8px 0 var(--ink-bc)}
@@ -998,10 +1002,13 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   #app:has(> .cta) > .btn.ghost { order: 6; }
   /* How it works sits under Play, fully below the first phone screen. */
   #app:has(> .cta) > .rules { order: 8; margin-top: 56px; }
+  #app:has(> .cta) > .day-board { order: 7; }
+  #app:has(> .cta) .board-ask { order: 4; }
   #app:has(> .cta) > .cta .btn.primary.big { order: 0; }
   #app:has(> .cta) > .cta > p:first-child { order: 1; }
   #app:has(> .cta) > .cta #countdown { order: 2; }
   #app:has(> .cta) > .cta .score-graph { order: 3; }
+  #app:has(> .cta) > .cta .my-stats { order: 4; }
   .rules summary { min-height: 44px; display: flex; align-items: center; }
   .cta .btn.primary.big { font-size: 34px; gap: 10px; padding: 0 10px; height: 72px; min-height: 64px; }
   .cta .btn.primary.big::before { flex-basis: 28px; width: 28px; height: 28px; }
@@ -1054,7 +1061,7 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   }
 }
 /* 568–600px: larger name and brains, rows only a little shorter, Start still on screen. */
-@media (max-width: 480px) and (max-height: 640px) {
+@media (max-width: 480px) and (max-height: 700px) {
   .hero:not(.small) { --fw: 176px; padding-top: 0; }
   .hero:not(.small) .logo { font-size: 66px; margin-bottom: 0; }
   .hero:not(.small)::after { margin-top: 0; margin-bottom: 0; }
@@ -1066,6 +1073,10 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   .cta { margin: 0; padding-top: 0; }
   .cta .btn.primary.big { height: 70px; min-height: 68px; font-size: 34px; margin: 0; }
   .cta .btn.primary.big.long { font-size: 22px; }
+  .board-ask { padding: 8px 8px 6px; margin: 4px 0 0; }
+  .board-label { font-size: 14px; margin-bottom: 2px; }
+  .board-help { font-size: 12px; }
+  .board-input { margin-bottom: 4px; }
 }
 /* Taller phones: the name and brains lead; rows stay a step under the prior 44px. */
 @media (max-width: 480px) and (min-height: 720px) {
@@ -1165,6 +1176,38 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .privacy-card .lang-toggle{margin:8px 0 0}
 .privacy-updated{color:#8b93a7;font-size:13px;font-weight:800}
 .privacy-card a{color:#1F2C7A;font-weight:800}
+
+/* Daily nickname leaderboard. In normal flow, so it does not cover the bottom bar. */
+.board-ask{position:relative;z-index:1;margin:0 0 10px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:4px 4px 0 var(--navy);text-align:left}
+.board-label{display:block;font-weight:800;margin:0 0 6px}
+.board-input{display:block;width:100%;box-sizing:border-box;min-height:44px;margin:0 0 8px;padding:8px 10px;font:700 16px/1.3 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);border-radius:0}
+.board-help,.board-error,.board-note,.board-empty,.board-report{margin:0;font-size:13px;line-height:1.4;font-weight:700}
+.board-help,.board-note,.board-empty,.board-report{color:var(--ink-bc)}
+.board-error{color:#8A0E22;margin-top:8px}
+.board-year-go,.board-save-change{margin-top:4px}
+.board-saved-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;font-weight:800}
+.board-change,.board-skip,.board-add{min-height:44px;padding:8px 4px;font:800 14px/1.2 var(--body);background:transparent;color:var(--ink-bc);border:0;text-decoration:underline;cursor:pointer}
+.board-add{display:block;margin:4px auto 0}
+.board-modal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,11,46,.55)}
+.board-modal__card{position:relative;width:min(100%,420px);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);padding:18px 14px 14px}
+.board-modal__close{position:absolute;top:4px;right:4px;min-width:44px;min-height:44px;border:0;background:transparent;color:var(--ink-bc);font:800 22px/1 var(--body);cursor:pointer}
+.day-board{position:relative;z-index:1;max-width:100%;box-sizing:border-box;margin:14px 0 8px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);text-align:left}
+.board-title{margin:0 0 8px;font-family:var(--display);font-weight:400;font-size:clamp(22px,7vw,28px);letter-spacing:.03em;text-transform:uppercase;overflow-wrap:anywhere}
+.board-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.board-tab{min-height:44px;padding:8px 10px;font:800 13px/1.2 var(--body);color:var(--ink-bc);background:#fff;border:2px solid var(--ink-bc);cursor:pointer}
+.board-tab.on{background:var(--ink-bc);color:var(--cream)}
+.board-note{margin-bottom:8px}
+.board-rows{list-style:none;margin:0;padding:0}
+.board-row{display:grid;grid-template-columns:2.4rem minmax(0,1fr) auto;gap:8px;align-items:center;min-height:44px;border-top:1px solid #120B2E33}
+.board-more{display:block;margin:12px 0 4px;padding:0;min-height:0;border:0;background:transparent;text-align:center;color:#5c6578;font-weight:800;letter-spacing:.28em;line-height:1;pointer-events:none;list-style:none}
+.board-row.you{font-weight:800;background:rgba(232,119,74,.18);outline:2px solid #E8774A;outline-offset:-2px}
+.board-row.you .board-name{font-weight:800}
+.board-row:first-child{border-top:0}
+.board-rank,.board-score{font-weight:800}
+.board-name{overflow-wrap:anywhere}
+.board-report{margin-top:8px}
+.board-report a{color:var(--ink-bc);font-weight:800}
+.board-empty{margin-top:8px}
 
 /* Pair, reveal, and slider. Tap targets stay at least 44px. Cards stack so 360px doesn't overflow sideways. */
 .q-diff{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}

@@ -432,10 +432,17 @@ function home() {
     })),
     done
       ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
-          scoreGraph(s.scores, day),
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
-          h("p", { class: "muted", id: "countdown" }))
-      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => { session = newSession(false); runNext(); } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
+          h("p", { class: "muted", id: "countdown" }),
+          myStats([scoreGraph(s.scores, day)]))
+      : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => {
+          const go = () => { session = newSession(false); runNext(); };
+          if (!window.DailyBoard) return go();
+          const gate = window.DailyBoard.beforeStart({ started: !!(s && s.scores.length) });
+          if (gate && typeof gate.then === "function") { gate.then(ok => { if (ok !== false) go(); }); return; }
+          if (gate === false) return;
+          go();
+        } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
@@ -445,11 +452,13 @@ function home() {
         h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
     h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 " + tr("Practice mode (doesn't count)")),
+    window.DailyBoard ? window.DailyBoard.section() : null,
     h("div", { class: "stats" },
       h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
       h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
       h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak")))),
-    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. Leaderboards, friends and prize pools coming later. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
+    h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
+  if (!done && window.DailyBoard) window.DailyBoard.decorate($(".cta"), { started: !!(s && s.scores.length), refresh: home });
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
     if (dayIndex() !== day) return home(); // new day: re-render
@@ -467,6 +476,7 @@ function commitCat(score, detail) {
   delete session.inProgress; delete session.partial; delete session.partialCat;
   save(); session.lastCat = session.scores[session.scores.length - 1]; liveTotal(); session.lastCat = null;
   if (session.scores.length >= 5) fieldNoteFinish();
+  try { if (window.DailyBoard) window.DailyBoard.noteFinish(session); } catch (e) {}
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
 function catIntro(i, start) {
@@ -2104,7 +2114,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=g1live1" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb5" }, tr("Privacy"))); }
 function g1Date(key) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
   const [y, m, d] = key.split("-").map(Number);
@@ -2215,7 +2225,7 @@ function g1OnSection() {
     status.textContent = "";
     note.textContent = "";
     if (!ready) {
-      if (!skipped && snap) status.textContent = tr("No other results yet");
+      if (!skipped) status.textContent = snap ? tr("No other results yet") : (window.FieldCompare && session ? tr("Loading…") : tr("No other results yet"));
       return;
     }
     const total = youScores.reduce((a, b) => a + b, 0);
@@ -2274,7 +2284,7 @@ function g1OnSection() {
     const load = fromWatch => {
       if (fromWatch && !section.isConnected) { if (stop) stop(); return; }
       const job = window.FieldCompare.backfillToday ? window.FieldCompare.backfillToday(session, clock) : Promise.resolve();
-      Promise.resolve(job).then(() => { if (!section.isConnected) { if (stop) stop(); return null; } return window.FieldCompare.dayFor(session); }).then(result => { if (result) apply(result); }).catch(() => apply(null));
+      Promise.resolve(job).then(() => { if (!section.isConnected) { if (stop) stop(); return null; } return window.FieldCompare.dayFor(session); }).then(result => apply(result)).catch(() => apply(null));
     };
     if (window.FieldCompare.watch) stop = window.FieldCompare.watch(() => load(true));
     load(false);
@@ -2292,6 +2302,7 @@ function g1OffSection() {
   const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total score"));
   const catBtn = h("button", { type: "button", "data-g1-view": "category", "aria-pressed": "false" }, tr("By category"));
   const plot = h("div", { class: "g1-plot" });
+  const status = h("p", { class: "g1-quiet" }, tr("No other results yet"));
   const paint = () => {
     totalBtn.setAttribute("aria-pressed", mode === "total" ? "true" : "false");
     catBtn.setAttribute("aria-pressed", mode === "category" ? "true" : "false");
@@ -2309,6 +2320,7 @@ function g1OffSection() {
   section.append(
     h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), h("p", { class: "g-sub" }, dateLine)), h("span", { class: "g1-badge" }, tr("Not live"))),
     h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
+    status,
     h("h3", {}, tr("Comparison unavailable")),
     h("p", { class: "g1-unavail" }, tr("Daily field collection is off. Daily Dose is not gathering other completed games, so there is no average, distribution, or percentile.")),
     plot, yours,
@@ -2318,7 +2330,10 @@ function g1OffSection() {
   return section;
 }
 function g1Section() {
-  try { return fieldOn() ? g1OnSection() : g1OffSection(); }
+  try {
+    if (localStorage.getItem("bc-board-eligible") === "no") return h("div", { "data-g1-under": "1", hidden: "hidden" });
+    return fieldOn() ? g1OnSection() : g1OffSection();
+  }
   catch (e) { return g1OffSection(); }
 }
 function g2Chart(points, scale, highlightDay, priorMean) {
@@ -2413,16 +2428,49 @@ function g2Section() {
   paint();
   return section;
 }
+function myStats(nodes) {
+  const body = h("div", { class: "my-stats-body" });
+  (nodes || []).forEach(node => { if (node) body.append(node); });
+  const details = h("details", { class: "my-stats" }, h("summary", {}, tr("My stats")), body);
+  details.addEventListener("toggle", () => {
+    if (!details.open) return;
+    const graph = body.querySelector(".score-graph");
+    if (graph && graph.classList.contains("anim")) {
+      graph.classList.remove("in");
+      requestAnimationFrame(() => requestAnimationFrame(() => graph.classList.add("in")));
+    }
+    body.querySelectorAll("svg").forEach(svg => { svg.style.width = "100%"; svg.getBoundingClientRect(); });
+  });
+  return details;
+}
+function resultsNickFoot() {
+  const board = window.DailyBoard;
+  if (!board || board.readFlag() !== "yes" || board.readName()) return null;
+  return h("p", { class: "fine", "data-results-nick": "1" }, tr("Add a nickname to appear on today's leaderboard."));
+}
 function bcGraphs() {
-  try { const wrap = h("div", { class: "bc-graphs" }); wrap.append(g1Section(), g2Section()); return wrap; }
+  try {
+    const wrap = h("div", { class: "bc-graphs" });
+    const rank = window.DailyBoard && DailyBoard.rankLine ? DailyBoard.rankLine() : null;
+    const board = window.DailyBoard && DailyBoard.section ? DailyBoard.section() : null;
+    wrap.append(g1Section(), rank, board, myStats([g2Section()]));
+    return wrap;
+  }
   catch (e) { return h("div", { class: "bc-graphs" }, h("p", { class: "g-fallback" }, tr("Results charts couldn't be read from this device. Saved games were left as they are."))); }
 }
 
 // ---------- results ----------
 const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
 const SITE_URL = "https://dailydosetrivia.com/";
-const shareText = () => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000\n${SITE_URL}`;
-async function doShare(btn) { const t = shareText(); try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch {} }
+const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
+async function doShare(btn) {
+  let rankLine = "";
+  try { if (window.DailyBoard && DailyBoard.rankPhrase) rankLine = await DailyBoard.rankPhrase() || ""; } catch (e) { rankLine = ""; }
+  const pre = document.querySelector("pre.share");
+  if (pre) pre.textContent = shareText(rankLine);
+  const t = shareText(rankLine);
+  try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); btn.textContent = tr("Copied!"); } } catch (e) {}
+}
 // Lightweight confetti on a single canvas (~2 s, no library).
 // Fix (Oct 26): the canvas used to sit at z-index 1 INSIDE the modal, under the card (z-index 2), which covers
 // nearly the whole phone width, so the burst was hidden. It now sits ABOVE the card (pointer-events: none),
@@ -2544,16 +2592,22 @@ function results() {
   app.classList.remove("enter");
   app.innerHTML = ""; window.scrollTo(0, 0);
   const share = shareText(); // ends with SITE_URL
+  const foot = resultsNickFoot();
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
     h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
     bcGraphs(),
-    h("ol", { class: "path" }, CATS.map((c, i) => h("li", { class: "step done" }, h("span", { class: "num" }, blocks(session.scores[i])), h("span", { class: "ic" }, ic(c.icon, c.img)), h("span", { class: "nm" }, h("b", {}, c.name), c.id === "word" ? h("small", {}, wordGameFor(session.day).name) : null), h("span", { class: "pts" }, fmt(session.scores[i]))))),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
       h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
-      h("button", { class: "btn", onclick: home }, tr("Home"))),
-    h("p", { class: "fine" }, tr("Global & friends leaderboards arrive with accounts in a future version.")));
+      h("button", { class: "btn", onclick: home }, tr("Home"))));
+  if (foot) app.append(foot);
+  if (window.DailyBoard && DailyBoard.rankPhrase) {
+    DailyBoard.rankPhrase().then(line => {
+      const node = document.querySelector("pre.share");
+      if (node && line) node.textContent = shareText(line);
+    }).catch(() => {});
+  }
   countUp($("#finalnum"), tot, 1600);
   setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
 }

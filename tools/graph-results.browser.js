@@ -117,9 +117,12 @@ async function shot(cdp, name) {
   const img = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width, height, scale: 1 } }, 20000);
   fs.writeFileSync(path.join(SHOTS, name), Buffer.from(img.data, "base64"));
 }
+function isBoardRead(r) {
+  return (r.method === "GET" || r.method === "OPTIONS") && /\/\/xhgrcbsshhpvmfwzjtmp\.supabase\.co\/functions\/v1\/leaderboard\/board(?:\?|$)/.test(r.url);
+}
 function forbid(cdp, label) {
-  const badReqs = cdp.reqs.filter(r => r.method !== "GET" && r.method !== "HEAD" || /\/v1\/|stats-client|day_agg|workers\.dev/i.test(r.url));
-  const offHost = cdp.reqs.filter(r => { try { const u = new URL(r.url); if (u.protocol === "data:") return false; return u.hostname !== "127.0.0.1" && u.hostname !== "fonts.googleapis.com" && u.hostname !== "fonts.gstatic.com"; } catch (e) { return true; } });
+  const badReqs = cdp.reqs.filter(r => !isBoardRead(r) && (r.method !== "GET" && r.method !== "HEAD" || /\/v1\/|stats-client|day_agg|workers\.dev/i.test(r.url)));
+  const offHost = cdp.reqs.filter(r => { if (isBoardRead(r)) return false; try { const u = new URL(r.url); if (u.protocol === "data:") return false; return u.hostname !== "127.0.0.1" && u.hostname !== "fonts.googleapis.com" && u.hostname !== "fonts.gstatic.com"; } catch (e) { return true; } });
   if (badReqs.length || offHost.length) fail(label + " network", { badReqs, offHost });
   else pass(label + " network");
   if (cdp.errors.length) fail(label + " exceptions", cdp.errors.slice(0, 4));
@@ -212,6 +215,8 @@ const SCORES = [
         };
       })()`);
       if (!info.order) fail("desktop order", info); else pass("desktop G1 before G2 before share");
+      const folded = await evalJson(cdp, `(() => { const box = document.querySelector('.my-stats'); const g1 = document.getElementById('results-g1'); const g2 = document.getElementById('results-g2'); return { closed: !!(box && !box.open), summary: box ? box.querySelector('summary').textContent : '', g2in: !!(g2 && g2.closest('.my-stats')), g1out: !!(g1 && !g1.closest('.my-stats')) }; })()`);
+      if (!folded.closed || folded.summary !== "My stats" || !folded.g2in || !folded.g1out) fail("desktop my stats collapsed", folded); else pass("desktop history stays behind My stats");
       if (info.collection !== "off" || info.state !== "collection-off") fail("desktop collection", info); else pass("desktop collection off");
       if (/Player average|Top \d+%|\+248 vs|Fictional example|Example data|illustrative preview|3,112|3112/.test(info.g1t)) fail("desktop invented field copy", info.g1t); else pass("desktop no invented field copy");
       if (!/Not live/.test(info.g1t) || !/Comparison unavailable/.test(info.g1t) || !/collection is off/i.test(info.g1t)) fail("desktop unavailable copy", info.g1t); else pass("desktop unavailable copy");
@@ -275,6 +280,8 @@ const SCORES = [
       await shot(cdp, "home-kept.png");
       const home = await evalJson(cdp, `(() => { const g = document.querySelector('.score-graph'); const btn = document.querySelector('[data-action=view-results]'); const names = ['World Rush','Time Warp','MVP','Word Nerd','Brain Teaser']; const scores = ${JSON.stringify(SCORES[5])}; const want = scores.map((n,i) => names[i] + ': ' + Math.round(n).toLocaleString()); const labels = g ? [...g.querySelectorAll('li')].map(li => li.getAttribute('aria-label')) : []; return { graph: !!g, btn: btn && btn.textContent, match: JSON.stringify(labels) === JSON.stringify(want), labels, want }; })()`);
       if (!home.graph || home.btn !== "View results") fail("home graph", home); else pass("home category graph kept");
+      const foldedHome = await evalJson(cdp, `(() => { const box = document.querySelector('.my-stats'); const g = document.querySelector('.score-graph'); return { closed: !!(box && !box.open), summary: box ? box.querySelector('summary').textContent : '', inside: !!(g && g.closest('.my-stats')) }; })()`);
+      if (!foldedHome.closed || foldedHome.summary !== "My stats" || !foldedHome.inside) fail("home my stats collapsed", foldedHome); else pass("home category chart stays behind My stats");
       if (!home.match) fail("home labels", home); else pass("home labels are today's scores");
       await evalJson(cdp, "document.querySelector('[data-action=view-results]').click()");
       const info = await evalJson(cdp, `(() => { const g2 = document.getElementById('results-g2'); return { viewed: g2.getAttribute('data-viewed-day'), prior: g2.getAttribute('data-prior-count'), all: g2.getAttribute('data-all-count'), off: document.getElementById('results-g1').getAttribute('data-collection') }; })()`);

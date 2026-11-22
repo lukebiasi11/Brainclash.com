@@ -30,7 +30,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("live key is present", /publishableKey:\s*"sb_publishable_[^"]+"/.test(cfgSrc));
   ok("live project url", cfgSrc.includes('url: "https://xhgrcbsshhpvmfwzjtmp.supabase.co"'));
   ok("live function path", fcSrc.includes('"/functions/v1/field-compare/"'));
-  ok("notice date stays 2026-11-09", cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
+  ok("notice date is the go-live day", cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-22"') && !cfgSrc.includes("GO_LIVE_DATE_TBD") && !cfgSrc.includes('NOTICE_LAST_UPDATED: "2026-11-09"'));
   ok("off mode is an override", global.FIELD_COMPARE_ENABLED === false);
 
   FC.onPlay(liveSession({ scores: [] }));
@@ -54,6 +54,10 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   });
 
   ok("practice blocked", FC.blocked(liveSession({ practice: true })) === "practice");
+  const prevStore = global.localStorage;
+  global.localStorage = { getItem: (k) => k === "bc-board-eligible" ? "no" : null, setItem() {}, removeItem() {}, key() { return null; }, get length() { return 0; } };
+  ok("under 13 blocks field calls", FC.blocked(liveSession({ practice: false })) === "under13");
+  global.localStorage = prevStore;
   ok("preview blocked", FC.blocked(liveSession(), { location: { pathname: "/index.html", search: "?preview=2026-11-01" } }) === "preview");
   ok("admin path blocked", FC.blocked(liveSession(), { location: { pathname: "/admin.html", search: "" }, boot: false }) === "admin");
   ok("admin boot blocked", FC.blocked(liveSession(), { location: { pathname: "/index.html", search: "" }, boot: true }) === "admin");
@@ -198,7 +202,12 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "To delete your scores, email",
     "Clearing your browser data gives you a new ID but doesn't delete earlier scores.",
     "Daily Dose isn't meant for children under 13.",
-    "If this changes, we'll update this notice and the date above."
+    "If this changes, we'll update this notice and the date above.",
+    "Players under 13 can't post a nickname or appear on a leaderboard.",
+    "We ask your birth year once to check that you're 13 or older. Only a yes/no result is kept on this device; your birth year isn't sent or saved.",
+    "We may remove or change nicknames that are offensive, impersonate someone, or include contact details.",
+    "Your nickname and the yes/no age result are saved only on this device so you don't have to enter them each day. Use 'Change name' to replace the nickname, or clear this browser's site data to remove both.",
+    "If you skip the nickname, your score and rank may still appear on the public daily leaderboard under a random tag like 'Player 4821'. The tag is new each day and isn't linked to you or to your other days."
   ];
   const esBits = [
     "un identificador al azar que no está ligado a tu nombre ni a tu correo",
@@ -211,27 +220,113 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     "Para borrar tus puntajes, escribe a",
     "Si borras los datos de este navegador, obtienes un identificador nuevo, pero eso no borra los puntajes anteriores.",
     "Daily Dose no está pensado para menores de 13 años.",
-    "Si esto cambia, vamos a actualizar este aviso y la fecha de arriba."
+    "Si esto cambia, vamos a actualizar este aviso y la fecha de arriba.",
+    "Los menores de 13 años no pueden publicar un apodo ni aparecer en una clasificación.",
+    "Te pedimos tu año de nacimiento una vez para confirmar que tienes 13 años o más. Solo se guarda en este dispositivo un resultado de sí o no; tu año de nacimiento no se envía ni se guarda.",
+    "Podemos quitar o cambiar apodos ofensivos, que suplanten a otra persona o que incluyan datos de contacto.",
+    "Tu apodo y el resultado de sí o no sobre la edad se guardan solo en este dispositivo para que no tengas que ingresarlos cada día. Usa 'Cambiar nombre' para reemplazar el apodo, o borra los datos del sitio en este navegador para eliminar ambos.",
+    "Si no agregas un apodo, tu puntaje y tu lugar pueden aparecer en la clasificación pública del día con una etiqueta al azar como 'Jugador 4821'. La etiqueta cambia cada día y no está vinculada a ti ni a tus otros días."
   ];
   enBits.forEach(s => ok("notice EN " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
   esBits.forEach(s => ok("notice ES " + s.slice(0, 24), notice.includes(s) && i18n.includes(s)));
   ok("docs header stays a lawyer draft", notice.startsWith("# Daily Dose daily comparison — privacy notice (draft)") && notice.includes("Draft pending the lawyer's review."));
   ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
   ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
-  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Todavía no hay otros resultados"));
+  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Aún no hay otros resultados") && i18n.includes('"Loading…": "Cargando…"'));
   ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "Blue bars are other completed games. The orange bar includes your game."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=g1live1") && indexHtml.includes("field-compare.js?v=g1hist1"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=g1live1"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1t9"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb5"));
+  ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=g1live1"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb5"'));
+  ok("empty snapshot names the status", app.includes('tr("Loading…")') && app.includes('tr("No other results yet")'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
   ok("app still has one fetch", (app.match(/\bfetch\(/g) || []).length === 1);
   ok("app has no field POST", !/functions\/v1|method:\s*["']POST["']/.test(app));
+  ok("one deadline covers the sdk", /const token = await within\(started, \(\) => tokenFor\(\)\)/.test(fcSrc) && fcSrc.includes("loadSdk") && fcSrc.includes("deadlineMs"));
+
+  function freshField() {
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    return require(path.join(root, "field-compare.js"));
+  }
+  global.FIELD_COMPARE.deadlineMs = 120;
+  global.FIELD_COMPARE.createClient = () => ({
+    auth: {
+      getSession: () => new Promise(resolve => { setTimeout(() => resolve({ data: { session: { access_token: "late" } } }), 400); }),
+      signInAnonymously: () => new Promise(() => {})
+    }
+  });
+  const sessionHangs = [];
+  global.fetch = async () => { sessionHangs.push(Date.now()); return { status: 200, async text() { return "{}"; } }; };
+  const sessionClient = freshField();
+  const sessionStart = Date.now();
+  const sessionQuiet = await sessionClient.dayFor(liveSession({ key: "2026-11-06" }));
+  t("getSession hang falls back", [sessionQuiet.state, sessionQuiet.reason, sessionHangs.length, Date.now() - sessionStart < 1000], ["quiet", "network", 0, true]);
+  await new Promise(r => setTimeout(r, 500));
+  t("a late session does not fetch", sessionHangs, []);
+
+  delete global.FIELD_COMPARE.createClient;
+  global.FIELD_COMPARE.loadSdk = () => new Promise(resolve => { setTimeout(() => resolve({ createClient: () => ({ auth: { getSession: async () => ({ data: { session: { access_token: "late" } } }) } }) }), 400); });
+  const importHangs = [];
+  global.fetch = async () => { importHangs.push(1); return { status: 200, async text() { return "{}"; } }; };
+  const importClient = freshField();
+  const importStart = Date.now();
+  const importQuiet = await importClient.dayFor(liveSession({ key: "2026-11-05" }));
+  t("sdk import hang falls back", [importQuiet.state, importQuiet.reason, importHangs.length, Date.now() - importStart < 1000], ["quiet", "network", 0, true]);
+  await new Promise(r => setTimeout(r, 500));
+  t("a late sdk does not fetch", importHangs, []);
+  delete global.FIELD_COMPARE.loadSdk;
+  delete global.FIELD_COMPARE.deadlineMs;
+
+  function freshReal() {
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    delete global.FIELD_COMPARE.deadlineMs;
+    return require(path.join(root, "field-compare.js"));
+  }
+  const readyAuth = {
+    getSession: async () => ({ data: { session: { access_token: "tok" } } }),
+    signInAnonymously: async () => ({ data: { session: { access_token: "tok" } } })
+  };
+  async function eight(label, prepare, run) {
+    prepare();
+    const client = freshReal();
+    const started = Date.now();
+    const result = await run(client);
+    const ms = Date.now() - started;
+    console.log(label, ms + "ms", JSON.stringify(result && result.state ? result : { reason: result && result.reason }));
+    const quiet = result && (result.state === "quiet" || result.reason === "network" || result.ok === false);
+    t(label, [quiet, ms < 9000, ms >= 7000], [true, true, true]);
+    return ms;
+  }
+  await eight("sdk import stall falls back at 8s", () => {
+    delete global.FIELD_COMPARE.createClient;
+    global.FIELD_COMPARE.loadSdk = () => new Promise(() => {});
+  }, client => client.dayFor(liveSession({ key: "2026-11-04" })));
+  await eight("sign-in stall falls back at 8s", () => {
+    delete global.FIELD_COMPARE.loadSdk;
+    global.FIELD_COMPARE.createClient = () => ({ auth: { getSession: async () => ({ data: { session: null } }), signInAnonymously: () => new Promise(() => {}) } });
+  }, client => client.dayFor(liveSession({ key: "2026-11-03" })));
+  await eight("getSession stall falls back at 8s", () => {
+    global.FIELD_COMPARE.createClient = () => ({ auth: { getSession: () => new Promise(() => {}), signInAnonymously: () => new Promise(() => {}) } });
+  }, client => client.dayFor(liveSession({ key: "2026-11-02" })));
+  await eight("field calls share one 8s deadline", () => {
+    global.FIELD_COMPARE.createClient = () => ({ auth: readyAuth });
+    global.fetch = (url, init) => new Promise((resolve, reject) => {
+      const signal = init && init.signal;
+      if (signal) signal.addEventListener("abort", () => reject(new Error("abort")));
+    });
+  }, async client => {
+    const session = liveSession({ key: "2026-11-01" });
+    await client.backfillToday(session, "2026-11-01");
+    return client.dayFor(session);
+  });
+  delete global.FIELD_COMPARE.loadSdk;
+  delete global.FIELD_COMPARE.deadlineMs;
 
   console.log(bad ? bad + " failures" : "field-client.test.js: all pass");
   process.exit(bad ? 1 : 0);

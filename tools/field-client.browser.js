@@ -77,7 +77,7 @@ async function openPage(port, url, seed, viewport) {
   if (viewport) await cdp.send("Emulation.setDeviceMetricsOverride", viewport);
   if (seed) await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: seed });
   await cdp.send("Page.navigate", { url });
-  const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const app = document.querySelector('#app'); if (document.querySelector('#privacy') || (app && app.children.length) || document.querySelector('#days')) resolve(true); else if (Date.now() - start > 8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
+      const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const app = document.querySelector('#app'); const admin = document.querySelector('#days') && window.BC_NO_BOOT === true; if (document.querySelector('#privacy') || (app && app.children.length) || admin) resolve(true); else if (Date.now() - start > 8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
   if (!ready) throw new Error("page did not render " + url);
   return cdp;
 }
@@ -190,7 +190,7 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return { state: g1.getAttribute('data-collection'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, privacy: !!g1.querySelector('a[href^=\"privacy.html\"]') }; })()`);
       const footer = await evalJson(cdp, `(() => { const a = document.querySelector('footer a[data-privacy]'); return { href: a && a.getAttribute('href'), text: a && a.textContent, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0 }; })()`);
       if (info.state !== "off" || info.rects !== 0 || !/Not live/.test(info.text) || !info.privacy) fail("flag off card", info); else pass("flag override off keeps the collection-off card");
-      if (!footer || footer.href !== "privacy.html?v=g1live1" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
+      if (!footer || footer.href !== "privacy.html?v=lb5" || footer.placeholder) fail("home footer notice", footer); else pass("homepage footer links the notice");
       const after = await evalJson(cdp, snapExpr());
       const changed = sameStore(before, after);
       if (changed) fail("flag off storage", changed); else pass("flag off storage untouched");
@@ -204,8 +204,12 @@ const YOU = [700, 680, 660, 640, 680];
       await evalJson(cdp, install);
       return cdp;
     }
+    const clockProbe = await page("/index.html?dgtest", null, phone);
+    const clockDay = await evalJson(clockProbe, "BCDaily.todayKey()");
+    await closePage(clockProbe);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(clockDay)) throw new Error("clock day " + clockDay);
     async function show(cdp, mode, scores, practice) {
-      await evalJson(cdp, "window.__calls=[]; window.__fieldMode=" + JSON.stringify(mode) + "; window.FIELD_COMPARE_ENABLED=true; DGTest.openResults('2026-11-09'," + JSON.stringify(scores || YOU) + (practice ? ",{practice:true}" : "") + ")");
+      await evalJson(cdp, "window.__calls=[]; window.__fieldMode=" + JSON.stringify(mode) + "; window.FIELD_COMPARE_ENABLED=true; DGTest.openResults(" + JSON.stringify(clockDay) + "," + JSON.stringify(scores || YOU) + (practice ? ",{practice:true}" : "") + ")");
       return evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const g1 = document.getElementById('results-g1'); const st = g1 && g1.getAttribute('data-g1-state'); if (st && st !== 'pending') resolve({ state: st, reason: g1.getAttribute('data-g1-reason'), text: g1.textContent, rects: g1.querySelectorAll('rect').length, svg: g1.querySelectorAll('svg').length, bars: g1.querySelectorAll('.g1-bin').length, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), delta: g1.getAttribute('data-delta'), bin: g1.getAttribute('data-bin'), calls: window.__calls, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, w: document.documentElement.clientWidth }); else if (Date.now() - start > 4000) resolve({ state: st || 'timeout', text: g1 ? g1.textContent : '', calls: window.__calls || [] }); else setTimeout(tick, 30); }; tick(); })`);
     }
 
@@ -244,7 +248,7 @@ const YOU = [700, 680, 660, 640, 680];
     {
       const cdp = await armed("es");
       const info = await show(cdp, "below", YOU, false);
-      if (info.state !== "quiet" || info.svg !== 0 || info.text.indexOf("Todavía no hay otros resultados") < 0) fail("es fallback", info.text); else pass("es fallback copy");
+      if (info.state !== "quiet" || info.svg !== 0 || info.text.indexOf("Aún no hay otros resultados") < 0) fail("es fallback", info.text); else pass("es fallback copy");
       if (cdp.errors.length || cdp.logs.length) fail("es fallback console", cdp.errors.concat(cdp.logs)); else pass("es fallback no console errors");
       await closePage(cdp);
     }
@@ -254,7 +258,8 @@ const YOU = [700, 680, 660, 640, 680];
       const info = await show(cdp, "ready", YOU, false);
       const hidden = /player-secret|4,999|4999|\bminimum\b|\bmaximum\b|2,410\.5|2410\.5/.test(info.text);
       const bars = await evalJson(cdp, `(() => { const g1 = document.getElementById('results-g1'); return [...g1.querySelectorAll('.g1-bin')].map(p => p.getAttribute('data-count') + (p.getAttribute('data-you') === '1' ? p.getAttribute('fill') : '')); })()`);
-      if (info.state !== "ready" || info.bars !== 10 || info.svg !== 1 || info.you !== "3360" || info.rest !== "3112" || info.percentile !== "39" || info.delta !== "248" || info.bin !== "6" || !/Today's Competition/.test(info.text) || !/November 9/.test(info.text) || !/Top 39%/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/orange bar includes your game/.test(info.text) || bars.join(",") !== "2,4,8,14,18,20,17#E8774A,10,6,2" || hidden) fail("populated total", { info, bars }); else pass("populated total shows bins, average, and percentile");
+      const monthDay = await evalJson(cdp, `(() => { const p = ${JSON.stringify(clockDay)}.split("-").map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" }); })()`);
+      if (info.state !== "ready" || info.bars !== 10 || info.svg !== 1 || info.you !== "3360" || info.rest !== "3112" || info.percentile !== "39" || info.delta !== "248" || info.bin !== "6" || !/Today's Competition/.test(info.text) || info.text.indexOf(monthDay) < 0 || !/Top 39%/.test(info.text) || !/3,360/.test(info.text) || !/3,112/.test(info.text) || !/\+248/.test(info.text) || !/orange bar includes your game/.test(info.text) || bars.join(",") !== "2,4,8,14,18,20,17#E8774A,10,6,2" || hidden) fail("populated total", { info, bars, monthDay }); else pass("populated total shows bins, average, and percentile");
       if (hidden) fail("g1 hides identities", info.text); else pass("g1 shows bin counts and no per-player row");
       if (info.w !== 360 || info.overflow > 1) fail("populated width", info); else pass("populated mobile width");
       const cat = await evalJson(cdp, `(() => { const before = window.__calls.length; document.querySelector('[data-g1-view=category]').click(); const g1 = document.getElementById('results-g1'); const bars = [...g1.querySelectorAll('.g1-bin')]; return { mode: g1.getAttribute('data-g1-mode'), bars: bars.length, youBar: bars.filter(p => p.getAttribute('data-you') === '1').map(p => p.getAttribute('data-count') + ':' + p.getAttribute('fill')).join(','), names: [...g1.querySelectorAll('#g1-cat option')].map(o => o.textContent), calls: window.__calls.length - before, you: g1.getAttribute('data-you'), rest: g1.getAttribute('data-rest'), percentile: g1.getAttribute('data-percentile'), bin: g1.getAttribute('data-bin'), svg: g1.querySelectorAll('svg').length, tenths: /410\\.5|player-secret|4999|\\bminimum\\b/.test(g1.textContent) }; })()`);
@@ -266,7 +271,7 @@ const YOU = [700, 680, 660, 640, 680];
       if (posts.join(",") !== "start,finish" || againPosts.length) fail("backfill once", { posts, again: againPosts }); else pass("today's results post start then finish once");
       if (sameStore(before, await evalJson(cdp, snapExpr()))) fail("populated storage", sameStore(before, await evalJson(cdp, snapExpr()))); else pass("populated scores stay unchanged");
       const meta = await evalJson(cdp, "localStorage.getItem('dg-field-meta')");
-      if (!meta || JSON.parse(meta)["2026-11-09"].posted !== true) fail("posted flag", meta); else pass("posted flag is outside the score record");
+      if (!meta || !JSON.parse(meta)[clockDay] || JSON.parse(meta)[clockDay].posted !== true) fail("posted flag", meta); else pass("posted flag is outside the score record");
       if (cdp.errors.length || cdp.logs.length) fail("populated console", cdp.errors.concat(cdp.logs)); else pass("populated no console errors");
       await closePage(cdp);
     }
@@ -283,7 +288,7 @@ const YOU = [700, 680, 660, 640, 680];
 
     {
       const cdp = await page("/index.html", null, phone);
-      await evalJson(cdp, install + "; window.FIELD_COMPARE_ENABLED=true;");
+      await evalJson(cdp, install + "; window.FIELD_COMPARE_ENABLED=true; localStorage.setItem('bc-board-eligible','yes'); localStorage.setItem('bc-board-name','Luna');");
       const before = await evalJson(cdp, snapExpr());
       await evalJson(cdp, `(() => { const b = document.querySelector('.cta .btn.primary'); if (!b) return false; b.click(); return true; })()`);
       const calls = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const hit = (window.__calls || []).find(c => c.method === 'POST' && c.url.indexOf('/start') >= 0); if (hit) resolve(window.__calls); else if (Date.now() - start > 3000) resolve(window.__calls || []); else setTimeout(tick, 30); }; tick(); })`);
@@ -357,11 +362,11 @@ const YOU = [700, 680, 660, 640, 680];
     {
       const cdp = await page("/privacy.html?v=g1field3", null, phone);
       await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelectorAll('a[href^="mailto:"]').length >= 2) resolve(true); else if (Date.now() - start > 4000) resolve(false); else setTimeout(tick, 30); }; tick(); })`);
-      const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^="mailto:"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText), anon: /anonymous/i.test(document.body.innerText) }; })()`);
-      if (en.title !== "Daily comparison" || !/Last updated: November 9, 2026/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || !/To delete your scores, email thedailydosetrivia@gmail.com/.test(en.text) || en.placeholder || en.draft || en.anon || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
+      const en = await evalJson(cdp, `(() => { const mail = [...document.querySelectorAll('a[href^="mailto:"]')].map(a => a.getAttribute('href') + ' ' + a.textContent); return { title: document.getElementById('privacy-title').textContent, updated: document.querySelector('[data-updated]').textContent, text: document.body.innerText, mail, placeholder: document.body.innerText.indexOf('OPERATOR_CONTACT') >= 0, draft: /Draft pending the lawyer/.test(document.body.innerText) }; })()`);
+      if (en.title !== "Daily comparison" || en.updated !== "Last updated: November 22, 2026" || /November 9, 2026|GO_LIVE_DATE_TBD/.test(en.updated) || !/random ID that isn't tied to your name or email/.test(en.text) || !/Use 'Change name' to replace the nickname/.test(en.text) || !/If you skip the nickname, your score and rank may still appear on the public daily leaderboard under a random tag like 'Player 4821'\. The tag is new each day and isn't linked to you or to your other days\./.test(en.text) || !/GitHub Pages and Supabase/.test(en.text) || !/isn't meant for children under 13/.test(en.text) || !/To delete your scores, email thedailydosetrivia@gmail.com/.test(en.text) || /Rankings are for fun/.test(en.text) || en.placeholder || en.draft || en.mail.length < 2 || en.mail.some(m => m.indexOf("mailto:thedailydosetrivia@gmail.com") < 0)) fail("privacy en", en); else pass("privacy notice EN");
       await evalJson(cdp, "document.querySelector('[data-lang=es]').click()");
       const es = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const t = document.getElementById('privacy-title'); if (t && t.textContent === 'Comparación diaria') { const text = document.body.innerText; resolve({ title: t.textContent, text, mail: [...document.querySelectorAll('a[href^=\"mailto:\"]')].map(a => a.getAttribute('href')), placeholder: text.indexOf('OPERATOR_CONTACT') >= 0, draft: /Borrador pendiente/.test(text), anon: /anónim/i.test(text) }); } else if (Date.now()-start>4000) resolve({ title: t && t.textContent, text: '' }); else setTimeout(tick, 40); }; tick(); })`);
-      if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización:/.test(es.text) || !/menores de 13/.test(es.text) || !/Para borrar tus puntajes, escribe a thedailydosetrivia@gmail.com/.test(es.text) || es.placeholder || es.draft || es.anon || (es.mail || []).length < 2 || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
+      if (es.title !== "Comparación diaria" || !/identificador al azar que no está ligado/.test(es.text) || !/Última actualización: 22 de noviembre de 2026/.test(es.text) || !/Usa 'Cambiar nombre' para reemplazar el apodo/.test(es.text) || !/Si no agregas un apodo, tu puntaje y tu lugar pueden aparecer en la clasificación pública del día con una etiqueta al azar como 'Jugador 4821'\. La etiqueta cambia cada día y no está vinculada a ti ni a tus otros días\./.test(es.text) || !/menores de 13/.test(es.text) || !/Para borrar tus puntajes, escribe a thedailydosetrivia@gmail.com/.test(es.text) || es.placeholder || es.draft || (es.mail || []).length < 2 || !(es.mail || []).every(h => h === "mailto:thedailydosetrivia@gmail.com")) fail("privacy es", es); else pass("privacy notice ES");
       if (cdp.reqs.some(r => /field-compare|supabase\.co/.test(r.url))) fail("privacy network", cdp.reqs.filter(r => /field-compare|supabase/.test(r.url))); else pass("privacy page makes no field calls");
     }
 

@@ -32,7 +32,25 @@
     return { loc: loc, boot: boot };
   }
 
+  function under13() {
+    try { return root.localStorage && root.localStorage.getItem("bc-board-eligible") === "no"; } catch (e) { return false; }
+  }
+  function forget() {
+    clientP = null;
+    tokenP = null;
+    try {
+      const store = root.localStorage;
+      if (!store) return;
+      const drop = [];
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        if (k && k.indexOf(STORAGE_PREFIX) === 0) drop.push(k);
+      }
+      drop.forEach(k => store.removeItem(k));
+    } catch (e) {}
+  }
   function blocked(session, extra) {
+    if (under13()) { forget(); return "under13"; }
     if (root.FIELD_COMPARE_ENABLED !== true) return "flag";
     const c = cfg();
     if (!c.url || !c.publishableKey) return "config";
@@ -140,7 +158,8 @@
       if (!c.url || !c.publishableKey) throw new Error("config");
       let create = c.createClient;
       if (typeof create !== "function") {
-        const mod = await import(c.supabaseJs);
+        const load = typeof c.loadSdk === "function" ? c.loadSdk : (url => import(url));
+        const mod = await load(c.supabaseJs);
         create = mod && mod.createClient;
       }
       if (typeof create !== "function") throw new Error("sdk");
@@ -158,6 +177,7 @@
   }
 
   function tokenFor() {
+    if (under13()) return Promise.reject(new Error("under13"));
     if (tokenP) return tokenP;
     tokenP = (async () => {
       const supabase = await clientFor();
@@ -172,16 +192,35 @@
     return tokenP;
   }
 
+  let windowStart = 0;
+  function deadlineMs() {
+    const n = Number(cfg().deadlineMs);
+    return Number.isFinite(n) && n > 0 ? n : 8000;
+  }
+  function sharedStart() {
+    const now = Date.now();
+    if (!windowStart || now - windowStart > deadlineMs() + 250) windowStart = now;
+    return windowStart;
+  }
+  function within(started, work) {
+    const left = Math.max(0, deadlineMs() - (Date.now() - started));
+    if (left === 0) return Promise.resolve(null);
+    let timer;
+    const timeout = new Promise(resolve => { timer = setTimeout(() => resolve(null), left); });
+    return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
+  }
   async function call(op, session, scores) {
+    const started = sharedStart();
     const timerBox = { id: null };
     try {
       const c = cfg();
       const day = session && session.key;
       const runId = runIdFor(day);
       if (!runId || !validDay(day)) return quiet("invalid");
-      const token = await tokenFor();
+      const token = await within(started, () => tokenFor());
+      if (!token) { tokenP = null; clientP = null; return quiet("network"); }
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, Math.max(0, deadlineMs() - (Date.now() - started)));
       const base = String(c.url).replace(/\/$/, "") + "/functions/v1/field-compare/";
       let url = base + op;
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + token };
@@ -247,15 +286,17 @@
     try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
   }
   async function rawCall(op, session, scores) {
+    const started = sharedStart();
     const timerBox = { id: null };
     try {
       const c = cfg();
       const day = session && session.key;
       const runId = runIdFor(day);
       if (!runId || !validDay(day)) return { ok: false, error: "invalid" };
-      const token = await tokenFor();
+      const token = await within(started, () => tokenFor());
+      if (!token) { tokenP = null; clientP = null; return { ok: false, error: "network" }; }
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
+      timerBox.id = setTimeout(() => { if (ctrl) ctrl.abort(); }, Math.max(0, deadlineMs() - (Date.now() - started)));
       const headers = { apikey: c.publishableKey, Authorization: "Bearer " + token, "Content-Type": "application/json" };
       const init = { method: "POST", headers: headers, body: JSON.stringify(op === "finish" ? { runId: runId, day: day, scores: scores } : { runId: runId, day: day }) };
       if (ctrl) init.signal = ctrl.signal;
@@ -328,6 +369,7 @@
     scoreBin: scoreBin,
     categoryBin: categoryBin,
     wireScores: wireScores,
+    forget: forget,
     fieldStorage: fieldStorage,
     storagePrefix: STORAGE_PREFIX
   };

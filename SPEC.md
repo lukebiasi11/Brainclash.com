@@ -63,7 +63,7 @@ Illusion assets (Designer, verified by `trivia-illusions/verify.py`): illusion-0
 
 ## From Luke's brainstorm (compatible additions)
 - Daily challenge unlocks at midnight; anytime practice mode separate from the ranked daily.
-- Leaderboards / friends / head-to-head, paid buy-ins and prize pools: planned for later (need backend + legal review) — not in this static beta.
+- Friends, head-to-head, and paid buy-ins are not part of this beta. The public daily board has no prizes.
 
 ## Daily reset
 - One reset for every player: **midnight US Eastern** (`RESET_TIMEZONE = "America/New_York"` at the top of app.js, DST-aware).
