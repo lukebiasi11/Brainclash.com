@@ -14,7 +14,7 @@
     impWord: ["mod", "mods"],
     compound: ["cooladmin", "modsquad", "modteam", "staffer"],
     sub: ["1488", "assclown", "asshat", "asshole", "asslicker", "asswipe", "badass", "bastard", "bigcock", "bigdick", "bitch", "blowjob", "bollocks", "boobs", "bullshit", "cabron", "cabrona", "capullo", "chinga", "chingada", "chingado", "chingar", "cockhead", "cocksucker", "cojones", "coonass", "culero", "cumdump", "cumshot", "cunt", "dickbutt", "dickface", "dickhead", "dickweed", "dildo", "dumbass", "dumbshit", "eatshit", "fagg", "faggy", "faggot", "fock", "fuck", "fvck", "gilipollas", "handjob", "hentai", "hitler", "horny", "hostia", "jackass", "jizz", "joder", "kissmyass", "kkk", "mamaguevo", "maricon", "mierda", "nazi", "nigga", "nigg", "nigger", "nignog", "niqqer", "nlgger", "nude", "orgasm", "pendeja", "pendejo", "penis", "phuck", "phuk", "pinche", "pinga", "polla", "pornhub", "pornstar", "pussy", "raghead", "rapist", "retard", "semen", "sexual", "sexy", "shit", "shitface", "shithead", "shitty", "slut", "spick", "titty", "tranny", "twat", "vagina", "wanker", "wanking", "wetback", "whore"],
-    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chinc", "chink", "cock", "cono", "coon", "coonz", "culo", "cum", "cvnt", "dick", "dyk", "dyke", "fag", "faget", "fagit", "fagot", "fagz", "fck", "fcker", "fcking", "fckn", "fgt", "fkn", "fuggin", "fuk", "fuking", "fukk", "fukker", "gook", "hitlr", "jewboy", "jewfag", "kike", "kikez", "kunt", "kyke", "mamon", "mamona", "marica", "nggr", "nibba", "nig", "nigah", "niga", "nigar", "nigha", "niglet", "nigr", "nigur", "nikka", "niqqa", "paki", "paky", "perra", "phag", "phaggot", "phagot", "pito", "porn", "pron", "puta", "puto", "raghead", "raghed", "rape", "sex", "sexo", "shemal", "shemale", "shemali", "sht", "shtty", "slvt", "spic", "spik", "tit", "trannie", "trany", "verga", "wank", "wetback", "wetbak", "zorra"]
+    word: ["anal", "ass", "beaner", "beyotch", "biatch", "chinc", "chink", "cock", "cono", "coon", "coonz", "culo", "cum", "cvnt", "dick", "dyk", "dyke", "fag", "faget", "fagit", "fagot", "fagz", "fck", "fcker", "fcking", "fckn", "fgt", "fkn", "fuggin", "fuk", "fuking", "fukk", "fukker", "gook", "hitlr", "jewboy", "jewfag", "kike", "kikez", "kunt", "kyke", "mamon", "mamona", "marica", "nggr", "nibba", "nig", "nigah", "niga", "nigar", "nigha", "niglet", "nigr", "nigur", "nikka", "niqqa", "paki", "paky", "perra", "phag", "phaggot", "phagot", "pito", "porn", "pron", "puta", "puto", "raghead", "raghed", "rape", "sex", "sexo", "shemal", "shemale", "shemali", "sht", "shtty", "slvt", "spic", "spik", "tit", "trannie", "tranni", "trany", "verga", "wank", "wetback", "wetbak", "zorra"]
   };
 
   const ALLOW = ["actitud", "analia", "analog", "analogy", "analysis", "analyst", "aptitud", "aptitude", "ashkenazi", "assess", "attitude", "badminton", "banal", "banality", "basement", "beatitude", "benedick", "canal", "certitude", "cockatoo", "cockburn", "cockerel", "cockrell", "cockroach", "cocktail", "commodore", "competitor", "conn", "constitution", "coppola", "cumming", "cummings", "dickens", "dickerson", "dickinson", "dickson", "dikshit", "document", "dykes", "enigma", "esperanza", "essex", "exactitude", "fagotti", "fagotto", "fortitude", "granny", "gratitud", "gratitude", "hancock", "hitchcock", "hoshitani", "identity", "ignazio", "ineptitude", "latitud", "latitude", "leacock", "lightwater", "mammon", "middlesex", "model", "modelo", "moderna", "moderno", "modest", "modestia", "modesto", "modificar", "modulo", "multitude", "nazia", "nazir", "nigel", "niger", "nigeria", "night", "nightingale", "paget", "peacock", "penistone", "petite", "phuket", "pollack", "pollard", "promptitude", "pussycat", "rectitude", "saget", "scunthorpe", "semenov", "semenya", "sexton", "shitake", "shiteh", "shitterton", "shittu", "spikes", "stafford", "staffordshire", "stitch", "sussex", "therapist", "titan", "titania", "titanic", "titian", "titmouse", "tito", "titulo", "titus", "wessex", "woodcock", "yoshito"];
@@ -277,7 +277,7 @@
       const tsq = squeezeLetters(term);
       if ((text === term || attached(text, term) || padded(text, term)) && !covered(ranges, 0, text.length)) return original;
       if (loose && exposed(text, term, ranges)) return original;
-      if (!collapsed) continue;
+      if (!collapsed || original === "tranni") continue;
       if ((mapped.sq === tsq || attached(mapped.sq, tsq) || padded(mapped.sq, tsq)) && !covered(ranges, 0, text.length)) return original;
       if (loose && exposed(mapped.sq, tsq, null)) return original;
     }
@@ -315,7 +315,7 @@
     }
     const shorts = TERMS.word.concat(TERMS.impWord);
     for (let i = 0; i < shorts.length; i++) {
-      if (sq === squeezeLetters(canon(shorts[i])) || attached(sq, squeezeLetters(canon(shorts[i])))) return reasonFor(shorts[i]);
+      if (shorts[i] !== "tranni" && (sq === squeezeLetters(canon(shorts[i])) || attached(sq, squeezeLetters(canon(shorts[i]))))) return reasonFor(shorts[i]);
     }
     return "";
   }

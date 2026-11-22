@@ -232,6 +232,7 @@ insert into private.board_term (kind, term) values
   ('word', 'spik'),
   ('word', 'tit'),
   ('word', 'trannie'),
+  ('word', 'tranni'),
   ('word', 'trany'),
   ('word', 'verga'),
   ('word', 'wank'),
@@ -657,7 +658,8 @@ as $$
       or private.board_padded(p_text, t.c)
       or (p_loose and position(t.c in p_text) > 0)
       or (
-        private.board_letters_sq(p_text) <> p_text
+        t.term <> 'tranni'
+        and private.board_letters_sq(p_text) <> p_text
         and (
           private.board_letters_sq(p_text) = private.board_letters_sq(t.c)
           or private.board_attached(private.board_letters_sq(p_text), private.board_letters_sq(t.c))
@@ -724,6 +726,7 @@ begin
   select t.term into v_term
   from private.board_term t
   where (t.kind = 'word' or t.kind = 'impword')
+    and t.term <> 'tranni'
     and (
       v_sq = private.board_letters_sq(private.board_canon(t.term))
       or private.board_attached(v_sq, private.board_letters_sq(private.board_canon(t.term)))
@@ -840,7 +843,7 @@ begin
         v_from := v_at;
       end loop;
     end if;
-    if v_sq <> p_text then
+    if v_sq <> p_text and v_term <> 'tranni' then
       v_tsq := private.board_letters_sq(private.board_canon(v_term));
       if (v_sq = v_tsq or private.board_attached(v_sq, v_tsq) or private.board_padded(v_sq, v_tsq))
          and p_mark !~ '^A+$' then
