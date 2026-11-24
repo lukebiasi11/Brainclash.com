@@ -25,11 +25,10 @@
     ["word", "Word Nerd"],
     ["think", "Brain Teaser"]
   ];
-  // Fifth tab label only. Eagle Eye on Thursday 2026-11-26. Every other day stays Brain Teaser.
-  // Slot id stays think. This date is the same key admin.html shows, and it does not call EagleEye.on.
-  const FIFTH_DAY = "2026-11-26";
-  function fifthName(day) {
-    return day === FIFTH_DAY ? "Eagle Eye" : "Brain Teaser";
+  // Fifth tab label. The slot id stays think. November 26 is Think Fast, same as every other day.
+  // This does not call EagleEye.on.
+  function fifthName() {
+    return "Brain Teaser";
   }
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
   let clientP = null;

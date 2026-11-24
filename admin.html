@@ -221,7 +221,7 @@ function eagleParts() {
   const items = `<li><span class="tag">cups</span>${esc(cupName)}: ${esc(cups)} · ${pts[0]} pts</li>`
     + `<li><span class="tag">dots</span>${esc(dotName)}: ${esc(dots)} · ${pts[3] + pts[4]} pts</li>`
     + `<li><span class="tag">banked</span>Cup tiers 2 and 3 are not scheduled.</li>`;
-  const answers = (es ? "Ojo de Águila. " : "Eagle Eye. ") + "Thursday, Nov 26, 2026 only. Tier 1 and Track the Dot. Track round 2 is all or nothing. Tiers 2 and 3 stay banked.";
+  const answers = "Thursday, Nov 26, 2026 only. Think Fast. Cup Shuffle tier 1 (" + pts[0] + " pts) and Track the Dot (" + (pts[3] + pts[4]) + " pts). Track round 2 is all or nothing. Tiers 2 and 3 stay banked.";
   return { items, answers: esc(answers) };
 }
 // Which raw list index each category uses that day (to flag repeats inside the window).

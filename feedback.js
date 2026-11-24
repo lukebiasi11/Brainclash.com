@@ -76,8 +76,8 @@ function items(set) {
   } catch (e) { odd("Word Nerd", 1); }
   if (window.EagleEye && set && typeof set.day === "number" && EagleEye.onEpoch(set.day)) {
     const pts = EagleEye.roundPoints();
-    add("Eagle Eye", 1, EagleEye.CUPS_HOW.join(" "), pts[0] + " pts");
-    add("Eagle Eye", 2, EagleEye.DOT_HOW.join(" "), (pts[3] + pts[4]) + " pts");
+    add("Brain Teaser", 1, EagleEye.CUPS_HOW.join(" "), pts[0] + " pts");
+    add("Brain Teaser", 2, EagleEye.DOT_HOW.join(" "), (pts[3] + pts[4]) + " pts");
   } else if (!set || !Array.isArray(set.thinkFast)) odd("Brain Teaser", 1);
   else set.thinkFast.forEach((q, i) => {
     try {
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.head.append(st);
   const btn = document.createElement("button"); btn.id = "bc-flag"; btn.type = "button"; btn.textContent = "👎 Disapprove"; document.body.append(btn);
   const current = () => {
-    const ci = Math.min(P.cat(), 4), names = ["World Rush", "Time Warp", "MVP", "Word Nerd", (window.EagleEye && EagleEye.on(P.key)) ? "Eagle Eye" : "Brain Teaser"];
+    const ci = Math.min(P.cat(), 4), names = ["World Rush", "Time Warp", "MVP", "Word Nerd", "Brain Teaser"];
     const list = items(window.BCDaily.getDailySet(P.key)).filter(x => x.cat.startsWith(names[ci]));
     const screen = [...document.querySelectorAll("#app .prompt, #app h2")].map(e => e.textContent.trim()).filter(Boolean).join(" | ");
     const core = x => x.prompt.replace(/^(Pin|Order): /, "").split(" — ")[0].slice(0, 40);

@@ -314,7 +314,6 @@ body.in-game .timeline{margin:6px 0}
   body.in-game .top{padding-bottom:0}body.in-game .top .brand{font-size:15px}
   body.in-game .game-head .crumb,body.in-game .game-head .runtotal{font-size:11px}
   body.in-game .game-head h2{font-size:20px;margin:0}body.in-game .game-head .muted{font-size:13px}
-  body.in-game .game-head .muted.ee-round{font-size:clamp(16px,4.6vw,20px);margin:6px 0 4px}
   body.in-game .prompt{font-size:16px;margin:2px 0 6px}
   body.in-game .opt{min-height:42px;padding:8px 12px;font-size:15px}
   body.in-game .btn.big{padding:10px;font-size:17px;min-height:44px}
@@ -1285,21 +1284,7 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
 
-/* Eagle Eye. Thursday 2026-11-26 only. Stage art stays on the navy felt. */
-.ee-lead{font-size:clamp(22px,6.8vw,32px);font-weight:800;line-height:1.25;margin:8px 0 28px}
-.ee-split{display:flex;flex-direction:column;gap:20px;margin:0}
-.ee-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:clamp(20px,6.2vw,28px);font-weight:800;line-height:1.2}
-.ee-row span{min-width:0}
-.ee-row b{font-family:var(--display);font-weight:400;white-space:nowrap}
-.ee-progress{display:flex;gap:6px;margin:2px 0 8px}
-.ee-progress i{flex:1;height:6px;border-radius:6px;background:rgba(18,11,46,.18)}
-.ee-progress i.done{background:var(--navy)}
-.ee-progress i.now{background:var(--bolt)}
-.ee-howto{color:var(--ink-bc);opacity:1;text-align:left;padding:22px 16px 20px}
-.ee-howto-line{color:var(--ink-bc);opacity:1;font-size:clamp(26px,8vw,40px);font-weight:800;line-height:1.2;margin:0 0 16px}
-.ee-howto-pts{color:var(--ink-bc);opacity:1;font-family:var(--display);font-weight:400;font-size:clamp(22px,7vw,34px);margin:28px 0 0}
-body.in-game .game-body:has(.ee-howto) .action-bar .btn.primary{opacity:1;background:var(--ink-bc);color:var(--cream)}
-body.in-game .game-head .muted.ee-round{font-size:clamp(17px,4.8vw,22px);font-weight:800;line-height:1.4;letter-spacing:.01em;margin:8px 0 6px;color:var(--ink-bc)}
+/* Cup Shuffle and Track the Dot, played inside Think Fast on 2026-11-26. Stage art stays on the navy felt. */
 .ee-status{font-family:var(--display);font-weight:400;font-size:clamp(20px,6vw,28px);text-transform:uppercase;text-align:center;letter-spacing:.03em;min-height:28px;margin:8px 0 0}
 .ee-status.ok{color:#0E7A3E}
 .ee-status.no{color:#B3122E}
@@ -1327,13 +1312,3 @@ body.in-game .game-head .muted.ee-round{font-size:clamp(17px,4.8vw,22px);font-we
 @keyframes ee-pulse{from{stroke-opacity:1;stroke-width:4}to{stroke-opacity:.35;stroke-width:8}}
 .ee-tap{fill:none;stroke:#fff;stroke-width:3;animation:ee-tap .5s ease-out forwards;pointer-events:none}
 @keyframes ee-tap{from{r:6;stroke-opacity:1}to{r:30;stroke-opacity:0}}
-body.in-game .game-body>.intro.ee-intro{flex:0 0 auto;overflow:visible;padding:22px 16px 20px;text-align:left}
-body.in-game .game-body:has(.ee-intro) .action-bar,
-body.in-game .game-body:has(.ee-howto) .action-bar{margin-top:28px;padding-bottom:20px}
-body.in-game .game-body:has(.ee-intro) .action-bar .btn.big,
-body.in-game .game-body:has(.ee-howto) .action-bar .btn.big{font-size:clamp(16px,5vw,20px)}
-@media (max-width:360px){
-  .ee-lead{margin-bottom:22px}
-  .ee-split{gap:16px}
-  body.in-game .game-body>.intro.ee-intro{padding:16px 12px 14px}
-}
