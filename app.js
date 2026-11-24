@@ -299,9 +299,24 @@ function liveTotal() {
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
   b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
+// November 26 Think Fast is Cup Shuffle 150 plus Track the Dot 250. Every other category stays 1,000.
+function catCapFor(key, index) {
+  if (index === 4 && window.EagleEye && EagleEye.on(key)) {
+    const p = EagleEye.roundPoints();
+    return p[0] + p[3] + p[4];
+  }
+  return 1000;
+}
+function activeCatIndex() {
+  if (!session) return -1;
+  if (session.inProgress != null) return session.inProgress;
+  return session.scores.length < 5 ? session.scores.length : session.scores.length - 1;
+}
 function catScoreChip() {
   const v = session && session.inProgress != null ? Math.round(session.partial || 0) : 0;
-  return h("div", { class: "runtotal", "aria-label": tr("Category score") }, tr("Score "), h("b", {}, fmt(v)), tr("/1,000 pts"));
+  const cap = catCapFor(session && session.key, activeCatIndex());
+  const of = cap === 1000 ? tr("/1,000 pts") : tr("/{0} pts", fmt(cap));
+  return h("div", { class: "runtotal", "aria-label": tr("Category score") }, tr("Score "), h("b", {}, fmt(v)), of);
 }
 function save() { if (session && !session.practice) store.set("dg-" + session.key, session); }
 const wordGameFor = day => getDailySet(keyOf(day)).wordGame;
@@ -395,10 +410,12 @@ function scoreGraph(scores, day) {
     h("p", { class: "sg-date" }, tr("Today's scores · ") + dt),
     h("div", { class: "sg-card" },
       h("h3", {}, tr("Points by category")),
-      h("ul", { class: "sg-cols" }, catsFor(keyOf(day)).map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
+      h("ul", { class: "sg-cols" }, catsFor(keyOf(day)).map((c, i) => {
+        const cap = catCapFor(keyOf(day), i);
+        const v = Math.max(0, Math.min(cap, scores[i] || 0));
         return h("li", { "aria-label": c.name + ": " + fmt(scores[i] || 0) },
           h("b", { class: "sg-v", "aria-hidden": "true" }, fmt(scores[i] || 0)),
-          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
+          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / cap * 100) + "%;--d:" + (i * 90) + "ms" })),
           h("span", { class: "sg-nm", "aria-hidden": "true" }, c.name)); })),
       h("div", { class: "sg-total" }, h("span", {}, tr("Total")), h("b", {}, fmt(tot)))));
   if (anim) requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("in")));
@@ -430,7 +447,7 @@ function home() {
         h("span", { class: "num" }, sc != null ? "✓" : i + 1),
         h("span", { class: "ic" }, ic(c.icon, c.img)),
         h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.id === "word" ? c.sub + tr(" · Today: ") + wg.name : c.sub)),
-        h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : "1,000"));
+        h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : (catCapFor(todayKey(), i) === 1000 ? "1,000" : fmt(catCapFor(todayKey(), i)))));
     })),
     done
       ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
@@ -497,7 +514,9 @@ function catIntro(i, start) {
   }
   const blurb = c.id === "world" || c.id === "history" || c.id === "sports" ? tr(catBlurb(c.id)) : c.desc;
   const body = screen(c.icon + " " + c.name, blurb);
-  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, tr("1,000 points")), "."), introText(c.id)));
+  const cap = catCapFor(session.key, i);
+  const worth = cap === 1000 ? tr("1,000 points") : tr("{0} points", fmt(cap));
+  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, worth), "."), introText(c.id)));
   nextBtn(body, tr("Start {0}", i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
 function introText(id) {
@@ -544,7 +563,8 @@ function runNext() {
 function catDone(body, score, detail) {
   commitCat(score, detail);
   const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
-  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
+  const doneCap = catCapFor(session.key, session.scores.length - 1);
+  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, doneCap === 1000 ? "/ 1,000" : "/ " + fmt(doneCap)), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
   countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
@@ -2374,10 +2394,18 @@ function g1OnSection() {
     const avg = mode === "total" ? snap.restAverage : snap.restCategoryAverage[cat];
     // The server bins count other finished games only. Add this game to the
     // player's own bin so the orange bar has a height when nobody else is there.
-    const bins = (mode === "total" ? snap.scoreBins : snap.categoryBins[cat]).slice();
+    let bins = (mode === "total" ? snap.scoreBins : snap.categoryBins[cat]).slice();
     const above = mode === "total" ? snap.othersAtOrAbove : snap.categoryAtOrAbove[cat];
-    const ownBin = mode === "total" ? g1Bin(total, 500) : g1Bin(youScores[cat], 100);
-    if (ownBin >= 0 && ownBin < bins.length) bins[ownBin] += 1;
+    const catCap = mode === "category" ? catCapFor(session && session.key, cat) : 1000;
+    let ownBin = mode === "total" ? g1Bin(total, 500) : g1Bin(youScores[cat], 100);
+    if (mode === "category" && catCap !== 1000) {
+      const n = Math.max(1, Math.round(catCap / 100));
+      const folded = bins.slice(0, n);
+      while (folded.length < n) folded.push(0);
+      if (ownBin >= n) { folded[n - 1] += 1; ownBin = n - 1; }
+      else if (ownBin >= 0) folded[ownBin] += 1;
+      bins = folded;
+    } else if (ownBin >= 0 && ownBin < bins.length) bins[ownBin] += 1;
     const pct = g1Percent(above, snap.restFinishes);
     const delta = Math.round(you - avg);
     section.setAttribute("data-you", String(Math.round(you)));
@@ -2390,8 +2418,8 @@ function g1OnSection() {
       h("div", {}, h("span", {}, tr("Player average")), h("b", {}, fmt(avg))),
       h("div", {}, h("span", {}, tr("Percentile")), h("b", {}, pct == null ? "—" : tr("Top {0}%", pct)))
     );
-    const xTicks = mode === "total" ? [0, 1000, 2000, 3000, 4000, 5000] : [0, 200, 400, 600, 800, 1000];
-    const xMax = mode === "total" ? 5000 : 1000;
+    const xTicks = mode === "total" ? [0, 1000, 2000, 3000, 4000, 5000] : (catCap === 1000 ? [0, 200, 400, 600, 800, 1000] : [0, 100, 200, 300, 400]);
+    const xMax = mode === "total" ? 5000 : catCap;
     plot.append(
       h("div", { class: "g1-chart g1-hist" }, h("div", { class: "g1-ylab" }, tr("↑ Number of completed games")), h("div", {}, g1Histogram(bins, ownBin, xMax, xTicks), h("div", { class: "g-xlab" }, tr("Score range"))))
     );
@@ -2876,6 +2904,7 @@ if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.fr
     DGTest.at(k, cat);
   },
   thinkFast(day) { if (Array.isArray(day)) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; return runNext(); } DGTest.at(day, 4); },
+  cap(key, index) { return catCapFor(key, index); },
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
   sportsSet(day) { if (Array.isArray(day) || (day && typeof day === "object")) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; return runNext(); } DGTest.at(day, 2); },
   state() { return session; },

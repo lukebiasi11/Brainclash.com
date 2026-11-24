@@ -256,6 +256,39 @@ t("plain Player is not a tag", Filter.checkName("Player").ok === true && Filter.
 global.EagleEye = { on: () => true };
 t("fifth tab ignores EagleEye.on", Board.fifthName("2026-11-25") === "Brain Teaser" && Board.fifthName("2026-11-26") === "Brain Teaser");
 delete global.EagleEye;
+t("leaderboard source has no Eagle Eye label", !/Eagle Eye|Ojo de Águila/.test(fs.readFileSync(path.join(root, "leaderboard.js"), "utf8")));
+
+function boardTabs(lang) {
+  const es = require(path.join(root, "i18n.js")).ES;
+  const prev = global.BC_I18N;
+  global.BC_I18N = { t: function (s) { let r = lang === "es" && es[s] ? es[s] : s; for (let i = 1; i < arguments.length; i++) r = String(r).split("{" + (i - 1) + "}").join(arguments[i]); return r; } };
+  function make(tag) {
+    const node = { tagName: String(tag).toUpperCase(), className: "", textContent: "", hidden: false, children: [], attrs: {}, style: {},
+      classList: { toggle() {}, add() {}, remove() {} },
+      setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
+      append() { for (const k of arguments) if (k) this.children.push(k); },
+      addEventListener() {}, removeEventListener() {},
+      querySelector(sel) { return this.querySelectorAll(sel)[0] || null; },
+      querySelectorAll(sel) {
+        const want = (sel.match(/data-board-section=([\w-]+)/) || [])[1];
+        const out = [];
+        const walk = n => { if (!n || !n.children) return; n.children.forEach(c => { const cls = " " + String(c.className || "") + " "; if (cls.includes(" board-tab ") && (!want || c.attrs["data-board-section"] === want)) out.push(c); walk(c); }); };
+        walk(this); return out;
+      }
+    };
+    return node;
+  }
+  global.document = { createElement: make, addEventListener() {}, visibilityState: "visible", body: make("body") };
+  const host = Board.section();
+  const tabs = host ? host.querySelectorAll(".board-tab").map(b => b.textContent) : ["missing"];
+  delete global.document;
+  global.BC_I18N = prev;
+  return tabs.join("|");
+}
+const enTabs = boardTabs("en"), esTabs = boardTabs("es");
+t("en board tabs", enTabs === "Overall|World Rush|Time Warp|MVP|Word Nerd|Brain Teaser", enTabs);
+t("es board tabs", esTabs === "General|Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos", esTabs);
+t("rendered tabs have no Eagle Eye", !/Eagle Eye|Ojo de Águila/.test(enTabs + esTabs));
 
 (async () => {
   global.LEADERBOARD_ENABLED = true;
