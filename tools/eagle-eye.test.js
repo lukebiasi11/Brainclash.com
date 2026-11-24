@@ -185,20 +185,25 @@ function renderThinkFast(lang, day) {
   load("i18n.js");
   load("app.js");
   sandbox.DGTest.at(day, 4);
-  return textOf(appEl);
+  return { text: textOf(appEl), cap: sandbox.DGTest.cap(day, 4), other: sandbox.DGTest.cap(day, 0) };
 }
 ["en", "es"].forEach(lang => {
-  let text = "";
-  try { text = renderThinkFast(lang, "2026-11-26"); }
+  let view = null;
+  try { view = renderThinkFast(lang, "2026-11-26"); }
   catch (e) { t(false, lang + " 11/26 render threw " + e.message); return; }
+  const text = view.text;
   t(!/Eagle Eye|Ojo de Águila/.test(text), lang + " 11/26 renders no Eagle Eye");
   t(lang === "es" ? /Rompecocos/.test(text) : /Brain Teaser/.test(text), lang + " 11/26 uses the Think Fast name");
   t(/150/.test(text) && /250/.test(text), lang + " 11/26 shows 150 and 250 (" + text.slice(0, 180) + ")");
   t(lang === "es" ? /Vasos/.test(text) && /Sigue el punto/.test(text) : /Cup Shuffle/.test(text) && /Track the Dot/.test(text), lang + " 11/26 names both questions");
+  t(view.cap === 400 && view.other === 1000, lang + " 11/26 Think Fast max is 400 and the other categories stay 1,000");
+  t(lang === "es" ? /Vale hasta\s*400 puntos/.test(text) : /Worth up to\s*400 points/.test(text), lang + " start card says up to 400");
+  t(/\/400 pts/.test(text) && !/1,000/.test(text), lang + " header is /400 and the card does not say 1,000");
 });
 {
   const plain = renderThinkFast("en", "2026-11-25");
-  t(/400 and 600/.test(plain) && !/Cup Shuffle/.test(plain) && !/Eagle Eye/.test(plain), "11/25 stays the regular Think Fast intro");
+  t(/400 and 600/.test(plain.text) && !/Cup Shuffle/.test(plain.text) && !/Eagle Eye/.test(plain.text), "11/25 stays the regular Think Fast intro");
+  t(plain.cap === 1000 && /1,000 points/.test(plain.text) && /\/1,000 pts/.test(plain.text), "11/25 still says up to 1,000");
 }
 
 console.log(pass + " passed, " + fail + " failed");
