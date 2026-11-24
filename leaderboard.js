@@ -325,8 +325,11 @@
         finish(true);
       }
       function dismiss() {
-        if (step === "name") chooseAnonymous();
-        else finish(true);
+        if (step !== "name") { finish(true); return; }
+        // A saved name stays. Main's first visit, with nothing saved, remembers the skip.
+        if (!readName()) writeSkip(true);
+        markAsked();
+        finish(true);
       }
       function focusables() {
         return Array.prototype.filter.call(dialog.querySelectorAll("button, input, a, [href], [tabindex]"), node => !node.disabled && node.getAttribute("tabindex") !== "-1" && !node.hidden);
@@ -478,7 +481,9 @@
       input, button, err);
   }
 
+  let nameHelpSeq = 0;
   function nameFields(prefill) {
+    const helpId = "board-name-help-" + (++nameHelpSeq);
     const input = el("input", {
       class: "board-input",
       "data-board-name-input": "1",
@@ -487,13 +492,13 @@
       autocapitalize: "off",
       spellcheck: "false",
       "aria-label": tr("Name for the leaderboard"),
-      "aria-describedby": "board-name-help"
+      "aria-describedby": helpId
     });
     if (prefill) input.value = prefill;
     return {
       input: input,
       err: el("p", { class: "board-error", "data-board-error": "1", hidden: "hidden" }),
-      help: el("p", { class: "board-help", id: "board-name-help", text: tr("This name is shown publicly. Use a nickname, not your full name.") })
+      help: el("p", { class: "board-help", id: helpId, text: tr("This name is shown publicly. Use a nickname, not your full name.") })
     };
   }
 

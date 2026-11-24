@@ -63,6 +63,14 @@ function domNode(tag) {
       if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(k => k !== this);
       this.parentNode = null;
     },
+    insertBefore(node, before) {
+      if (!node) return;
+      node.parentNode = this;
+      const at = this.children.indexOf(before);
+      if (at < 0) this.children.unshift(node);
+      else this.children.splice(at, 0, node);
+    },
+    get firstChild() { return this.children[0] || null; },
     focus() { global.document.activeElement = this; },
     scrollIntoView() {}
   };
@@ -105,7 +113,7 @@ global.document = {
   activeElement: null,
   listeners: {},
   addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); },
-  removeEventListener() {},
+  removeEventListener(type, fn) { this.listeners[type] = (this.listeners[type] || []).filter(f => f !== fn); },
   createElement: domNode,
   contains(node) { return body.contains(node); },
   querySelector(sel) { return body.querySelector(sel); },
@@ -149,6 +157,19 @@ async function click(sel) {
 }
 function dialog() { return global.document.querySelector("[data-board-name]"); }
 function input() { return global.document.querySelector("[data-board-name-input]"); }
+function pressEscape() {
+  const ev = { key: "Escape", shiftKey: false, preventDefault() {} };
+  (global.document.listeners.keydown || []).slice().forEach(fn => fn(ev));
+}
+function helpIds() {
+  const ids = [];
+  function walk(node) {
+    if (node && node.attrs && node.attrs.id && node.attrs.id.indexOf("board-name-help") === 0) ids.push(node.attrs.id);
+    (node && node.children || []).forEach(walk);
+  }
+  walk(body);
+  return ids;
+}
 
 (async () => {
   t("filter still rejects a blocked name", Filter.checkName("admin").ok === false && Filter.checkName("Daily Dose").ok === false && Filter.checkName("Luna").ok === true && Filter.checkName("Scunthorpe").ok === true);
@@ -239,6 +260,62 @@ function input() { return global.document.querySelector("[data-board-name-input]
   await click("[data-board-skip]");
   await fresh;
   t("a new skip is remembered", bag[ASKED] === "1" && bag["bc-board-name-skip"] === "1" && !bag["bc-board-name"]);
+
+  reset();
+  day = "2026-11-25";
+  bag["bc-board-eligible"] = "yes";
+  bag["bc-board-name"] = "Luna";
+  const escAsk = Board.beforeStart({});
+  t("escape starts from the saved name", input() && input().value === "Luna");
+  pressEscape();
+  const escStarted = await escAsk;
+  const escAgain = await Board.beforeStart({});
+  calls.length = 0;
+  await Board.noteFinish({ key: "2026-11-25", practice: false, scores: [3, 3, 3, 3, 3] });
+  const escPost = calls.find(c => c.url.indexOf("/leaderboard/post") >= 0);
+  t("escape keeps the saved name and sets the flag", escStarted === true && escAgain === true && !dialog() && bag["bc-board-name"] === "Luna" && bag["bc-board-name-skip"] !== "1" && bag[ASKED] === "1" && escPost && escPost.body.name === "Luna");
+
+  reset();
+  day = "2026-11-25";
+  bag["bc-board-eligible"] = "yes";
+  bag["bc-board-name"] = "Luna";
+  const closeAsk = Board.beforeStart({});
+  input().value = "Daily Dose";
+  await click("[data-board-close]");
+  const closeStarted = await closeAsk;
+  const closeAgain = await Board.beforeStart({});
+  t("close keeps the saved name and sets the flag", closeStarted === true && closeAgain === true && !dialog() && bag["bc-board-name"] === "Luna" && bag["bc-board-name-skip"] !== "1" && bag[ASKED] === "1");
+
+  reset();
+  day = "2026-11-25";
+  bag["bc-board-eligible"] = "yes";
+  const freshEsc = Board.beforeStart({});
+  t("a new player escape has no saved name", input() && input().value === "");
+  pressEscape();
+  await freshEsc;
+  t("a new player escape matches the first-visit close", !dialog() && !bag["bc-board-name"] && bag["bc-board-name-skip"] === "1" && bag[ASKED] === "1");
+
+  reset();
+  day = "2026-11-25";
+  bag["bc-board-eligible"] = "yes";
+  bag["bc-board-name"] = "Luna";
+  const cta = domNode("div");
+  const startBtn = domNode("button");
+  startBtn.className = "btn primary";
+  cta.append(startBtn);
+  body.append(cta);
+  Board.decorate(cta, {});
+  const both = Board.beforeStart({});
+  const ids = helpIds();
+  const described = [];
+  function walkInputs(node) {
+    if (node && node.attrs && node.attrs["data-board-name-input"]) described.push(node.attrs["aria-describedby"]);
+    (node && node.children || []).forEach(walkInputs);
+  }
+  walkInputs(body);
+  t("name help ids stay unique", ids.length >= 2 && new Set(ids).size === ids.length && described.length === ids.length && described.every(id => ids.indexOf(id) >= 0) && new Set(described).size === described.length);
+  await click("[data-board-close]");
+  await both;
 
   console.log(bad ? bad + " failures" : "name-reconfirm.test.js: all pass");
   process.exit(bad ? 1 : 0);
