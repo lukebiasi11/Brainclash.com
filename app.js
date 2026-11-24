@@ -287,8 +287,9 @@ function bankedPartial() {
 function scorePop(gain) {
   const b = document.querySelector(".runtotal b"); if (!b) return;
   b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
-  const r = b.getBoundingClientRect(), p = h("span", { class: "pts-pop", "aria-hidden": "true" }, "+" + fmt(gain));
-  p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.bottom) + "px";
+  const chip = b.closest ? (b.closest(".runtotal") || b) : b;
+  const r = chip.getBoundingClientRect(), p = h("span", { class: "pts-pop", "aria-hidden": "true" }, "+" + fmt(gain));
+  p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.bottom + 2) + "px";
   document.body.append(p); setTimeout(() => p.remove(), 900);
 }
 const flashBody = cls => { document.body.classList.remove("flash-good", "flash-bad"); void document.body.offsetWidth; document.body.classList.add(cls); setTimeout(() => document.body.classList.remove(cls), 600); };
@@ -301,11 +302,28 @@ function liveTotal() {
 }
 // November 26 Think Fast is Cup Shuffle 150 plus Track the Dot 250. Every other category stays 1,000.
 function catCapFor(key, index) {
-  if (index === 4 && window.EagleEye && EagleEye.on(key)) {
-    const p = EagleEye.roundPoints();
-    return p[0] + p[3] + p[4];
+  if (index === 4 && window.EagleEye && EagleEye.dayPlan) {
+    const plan = EagleEye.dayPlan(key);
+    if (plan) return plan.cap;
   }
   return 1000;
+}
+function dayCap(key) {
+  const plan = window.EagleEye && EagleEye.dayPlan && EagleEye.dayPlan(key);
+  if (plan && plan.dayTotal === "sum") {
+    let n = 0;
+    for (let i = 0; i < 5; i++) n += catCapFor(key, i);
+    return n;
+  }
+  return 5000;
+}
+function dayTotalLabel(key) {
+  const n = dayCap(key);
+  return n === 5000 ? tr("5,000") : fmt(n);
+}
+function scaledThousand(score, cap) {
+  const c = cap > 0 ? cap : 1000;
+  return score / c * 1000;
 }
 function activeCatIndex() {
   if (!session) return -1;
@@ -435,7 +453,7 @@ function home() {
   app.append(
     h("div", { class: "hero" },
       h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")),
-      h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("5,000")), tr(" points on the line.")),
+      h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, dayTotalLabel(todayKey())), tr(" points on the line.")),
       h("p", { class: "date" }, new Date(day * 864e5).toLocaleDateString(I18N.locale, { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) + " · Clash #" + gameNumber(day))),
     I18N.toggleVisible() ? h("div", { class: "lang-toggle", role: "group", "aria-label": tr("Language") }, ["en", "es"].map(l =>
       h("button", { type: "button", class: "lang-btn" + (LANG === l ? " on" : ""), "aria-pressed": String(LANG === l), lang: l,
@@ -450,7 +468,7 @@ function home() {
         h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : (catCapFor(todayKey(), i) === 1000 ? "1,000" : fmt(catCapFor(todayKey(), i)))));
     })),
     done
-      ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
+      ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / " + dayTotalLabel(s.key || todayKey()))),
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }),
           myStats([scoreGraph(s.scores, day)]))
@@ -566,6 +584,7 @@ function catDone(body, score, detail) {
   const doneCap = catCapFor(session.key, session.scores.length - 1);
   body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, doneCap === 1000 ? "/ 1,000" : "/ " + fmt(doneCap)), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
   countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
+  categoryFx(score, doneCap, body);
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
 }
@@ -2629,9 +2648,9 @@ function bcGraphs() {
 }
 
 // ---------- results ----------
-const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
+const blocks = (score, cap) => { const s = scaledThousand(score, cap == null ? 1000 : cap); return s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥"; };
 const SITE_URL = "https://dailydosetrivia.com/";
-const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
+const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s, catCapFor(session.key, i)) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / ${dayCap(session.key) === 5000 ? "5,000" : fmt(dayCap(session.key))}${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
 async function doShare(btn) {
   let rankLine = "";
   try { if (window.DailyBoard && DailyBoard.rankPhrase) rankLine = await DailyBoard.rankPhrase() || ""; } catch (e) { rankLine = ""; }
@@ -2695,7 +2714,20 @@ function softRain(hostCard) {
   setTimeout(() => { layer.remove(); document.body.classList.remove("fx-low-rain"); hostCard?.classList.remove("fx-deflate"); }, 2800);
 }
 function endFx(tot, host, card) {
-  if (tot >= FX_HIGH_MIN) confetti(host); else if (tot <= FX_LOW_MAX) softRain(card);
+  const cap = dayCap(session && session.key);
+  const s = cap === 5000 ? tot : tot / cap * 5000;
+  if (s >= FX_HIGH_MIN) confetti(host); else if (s <= FX_LOW_MAX) softRain(card);
+}
+function categoryFxKind(score, cap) {
+  const day = scaledThousand(score, cap) / 1000 * 5000;
+  if (day >= FX_HIGH_MIN) return "confetti";
+  if (day <= FX_LOW_MAX) return "rain";
+  return "none";
+}
+function categoryFx(score, cap, card) {
+  const kind = categoryFxKind(score, cap);
+  if (kind === "confetti") confetti(card || document.body);
+  else if (kind === "rain") softRain(card);
 }
 function countStats() {
   if (session.practice || session.counted) return;
@@ -2717,7 +2749,9 @@ const SNARK = {
   zero: ["Zero. Impressive in its own way.", tr("A perfect zero. Was the phone upside down?"), "Nothing! Tomorrow can only go up."]
 };
 function snarkLine(tot) {
-  const band = tot >= 5000 ? "perfect" : tot >= 3750 ? "great" : tot >= 2000 ? "mid" : tot > 0 ? "rough" : "zero";
+  const cap = dayCap(session && session.key);
+  const s = cap === 5000 ? tot : tot / cap * 5000;
+  const band = s >= 5000 ? "perfect" : s >= 3750 ? "great" : s >= 2000 ? "mid" : s > 0 ? "rough" : "zero";
   const l = SNARK[band]; return tr(l[((session ? session.day : 0) % l.length + l.length) % l.length]);
 }
 // Category-level quips (per 1,000-point category): roast low, praise high. Stable per day + category.
@@ -2729,7 +2763,8 @@ const CAT_QUIP = {
   zero: ["A goose egg. Bold.", tr("Zero. Next category, quickly."), "Nothing? The next one's yours."]
 };
 function catQuip(score, cat) {
-  const band = score >= 900 ? "top" : score >= 650 ? "good" : score >= 350 ? "mid" : score > 0 ? "low" : "zero";
+  const s = scaledThousand(score, catCapFor(session && session.key, cat));
+  const band = s >= 900 ? "top" : s >= 650 ? "good" : s >= 350 ? "mid" : s > 0 ? "low" : "zero";
   const l = CAT_QUIP[band], k = (session ? session.day : 0) * 7 + (cat || 0);
   return tr(l[((k % l.length) + l.length) % l.length]);
 }
@@ -2744,13 +2779,13 @@ function resultsPopup() {
   const m = h("div", { class: "result-modal", role: "dialog", "aria-modal": "true", "aria-label": "Clash complete" },
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? tr("Practice complete") : tr("Clash complete!")),
-      num, h("small", { class: "result-modal__of" }, "/ 5,000"),
+      num, h("small", { class: "result-modal__of" }, "/ " + dayTotalLabel(session.key)),
       h("p", { class: "result-modal__quip" }, snarkLine(tot)),
-      h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
+      h("div", { class: "result-modal__blocks" }, session.scores.map((x, i) => h("span", {}, blocks(x, catCapFor(session.key, i))))),
       shareBtn,
       h("button", { class: "btn result-modal__full", "data-action": "see-results", onclick: () => { close(); results(); } }, tr("See results"))));
   document.addEventListener("keydown", esc);
-  document.body.append(m); endFx(tot, m, m.querySelector(".result-modal__card")); countUp(num, tot, 1200);
+  document.body.append(m); countUp(num, tot, 1200);
 }
 function results() {
   const tot = session.scores.reduce((a, b) => a + b, 0);
@@ -2764,7 +2799,7 @@ function results() {
   const foot = resultsNickFoot();
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
-    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
+    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ " + dayTotalLabel(session.key)), h("p", { class: "quip" }, snarkLine(tot))),
     bcGraphs(),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
@@ -2905,6 +2940,17 @@ if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.fr
   },
   thinkFast(day) { if (Array.isArray(day)) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; return runNext(); } DGTest.at(day, 4); },
   cap(key, index) { return catCapFor(key, index); },
+  grade(score, key, index) {
+    const cap = catCapFor(key, index);
+    const s = scaledThousand(score, cap);
+    const day = s / 1000 * 5000;
+    return {
+      cap: cap,
+      quip: s >= 900 ? "top" : s >= 650 ? "good" : s >= 350 ? "mid" : s > 0 ? "low" : "zero",
+      block: s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥",
+      fx: day >= 3950 ? "confetti" : day <= 2100 ? "rain" : "none"
+    };
+  },
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
   sportsSet(day) { if (Array.isArray(day) || (day && typeof day === "object")) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; return runNext(); } DGTest.at(day, 2); },
   state() { return session; },
