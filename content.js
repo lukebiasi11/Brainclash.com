@@ -1205,7 +1205,23 @@ window.CONTENT = {
         ],
         "explain": "Elevations from Wikipedia: Aspen ~2,400 m; Houston ~15 m; Tibet average 4,380 m; Bahamas highest point 64 m; Lake Tahoe 1,897 m; Acapulco beaches 0 m; Mount Sinai 2,285 m; Dallas about 130–170 m; K2 8,611 m; Malibu beaches 0 m."
       }
+    },
+    // 2026-11-25 approved: 2 pins only (Hudson Bay, Mont-Saint-Michel).
+    {
+      "pins": [
+        {
+          "name": "Hudson Bay, Canada",
+          "lat": 60,
+          "lon": -85
+        },
+        {
+          "name": "Mont-Saint-Michel, France",
+          "lat": 48.64,
+          "lon": -1.51
+        }
+      ]
     }
+
   ],
   // ---------- 2. HISTORY TIMELINE ----------
   // Each event: ["emoji", "Event name", year, "image id"] (image id optional; emoji is the fallback)
@@ -2203,7 +2219,41 @@ window.CONTENT = {
           ]
         ]
       }
+    },
+    // 2026-11-25 approved: one 5-event timeline.
+    {
+      "type": "timeline",
+      "theme": "Hits everyone remembers",
+      "events": [
+        [
+          "🎒",
+          "High School Musical premieres on TV",
+          2006
+        ],
+        [
+          "⚽",
+          "Shakira's \"Waka Waka\" becomes the official World Cup song",
+          2010
+        ],
+        [
+          "🕺",
+          "The \"Harlem Shake\" dance video craze goes viral",
+          2013
+        ],
+        [
+          "🎶",
+          "Luis Fonsi and Daddy Yankee release \"Despacito\"",
+          2017
+        ],
+        [
+          "🦑",
+          "Squid Game premieres and becomes a worldwide hit",
+          2021
+        ]
+      ],
+      "explain": "High School Musical aired Jan 20, 2006; \"Waka Waka\" was released May 7, 2010 for the 2010 World Cup; the Harlem Shake went viral in Feb 2013; \"Despacito\" came out Jan 13, 2017; Squid Game premiered Sept 17, 2021."
     }
+
   ],
   // ---------- 3. SPORTS IQ ----------
   // img = optional image id; visual (emoji) is the fallback
@@ -3562,7 +3612,78 @@ window.CONTENT = {
           "es": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
         }
       }
+    ],
+    // 2026-11-25 approved: celebrity / sports MVP (Beyoncé, Curry, Canelo).
+    [
+      {
+        "type": "mc",
+        "q": "Which superstar singer's fans call themselves the \"BeyHive\"?",
+        "options": [
+          "Adele",
+          "Dua Lipa",
+          "Beyoncé",
+          "Ariana Grande"
+        ],
+        "a": 2,
+        "explain": "Beyoncé's fan base is known as the BeyHive."
+      },
+      {
+        "type": "text",
+        "q": "Which NBA star holds the record for the most three-pointers made in a career?",
+        "answers": [
+          "stephen curry",
+          "steph curry",
+          "curry"
+        ],
+        "aliases": [
+          "stephan curry",
+          "stefan curry",
+          "steven curry",
+          "stephen currie",
+          "steph currie",
+          "stef curry",
+          "steph cury",
+          "stephen cury",
+          "wardell stephen curry",
+          "chef curry"
+        ],
+        "wrong": [
+          "ray allen",
+          "reggie miller",
+          "klay thompson",
+          "seth curry",
+          "dell curry"
+        ],
+        "explain": "Stephen Curry passed Ray Allen in December 2021 to become the NBA's all-time leader in three-pointers made."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this boxing superstar.",
+        "clues": [
+          "Born in Mexico in 1990, he has won world titles in four weight classes.",
+          "In 2021 he became the first undisputed super middleweight champion in boxing history.",
+          "His nickname comes from the Spanish for cinnamon, a nod to his red hair."
+        ],
+        "answer": "Canelo Álvarez",
+        "accept": [
+          "Canelo Álvarez",
+          "Canelo Alvarez",
+          "Canelo",
+          "Saúl Álvarez",
+          "Saul Alvarez",
+          "Saúl Canelo Álvarez",
+          "Saul Canelo Alvarez",
+          "Alvarez",
+          "Álvarez",
+          "Canelo Alvares",
+          "Canello Alvarez",
+          "Canelo Alvarz",
+          "Saul Alvares"
+        ],
+        "explain": "Saúl \"Canelo\" Álvarez has held world titles in four weight classes and in 2021 became the first undisputed super middleweight champion."
+      }
     ]
+
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
   // Word Flip hint types: "definition", "synonym", "antonym", "riddle"
@@ -5015,7 +5136,7 @@ window.CONTENT = {
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
-// 2026-11-18 through 2026-11-24 pin appended sets. 2026-11-25 is not scheduled.
+// 2026-11-18 through 2026-11-25 pin appended sets.
 // 2026-11-20 through 2026-11-24 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
@@ -5034,5 +5155,6 @@ window.DAY_OVERRIDES["banked-1122"] = {"worldRush":55,"history":55,"thinkFast":5
 window.DAY_OVERRIDES["banked-1122b"] = {"thinkFast":62};
 window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":60,"history":60,"sports":59,"thinkFast":63,"wordFlip":12};
 window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"thinkFast":64,"wordBridge":13};
+window.DAY_OVERRIDES["2026-11-25"] = {"worldRush":61,"history":62,"sports":60};
 window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
 window.DAY_OVERRIDES["banked-1124"] = {"history":57,"thinkFast":59};

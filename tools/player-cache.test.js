@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=fmt25e, i18n at v=fmt25d, style.css at v=fmt25d, and English and Spanish content at v=nov22w, and icons at v=nov22w.
-// nov22w stays on content.js, content.es.js, and icons.js. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
+// New HTML must request answers at v=nov17a, app.js at v=fmt25e, i18n at v=fmt25d, style.css at v=fmt25d, and English and Spanish content at v=nov25a, and icons at v=nov22w.
+// nov25a is the 2026-11-25 content cache key for content.js and content.es.js. icons.js stays on nov22w. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -9,7 +9,7 @@ const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const APP_V = "fmt25e";
-const CONTENT_V = "nov22w";
+const CONTENT_V = "nov25a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;

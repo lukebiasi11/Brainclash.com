@@ -634,7 +634,19 @@ window.CONTENT_ES = {
         }
       ]
     }
+  },
+  // 2026-11-25 approved.
+  {
+    "pins": [
+      {
+        "name": "Bahía de Hudson, Canadá"
+      },
+      {
+        "name": "Mont-Saint-Michel, Francia"
+      }
+    ]
   }
+
   ],
  "history": [
   null,
@@ -1988,7 +2000,40 @@ window.CONTENT_ES = {
         ]
       ]
     }
+  },
+  // 2026-11-25 approved.
+  {
+    "theme": "Éxitos que todos recuerdan",
+    "events": [
+      [
+        null,
+        "Se estrena en televisión High School Musical",
+        null
+      ],
+      [
+        null,
+        "\"Waka Waka\" de Shakira se convierte en la canción oficial del Mundial",
+        null
+      ],
+      [
+        null,
+        "Se vuelve viral la moda de los videos de baile del \"Harlem Shake\"",
+        null
+      ],
+      [
+        null,
+        "Luis Fonsi y Daddy Yankee lanzan \"Despacito\"",
+        null
+      ],
+      [
+        null,
+        "Se estrena El juego del calamar y se vuelve un éxito mundial",
+        null
+      ]
+    ],
+    "explain": "High School Musical se estrenó el 20 de enero de 2006; \"Waka Waka\" salió el 7 de mayo de 2010 para el Mundial de 2010; el Harlem Shake se hizo viral en febrero de 2013; \"Despacito\" salió el 13 de enero de 2017; El juego del calamar se estrenó el 17 de septiembre de 2021."
   }
+
   ],
  "sports": [
   null,
@@ -3100,7 +3145,34 @@ window.CONTENT_ES = {
     {
       "hint": "Arrastra a los ganadores del Heisman en orden, el primero arriba."
     }
+  ],
+  // 2026-11-25 approved.
+  [
+    {
+      "q": "¿Los fans de qué superestrella de la música se hacen llamar la \"BeyHive\"?",
+      "options": [
+        "Adele",
+        "Dua Lipa",
+        "Beyoncé",
+        "Ariana Grande"
+      ],
+      "explain": "Los fans de Beyoncé se conocen como la BeyHive."
+    },
+    {
+      "q": "¿Qué estrella de la NBA tiene el récord de más triples anotados en su carrera?",
+      "explain": "Stephen Curry superó a Ray Allen en diciembre de 2021 y se convirtió en el líder histórico de la NBA en triples anotados."
+    },
+    {
+      "prompt": "Identifica a esta superestrella del boxeo.",
+      "clues": [
+        "Nació en México en 1990 y ha ganado títulos mundiales en cuatro categorías de peso.",
+        "En 2021 se convirtió en el primer campeón indiscutido de peso supermediano de la historia del boxeo.",
+        "Su famoso apodo viene de \"canela\", por su cabello rojizo."
+      ],
+      "explain": "Saúl \"Canelo\" Álvarez ha sido campeón mundial en cuatro categorías y en 2021 se convirtió en el primer campeón indiscutido de peso supermediano."
+    }
   ]
+
   ],
  "thinkFast": [
   null,
