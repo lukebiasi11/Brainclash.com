@@ -221,7 +221,12 @@ window.FORMAT_DEMO = {
       difficulty: "hard",
       q: { en: "Match each host to the show they fronted.", es: "Empareja a cada presentador con el programa que condujo." },
       left: ["Marisol Vega", "Andres Palma", "Lucia Renteria", "Tomas Ibarra"],
-      right: ["A singing contest", "A cooking house", "A dance floor", "A survival island"],
+      right: [
+        { en: "A singing contest", es: "Un concurso de canto" },
+        { en: "A cooking house", es: "Una casa de cocina" },
+        { en: "A dance floor", es: "Una pista de baile" },
+        { en: "A survival island", es: "Una isla de supervivencia" }
+      ],
       pairs: [0, 1, 2, 3]
     }
   ]

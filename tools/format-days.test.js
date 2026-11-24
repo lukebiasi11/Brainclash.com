@@ -103,5 +103,21 @@ t("11/25 history rounds", day.history.r1.events.length + "/" + day.history.r2.ev
 t("11/25 sports index", sandbox.CONTENT.sports.indexOf(day.sports), 19);
 t("11/24 thinkFast stays pinned", sandbox.DAY_OVERRIDES["2026-11-24"].thinkFast, 64);
 
+const packed = { worldRush: day.worldRush, history: day.history, sports: day.sports };
+t("11/25 world subhead", S.catBlurb("world", packed), "2 map pins + 1 geography question");
+t("11/25 history subhead", S.catBlurb("history", packed), "2 timelines · drag cards into order");
+t("11/25 mvp subhead", S.catBlurb("sports", packed), "3 questions · easy → hard");
+t("2-pin subhead", S.catBlurb("world", { worldRush: demo.world }), "2 map pins");
+t("5-event subhead", S.catBlurb("history", { history: demo.history }), "One 5-event timeline");
+t("celebrity subhead", S.catBlurb("sports", { sports: demo.mvp }), "Athletes and celebrities · actors, singers, artists, reality TV");
+const es = sandbox.BC_I18N.ES;
+t("es 2 pins", es["2 map pins"], "2 pines en el mapa");
+t("es one timeline", es["One 5-event timeline"], "Una línea de tiempo de 5 eventos");
+t("es mvp people", es["Athletes and celebrities · actors, singers, artists, reality TV"], "Deportistas y famosos · actores, cantantes, artistas y reality");
+const rights = demo.mvp[2].right;
+t("match rights", rights.length, 4);
+ok("match rights are bilingual", rights.every(r => r.en && r.es && r.es !== r.en));
+t("match right es", rights.map(r => r.es).join("|"), "Un concurso de canto|Una casa de cocina|Una pista de baile|Una isla de supervivencia");
+
 console.log(bad ? bad + " failures" : "format-days.test.js: all pass");
 process.exit(bad ? 1 : 0);

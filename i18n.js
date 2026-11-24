@@ -12,8 +12,11 @@
     // categories / word games
     "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos", "Eagle Eye": "Ojo de Águila",
     "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Palabras", "Logic": "Lógica",
-    "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden",
-    "3 questions · easy → hard": "3 preguntas · de fácil a difícil", "2 brain-benders · one shot each": "2 acertijos · un solo intento cada uno",
+    "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 map pins": "2 pines en el mapa",
+    "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden", "One 5-event timeline": "Una línea de tiempo de 5 eventos",
+    "3 questions · easy → hard": "3 preguntas · de fácil a difícil",
+    "Athletes and celebrities · actors, singers, artists, reality TV": "Deportistas y famosos · actores, cantantes, artistas y reality",
+    "2 brain-benders · one shot each": "2 acertijos · un solo intento cada uno",
     "Unscramble": "Descifra", "Word Bridge": "Puente de Palabras", "Clusters": "Grupos", "Imposter": "Impostor", "Anagram Rush": "Anagramas Exprés",
     "Unscramble 6 words from hints · 60s": "Descifra 6 palabras con pistas · 60 s", "Finish the first word, start the second · 60s": "Termina la primera palabra, empieza la segunda · 60 s",
     "Find 3 groups of 3 · 90s": "Encuentra 3 grupos de 3 · 90 s", "Spot the word that doesn't fit · 60s": "Detecta la palabra que no encaja · 60 s", "Make words from 6 letters · 60s": "Forma palabras con 6 letras · 60 s",
@@ -140,8 +143,8 @@
       "Arrastra las tarjetas en orden cronológico, de la más antigua a la más reciente (arriba en celulares, a la izquierda en pantallas anchas). Ronda 1: 4 eventos en 45 s (400 pts). Ronda 2: 5 eventos en 45 s (600 pts). Crédito parcial por cada par en el orden correcto.",
     "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.":
       "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
-    "Three questions of rising difficulty: 250, 350, then 400 points. This round is about actors, singers, artists, or reality TV. There is no team and no sport. Matching and ordering questions give partial credit for each one you get right.":
-      "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Esta ronda es sobre actores, cantantes, artistas o televisión reality. No hay equipo ni deporte. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
+    "Three questions of rising difficulty: 250, 350, then 400 points. They can be about athletes or celebrities: actors, singers, artists, and reality TV. Matching and ordering questions give partial credit for each one you get right.":
+      "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Pueden ser sobre deportistas o famosos: actores, cantantes, artistas y reality. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
     "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.":
       "Descifra 6 palabras de dificultad media a alta con la pista (definición, sinónimo, antónimo o adivinanza). Toca las letras para deletrear; las respuestas correctas avanzan solas. Las primeras 4 valen 150 pts y las últimas 2, 200. 60 segundos.",
     "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.":

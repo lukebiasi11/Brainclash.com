@@ -89,20 +89,29 @@ const read = `(() => {
       const pin = lang === "es" ? "Pin 1 de 2 · hasta 500 pts" : "Pin 1 of 2 · up to 500 pts";
       const where = lang === "es" ? "¿Dónde está" : "Where is";
       if (world.sub !== pin || !world.prompt.includes(where) || !world.prompt.includes("Quito, Ecuador") || world.undefined || /Geography|geografía/i.test(world.text)) fail(lang + " world", world); else pass(lang + " world 2 pins");
-      await shot("fmt-world-" + lang + "-390.png");
+      await shot("fmt25b-play-world-" + lang + "-390.png");
 
       const hist = await open("history5", lang);
       const theme = lang === "es" ? "Debut en pantalla · 5 eventos · hasta 1000 pts" : "Screen debuts · 5 events · up to 1000 pts";
       const card = lang === "es" ? "Una película muda abre un cine público" : "A silent film opens a public cinema";
       if (hist.sub !== theme || hist.cards !== 5 || !hist.text.includes(card) || hist.undefined || /Round 1 of 2|Ronda 1 de 2/.test(hist.text)) fail(lang + " history", hist); else pass(lang + " history 5 events");
-      await shot("fmt-history-" + lang + "-390.png");
 
       const mvp = await open("mvp", lang);
       const ask = lang === "es" ? "Nombra al actor a partir de estas pistas." : "Name the actor from these clues.";
       const line = lang === "es" ? "Nombre en los créditos: Alejandro Marin Castillo" : "Billing name: Alejandro Marin Castillo";
       const clipped = mvp.clues.filter(c => c.clip > 1);
       if (mvp.prompt !== ask || mvp.clues.length !== 4 || !mvp.text.includes(line) || mvp.undefined || mvp.sports || clipped.length) fail(lang + " mvp", { prompt: mvp.prompt, clues: mvp.clues, sports: mvp.sports, undefined: mvp.undefined }); else pass(lang + " mvp celebrity");
-      await shot("fmt-mvp-" + lang + "-390.png");
+
+      const intros = {
+        "intro-world": lang === "es" ? "2 pines en el mapa" : "2 map pins",
+        "intro-history": lang === "es" ? "Una línea de tiempo de 5 eventos" : "One 5-event timeline",
+        "intro-mvp": lang === "es" ? "Deportistas y famosos · actores, cantantes, artistas y reality" : "Athletes and celebrities · actors, singers, artists, reality TV"
+      };
+      for (const [name, want] of Object.entries(intros)) {
+        const info = await open(name, lang);
+        if (info.sub !== want) fail(lang + " " + name, info.sub); else pass(lang + " " + name);
+        await shot("fmt25b-" + name + "-" + lang + "-390.png");
+      }
     }
   } finally {
     chrome.kill();

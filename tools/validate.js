@@ -191,8 +191,9 @@ if (C) {
       if (celeb ? !textOrI18n(q.q) : !str(q.q)) E(ww, "missing q");
       if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
       if (q.kind && q.kind !== "match-records" && !celeb) E(ww, "unknown match kind " + q.kind);
-      if (!list(q.left, 4) || !q.left.every(str)) E(ww, celeb ? "left must be 4 name strings" : "left must be 4 athlete strings");
-      if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");
+      const sideText = celeb ? textOrI18n : str;
+      if (!list(q.left, 4) || !q.left.every(sideText)) E(ww, celeb ? "left must be 4 name strings" : "left must be 4 athlete strings");
+      if (!list(q.right, 4) || !q.right.every(sideText)) E(ww, celeb ? "right must be 4 clue strings" : "right must be 4 record strings");
       if (!list(q.pairs, 4) || !q.pairs.every(p => Number.isInteger(p) && p >= 0 && p < 4)) E(ww, "pairs must be 4 ints 0–3 (right index per left)");
       else if (new Set(q.pairs).size !== 4) E(ww, "pairs must be a permutation of 0–3");
     } else E(ww, 'type must be "mc", "text", "guess", "order", "bracket", "match", "pair", "reveal", or "slider"');

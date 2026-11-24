@@ -493,7 +493,8 @@ function catIntro(i, start) {
     nextBtn(actionBar(body), tr("Start {0}", wg.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
     return;
   }
-  const body = screen(c.icon + " " + c.name, i === 3 ? tr("Today's word game: {0} — {1}", wordGameFor(session.day).name, wordGameFor(session.day).sub) : c.desc);
+  const blurb = c.id === "world" || c.id === "history" || c.id === "sports" ? tr(catBlurb(c.id)) : c.desc;
+  const body = screen(c.icon + " " + c.name, blurb);
   body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, tr("1,000 points")), "."), introText(c.id)));
   nextBtn(body, tr("Start {0}", i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
@@ -501,7 +502,7 @@ function introText(id) {
   const worldDay = worldPlan(session && session.set && session.set.worldRush);
   const historyDay = historyPlan(session && session.set && session.set.history);
   const sportsDay = session && session.set && Array.isArray(session.set.sports) ? session.set.sports : [];
-  const celebDay = sportsDay.length > 0 && sportsDay.every(q => q && CELEB_KINDS.has(q.kind));
+  const celebDay = sportsDay.some(q => q && CELEB_KINDS.has(q.kind));
   const t = {
     world: worldDay.count === 2 && !worldDay.third
       ? tr("Drop a pin as close as you can to two places (up to 500 pts each — 0 at 4,000 km+). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin.")
@@ -510,7 +511,7 @@ function introText(id) {
       ? tr("Drag one set of 5 picture cards into chronological order, earliest first (top on phones, left on wider screens). One round, 45 seconds, up to 1,000 pts. Partial credit for every correctly ordered pair.")
       : tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
     sports: celebDay
-      ? tr("Three questions of rising difficulty: 250, 350, then 400 points. This round is about actors, singers, artists, or reality TV. There is no team and no sport. Matching and ordering questions give partial credit for each one you get right.")
+      ? tr("Three questions of rising difficulty: 250, 350, then 400 points. They can be about athletes or celebrities: actors, singers, artists, and reality TV. Matching and ordering questions give partial credit for each one you get right.")
       : tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
     word: { flip: tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds."),
       bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
@@ -777,7 +778,28 @@ function mvpFace(q) {
     artAlt: celeb ? "Clue" : "Sports art"
   };
 }
-window.DGScore = Object.freeze({ haversine, pinPoints, pinPointsFor, worldPlan, historyPlan, timelineScore, mvpFace, CELEB_KINDS });
+// Intro subtitle. Old shapes keep the old line. A 2-pin day, a single 5-event timeline,
+// or a day that includes celebrities gets the new line. English keys; callers run them through tr().
+function catBlurb(id, set) {
+  const day = set || (session && session.set) || {};
+  if (id === "world") {
+    const plan = worldPlan(day.worldRush);
+    return plan.count === 2 && !plan.third ? "2 map pins" : "2 map pins + 1 geography question";
+  }
+  if (id === "history") {
+    const rounds = historyPlan(day.history);
+    const one = rounds.length === 1 && rounds[0].solo && Array.isArray(rounds[0].events) && rounds[0].events.length === 5;
+    return one ? "One 5-event timeline" : "2 timelines · drag cards into order";
+  }
+  if (id === "sports") {
+    const qs = Array.isArray(day.sports) ? day.sports : [];
+    return qs.some(q => q && CELEB_KINDS.has(q.kind))
+      ? "Athletes and celebrities · actors, singers, artists, reality TV"
+      : "3 questions · easy → hard";
+  }
+  return "";
+}
+window.DGScore = Object.freeze({ haversine, pinPoints, pinPointsFor, worldPlan, historyPlan, timelineScore, mvpFace, catBlurb, CELEB_KINDS });
 function worldRush() {
   const set = session.set.worldRush || {};
   const pins = Array.isArray(set.pins) ? set.pins : [];
@@ -2782,12 +2804,12 @@ const SLOT_PREVIEW = /[?&]preview=slots\b/.test(location.search);
 const FORMAT_PREVIEW = /[?&]preview=formats\b/.test(location.search);
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
 else if (FORMAT_PREVIEW) {
-  const shot = (location.search.match(/[?&]shot=(world2|history5|mvp)\b/) || [])[1] || "world2";
+  const shot = (location.search.match(/[?&]shot=(world2|history5|mvp|intro-world|intro-history|intro-mvp)\b/) || [])[1] || "world2";
   const demo = window.FORMAT_DEMO || {};
   session = newSession(true);
   session.key = "demo";
   session.day = dayOfKey("2026-11-25");
-  session.scores = shot === "history5" ? [0] : shot === "mvp" ? [0, 0] : [];
+  session.scores = shot === "history5" || shot === "intro-history" ? [0] : shot === "mvp" || shot === "intro-mvp" ? [0, 0] : [];
   session.inProgress = session.scores.length;
   session.partial = 0;
   session.partialCat = session.inProgress;
@@ -2797,7 +2819,10 @@ else if (FORMAT_PREVIEW) {
     sports: demo.mvp || []
   });
   document.title = "Format preview — Daily Dose";
-  if (shot === "history5") history();
+  if (shot === "intro-world") catIntro(0, worldRush);
+  else if (shot === "intro-history") catIntro(1, history);
+  else if (shot === "intro-mvp") catIntro(2, sports);
+  else if (shot === "history5") history();
   else if (shot === "mvp") sports();
   else worldRush();
 } else if (SLOT_PREVIEW) {
