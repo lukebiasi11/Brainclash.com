@@ -24,13 +24,7 @@ const CATS = [
   { id: "think", img: "cat-brain", name: "Brain Teaser", icon: "🧠", sub: "Logic", desc: "2 brain-benders · one shot each" }
 ];
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
-// Only 2026-11-26 uses Eagle Eye in this slot. Other days stay Brain Teaser.
-function catsFor(key) {
-  if (!window.EagleEye || !EagleEye.on(key)) return CATS;
-  const base = CATS[4], out = CATS.slice();
-  out[4] = { id: base.id, img: base.img, icon: base.icon, name: tr("Eagle Eye"), sub: tr("Perception"), desc: tr(EagleEye.LEAD) };
-  return out;
-}
+function catsFor() { return CATS; }
 const WORD_GAMES = [
   { id: "flip", name: "Unscramble", sub: "Unscramble 6 words from hints · 60s" },
   { id: "bridge", name: "Word Bridge", sub: "Finish the first word, start the second · 60s" },
@@ -421,7 +415,6 @@ function home() {
   const day = dayIndex();
   const wg = wordGameFor(day);
   const cats = catsFor(todayKey());
-  const eagleToday = window.EagleEye && EagleEye.on(todayKey());
   app.append(
     h("div", { class: "hero" },
       h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")),
@@ -456,7 +449,7 @@ function home() {
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
         h("li", {}, tr("Same challenge for everyone, new every day at midnight US Eastern (New York) time.")),
-        h("li", {}, tr(eagleToday ? "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Eagle Eye." : "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
+        h("li", {}, tr("Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
         h("li", {}, tr("Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.")),
         h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
@@ -488,37 +481,8 @@ function commitCat(score, detail) {
   try { if (window.DailyBoard) window.DailyBoard.noteFinish(session); } catch (e) {}
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
-function eagleIntro(c, start) {
-  const pts = EagleEye.roundPoints();
-  const cups = pts[0], dots = pts[3] + pts[4];
-  document.body.dataset.phase = "intro";
-  const body = screen(c.icon + " " + c.name);
-  body.append(h("div", { class: "intro ee-intro" },
-    h("p", { class: "ee-lead" }, tr(EagleEye.LEAD)),
-    h("div", { class: "ee-split" },
-      h("div", { class: "ee-row" }, h("span", {}, tr("Cup Shuffle")), h("b", {}, tr("Up to {0} pts", fmt(cups)))),
-      h("div", { class: "ee-row" }, h("span", {}, tr("Track the Dot")), h("b", {}, tr("Up to {0} pts", fmt(dots)))))));
-  nextBtn(actionBar(body), tr("Start {0}", c.name), () => {
-    session.inProgress = 4; session.partial = 0; session.partialCat = 4; save(); start();
-  });
-}
-function eagleEye() {
-  const seed = session.practice ? ("practice|" + Math.floor(Math.random() * 1e9)) : ("eagleeye|" + session.key);
-  const name = catsFor(session.key)[4].name;
-  EagleEye.run({
-    seed: seed,
-    tr: tr,
-    screen: (title, sub) => screen(catsFor(session.key)[4].icon + " " + (title || name), sub),
-    actionBar: actionBar,
-    nextBtn: nextBtn,
-    scheduleFit: scheduleFit,
-    onRound: track,
-    onDone: (total, detail, body) => catDone(body, total, detail)
-  });
-}
 function catIntro(i, start) {
   const c = catsFor(session.key)[i];
-  if (i === 4 && window.EagleEye && EagleEye.on(session.key)) return eagleIntro(c, start);
   if (i === 3) {
     const wg = wordGameFor(session.day);
     const body = screen(c.icon + " " + c.name, tr("Rotates daily · today's format below"));
@@ -549,7 +513,13 @@ function introText(id) {
         : window.Answers && Answers.anagramStrict(session.key)
         ? tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 92.5% of the common-word points. No penalty for wrong guesses.")
         : tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.")) },
-    think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
+    think: (window.EagleEye && EagleEye.on(session.key))
+      ? tr("Puzzle 1, {0}, is worth {1} points. {2} {3} Puzzle 2, {4}, is worth {5} points. {6} {7}",
+        tr("Cup Shuffle"), EagleEye.roundPoints()[0],
+        tr("Watch the cup with the ball."), tr("Tap it when the cups stop."),
+        tr("Track the Dot"), EagleEye.roundPoints()[3] + EagleEye.roundPoints()[4],
+        tr("Follow the orange dots."), tr("Tap them when they stop."))
+      : tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
 }
@@ -557,7 +527,7 @@ function runNext() {
   const i = session.scores.length;
   if (i >= 5) return results();
   fieldNotePlay();
-  const go = [worldRush, history, sports, wordChallenge, (window.EagleEye && EagleEye.on(session.key)) ? eagleEye : thinkFast][i];
+  const go = [worldRush, history, sports, wordChallenge, thinkFast][i];
   catIntro(i, go);
 }
 function catDone(body, score, detail) {
@@ -2067,7 +2037,21 @@ function emojiQuestion(body, q, value, seconds, done) {
   const src = Object.assign({}, q, { aliases: [].concat(q.aliases || [], parts.aliases), given: [].concat(q.given || [], parts.given), exactOnly: q.exactOnly });
   textQuestion(body, pairLabel(q.prompt || q.q || "What word do these emojis spell?"), answers, value, seconds, done, null, answers[0] || "", q.explain, src, { timeoutZero: true });
 }
+function thinkFastPerception() {
+  const seed = session.practice ? ("practice|" + Math.floor(Math.random() * 1e9)) : ("eagleeye|" + session.key);
+  EagleEye.run({
+    seed: seed,
+    tr: tr,
+    screen: (_title, sub) => screen("🧠 " + tr("Brain Teaser"), sub),
+    actionBar: actionBar,
+    nextBtn: nextBtn,
+    scheduleFit: scheduleFit,
+    onRound: track,
+    onDone: (total, detail, body) => catDone(body, total, detail)
+  });
+}
 function thinkFast() {
+  if (window.EagleEye && EagleEye.on(session.key)) return thinkFastPerception();
   const qs = session.set.thinkFast.map(normPuzzle), vals = [400, 600];
   let total = 0, i = 0; const log = [];
   const ask = () => {

@@ -7,7 +7,7 @@
 <title>Brain Clash — Admin preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=lb8n22">
+<link rel="stylesheet" href="style.css?v=tf26a">
 <style>
 :root{--o:#E8582A;--y:#F2C230;--c:#FFF6E8;--n:#1F2C7A}
 *{box-sizing:border-box}
@@ -73,12 +73,12 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="content.js?v=nov22w"></script>
 <script src="assets/icons.js?v=nov22w"></script>
 <script src="answers.js?v=nov17a"></script>
-<script src="i18n.js?v=ee6lb"></script>
+<script src="i18n.js?v=tf26a"></script>
 <script src="name-filter.js?v=lb13"></script>
 <script src="leaderboard-config.js?v=lb1"></script>
-<script src="eagle-eye.js?v=ee6lb"></script>
-<script src="app.js?v=ee6lb"></script>
-<script src="feedback.js?v=ee6lb"></script>
+<script src="eagle-eye.js?v=tf26a"></script>
+<script src="app.js?v=tf26a"></script>
+<script src="feedback.js?v=tf26a"></script>
 <script src="admin-board.js?v=lb3"></script>
 <script>
 (() => {
@@ -209,7 +209,7 @@ function eagleParts() {
   const items = `<li><span class="tag">cups</span>${esc(cupName)}: ${esc(cups)} · ${pts[0]} pts</li>`
     + `<li><span class="tag">dots</span>${esc(dotName)}: ${esc(dots)} · ${pts[3] + pts[4]} pts</li>`
     + `<li><span class="tag">banked</span>Cup tiers 2 and 3 are not scheduled.</li>`;
-  const answers = (es ? "Ojo de Águila. " : "Eagle Eye. ") + "Thursday, Nov 26, 2026 only. Tier 1 and Track the Dot. Track round 2 is all or nothing. Tiers 2 and 3 stay banked.";
+  const answers = "Thursday, Nov 26, 2026 only. Think Fast. Cup Shuffle tier 1 (" + pts[0] + " pts) and Track the Dot (" + (pts[3] + pts[4]) + " pts). Track round 2 is all or nothing. Tiers 2 and 3 stay banked.";
   return { items, answers: esc(answers) };
 }
 // Which raw list index each category uses that day (to flag repeats inside the window).
@@ -298,7 +298,7 @@ function card(k, dup, isToday) {
   const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
   const ee = window.EagleEye && EagleEye.on(k);
   const world = worldParts(s && s.worldRush), hist = historyParts(s), sp = sportParts(s && s.sports), tf = ee ? eagleParts() : thinkParts(s && s.thinkFast);
-  const tfName = ee ? "Eagle Eye" : "Brain Teaser";
+  const tfName = "Brain Teaser";
   d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>
    <div class="acts"><label class="ap"><input type="checkbox" ${ok ? "checked" : ""}> Approved</label>
    <a class="btn" href="index.html?preview=${esc(k)}" target="_blank" rel="noopener">▶ Play this day</a></div></div>

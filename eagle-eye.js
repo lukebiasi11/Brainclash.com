@@ -1,6 +1,6 @@
-/* Eagle Eye (perception). Scheduled only on 2026-11-26, in the Think Fast slot.
-   11/23 through 11/25, and every date after 11/26, stay Think Fast.
-   That Thursday is day 1: Cup Shuffle tier 1, then Track the Dot.
+/* Cup Shuffle and Track the Dot, played as Think Fast's two questions on 2026-11-26 only.
+   11/23 through 11/25, and every date after 11/26, stay the regular Think Fast puzzles.
+   That Thursday is question 1 = Cup Shuffle tier 1 (150), then question 2 = Track the Dot (250).
    Cup tiers 2 and 3 stay in this file and are not scheduled.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. */
@@ -11,8 +11,6 @@
   const THINK_MAX = THINK_PARTS[0] + THINK_PARTS[1];
   const WEIGHTS = [0.15, 0.25, 0.35, 0.10, 0.15];
   const POINTS = WEIGHTS.map(w => Math.round(THINK_MAX * w));
-  const LEAD = "Two quick eye tests. Up to 400 pts.";
-  const LEAD_ES = "Dos pruebas rápidas para la vista. Hasta 400 pts.";
   const CUPS_HOW = ["Watch the cup with the ball.", "Tap it when the cups stop."];
   const CUPS_HOW_ES = ["Mira el vaso con la pelota.", "Tócalo cuando los vasos se detengan."];
   const DOT_HOW = ["Follow the orange dots.", "Tap them when they stop."];
@@ -190,12 +188,6 @@
     if (cls) e.className = cls;
     return e;
   }
-  function progress(i) {
-    const d = node("div", "ee-progress");
-    d.setAttribute("aria-hidden", "true");
-    for (let k = 0; k < 3; k++) { const s = node("i", k < i ? "done" : k === i ? "now" : ""); d.append(s); }
-    return d;
-  }
   function reducedMotion() {
     try { return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches; }
     catch (e) { return false; }
@@ -212,21 +204,22 @@
     return () => { el.removeEventListener("pointerup", onPointer); el.removeEventListener("click", onClick); };
   }
 
+  function puzzleLine(env, n, name, pts) {
+    return env.tr("Puzzle {0} of 2{1} · {2} pts · one submission", String(n), " · " + env.tr(name), String(pts));
+  }
+  function openScreen(env, n, name, pts) {
+    return env.screen(env.tr("Brain Teaser"), puzzleLine(env, n, name, pts));
+  }
   async function howto(env, kind) {
     setPhase(kind === "cups" ? "howto-cups" : "howto-dot");
     const lines = kind === "cups" ? CUPS_HOW : DOT_HOW;
+    const slot = kind === "cups" ? 1 : 2;
+    const name = kind === "cups" ? "Cup Shuffle" : "Track the Dot";
     const max = kind === "cups" ? TIERS[1].pts : POINTS[3] + POINTS[4];
-    const body = env.screen(env.tr(kind === "cups" ? "Cup Shuffle" : "Track the Dot"));
-    const wrap = node("div", "intro ee-howto");
-    lines.forEach(line => {
-      const p = node("p", "ee-howto-line");
-      p.textContent = env.tr(line);
-      wrap.append(p);
-    });
-    const pts = node("p", "ee-howto-pts");
-    pts.textContent = env.tr("Up to {0} pts", String(max));
-    wrap.append(pts);
-    body.append(wrap);
+    const body = openScreen(env, slot, name, max);
+    const p = node("p", "prompt");
+    p.textContent = lines.map(line => env.tr(line)).join(" ");
+    body.append(p);
     if (env.scheduleFit) env.scheduleFit();
     await waitBtn(env, body, env.tr("Start"));
   }
@@ -237,9 +230,7 @@
     const dbg = { tier: tier, n: R.n, startSlot: plan.startSlot, moves: plan.moves, finalSlot: plan.finalSlot, picked: null, correct: null, domFinalSlot: null, rank: null };
     root.PERC.debug.cups.push(dbg);
     setPhase("cups-" + idx + "-show");
-    const body = env.screen(env.tr("Eagle Eye"), env.tr("Round {0} · {1} cups · {2} pts", String(tier), String(R.n), String(R.pts)));
-    const roundLine = body.parentNode && body.parentNode.querySelector(".game-head .muted");
-    if (roundLine) roundLine.classList.add("ee-round");
+    const body = openScreen(env, 1, "Cup Shuffle", R.pts);
     const stage = node("div", "ee-stage");
     stage.setAttribute("data-ee-logic", String(plan.finalSlot));
     const mat = node("div", "ee-mat");
@@ -247,7 +238,7 @@
     const st = node("div", "ee-status");
     st.textContent = env.tr("Watch the ball");
     const sub = node("div", "ee-sub");
-    body.append(progress(idx), stage, st, sub);
+    body.append(stage, st, sub);
     if (env.scheduleFit) env.scheduleFit();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const n = R.n;
@@ -406,7 +397,7 @@
     dbg.rank = rank;
     stage.setAttribute("data-ee-final", String(ballCup.slot));
     stage.setAttribute("data-ee-rank", String(rank));
-    if (ballCup.slot !== plan.finalSlot || rank !== plan.finalSlot) console.error("Eagle Eye ball slot mismatch", { dom: ballCup.slot, rank: rank, logic: plan.finalSlot });
+    if (ballCup.slot !== plan.finalSlot || rank !== plan.finalSlot) console.error("cup slot mismatch", { dom: ballCup.slot, rank: rank, logic: plan.finalSlot });
     setPhase("cups-" + idx + "-pick");
     st.textContent = env.tr("Tap the cup with the ball");
     picked = await new Promise(res => {
@@ -443,7 +434,6 @@
 
   async function trackRound(env, idx) {
     const R = TRACK[idx];
-    const lineAt = idx + 1;
     // One stream for both rounds, drawn in order. Round 2 continues where round 1 stopped.
     if (!env._trackRng) env._trackRng = rngFor(env.seed, "track");
     const rng = env._trackRng;
@@ -460,13 +450,7 @@
     const dbg = { targets: targets.slice(), picks: [], correct: null, final: null };
     root.PERC.debug.track.push(dbg);
     setPhase("track-" + idx + "-show");
-    const roundNo = String(idx + 1);
-    const head = R.targets === 1
-      ? env.tr("Round {0} · 1 dot · {1} pts", roundNo, String(R.pts))
-      : env.tr("Round {0} · {1} dots · {2} pts", roundNo, String(R.targets), String(R.pts));
-    const body = env.screen(env.tr("Eagle Eye"), head);
-    const roundLine = body.parentNode && body.parentNode.querySelector(".game-head .muted");
-    if (roundLine) roundLine.classList.add("ee-round");
+    const body = openScreen(env, 2, "Track the Dot", POINTS[3] + POINTS[4]);
     const NS = "http://www.w3.org/2000/svg";
     const arena = document.createElementNS(NS, "svg");
     arena.setAttribute("class", "ee-arena");
@@ -490,7 +474,7 @@
     const st = node("div", "ee-status");
     st.textContent = R.targets > 1 ? env.tr("Remember both orange dots") : env.tr("Remember the orange dot");
     const sub = node("div", "ee-sub");
-    body.append(progress(lineAt), arena, st, sub);
+    body.append(arena, st, sub);
     if (env.scheduleFit) env.scheduleFit();
     const gs = [...arena.querySelectorAll("g[data-dot]")];
     const draw = () => dots.forEach((d, i) => gs[i].setAttribute("transform", "translate(" + d.x.toFixed(2) + "," + d.y.toFixed(2) + ")"));
@@ -613,23 +597,26 @@
       total += res.pts;
       log.push(res.pts);
       if (env.onRound) env.onRound(total);
-      await waitBtn(env, res.body, env.tr("Next round →"));
+      await waitBtn(env, res.body, env.tr("Final puzzle →"));
     }
     await howto(env, "dot");
+    let dots = 0;
     for (let i = 0; i < 2; i++) {
       const res = await trackRound(env, i);
+      dots += res.pts;
       total += res.pts;
-      log.push(res.pts);
-      if (env.onRound) env.onRound(total);
       if (i === 0) await waitBtn(env, res.body, env.tr("Next round →"));
-      else if (env.onDone) env.onDone(total, log.join("/"), res.body);
+      else {
+        log.push(dots);
+        if (env.onRound) env.onRound(total);
+        if (env.onDone) env.onDone(total, log.join("/"), res.body);
+      }
     }
     return total;
   }
 
   const api = {
     DAY: DAY, THINK_PARTS: THINK_PARTS, THINK_MAX: THINK_MAX, WEIGHTS: WEIGHTS,
-    LEAD: LEAD, LEAD_ES: LEAD_ES,
     CUPS_HOW: CUPS_HOW, CUPS_HOW_ES: CUPS_HOW_ES,
     DOT_HOW: DOT_HOW, DOT_HOW_ES: DOT_HOW_ES,
     TIERS: TIERS, TRACK: TRACK, POINTS: POINTS,
