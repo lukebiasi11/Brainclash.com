@@ -1523,11 +1523,15 @@ function pairQuestion(body, q, value, seconds, done) {
   if (!n) { finish(false); return; }
   render();
 }
+// Same wrong-list the typed path passes (src.wrong || src.options). Reveal was dropping it.
+function revealAnswerOpts(q) {
+  const parts = window.Answers.splitAccept(q && q.accept);
+  const given = [].concat(parts.given, (q && q.given) || [], (q && q.exactOnly) || []);
+  return { aliases: parts.aliases, given: given, exactOnly: q && q.exactOnly, q: showText((q && (q.prompt || q.q)) || ""), person: q && q.person, wrong: q && (q.wrong || q.options) };
+}
 function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
-  const parts = window.Answers.splitAccept(q.accept);
-  const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
-  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: showText(q.prompt || ""), person: q.person };
+  const opts = revealAnswerOpts(q);
   let shown = 1, over = false;
   const banked = bankedPartial();
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
@@ -1580,6 +1584,7 @@ function revealQuestion(body, q, value, seconds, done) {
   draw();
   setTimeout(() => input.focus(), 50);
 }
+window.BCReveal = Object.freeze({ opts: revealAnswerOpts });
 function sliderSnap(n, min, max, step) {
   const s = step > 0 ? step : 1;
   const clamped = Math.min(max, Math.max(min, n));

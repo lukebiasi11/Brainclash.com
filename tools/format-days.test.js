@@ -119,5 +119,17 @@ t("match rights", rights.length, 4);
 ok("match rights are bilingual", rights.every(r => r.en && r.es && r.es !== r.en));
 t("match right es", rights.map(r => r.es).join("|"), "Un concurso de canto|Una casa de cocina|Una pista de baile|Una isla de supervivencia");
 
+const reveal = { type: "reveal", prompt: "Who is this?", clues: ["A fast wide receiver", "Kansas City", "Cheetah"], answer: "Tyreek Hill", accept: ["Tyreek"], wrong: ["grant hill", "tyreke"] };
+const ro = sandbox.BCReveal.opts(reveal);
+ok("reveal opts pass wrong", Array.isArray(ro.wrong) && ro.wrong.join(",") === "grant hill,tyreke");
+const hit = s => sandbox.Answers.checkAnswer(s, [reveal.answer], ro);
+t("reveal rejects grant hill", hit("grant hill"), false);
+t("reveal rejects tyreke", hit("tyreke"), false);
+t("reveal accepts tyreek hill", hit("tyreek hill"), true);
+t("reveal accepts Tyreek Hill", hit("Tyreek Hill"), true);
+t("reveal accepts a typo of the full name", hit("Tyreek Hil"), true);
+t("reveal accepts a typo inside the first name", hit("Tyreke Hill"), true);
+t("reveal accepts the surname hill", hit("hill"), true);
+
 console.log(bad ? bad + " failures" : "format-days.test.js: all pass");
 process.exit(bad ? 1 : 0);
