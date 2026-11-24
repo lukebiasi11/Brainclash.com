@@ -149,7 +149,7 @@
     "See results": "Ver resultados",
     // intros / game chrome
     "Rotates daily · today's format below": "Rota cada día · el formato de hoy está abajo", "Today's word game": "Juego de palabras de hoy", "{0} seconds": "{0} segundos", "Up to 1,000 pts": "Hasta 1,000 pts",
-    "Start {0}": "Empezar {0}", "Today's word game: {0} — {1}": "Juego de palabras de hoy: {0} — {1}", "Worth up to ": "Vale hasta ", "1,000 points": "1,000 puntos",
+    "Start {0}": "Empezar {0}", "Today's word game: {0} — {1}": "Juego de palabras de hoy: {0} — {1}", "Worth up to ": "Vale hasta ", "1,000 points": "1,000 puntos", "{0} points": "{0} puntos",
     "Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin.":
       "Pon un pin lo más cerca posible de dos ciudades (hasta 450 pts cada una; 0 a 4,000 km o más) y luego responde una pregunta de geografía (100 pts). Gira el globo para poner la ✛ sobre tu respuesta y presiona Confirmar. 45 segundos por pin.",
     "Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair.":
@@ -168,7 +168,7 @@
     "Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 80% of the common-word points. No penalty for wrong guesses.":
       "Este juego es en inglés. Forma palabras de 3 a 6 letras con 6 letras en 60 segundos. 3 letras = 10, 4 = 30, 5 = 70, 6 = 150. Los 1,000 puntos piden cerca del 80% de los puntos de las palabras comunes. Los errores no restan.",
     "Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.": "Dos acertijos de 400 y 600 puntos, {0} segundos cada uno. Tienes UN solo intento por acertijo: piensa antes de confirmar.",
-    "Category score": "Puntaje de la categoría", "Flag": "Bandera", "See final results": "Ver resultados finales", "Next: {0} →": "Siguiente: {0} →", "Score ": "Puntaje ", "/1,000 pts": "/1,000 pts", "Practice": "Práctica", "Skip": "Saltar", "Skip →": "Saltar →",
+    "Category score": "Puntaje de la categoría", "Flag": "Bandera", "See final results": "Ver resultados finales", "Next: {0} →": "Siguiente: {0} →", "Score ": "Puntaje ", "/1,000 pts": "/1,000 pts", "/{0} pts": "/{0} pts", "Practice": "Práctica", "Skip": "Saltar", "Skip →": "Saltar →",
     "Leave this game? Progress in the current category is lost.": "¿Salir del juego? Se perderá el progreso de la categoría actual.",
     "{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.": "{0} quedó registrada con {1} pts: saliste a mitad de ronda, así que no se puede repetir.", "That category": "Esa categoría",
     // world rush

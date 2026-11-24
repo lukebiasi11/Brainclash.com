@@ -530,7 +530,7 @@
     let current = "overall";
     SECTIONS.forEach(pair => {
       const id = pair[0];
-      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(id === "think" ? fifthName(todayKey()) : pair[1]) });
+      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(pair[1]) });
       button.addEventListener("click", () => {
         current = id;
         Array.prototype.forEach.call(tabs.querySelectorAll(".board-tab"), tab => {
@@ -545,7 +545,7 @@
     const refresh = () => {
       if (!host.isConnected) return;
       const think = host.querySelector("[data-board-section=think]");
-      if (think) think.textContent = tr(fifthName(todayKey()));
+      if (think) think.textContent = tr("Brain Teaser");
       load(host, host.getAttribute("data-board-current") || "overall");
     };
     if (root.document && root.document.addEventListener) {
