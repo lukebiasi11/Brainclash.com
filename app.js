@@ -493,15 +493,26 @@ function catIntro(i, start) {
     nextBtn(actionBar(body), tr("Start {0}", wg.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
     return;
   }
-  const body = screen(c.icon + " " + c.name, i === 3 ? tr("Today's word game: {0} — {1}", wordGameFor(session.day).name, wordGameFor(session.day).sub) : c.desc);
+  const blurb = c.id === "world" || c.id === "history" || c.id === "sports" ? tr(catBlurb(c.id)) : c.desc;
+  const body = screen(c.icon + " " + c.name, blurb);
   body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, tr("1,000 points")), "."), introText(c.id)));
   nextBtn(body, tr("Start {0}", i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
 function introText(id) {
+  const worldDay = worldPlan(session && session.set && session.set.worldRush);
+  const historyDay = historyPlan(session && session.set && session.set.history);
+  const sportsDay = session && session.set && Array.isArray(session.set.sports) ? session.set.sports : [];
+  const celebDay = sportsDay.some(q => q && CELEB_KINDS.has(q.kind));
   const t = {
-    world: tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin."),
-    history: tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
-    sports: tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
+    world: worldDay.count === 2 && !worldDay.third
+      ? tr("Drop a pin as close as you can to two places (up to 500 pts each — 0 at 4,000 km+). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin.")
+      : tr("Drop a pin as close as you can to two cities (up to 450 pts each — 0 at 4,000 km+), then answer one geography question (100 pts). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin."),
+    history: historyDay.length === 1 && historyDay[0].solo
+      ? tr("Drag one set of 5 picture cards into chronological order, earliest first (top on phones, left on wider screens). One round, 45 seconds, up to 1,000 pts. Partial credit for every correctly ordered pair.")
+      : tr("Drag the picture cards into chronological order, earliest first (top on phones, left on wider screens). Round 1: 4 events in 45s (400 pts). Round 2: 5 events in 45s (600 pts). Partial credit for every correctly ordered pair."),
+    sports: celebDay
+      ? tr("Three questions of rising difficulty: 250, 350, then 400 points. They can be about athletes or celebrities: actors, singers, artists, and reality TV. Matching and ordering questions give partial credit for each one you get right.")
+      : tr("Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right."),
     word: { flip: tr("Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds."),
       bridge: tr("Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds."),
       conn: tr("Sort 9 words into 3 groups of 3. Groups are worth 300, 300 and 400. Three wrong guesses ends the round. 90 seconds."),
@@ -715,14 +726,96 @@ function haversine(a, b) {
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
-const pinPoints = d => Math.round(450 * Math.max(0, 1 - d / 4000));
-window.DGScore = Object.freeze({ haversine, pinPoints }); // pure scoring helpers (read-only, for tests)
+const pinPointsFor = (d, max) => Math.round((Number(max) > 0 ? Number(max) : 450) * Math.max(0, 1 - d / 4000));
+const pinPoints = d => pinPointsFor(d, 450);
+// Celebrity MVP clues. A missing team or sport is normal for these kinds.
+const CELEB_KINDS = new Set(["actor", "singer", "artist", "reality", "celebrity"]);
+// Two pins and no third question still total 1,000 (500 each). A third question keeps 450 + 450 + 100.
+function worldPlan(set) {
+  const pins = set && Array.isArray(set.pins) ? set.pins : [];
+  const third = set && set.pair ? "pair" : set && set.mc ? "mc" : null;
+  const each = !third && pins.length ? Math.round(1000 / pins.length) : 450;
+  return { count: pins.length, each, third, total: each * pins.length + (third ? 100 : 0) };
+}
+// A single timeline is one ordering round worth the whole 1,000. Two rounds stay 400 + 600.
+function historyPlan(set) {
+  if (!set || typeof set !== "object" || Array.isArray(set)) return [];
+  if (Array.isArray(set.events) && set.r1 == null && set.r2 == null) {
+    return [{ theme: set.theme, events: set.events, type: set.type || "timeline", secs: 45, max: 1000, solo: true }];
+  }
+  const rounds = [];
+  if (set.r1 && typeof set.r1 === "object") rounds.push(Object.assign({}, set.r1, { secs: 45, max: 400 }));
+  if (set.r2 && typeof set.r2 === "object") rounds.push(Object.assign({}, set.r2, { secs: 45, max: 600 }));
+  if (rounds.length === 1) rounds[0] = Object.assign({}, rounds[0], { max: 1000, solo: true });
+  return rounds;
+}
+function timelineScore(events, order, max) {
+  if (!Array.isArray(events) || !Array.isArray(order) || !order.length) return { good: 0, pairs: 0, pts: 0 };
+  let good = 0, pairs = 0;
+  for (let i = 0; i < order.length; i++) for (let j = i + 1; j < order.length; j++) {
+    pairs++;
+    const a = events[order[i]], b = events[order[j]];
+    if (a && b && Number(a[2]) < Number(b[2])) good++;
+  }
+  const cap = Number(max);
+  return { good, pairs, pts: pairs && cap > 0 ? Math.round(cap * good / pairs) : 0 };
+}
+function mvpFace(q) {
+  const kind = q && q.kind;
+  const celeb = CELEB_KINDS.has(kind);
+  return {
+    celeb,
+    orderHint: celeb
+      ? "Drag into order — first name at the top. Or use ▲▼, tap two names to swap, or arrow keys."
+      : "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.",
+    orderAria: celeb ? "Names in order, first at top" : "Teams in career order, first at top",
+    swapNoun: celeb ? "name" : "team",
+    matchLeft: celeb ? "Names" : "Athletes",
+    matchRight: celeb ? "Clues" : "Records",
+    matchHint: celeb
+      ? "Tap a name, then the matching clue. Tap a pair again to unpair. Drag also works."
+      : "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.",
+    artAlt: celeb ? "Clue" : "Sports art"
+  };
+}
+// Intro subtitle. Old shapes keep the old line. A 2-pin day, a single 5-event timeline,
+// or a day that includes celebrities gets the new line. English keys; callers run them through tr().
+function catBlurb(id, set) {
+  const day = set || (session && session.set) || {};
+  if (id === "world") {
+    const plan = worldPlan(day.worldRush);
+    return plan.count === 2 && !plan.third ? "2 map pins" : "2 map pins + 1 geography question";
+  }
+  if (id === "history") {
+    const rounds = historyPlan(day.history);
+    const one = rounds.length === 1 && rounds[0].solo && Array.isArray(rounds[0].events) && rounds[0].events.length === 5;
+    return one ? "One 5-event timeline" : "2 timelines · drag cards into order";
+  }
+  if (id === "sports") {
+    const qs = Array.isArray(day.sports) ? day.sports : [];
+    return qs.some(q => q && CELEB_KINDS.has(q.kind))
+      ? "Athletes and celebrities · actors, singers, artists, reality TV"
+      : "3 questions · easy → hard";
+  }
+  return "";
+}
+window.DGScore = Object.freeze({ haversine, pinPoints, pinPointsFor, worldPlan, historyPlan, timelineScore, mvpFace, catBlurb, CELEB_KINDS });
 function worldRush() {
-  const set = session.set.worldRush;
+  const set = session.set.worldRush || {};
+  const pins = Array.isArray(set.pins) ? set.pins : [];
+  const plan = worldPlan(set);
   let total = 0, step = 0; const log = [];
+  if (!pins.length) {
+    const body = screen("🌎 " + tr("World Rush"), tr("World Rush"));
+    catDone(body, 0, "0");
+    return;
+  }
   const doPin = () => {
-    const target = set.pins[step];
-    const body = screen("🌎 " + tr("World Rush"), tr("Pin {0} of 2 · up to 450 pts", step + 1));
+    const target = pins[step];
+    const sub = plan.third && plan.count === 2 && plan.each === 450
+      ? tr("Pin {0} of 2 · up to 450 pts", step + 1)
+      : tr("Pin {0} of {1} · up to {2} pts", step + 1, pins.length, plan.each);
+    const body = screen("🌎 " + tr("World Rush"), sub);
     body.classList.add("wr-body");
     body.append(h("p", { class: "prompt wr-prompt" }, tr("Where is "), h("b", { class: "hl" }, target.name), tr("?")));
     const mapEl = h("div", { class: "lmap" });
@@ -747,17 +840,19 @@ function worldRush() {
       locked = true; timer.stop(); btn.remove();
       let pts = 0, msg;
       if (guess) {
-        const d = haversine(guess, target); pts = pinPoints(d);
+        const d = haversine(guess, target); pts = pinPointsFor(d, plan.each);
         msg = `${fmt(d)} km away → +${pts}`;
       } else msg = "Time's up — no pin placed → +0";
       api.reveal(target, guess);
       total += pts; log.push(pts); track(total);
       feedback(bar, pts > 300 ? true : pts > 0 ? null : false, msg);
       step++;
-      nextBtn(bar, step < 2 ? tr("Next pin →") : (set.pair ? tr("Next question →") : tr("Geography Q →")), step < 2 ? doPin : doThird);
+      if (step < pins.length) nextBtn(bar, tr("Next pin →"), doPin);
+      else if (plan.third === "pair") nextBtn(bar, tr("Next question →"), doPair);
+      else if (plan.third === "mc") nextBtn(bar, tr("Geography Q →"), doMC);
+      else catDone(body, total, log.join("/"));
     }
   };
-  const doThird = () => { if (set.pair) doPair(); else doMC(); };
   const doPair = () => {
     const q = set.pair && set.pair.type ? set.pair : Object.assign({ type: "pair" }, set.pair || {});
     const body = screen("🌎 " + tr("World Rush"), tr("{0} · {1} pts", pairLabel(q.prompt || "Pair"), 100));
@@ -792,8 +887,7 @@ function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinL
 
 // ---------- 2. History Timeline ----------
 function history() {
-  const set = session.set.history;
-  const rounds = [{ ...set.r1, secs: 45, max: 400 }, { ...set.r2, secs: 45, max: 600 }];
+  const rounds = historyPlan(session.set.history);
   let total = 0, r = 0; const log = [];
   const R = rng(session.day * 7 + 3);
   const kindOf = rd => {
@@ -802,11 +896,19 @@ function history() {
     if (t === "text" || t === "typed") return "text";
     return "timeline";
   };
+  if (!rounds.length) {
+    const body = screen("📜 " + tr("Time Warp"), tr("Time Warp"));
+    catDone(body, 0, "0");
+    return;
+  }
   const play = () => {
     const rd = rounds[r];
     const kind = kindOf(rd);
-    if (kind !== "timeline") return playRound(rd, kind);
-    const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, rd.theme, rd.max));
+    if (kind !== "timeline" || !Array.isArray(rd.events) || rd.events.length < 2) return playRound(rd, kind === "timeline" ? "text" : kind);
+    const sub = rd.solo
+      ? tr("{0} · {1} events · up to {2} pts", showText(rd.theme), rd.events.length, rd.max)
+      : tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, showText(rd.theme), rd.max);
+    const body = screen("📜 " + tr("Time Warp"), sub);
     // Instructions follow the layout: stacked cards (≤560px, same breakpoint as the CSS) read top → bottom, a row reads left → right.
     body.append(h("p", { class: "prompt" }, tr("Drag the cards into order — "),
       h("b", { class: "tl-dir tl-dir--v" }, tr("earliest at top, latest at bottom")), h("b", { class: "tl-dir tl-dir--h" }, tr("earliest on the left, latest on the right")), "."));
@@ -821,7 +923,7 @@ function history() {
       line.innerHTML = "";
       order.forEach((ev, pos) => {
         const e = rd.events[ev];
-        const card = h("div", { class: "card", "data-ev": ev, tabindex: locked ? -1 : 0, "aria-label": e[1] + (locked ? "" : " — drag to reorder, or use arrow keys") },
+        const card = h("div", { class: "card", "data-ev": ev, tabindex: locked ? -1 : 0, "aria-label": showText(e[1]) + (locked ? "" : " — drag to reorder, or use arrow keys") },
           h("div", { class: "pic" }, ic(e[0], e[3]), locked && window.histCredit && window.histCredit(e[3]) ? h("a", { class: "pcr", href: window.histCredit(e[3]), target: "_blank", rel: "noopener", "aria-label": "Photo credit", title: "Photo credit" }, "i") : null), h("div", { class: "cap" }, showText(e[1])),
           locked ? h("div", { class: "yr" }, yearLabel(e[2])) : h("div", { class: "grip", "aria-hidden": "true" }, "⠿"));
         if (!locked) enableDrag(card);
@@ -894,9 +996,9 @@ function history() {
     const timer = Timer(rd.secs, () => submit(false), body.parentNode.querySelector(".game-head"));
     function submit(skipped) {
       if (locked) return; locked = true; timer.stop(); btn.remove(); bar.querySelector(".skip-btn")?.remove();
-      let good = 0, pairs = 0;
-      for (let i = 0; i < order.length; i++) for (let j = i + 1; j < order.length; j++) { pairs++; if (rd.events[order[i]][2] < rd.events[order[j]][2]) good++; }
-      const pts = skipped ? 0 : Math.round(rd.max * good / pairs);
+      const scored = timelineScore(rd.events, order, rd.max);
+      const good = scored.good, pairs = scored.pairs;
+      const pts = skipped ? 0 : scored.pts;
       render();
       const correct = rd.events.map((e, i) => i).sort((a, b) => rd.events[a][2] - rd.events[b][2]);
       body.append(h("p", { class: "muted" }, tr("Correct order: ") + correct.map(i => showText(rd.events[i][1]) + " (" + yearLabel(rd.events[i][2]) + ")").join(" → ")));
@@ -904,15 +1006,18 @@ function history() {
       total += pts; log.push(pts); track(total); r++;
       body.querySelector(".drag-hint")?.remove(); body.querySelector(".prompt")?.remove(); body.classList.add("tw-done");
       // Results read top-down: reveal + feedback first, then the bar (its auto top margin no longer leaves a big gap on desktop).
-      if (r < 2) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, tr("Round 2 →"), play); } else { bar.remove(); catDone(body, total, log.join("/")); }
+      if (r < rounds.length) { bar.classList.add("after-result"); body.append(bar); nextBtn(bar, tr("Round 2 →"), play); } else { bar.remove(); catDone(body, total, log.join("/")); }
     }
   };
   function playRound(rd, kind) {
-    const label = rd.theme || (kind === "mc" || kind === "text" ? pairLabel(rd.q) : pairLabel(rd.prompt)) || "";
-    const body = screen("📜 " + tr("Time Warp"), tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, label, rd.max));
+    const label = showText(rd.theme) || (kind === "mc" || kind === "text" ? pairLabel(rd.q) : pairLabel(rd.prompt)) || "";
+    const sub = rd.solo
+      ? tr("{0} · up to {1} pts", label, rd.max)
+      : tr("Round {0} of 2 · {1} · up to {2} pts", r + 1, label, rd.max);
+    const body = screen("📜 " + tr("Time Warp"), sub);
     const after = pts => {
       total += pts; log.push(pts); track(total); r++;
-      if (r < 2) nextBtn(actionBar(body), tr("Round 2 →"), play);
+      if (r < rounds.length) nextBtn(actionBar(body), tr("Round 2 →"), play);
       else catDone(body, total, log.join("/"));
     };
     if (kind === "pair") pairQuestion(body, rd, rd.max, 8, after);
@@ -987,10 +1092,12 @@ function flipPack(raw) {
   return { list, secs: Number.isFinite(n) && n > 0 ? n : 60 };
 }
 function orderQuestion(body, q, value, seconds, done) {
+  const face = mvpFace(q);
   const items = (q.items || []).slice();
   const n = items.length;
+  const nameAt = i => showText(items[order[i]]);
   body.append(h("p", { class: "prompt" }, showText(q.q)));
-  const orderFallback = "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.";
+  const orderFallback = face.orderHint;
   body.append(h("p", { class: "drag-hint" }, questionHint(q, orderFallback)));
   let order = seededOrder(n, session.key + "|order|" + q.q);
   if (order.every((v, i) => v === i)) order = seededOrder(n, session.key + "|order|" + q.q + "|reshuffle");
@@ -998,7 +1105,7 @@ function orderQuestion(body, q, value, seconds, done) {
   let locked = false, sel = null;
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   const customHint = localizedText(q && q.hint);
-  const list = h("div", { class: "order-list", role: "list", "aria-label": customHint ? questionHint(q, orderFallback) : "Teams in career order, first at top" });
+  const list = h("div", { class: "order-list" + (face.celeb ? " mvp-name" : ""), role: "list", "aria-label": customHint ? questionHint(q, orderFallback) : (face.celeb ? tr(face.orderAria) : face.orderAria) });
   const wrap = h("div", { class: "order-wrap" },
     h("div", { class: "order-ends" }, h("span", { class: "order-end" }, tr("FIRST")), h("span", { class: "order-end" }, tr("LAST"))),
     list);
@@ -1008,12 +1115,12 @@ function orderQuestion(body, q, value, seconds, done) {
   const move = (from, to) => {
     if (locked || to < 0 || to >= n || from === to) return;
     const o = order.slice(); const [x] = o.splice(from, 1); o.splice(to, 0, x); order = o; sel = to; render();
-    announce(items[order[to]] + " moved to position " + (to + 1) + " of " + n);
+    announce(nameAt(to) + " moved to position " + (to + 1) + " of " + n);
   };
   const swap = (a, b) => {
     if (locked || a === b) return;
     const o = order.slice(); [o[a], o[b]] = [o[b], o[a]]; order = o; sel = b; render();
-    announce("Swapped " + items[order[a]] + " and " + items[order[b]]);
+    announce("Swapped " + nameAt(a) + " and " + nameAt(b));
   };
   function enableDrag(chip) {
     chip.addEventListener("pointerdown", e => {
@@ -1050,10 +1157,10 @@ function orderQuestion(body, q, value, seconds, done) {
         if (!moved) {
           // tap-to-swap: first tap selects, second tap swaps
           const i = +chip.dataset.pos;
-          if (sel == null) { sel = i; chip.classList.add("order-sel"); announce(items[order[i]] + " selected. Tap another team to swap."); }
+          if (sel == null) { sel = i; chip.classList.add("order-sel"); announce(nameAt(i) + " selected. Tap another " + face.swapNoun + " to swap."); }
           else if (sel === i) { sel = null; chip.classList.remove("order-sel"); announce("Selection cleared."); }
           else { const a = sel; sel = null; swap(a, i); }
-        } else { sel = +chip.dataset.pos; announce(items[order[sel]] + " moved to position " + (sel + 1) + " of " + n); render(); }
+        } else { sel = +chip.dataset.pos; announce(nameAt(sel) + " moved to position " + (sel + 1) + " of " + n); render(); }
       };
       window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
     });
@@ -1076,7 +1183,7 @@ function orderQuestion(body, q, value, seconds, done) {
           else if (e.key === "ArrowDown" || e.key === "ArrowRight") { e.preventDefault(); move(pos, pos + 1); }
           else if (e.key === " " || e.key === "Enter") {
             e.preventDefault();
-            if (sel == null) { sel = pos; render(); announce(label + " selected. Choose another team to swap."); }
+            if (sel == null) { sel = pos; render(); announce(label + " selected. Choose another " + face.swapNoun + " to swap."); }
             else if (sel === pos) { sel = null; render(); announce("Selection cleared."); }
             else { const a = sel; sel = null; swap(a, pos); }
           }
@@ -1174,12 +1281,13 @@ function bracketQuestion(body, q, value, seconds, done) {
 }
 // Q3 match-records: 4×4 tap-to-pair (primary) + drag bonus. Right column seed-shuffled; left stays author order.
 function matchQuestion(body, q, value, seconds, done) {
+  const face = mvpFace(q);
   const left = (q.left || []).slice();
   const right = (q.right || []).slice();
   const pairs = (q.pairs || []).slice(); // pairs[i] = right-index for left[i]
   const n = left.length;
   body.append(h("p", { class: "prompt" }, showText(q.q)));
-  body.append(h("p", { class: "drag-hint" }, questionHint(q, "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.")));
+  body.append(h("p", { class: "drag-hint" }, questionHint(q, face.matchHint)));
   const live = h("div", { class: "sr-only", "aria-live": "polite", "aria-atomic": "true" });
   // rightOrder[pos] = original right index at display position
   let rightOrder = seededOrder(n, session.key + "|match-r|" + q.q);
@@ -1189,8 +1297,8 @@ function matchQuestion(body, q, value, seconds, done) {
   let selLeft = null, locked = false;
   const COLORS = ["#00f0ff", "#ff2fd6", "#ffe600", "#39ff88"];
   const board = h("div", { class: "match-board" });
-  const leftCol = h("div", { class: "match-col match-left", role: "list", "aria-label": "Athletes" });
-  const rightCol = h("div", { class: "match-col match-right", role: "list", "aria-label": "Records" });
+  const leftCol = h("div", { class: "match-col match-left" + (face.celeb ? " mvp-name" : ""), role: "list", "aria-label": tr(face.matchLeft) });
+  const rightCol = h("div", { class: "match-col match-right" + (face.celeb ? " mvp-name" : ""), role: "list", "aria-label": tr(face.matchRight) });
   board.append(leftCol, rightCol);
   body.append(board, live);
   const announce = t => { live.className = "sr-only"; live.textContent = ""; void live.offsetWidth; live.textContent = t; };
@@ -1232,21 +1340,21 @@ function matchQuestion(body, q, value, seconds, done) {
     if (locked) return;
     if (link[i] != null) { // unpair
       const ri = link[i]; link[i] = null; selLeft = null;
-      announce("Unpaired " + left[i] + " from " + right[ri]); render(); return;
+      announce("Unpaired " + showText(left[i]) + " from " + showText(right[ri])); render(); return;
     }
     if (selLeft === i) { selLeft = null; announce("Selection cleared."); render(); return; }
-    selLeft = i; announce(left[i] + " selected. Tap a record to pair."); render();
+    selLeft = i; announce(showText(left[i]) + (face.celeb ? " selected. Tap a clue to pair." : " selected. Tap a record to pair.")); render();
   };
   const onRight = ri => {
     if (locked) return;
     const owner = link.findIndex(x => x === ri);
     if (selLeft == null) {
-      if (owner >= 0) { link[owner] = null; announce("Unpaired " + left[owner]); render(); }
+      if (owner >= 0) { link[owner] = null; announce("Unpaired " + showText(left[owner])); render(); }
       return;
     }
     clearPairForRight(ri);
     link[selLeft] = ri;
-    announce("Paired " + left[selLeft] + " with " + right[ri]);
+    announce("Paired " + showText(left[selLeft]) + " with " + showText(right[ri]));
     selLeft = null; render();
   };
   function enableDragLeft(chip, i) {
@@ -1415,11 +1523,15 @@ function pairQuestion(body, q, value, seconds, done) {
   if (!n) { finish(false); return; }
   render();
 }
+// Same wrong-list the typed path passes (src.wrong || src.options). Reveal was dropping it.
+function revealAnswerOpts(q) {
+  const parts = window.Answers.splitAccept(q && q.accept);
+  const given = [].concat(parts.given, (q && q.given) || [], (q && q.exactOnly) || []);
+  return { aliases: parts.aliases, given: given, exactOnly: q && q.exactOnly, q: showText((q && (q.prompt || q.q)) || ""), person: q && q.person, wrong: q && (q.wrong || q.options) };
+}
 function revealQuestion(body, q, value, seconds, done) {
   const clues = Array.isArray(q.clues) ? q.clues.slice(0, 3) : [];
-  const parts = window.Answers.splitAccept(q.accept);
-  const given = [].concat(parts.given, q.given || [], q.exactOnly || []);
-  const opts = { aliases: parts.aliases, given, exactOnly: q.exactOnly, q: showText(q.prompt || ""), person: q.person };
+  const opts = revealAnswerOpts(q);
   let shown = 1, over = false;
   const banked = bankedPartial();
   const revealDiff = typeDiff(q); if (revealDiff) body.append(revealDiff);
@@ -1472,6 +1584,7 @@ function revealQuestion(body, q, value, seconds, done) {
   draw();
   setTimeout(() => input.focus(), 50);
 }
+window.BCReveal = Object.freeze({ opts: revealAnswerOpts });
 function sliderSnap(n, min, max, step) {
   const s = step > 0 ? step : 1;
   const clamped = Math.min(max, Math.max(min, n));
@@ -1652,7 +1765,8 @@ function sports() {
   const qs = session.set.sports, vals = [250, 350, 400], labels = ["Easy", tr("Medium"), "Hard"];
   let total = 0, i = 0; const log = [];
   const ask = () => {
-    const q = qs[i], body = screen("🏆 " + tr("MVP"), tr("Question {0} of 3 · {1} · {2} pts", i + 1, tr(labels[i]), vals[i]));
+    const q = qs[i] || {}, body = screen("🏆 " + tr("MVP"), tr("Question {0} of 3 · {1} · {2} pts", i + 1, tr(labels[i]), vals[i]));
+    const face = mvpFace(q);
     const after = pts => { total += pts; track(total); log.push(pts); i++; if (i < 3) nextBtn(actionBar(body), tr("Next question →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };
@@ -1662,17 +1776,22 @@ function sports() {
     else if (t === "bracket") bracketQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "match") matchQuestion(body, q, vals[i], SPORTS_SECONDS, after);
     else if (t === "guess") guessQuestion(body, q, vals[i], SPORTS_SECONDS, after, { timeoutZero: true });
-    else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, tr("Sports")) : q.visual);
+    else if (t === "mc") mcQuestion(body, q.q, q.options, q.a, vals[i], SPORTS_SECONDS, after, q.img ? sportsArt(q.img, face.celeb ? tr("Clue") : tr("Sports")) : q.visual);
     else if (q.kind === "common-teammate") {
       // Five player clues, one shared teammate. Typed answer, lenient checker with person-name (surname) matching.
       const ans = q.answers || [q.answer], src = Object.assign({}, q, { answers: ans, person: q.person !== false });
-      const clues = h("ol", { class: "ct-clues", "aria-label": "Clues" }, ...(q.clues || []).map(c => h("li", {}, c)));
+      const clues = h("ol", { class: "ct-clues", "aria-label": tr("Clues") }, ...(q.clues || []).map(c => h("li", {}, showText(c))));
       textQuestion(body, q.q, ans, vals[i], SPORTS_SECONDS, after, clues, ans[0], q.explain, src, { timeoutZero: true });
+    }
+    else if (face.celeb && Array.isArray(q.clues) && q.clues.length) {
+      const ans = q.answers || (q.answer ? [q.answer] : []);
+      const clues = h("ol", { class: "ct-clues mvp-name", "aria-label": tr("Clues") }, ...q.clues.map(c => h("li", {}, showText(c))));
+      textQuestion(body, q.q, ans, vals[i], SPORTS_SECONDS, after, clues, ans[0] || "", q.explain, q, { timeoutZero: true });
     }
     else {
       const visKinds = { "stat-chart": "Stat chart", moment: "Memorable moment", "color-swatch": "Team colours", "jersey-number": "Jersey number" };
-      const art = q.img ? sportsArt(q.img, visKinds[q.kind] || "Sports art") : q.visual;
-      textQuestion(body, q.q, q.answers, vals[i], SPORTS_SECONDS, after, art, q.answers[0], q.explain, q, { timeoutZero: true });
+      const art = q.img ? sportsArt(q.img, face.celeb ? tr(face.artAlt) : (visKinds[q.kind] || "Sports art")) : q.visual;
+      textQuestion(body, q.q, q.answers || [], vals[i], SPORTS_SECONDS, after, art, (q.answers || [])[0] || "", q.explain, q, { timeoutZero: true });
     }
   };
   ask();
@@ -2687,8 +2806,31 @@ window.BCDaily = Object.freeze({ getDailySet, keyOf, dayOfKey, todayKey: () => k
 const PREVIEW_KEY = (location.search.match(/[?&]preview=(\d{4}-\d{2}-\d{2})\b/) || [])[1];
 const DEMO_PREVIEW = /[?&]preview=demo\b/.test(location.search);
 const SLOT_PREVIEW = /[?&]preview=slots\b/.test(location.search);
+const FORMAT_PREVIEW = /[?&]preview=formats\b/.test(location.search);
 if (window.BC_NO_BOOT) { /* admin.html: content lookups only */ }
-else if (SLOT_PREVIEW) {
+else if (FORMAT_PREVIEW) {
+  const shot = (location.search.match(/[?&]shot=(world2|history5|mvp|intro-world|intro-history|intro-mvp)\b/) || [])[1] || "world2";
+  const demo = window.FORMAT_DEMO || {};
+  session = newSession(true);
+  session.key = "demo";
+  session.day = dayOfKey("2026-11-25");
+  session.scores = shot === "history5" || shot === "intro-history" ? [0] : shot === "mvp" || shot === "intro-mvp" ? [0, 0] : [];
+  session.inProgress = session.scores.length;
+  session.partial = 0;
+  session.partialCat = session.inProgress;
+  session.set = Object.assign({}, session.set, {
+    worldRush: demo.world || { pins: [] },
+    history: demo.history || {},
+    sports: demo.mvp || []
+  });
+  document.title = "Format preview — Daily Dose";
+  if (shot === "intro-world") catIntro(0, worldRush);
+  else if (shot === "intro-history") catIntro(1, history);
+  else if (shot === "intro-mvp") catIntro(2, sports);
+  else if (shot === "history5") history();
+  else if (shot === "mvp") sports();
+  else worldRush();
+} else if (SLOT_PREVIEW) {
   session = newSession(true); session.key = "demo"; session.day = dayOfKey(LAUNCH_DATE); session.scores = [];
   document.title = "Slot demo — Daily Dose"; runSlotDemo();
 } else if (DEMO_PREVIEW) {

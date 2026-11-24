@@ -149,5 +149,28 @@ t(missing.items.includes("unrecognized item"), "missing World Rush notes unrecog
 const flagOnly = A.worldParts({ pins: [{ name: "Oslo, Norway", lat: 59.91, lon: 10.75 }, { name: "Seoul, South Korea", lat: 37.57, lon: 126.98 }], mc: { q: "Which country's flag is this?", img: "flag-japan", options: ["South Korea", "Japan"], a: 1, optionImgs: ["flag-south-korea", "flag-japan"] } });
 t(flagOnly.items.includes(">flag<") && flagOnly.items.includes("flag-japan") && flagOnly.answers.includes("Japan") && !flagOnly.items.includes("unrecognized item"), "flag multiple choice lists the flag and its answer");
 
+const pinsOnly = { pins: [{ name: "Quito, Ecuador", lat: -0.18, lon: -78.47 }, { name: "Wellington, New Zealand", lat: -41.29, lon: 174.78 }] };
+const twoPins = A.worldParts(pinsOnly);
+t(twoPins.items.includes("Quito, Ecuador") && twoPins.items.includes("Wellington, New Zealand") && !twoPins.items.includes("unrecognized item"), "admin lists a 2-pin day without a third question");
+const events = [1895, 1928, 1952, 1977, 2007].map((y, i) => ["🎬", "Debut " + (i + 1), y]);
+const review = sandbox.BCFeedback.items({
+  worldRush: pinsOnly,
+  history: { theme: "Screen debuts", events: events },
+  sports: [{ type: "text", kind: "actor", q: "Name the actor from these clues.", answers: ["alejandro marin castillo"], clues: ["Billing name: Alejandro Marin Castillo"] }],
+  wordGame: { id: "flip", name: "Unscramble" },
+  wordFlip: [["ALPHA", "definition", "a"], ["BRAVO", "definition", "b"], ["CHARLIE", "definition", "c"], ["DELTA", "definition", "d"], ["ECHO", "definition", "e"], ["FOXTROT", "definition", "f"]],
+  thinkFast: [{ q: "One", answers: ["a"] }, { q: "Two", answers: ["b"] }]
+});
+const warp = review.filter(it => it.cat === "Time Warp");
+const world = review.filter(it => it.cat === "World Rush");
+const mvp = review.filter(it => it.cat === "MVP");
+t(warp.length === 1 && warp[0].prompt.includes("Debut 1") && warp[0].prompt.includes("Debut 5") && warp[0].answer.includes("1895") && !/unrecognized|undefined/.test(warp[0].prompt + warp[0].answer), "review has one 5-event timeline");
+t(world.length === 2 && world.every(it => it.prompt.startsWith("Pin:")) && !world.some(it => it.prompt === "unrecognized item"), "review has two pins and no third question");
+t(mvp.length === 1 && mvp[0].answer.includes("alejandro marin castillo") && !/undefined|Sports|team/.test(mvp[0].prompt + mvp[0].answer), "review celebrity round has no sports label");
+const classic = sandbox.DGScore.worldPlan({ pins: pinsOnly.pins, mc: { q: "Q", options: ["A"], a: 0 } });
+const only = sandbox.DGScore.worldPlan(pinsOnly);
+t(classic.each === 450 && classic.total === 1000 && classic.third === "mc", "a third question keeps 450-point pins");
+t(only.each === 500 && only.total === 1000 && only.third === null && only.count === 2, "two pins alone total 1,000");
+
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

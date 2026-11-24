@@ -813,6 +813,12 @@ body.in-game .game-body>.tf-svg.sports-chart + .prompt{margin-top:0}
 /* Sports "common-teammate": 5 player clues as a compact 2-column list (fits 375x548 without scroll). */
 .ct-clues{list-style:none;margin:6px 0 4px;padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);counter-reset:ct;font-weight:700;font-size:15px;line-height:1.2}
 .ct-clues li{counter-increment:ct;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-clues.mvp-name{grid-template-columns:1fr}
+.ct-clues.mvp-name li,.match-col.mvp-name .match-label{white-space:normal;overflow:visible;text-overflow:unset;overflow-wrap:anywhere}
+.order-list.mvp-name{overflow:visible}
+.order-list.mvp-name .order-chip{max-height:none;flex:0 0 auto;height:auto}
+.order-list.mvp-name .order-label{white-space:normal;overflow:visible;text-overflow:unset;overflow-wrap:anywhere}
+.bracket-chip,.match-label,.opt{overflow-wrap:anywhere}
 .ct-clues li::before{content:counter(ct) ". ";opacity:.6}
 .ct-clues li:last-child:nth-child(odd){grid-column:1/-1}
 @media (max-height:600px){.ct-clues{font-size:14px;padding:6px 8px;gap:2px 8px}}
