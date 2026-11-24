@@ -71,6 +71,7 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="map.js?v=nov3k"></script>
 <script src="anagrams.js?v=nov12"></script>
 <script src="content.js?v=nov22w"></script>
+<script src="drafts.js?v=nov25d"></script>
 <script src="assets/icons.js?v=nov22w"></script>
 <script src="answers.js?v=nov17a"></script>
 <script src="i18n.js?v=fmt25d"></script>
@@ -88,6 +89,15 @@ const appr = () => { try { return JSON.parse(localStorage.getItem(APK)) || {}; }
 const setAppr = (k, v) => { const a = appr(); if (v) a[k] = true; else delete a[k]; localStorage.setItem(APK, JSON.stringify(a)); };
 const ansOf = q => !q ? "" : q.type === "order" && q.items ? q.items.join(" → ") : q.type === "match" && q.left ? q.left.map((l, i) => l + " = " + (q.right || [])[(q.pairs || [])[i]]).join("; ") : q.matchup && q.a != null ? (q.matchup[q.a] ?? "") : q.options && q.a != null ? (q.options[q.a] ?? "") : q.answers ? q.answers.join(" / ") + (q.aliases && q.aliases.length ? " (also: " + q.aliases.join(" / ") + ")" : "") : q.answer != null ? q.answer + (q.unit && q.unit !== "year" ? " " + q.unit : "") : "";
 const nice = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+function draftOf(k) {
+  const d = window.ADMIN_DRAFTS;
+  return d && d[k] && typeof d[k] === "object" ? d[k] : null;
+}
+function setFor(k) {
+  const base = B.getDailySet(k), d = draftOf(k);
+  if (!d) return base;
+  return Object.assign({}, base, d);
+}
 const UN_LI = `<li class="unrecognized">unrecognized item</li>`;
 const un = () => `<span class="unrecognized">unrecognized item</span>`;
 // English admin copy. {en, es} objects are the same shape app.js localizedText reads.
@@ -245,7 +255,7 @@ const rv = () => { try { return JSON.parse(localStorage.getItem(RVK)) || {}; } c
 const setRv = (k, id, patch) => { const r = rv(); r[k] = r[k] || {}; r[k][id] = { ...(r[k][id] || {}), ...patch }; localStorage.setItem(RVK, JSON.stringify(r)); };
 function review(k, d) {
   const box = document.createElement("div"); box.className = "rv"; box.innerHTML = "<h3>Review each question</h3>";
-  F.items(B.getDailySet(k)).forEach(it => {
+  F.items(setFor(k)).forEach(it => {
     const st = (rv()[k] || {})[it.id] || {}, el = document.createElement("div");
     el.className = "it" + (st.v ? " " + st.v : ""); el.dataset.id = it.id;
     el.innerHTML = `<div class="m"><code>${esc(k + "/" + it.id)}</code> · ${esc(it.cat)}</div><div class="p">${esc(it.prompt)}</div><div class="a">→ ${esc(it.answer)}</div>
@@ -264,7 +274,7 @@ function review(k, d) {
 function weekUrl(keys) {
   const r = rv(); let body = "**Admin week review** " + keys[0] + " → " + keys[keys.length - 1] + "\n";
   let nu = 0, nd = 0;
-  keys.forEach(k => { const its = F.items(B.getDailySet(k)), m = r[k] || {};
+  keys.forEach(k => { const its = F.items(setFor(k)), m = r[k] || {};
     const up = its.filter(i => (m[i.id] || {}).v === "up"), dn = its.filter(i => (m[i.id] || {}).v === "down"); nu += up.length; nd += dn.length;
     body += `\n### ${k}${appr()[k] ? " (day approved ✅)" : ""}\n`;
     if (dn.length) body += "**Disapproved:**\n" + dn.map(i => `- ❌ \`${i.id}\` ${F.cut(i.prompt, 120)} → ${F.cut(i.answer, 80)}${m[i.id].note ? "\n  - Note: " + F.cut(m[i.id].note, 400) : ""}`).join("\n") + "\n";
@@ -279,19 +289,23 @@ function failedDay(k) {
   return d;
 }
 function card(k, dup, isToday) {
-  const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
+  const s = setFor(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k)), isDraft = !!draftOf(k);
   const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
   const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
   const world = worldParts(s && s.worldRush), hist = historyParts(s), sp = sportParts(s && s.sports), tf = thinkParts(s && s.thinkFast);
-  d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>
+  const playAct = isDraft
+    ? `<span class="tag" style="background:#fff;color:#c0262d;border:2px solid #c0262d;padding:5px 9px;font-size:12px">Unpublished draft</span>`
+    : `<a class="btn" href="index.html?preview=${esc(k)}" target="_blank" rel="noopener">▶ Play this day</a>`;
+  const tfNote = isDraft ? (k === "2026-11-25" ? " (normal slot · Game maker)" : " (cups-and-ball placeholder · Game maker)") : "";
+  d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}${isDraft ? "UNAPPROVED DRAFT · " : ""}#${n}</small></h2>
    <div class="acts"><label class="ap"><input type="checkbox" ${ok ? "checked" : ""}> Approved</label>
-   <a class="btn" href="index.html?preview=${esc(k)}" target="_blank" rel="noopener">▶ Play this day</a></div></div>
+   ${playAct}</div></div>
   <div class="cats">
    <div class="cat"><h3>🌎 World Rush${dupT("world")}</h3><ul>${world.items}</ul></div>
    <div class="cat"><h3>📜 Time Warp${dupT("history")}</h3><ul>${hist.items}</ul></div>
-   <div class="cat"><h3>🏆 MVP (sports)${dupT("sports")}</h3><ul>${sp.items}</ul></div>
+   <div class="cat"><h3>🏆 MVP${isDraft ? " (sports &amp; celebs)" : " (sports)"}${dupT("sports")}</h3><ul>${sp.items}</ul></div>
    <div class="cat"><h3>📝 Word Nerd: ${esc(w.title)}${dupT("word")}</h3><ul>${w.items}</ul></div>
-   <div class="cat"><h3>🧠 Brain Teaser${dupT("think")}</h3><ul>${tf.items}</ul></div>
+   <div class="cat"><h3>🧠 Brain Teaser${tfNote}${dupT("think")}</h3><ul>${tf.items}</ul></div>
    <details><summary>Show answers</summary>
     <p><b>World:</b><br>${world.answers}</p>
     <p><b>History order:</b><br>${hist.answers}</p>
@@ -311,14 +325,15 @@ function renderWindow(keys, today) {
   keys.forEach(k => {
     let dup = null;
     try {
-      const ix = idx(B.getDailySet(k)); dup = {};
-      for (const c in ix) { const prev = seen[c + ix[c]]; if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
+      const ix = idx(setFor(k)); dup = {};
+      for (const c in ix) { if (typeof ix[c] === "number" ? ix[c] < 0 : String(ix[c]).endsWith(":-1")) continue;
+        const prev = seen[c + ix[c]]; if (prev) dup[c] = nice(prev).replace(/, \d{4}$/, ""); else seen[c + ix[c]] = k; }
     } catch (e) { dup = null; }
     nodes.push(showDay(k, dup, k === today));
   });
   return nodes;
 }
-window.BCAdmin = { weekUrl: () => weekUrl(keys), review, card, showDay, renderWindow, worldParts };
+window.BCAdmin = { weekUrl: () => weekUrl(keys), review, card, showDay, renderWindow, worldParts, setFor };
 const box = document.getElementById("days"), dp = document.getElementById("dp");
 const today = B.todayKey(), t0 = B.dayOfKey(today);
 dp.value = today;
