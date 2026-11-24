@@ -24,6 +24,13 @@ const CATS = [
   { id: "think", img: "cat-brain", name: "Brain Teaser", icon: "🧠", sub: "Logic", desc: "2 brain-benders · one shot each" }
 ];
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
+// Only 2026-11-26 uses Eagle Eye in this slot. Other days stay Brain Teaser.
+function catsFor(key) {
+  if (!window.EagleEye || !EagleEye.on(key)) return CATS;
+  const base = CATS[4], out = CATS.slice();
+  out[4] = { id: base.id, img: base.img, icon: base.icon, name: tr("Eagle Eye"), sub: tr("Perception"), desc: tr(EagleEye.LEAD) };
+  return out;
+}
 const WORD_GAMES = [
   { id: "flip", name: "Unscramble", sub: "Unscramble 6 words from hints · 60s" },
   { id: "bridge", name: "Word Bridge", sub: "Finish the first word, start the second · 60s" },
@@ -141,7 +148,7 @@ function loadToday() {
   const s = store.get("dg-" + todayKey());
   if (s && s.inProgress != null) {
     if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category");
-      const c = CATS[s.scores.length - 1]; toast(tr("{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.", c ? c.name : tr("That category"), fmt(s.scores[s.scores.length - 1]))); }
+      const c = catsFor(s.key)[s.scores.length - 1]; toast(tr("{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.", c ? c.name : tr("That category"), fmt(s.scores[s.scores.length - 1]))); }
     delete s.inProgress; delete s.partial; delete s.partialCat; store.set("dg-" + s.key, s);
   }
   return s;
@@ -328,7 +335,7 @@ function screen(title, sub) {
   onKey = null; clearScreenTimers();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
-  const cat = session && CATS[session.scores.length];
+  const cat = session && catsFor(session.key)[session.scores.length];
   const head = h("header", { class: "game-head" },
     h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Daily Dose", " · ", session.key === "demo" ? ((session.demoAt || 0) + 1) + "/" + ((window.TYPE_DEMO || []).length || 1) : (session.scores.length + 1) + "/5"),
     h("h2", {}, title), sub ? h("p", { class: "muted" }, sub) : null,
@@ -394,7 +401,7 @@ function scoreGraph(scores, day) {
     h("p", { class: "sg-date" }, tr("Today's scores · ") + dt),
     h("div", { class: "sg-card" },
       h("h3", {}, tr("Points by category")),
-      h("ul", { class: "sg-cols" }, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
+      h("ul", { class: "sg-cols" }, catsFor(keyOf(day)).map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
         return h("li", { "aria-label": c.name + ": " + fmt(scores[i] || 0) },
           h("b", { class: "sg-v", "aria-hidden": "true" }, fmt(scores[i] || 0)),
           h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
@@ -413,6 +420,8 @@ function home() {
   const stats = store.get("dg-stats", { played: 0, best: 0, streak: 0, last: null });
   const day = dayIndex();
   const wg = wordGameFor(day);
+  const cats = catsFor(todayKey());
+  const eagleToday = window.EagleEye && EagleEye.on(todayKey());
   app.append(
     h("div", { class: "hero" },
       h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")),
@@ -421,7 +430,7 @@ function home() {
     I18N.toggleVisible() ? h("div", { class: "lang-toggle", role: "group", "aria-label": tr("Language") }, ["en", "es"].map(l =>
       h("button", { type: "button", class: "lang-btn" + (LANG === l ? " on" : ""), "aria-pressed": String(LANG === l), lang: l,
         onclick: () => { if (LANG !== l) { I18N.set(l); location.reload(); } } }, l === "en" ? "English" : "Español"))) : null,
-    h("ol", { class: "path" }, CATS.map((c, i) => {
+    h("ol", { class: "path" }, cats.map((c, i) => {
       const sc = s && s.scores[i];
       const state = sc != null ? "done" : (s ? s.scores.length : 0) === i ? "next" : "locked";
       return h("li", { class: "step " + state },
@@ -447,7 +456,7 @@ function home() {
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
         h("li", {}, tr("Same challenge for everyone, new every day at midnight US Eastern (New York) time.")),
-        h("li", {}, tr("Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
+        h("li", {}, tr(eagleToday ? "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Eagle Eye." : "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
         h("li", {}, tr("Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.")),
         h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
@@ -479,8 +488,37 @@ function commitCat(score, detail) {
   try { if (window.DailyBoard) window.DailyBoard.noteFinish(session); } catch (e) {}
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
+function eagleIntro(c, start) {
+  const pts = EagleEye.roundPoints();
+  const cups = pts[0], dots = pts[3] + pts[4];
+  document.body.dataset.phase = "intro";
+  const body = screen(c.icon + " " + c.name);
+  body.append(h("div", { class: "intro ee-intro" },
+    h("p", { class: "ee-lead" }, tr(EagleEye.LEAD)),
+    h("div", { class: "ee-split" },
+      h("div", { class: "ee-row" }, h("span", {}, tr("Cup Shuffle")), h("b", {}, tr("Up to {0} pts", fmt(cups)))),
+      h("div", { class: "ee-row" }, h("span", {}, tr("Track the Dot")), h("b", {}, tr("Up to {0} pts", fmt(dots)))))));
+  nextBtn(actionBar(body), tr("Start {0}", c.name), () => {
+    session.inProgress = 4; session.partial = 0; session.partialCat = 4; save(); start();
+  });
+}
+function eagleEye() {
+  const seed = session.practice ? ("practice|" + Math.floor(Math.random() * 1e9)) : ("eagleeye|" + session.key);
+  const name = catsFor(session.key)[4].name;
+  EagleEye.run({
+    seed: seed,
+    tr: tr,
+    screen: (title, sub) => screen(catsFor(session.key)[4].icon + " " + (title || name), sub),
+    actionBar: actionBar,
+    nextBtn: nextBtn,
+    scheduleFit: scheduleFit,
+    onRound: track,
+    onDone: (total, detail, body) => catDone(body, total, detail)
+  });
+}
 function catIntro(i, start) {
-  const c = CATS[i];
+  const c = catsFor(session.key)[i];
+  if (i === 4 && window.EagleEye && EagleEye.on(session.key)) return eagleIntro(c, start);
   if (i === 3) {
     const wg = wordGameFor(session.day);
     const body = screen(c.icon + " " + c.name, tr("Rotates daily · today's format below"));
@@ -530,7 +568,7 @@ function runNext() {
   const i = session.scores.length;
   if (i >= 5) return results();
   fieldNotePlay();
-  const go = [worldRush, history, sports, wordChallenge, thinkFast][i];
+  const go = [worldRush, history, sports, wordChallenge, (window.EagleEye && EagleEye.on(session.key)) ? eagleEye : thinkFast][i];
   catIntro(i, go);
 }
 function catDone(body, score, detail) {
@@ -539,7 +577,7 @@ function catDone(body, score, detail) {
   body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
   countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
-  nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", CATS[session.scores.length].name), runNext);
+  nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
 }
 
 // ---------- maps ----------
@@ -2322,7 +2360,7 @@ function g1OnSection() {
   const status = h("p", { class: "g1-quiet" });
   const strip = h("div", { class: "g1-strip" });
   const picker = h("select", { id: "g1-cat", class: "g1-cat-pick", "aria-label": tr("Category") });
-  CATS.forEach((c, i) => picker.append(h("option", { value: String(i) }, c.name)));
+  catsFor(session && session.key).forEach((c, i) => picker.append(h("option", { value: String(i) }, c.name)));
   const plot = h("div", { class: "g1-plot" });
   const legend = h("p", { class: "g1-legend" });
   const foot = h("div", { class: "g1-footrow" });
@@ -2430,7 +2468,7 @@ function g1OffSection() {
     const yName = mode === "total" ? tr("Number of completed games") : tr("Score");
     const xName = mode === "total" ? tr("Score range") : tr("Category");
     plot.append(h("div", { class: "g1-chart" }, h("div", { class: "g-ylab" }, yName), h("div", {}, g1Axes(mode), h("div", { class: "g-xlab" }, xName))), h("p", { class: "g1-empty" }, tr("No scores are plotted while collection is off.")));
-    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map(c => h("li", {}, c.name))));
+    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, catsFor(session && session.key).map(c => h("li", {}, c.name))));
   };
   totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
   catBtn.addEventListener("click", () => { mode = "category"; paint(); });
@@ -2490,13 +2528,13 @@ function g2Section() {
   const hist = loadPersonalHistory();
   const select = h("select", { id: "g2-metric" });
   select.append(h("option", { value: "overall" }, tr("Overall")));
-  CATS.forEach((c, i) => select.append(h("option", { value: String(i) }, c.name)));
+  catsFor(session && session.key).forEach((c, i) => select.append(h("option", { value: String(i) }, c.name)));
   const sub = h("p", { class: "g-sub" });
   const body = h("div", { class: "g2-body", "aria-live": "polite" });
   section.append(h("div", { class: "g2-head" }, h("div", {}, h("h2", { id: "g2-title" }, tr("Your history")), sub), h("label", { class: "g2-select" }, h("span", { class: "sr-only" }, tr("History metric")), select)), body);
   const paint = () => {
     const metric = select.value === "overall" ? "overall" : Number(select.value);
-    const name = metric === "overall" ? tr("Overall") : (CATS[metric] ? CATS[metric].name : "");
+    const name = metric === "overall" ? tr("Overall") : (catsFor(session && session.key)[metric] ? catsFor(session && session.key)[metric].name : "");
     while (body.firstChild) body.removeChild(body.firstChild);
     if (!hist || !window.BCHistory) {
       section.setAttribute("data-g2-state", "unreadable");
