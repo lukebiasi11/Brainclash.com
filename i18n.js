@@ -101,6 +101,8 @@
     "Enter the year you were born.": "Escribe el año en que naciste.",
     "Continue": "Continuar",
     "Display name (optional)": "Nombre para mostrar (opcional)",
+    "Name for the leaderboard": "Nombre para la clasificación",
+    "Type the name you want on the leaderboard.": "Escribe el nombre que quieres en la clasificación.",
     "This name is shown publicly. Use a nickname, not your full name.": "Este nombre se muestra públicamente. Usa un apodo, no tu nombre completo.",
     "That name can't be used. Try a different nickname, or play without a name.": "Ese nombre no se puede usar. Prueba con otro apodo, o juega sin un nombre.",
     "Change name": "Cambiar nombre",

@@ -55,6 +55,8 @@ async function evalJson(cdp, expression) {
   return r.result ? r.result.value : undefined;
 }
 
+// New York day stays 2026-11-24 here, before the one-time name ask.
+const PRELIVE = `(()=>{const real=Date.now.bind(Date);const target=${Date.parse("2026-11-24T17:00:00Z")};const base=real();Date.now=function(){return target+(real()-base);};})();`;
 const hook = `(() => {
   window.__net = [];
   window.__logs = [];
@@ -90,7 +92,7 @@ const hook = `(() => {
     await cdp.send("Page.enable");
     await cdp.send("Runtime.enable");
     await cdp.send("Network.enable");
-    await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: hook + "localStorage.clear(); sessionStorage.clear();" });
+    await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: PRELIVE + hook + "localStorage.clear(); sessionStorage.clear();" });
     await cdp.send("Page.navigate", { url: origin + "/index.html?lbshot=1" });
     const ready = await evalJson(cdp, `new Promise(resolve => { const start = Date.now(); const tick = () => { const b = document.querySelector('.cta .btn.primary'); if (b && !document.getElementById('board-year')) b.click(); if (document.getElementById('board-year') && document.querySelector('[role=dialog]')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
     if (!ready) throw new Error("age gate did not render");
@@ -123,7 +125,7 @@ const hook = `(() => {
       await page.send("Page.enable");
       await page.send("Runtime.enable");
       await page.send("Network.enable");
-      await page.send("Page.addScriptToEvaluateOnNewDocument", { source: source });
+      await page.send("Page.addScriptToEvaluateOnNewDocument", { source: PRELIVE + source });
       await page.send("Page.navigate", { url: origin + "/index.html?lbshot=1" + (search || "") });
       const ok = await evalJson(page, `new Promise(resolve => { const start = Date.now(); const tick = () => { if (document.querySelector('.cta .btn.primary')) resolve(true); else if (Date.now()-start>8000) resolve(false); else setTimeout(tick, 40); }; tick(); })`);
       if (!ok) throw new Error("home did not render");

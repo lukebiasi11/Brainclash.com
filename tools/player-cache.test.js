@@ -1,5 +1,5 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=lb8g2, i18n at v=lb12, style.css at v=lb8n22, and English and Spanish content at v=nov22w, and icons at v=nov22w.
+// New HTML must request answers at v=nov17a, app.js at v=lb8g2, i18n at v=nm25, style.css at v=nm25, and English and Spanish content at v=nov22w, and icons at v=nov22w.
 // nov22w stays on content.js, content.es.js, and icons.js. nov18e was the dailydosetrivia.com share and preview URL. nov18d was the match touch-tap fix. nov18f was the Nov 20-22 content cache key. nov18c was the wording pass on the Spanish and narrow-layout fix.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
@@ -34,7 +34,7 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=lb8n22"], ["i18n", "i18n.js?v=lb12"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"]].forEach(([n, s]) => {
+[["style", "style.css?v=nm25"], ["i18n", "i18n.js?v=nm25"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {

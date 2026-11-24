@@ -21,7 +21,7 @@ t("flag is centered", /margin-inline:auto/.test(rule));
 t("flag has a thin border", /border:1px solid/.test(rule));
 t("tiny 1.6em flag size is gone", !css.includes("inline-flag{width:1.6em"));
 t("uncapped width:100% is gone", !/(^|[{;])width:100%/.test(rule));
-t("style cache is lb8n22", html.includes('style.css?v=lb8n22') && !html.includes('style.css?v=lb7n22') && !html.includes('style.css?v=nov22x') && !html.includes('style.css?v=nov22w') && !html.includes('style.css?v=nov18b') && !html.includes('style.css?v=lb6'));
+t("style cache is nm25", html.includes('style.css?v=nm25') && !html.includes('style.css?v=lb8n22') && !html.includes('style.css?v=lb7n22') && !html.includes('style.css?v=nov22x') && !html.includes('style.css?v=nov22w') && !html.includes('style.css?v=nov18b') && !html.includes('style.css?v=lb6'));
 t("withFlag still marks inline-flag", app.includes('inline-flag'));
 
 // 38vh at 844px is 321px, so the 260px cap does not bind on a 220px-tall phone flag.
