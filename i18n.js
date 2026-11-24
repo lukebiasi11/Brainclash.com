@@ -10,20 +10,19 @@
   const LANG = store.get("bc-lang") === "es" ? "es" : "en";
   const ES = {
     // categories / word games
-    "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos", "Eagle Eye": "Ojo de Águila",
+    "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos",
     "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Palabras", "Logic": "Lógica",
     "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 map pins": "2 pines en el mapa",
     "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden", "One 5-event timeline": "Una línea de tiempo de 5 eventos",
     "3 questions · easy → hard": "3 preguntas · de fácil a difícil",
     "Athletes and celebrities · actors, singers, artists, reality TV": "Deportistas y famosos · actores, cantantes, artistas y reality",
     "2 brain-benders · one shot each": "2 acertijos · un solo intento cada uno",
-    "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Eagle Eye.": "Orden fijo: Vuelta al Mundo → Máquina del Tiempo → MVP → Palabrólogo → Ojo de Águila.",
-    "Two quick eye tests. Up to 400 pts.": "Dos pruebas rápidas para la vista. Hasta 400 pts.",
+    "Puzzle 1, {0}, is worth {1} points. {2} {3} Puzzle 2, {4}, is worth {5} points. {6} {7}": "Acertijo 1, {0}, vale {1} puntos. {2} {3} Acertijo 2, {4}, vale {5} puntos. {6} {7}",
     "Watch the cup with the ball.": "Mira el vaso con la pelota.",
     "Tap it when the cups stop.": "Tócalo cuando los vasos se detengan.",
     "Follow the orange dots.": "Sigue los puntos naranjas.",
     "Tap them when they stop.": "Tócalos cuando se detengan.",
-    "Cup Shuffle": "Vasos", "Track the Dot": "Sigue el punto", "Up to {0} pts": "Hasta {0} pts",
+    "Cup Shuffle": "Vasos", "Track the Dot": "Sigue el punto",
     "Start": "Empezar",
     "Watch the ball": "Mira la pelota", "Keep your eye on it": "No le quites la vista", "Shuffling…": "Mezclando…", "Tap the cup with the ball": "Toca el vaso que tiene la pelota",
     "Got it! +{0}": "¡Le diste! +{0}", "Not that one": "No es ese", "You tracked the ball the whole way.": "Seguiste la pelota todo el camino.", "The ball ended up under a different cup.": "La pelota quedó bajo otro vaso.",
