@@ -1190,7 +1190,17 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 .board-add{display:block;margin:4px auto 0}
 .board-modal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,11,46,.55)}
 .board-modal__card{position:relative;width:min(100%,420px);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);padding:18px 14px 14px}
+.board-modal__card>.board-label{padding-right:46px;overflow-wrap:anywhere;line-height:1.25;font-size:22px}
+.board-modal .board-help,.board-modal .board-error{overflow-wrap:anywhere}
+.board-modal .board-help{margin:0 0 8px}
+.board-modal .btn{display:block;width:100%;box-sizing:border-box}
+.board-modal .board-skip{display:block;width:100%;box-sizing:border-box;text-align:center;white-space:normal;overflow-wrap:anywhere;padding-left:0;padding-right:0}
 .board-modal__close{position:absolute;top:4px;right:4px;min-width:44px;min-height:44px;border:0;background:transparent;color:var(--ink-bc);font:800 22px/1 var(--body);cursor:pointer}
+@media (max-width:360px){
+  .board-modal{padding:8px}
+  .board-modal__card{padding:16px 10px 12px}
+  .board-modal__card>.board-label{font-size:20px}
+}
 .day-board{position:relative;z-index:1;max-width:100%;box-sizing:border-box;margin:14px 0 8px;padding:12px;background:var(--cream);color:var(--ink-bc);border:3px solid var(--ink-bc);box-shadow:5px 5px 0 var(--navy);text-align:left}
 .board-title{margin:0 0 8px;font-family:var(--display);font-weight:400;font-size:clamp(22px,7vw,28px);letter-spacing:.03em;text-transform:uppercase;overflow-wrap:anywhere}
 .board-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}

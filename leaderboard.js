@@ -13,6 +13,9 @@
   const NAME = "bc-board-name";
   const SKIP = "bc-board-name-skip";
   const ENTRY = "bc-board-entry";
+  // One ask per device from this New York day on, including players who already saved a name.
+  const ASKED = "bc_name_reconfirm_v2";
+  const ASK_FROM = "2026-11-25";
   const STORAGE_PREFIX = "sb-board-";
   const SECTIONS = [
     ["overall", "Overall"],
@@ -145,6 +148,16 @@
       return { highlight: "", below: { rank: rank, name: me.name, tag: me.tag, score: me.score, token: serverToken } };
     }
     return { highlight: serverToken || entryToken, below: null };
+  }
+  function readAsked() {
+    try { return !!(storage() && storage().getItem(ASKED) === "1"); } catch (e) { return false; }
+  }
+  function writeAsked() {
+    try { if (storage()) storage().setItem(ASKED, "1"); } catch (e) {}
+  }
+  function askWindow() {
+    const day = String(todayKey() || "");
+    return /^\d{4}-\d{2}-\d{2}$/.test(day) && day >= ASK_FROM;
   }
   function readSkip() {
     try { return !!(storage() && storage().getItem(SKIP) === "1"); } catch (e) { return false; }
@@ -293,7 +306,10 @@
       dialog.append(closeBtn, title, body);
       host.append(dialog);
       let onKey = null;
+      let settled = false;
       function finish(startGame) {
+        if (settled) return;
+        settled = true;
         if (onKey) doc.removeEventListener("keydown", onKey);
         if (host.parentNode) host.remove();
         const back = opener && opener.focus && doc.contains(opener) ? opener : doc.querySelector(".cta .btn.primary, [data-board-add]");
@@ -301,9 +317,16 @@
         resolve(purpose === "start" && startGame !== false);
         if (purpose === "add" && homeRefresh) homeRefresh();
       }
-      function dismiss() {
-        if (step === "name") writeSkip(true);
+      function markAsked() { if (askWindow()) writeAsked(); }
+      function chooseAnonymous() {
+        writeName("");
+        writeSkip(true);
+        markAsked();
         finish(true);
+      }
+      function dismiss() {
+        if (step === "name") chooseAnonymous();
+        else finish(true);
       }
       function focusables() {
         return Array.prototype.filter.call(dialog.querySelectorAll("button, input, a, [href], [tabindex]"), node => !node.disabled && node.getAttribute("tabindex") !== "-1" && !node.hidden);
@@ -333,21 +356,27 @@
         } else {
           dialog.removeAttribute("data-board-gate");
           dialog.setAttribute("data-board-name", "1");
-          title.textContent = tr("Display name (optional)");
-          const fields = nameFields("");
-          const go = el("button", { type: "button", class: "btn board-year-go", "data-board-save": "1" }, tr("Continue"));
+          title.textContent = tr("Name for the leaderboard");
+          const fields = nameFields(readName());
+          const go = el("button", { type: "button", class: "btn board-year-go", "data-board-save": "1" }, tr("Save name"));
           const skip = el("button", { type: "button", class: "board-skip", "data-board-skip": "1" }, tr("Play without a name"));
           const submit = async () => {
+            const previous = readName();
             const result = await acceptName(fields.input.value);
-            if (result.skip) { writeSkip(true); finish(true); return; }
-            if (!result.ok) { showNameError(body); return; }
+            if (result.skip) { chooseAnonymous(); return; }
+            if (!result.ok) {
+              if (previous && result.reason === "name_rejected") writeName(previous);
+              showNameError(body);
+              return;
+            }
             writeSkip(false);
+            markAsked();
             finish(true);
           };
           go.addEventListener("click", submit);
-          skip.addEventListener("click", () => { writeSkip(true); finish(true); });
+          skip.addEventListener("click", chooseAnonymous);
           fields.input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
-          body.append(fields.input, fields.err, fields.help, go, skip);
+          body.append(el("p", { class: "board-help", "data-board-lead": "1", text: tr("Type the name you want on the leaderboard.") }), fields.input, fields.err, fields.help, go, skip);
           if (takeNote()) showNameError(body);
         }
         const list = focusables();
@@ -365,14 +394,16 @@
     if (opts.started || opts.practice) return true;
     if (isTester(null)) return true;
     if (readFlag() === "no") { forgetIds(); return true; }
+    const askAgain = askWindow() && !readAsked();
     if (readName()) {
       const saved = filter() ? filter().checkName(readName()) : { ok: true };
-      if (saved.ok && saved.skip !== true) return true;
-      writeName("");
-      writeSkip(false);
-      noteBlocked();
+      if (!(saved.ok && saved.skip !== true)) {
+        writeName("");
+        writeSkip(false);
+        noteBlocked();
+      } else if (!askAgain) return true;
     }
-    if (readSkip() && !opts.add) return true;
+    if (!askAgain && readSkip() && !opts.add) return true;
     return openAsk(opts.add ? "add" : "start");
   }
 
@@ -455,6 +486,7 @@
       autocomplete: "nickname",
       autocapitalize: "off",
       spellcheck: "false",
+      "aria-label": tr("Name for the leaderboard"),
       "aria-describedby": "board-name-help"
     });
     if (prefill) input.value = prefill;
@@ -553,6 +585,7 @@
       root.document.addEventListener("visibilitychange", () => {
         if (root.document.visibilityState === "visible") refresh();
       });
+      root.document.addEventListener("bc-board-refresh", refresh);
     }
     if (root.addEventListener) root.addEventListener("pageshow", refresh);
     load(host, current);
@@ -688,18 +721,24 @@
       if (name) {
         if (!filter()) return;
         const checked = filter().checkName(name);
-        if (!checked.ok || checked.skip) return;
-        send(session.key, checked.name, scores);
-        return;
+        if (!checked.ok || checked.skip || !checked.name) return;
+        return send(session.key, checked.name, scores);
       }
-      if (readSkip()) send(session.key, null, scores);
+      if (readSkip()) return send(session.key, null, scores);
     } catch (e) {}
   }
 
+  function pokeBoards() {
+    const doc = root.document;
+    if (!doc || typeof doc.dispatchEvent !== "function" || typeof root.Event !== "function") return;
+    try { doc.dispatchEvent(new root.Event("bc-board-refresh")); } catch (e) {}
+  }
+
   function send(day, name, scores) {
-    if (!enabled()) return;
+    if (!enabled()) return Promise.resolve();
     const c = cfg();
-    tokenFor().then(token => {
+    name = typeof name === "string" && name ? name : null;
+    return tokenFor().then(token => {
       const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, 8000);
       return root.fetch(String(c.url).replace(/\/$/, "") + "/functions/v1/leaderboard/post", {
@@ -712,7 +751,10 @@
         let body = {};
         try { body = await res.json(); } catch (e) { body = {}; }
         if (body && body.error === "name_rejected") { writeName(""); writeSkip(false); noteBlocked(); }
-        else if (body && typeof body.token === "string" && body.token) writeEntry(day, body.token);
+        else if (body && typeof body.token === "string" && body.token) {
+          writeEntry(day, body.token);
+          pokeBoards();
+        }
       }, () => { clearTimeout(timer); });
     }).catch(() => {});
   }
@@ -770,6 +812,7 @@
       root.document.addEventListener("visibilitychange", () => {
         if (root.document.visibilityState === "visible") paint();
       });
+      root.document.addEventListener("bc-board-refresh", () => { paint(); });
     }
     if (root.addEventListener) {
       root.addEventListener("focus", () => { paint(); });
