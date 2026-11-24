@@ -140,6 +140,8 @@
       "Arrastra las tarjetas en orden cronológico, de la más antigua a la más reciente (arriba en celulares, a la izquierda en pantallas anchas). Ronda 1: 4 eventos en 45 s (400 pts). Ronda 2: 5 eventos en 45 s (600 pts). Crédito parcial por cada par en el orden correcto.",
     "Three questions of rising difficulty: 250, 350, then 400 points. Matching and ordering questions give partial credit for each one you get right.":
       "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
+    "Three questions of rising difficulty: 250, 350, then 400 points. This round is about actors, singers, artists, or reality TV. There is no team and no sport. Matching and ordering questions give partial credit for each one you get right.":
+      "Tres preguntas de dificultad creciente: 250, 350 y 400 puntos. Esta ronda es sobre actores, cantantes, artistas o televisión reality. No hay equipo ni deporte. Las preguntas de emparejar y ordenar dan crédito parcial por cada acierto.",
     "Unscramble 6 medium–hard words using the hint (definition, synonym, antonym or riddle). Tap letters to spell; correct answers auto-advance. First 4 words 150 pts, last 2 worth 200. 60 seconds.":
       "Descifra 6 palabras de dificultad media a alta con la pista (definición, sinónimo, antónimo o adivinanza). Toca las letras para deletrear; las respuestas correctas avanzan solas. Las primeras 4 valen 150 pts y las últimas 2, 200. 60 segundos.",
     "Find the middle word that finishes the first word and starts the second, e.g. SUN _ HOUSE → LIGHT (sunlight, lighthouse). It is NOT a word that blends both meanings. 6 puzzles: the first 4 are worth 150 pts, the last 2 are worth 200. 60 seconds.":
@@ -156,21 +158,34 @@
     "Leave this game? Progress in the current category is lost.": "¿Salir del juego? Se perderá el progreso de la categoría actual.",
     "{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.": "{0} quedó registrada con {1} pts: saliste a mitad de ronda, así que no se puede repetir.", "That category": "Esa categoría",
     // world rush
-    "Pin {0} of 2 · up to 450 pts": "Pin {0} de 2 · hasta 450 pts", "Where is ": "¿Dónde está ", "?": "?", "Spin to put the ✛ on your guess, then Lock in": "Gira para poner la ✛ sobre tu respuesta y confirma",
+    "Pin {0} of 2 · up to 450 pts": "Pin {0} de 2 · hasta 450 pts",
+    "Pin {0} of {1} · up to {2} pts": "Pin {0} de {1} · hasta {2} pts",
+    "Drop a pin as close as you can to two places (up to 500 pts each — 0 at 4,000 km+). Spin the globe to put the ✛ on your guess, then hit Lock in. 45 seconds per pin.":
+      "Pon un pin lo más cerca posible de dos lugares (hasta 500 pts cada uno; 0 a 4,000 km o más). Gira el globo para poner la ✛ sobre tu respuesta y presiona Confirmar. 45 segundos por pin.",
+    "Where is ": "¿Dónde está ", "?": "?", "Spin to put the ✛ on your guess, then Lock in": "Gira para poner la ✛ sobre tu respuesta y confirma",
     "Time's up — no pin placed → +0": "Se acabó el tiempo: no pusiste pin → +0", "Next pin →": "Siguiente pin →", "Geography Q →": "Pregunta de geografía →", "Geography question · 100 pts": "Pregunta de geografía · 100 pts",
     "📍 Lock in pin": "📍 Confirmar pin", "Lock in": "Confirmar", "Lock in order": "Confirmar orden", "Lock in pairs": "Confirmar parejas",
     // feedback
     "Correct! +{0}": "¡Correcto! +{0}", "Skipped. +0": "Saltada. +0", "Time's up. +0": "Se acabó el tiempo. +0", "Not quite. +0": "Casi. +0",
     "Skipped. Answer: {0}. +0": "Saltada. Respuesta: {0}. +0", "Time's up. Answer: {0}. +0": "Se acabó el tiempo. Respuesta: {0}. +0", "Answer: {0}. +0": "Respuesta: {0}. +0",
     // time warp
-    "Round {0} of 2 · {1} · up to {2} pts": "Ronda {0} de 2 · {1} · hasta {2} pts", "Drag the cards into order — ": "Arrastra las tarjetas en orden: ", "Earliest ←": "Más antiguo ←", "→ Latest": "→ Más reciente", "Earliest": "Más antiguo", "Latest": "Más reciente",
+    "Round {0} of 2 · {1} · up to {2} pts": "Ronda {0} de 2 · {1} · hasta {2} pts",
+    "{0} · {1} events · up to {2} pts": "{0} · {1} eventos · hasta {2} pts",
+    "{0} · up to {1} pts": "{0} · hasta {1} pts",
+    "Drag one set of 5 picture cards into chronological order, earliest first (top on phones, left on wider screens). One round, 45 seconds, up to 1,000 pts. Partial credit for every correctly ordered pair.":
+      "Arrastra un grupo de 5 tarjetas en orden cronológico, de la más antigua a la más reciente (arriba en celulares, a la izquierda en pantallas anchas). Una sola ronda, 45 segundos, hasta 1,000 pts. Crédito parcial por cada par en el orden correcto.",
+    "Drag the cards into order — ": "Arrastra las tarjetas en orden: ", "Earliest ←": "Más antiguo ←", "→ Latest": "→ Más reciente", "Earliest": "Más antiguo", "Latest": "Más reciente",
     "Correct order: ": "Orden correcto: ", "{0} BC": "{0} a. C.", "{0}/{1} pairs in order → {2} pts": "{0}/{1} pares en orden → {2} pts", "Round 2 →": "Ronda 2 →",
     // sports
     "Question {0} of 3 · {1} · {2} pts": "Pregunta {0} de 3 · {1} · {2} pts", "Easy": "Fácil", "Medium": "Media", "Hard": "Difícil", "Next question →": "Siguiente pregunta →",
     "Type your answer": "Escribe tu respuesta", "Drag into order — first team at the top. Or use ▲▼, tap two chips to swap, or arrow keys.": "Arrastra en orden: el primer equipo arriba. O usa ▲▼ (o las flechas del teclado), o toca dos fichas para cambiarlas.",
+    "Drag into order — first name at the top. Or use ▲▼, tap two names to swap, or arrow keys.": "Arrastra en orden: el primer nombre arriba. O usa ▲▼ (o las flechas del teclado), o toca dos nombres para cambiarlos.",
+    "Names in order, first at top": "Nombres en orden, el primero arriba",
+    "Names": "Nombres", "Clues": "Pistas", "Clue": "Pista", "Athletes": "Deportistas", "Records": "Récords",
     "Put the first stop at the top.": "La primera parada va arriba.", "Match each person to their year.": "Empareja cada persona con su año.",
     "Which is bigger?": "¿Cuál es más grande?", "{0} · {1} pts": "{0} · {1} pts", "Pair": "Pareja",
     "FIRST": "PRIMERO", "LAST": "ÚLTIMO", "{0}/{1} in the right spot → +{2}": "{0}/{1} en su lugar → +{2}", "Tap a name, then a record to pair them. Tap a pair again to unpair. Drag also works.": "Toca un nombre y luego un dato para emparejarlos. Toca una pareja otra vez para separarla. También puedes arrastrar.",
+    "Tap a name, then the matching clue. Tap a pair again to unpair. Drag also works.": "Toca un nombre y luego la pista que le corresponde. Toca una pareja otra vez para separarla. También puedes arrastrar.",
     "Correct: ": "Correcto: ", "{0}/{1} correct → +{2}": "{0}/{1} correctas → +{2}",
     // word games
     "↩ Undo": "↩ Deshacer", "Clear": "Borrar", "Skipped words come back at the end if time remains.": "Las palabras saltadas vuelven al final si queda tiempo.",

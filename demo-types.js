@@ -175,6 +175,57 @@ window.SLOT_DEMO = {
     hint: "Match each person to their year."
   }
 };
+// Practice fixture only. Not a live day. Open index.html?preview=formats&shot=world2|history5|mvp
+window.FORMAT_DEMO = {
+  world: {
+    pins: [
+      { name: "Quito, Ecuador", lat: -0.18, lon: -78.47 },
+      { name: "Wellington, New Zealand", lat: -41.29, lon: 174.78 }
+    ]
+  },
+  history: {
+    theme: { en: "Screen debuts", es: "Debut en pantalla" },
+    events: [
+      ["🎬", { en: "A silent film opens a public cinema", es: "Una película muda abre un cine público" }, 1895],
+      ["📺", { en: "A live broadcast reaches home sets", es: "Una transmisión en vivo llega a los hogares" }, 1928],
+      ["🎤", { en: "A televised music show goes national", es: "Un programa de música en televisión se vuelve nacional" }, 1952],
+      ["📼", { en: "Home video rentals open on a high street", es: "Los alquileres de video abren en una calle principal" }, 1977],
+      ["📱", { en: "A phone streams a full concert", es: "Un teléfono transmite un concierto completo" }, 2007]
+    ]
+  },
+  mvp: [
+    {
+      type: "text",
+      kind: "actor",
+      difficulty: "easy",
+      q: { en: "Name the actor from these clues.", es: "Nombra al actor a partir de estas pistas." },
+      clues: [
+        { en: "Played a detective in a long-running evening drama", es: "Interpretó a un detective en un drama nocturno de muchos años" },
+        { en: "Sang the theme for a charity concert in 2014", es: "Cantó el tema de un concierto benéfico en 2014" },
+        { en: "Hosted a reality judging panel for three seasons", es: "Presentó un panel de televisión reality durante tres temporadas" },
+        { en: "Billing name: Alejandro Marin Castillo", es: "Nombre en los créditos: Alejandro Marin Castillo" }
+      ],
+      answers: ["alejandro marin castillo", "alejandro castillo"],
+      aliases: ["a marin castillo"]
+    },
+    {
+      type: "order",
+      kind: "singer",
+      difficulty: "medium",
+      q: { en: "Put these stage names in the order they were first billed.", es: "Ordena estos nombres artísticos según su primer crédito." },
+      items: ["Luz Marina Beltran", "Carmen Sol Ortega", "Diego Alonso Vega"]
+    },
+    {
+      type: "match",
+      kind: "reality",
+      difficulty: "hard",
+      q: { en: "Match each host to the show they fronted.", es: "Empareja a cada presentador con el programa que condujo." },
+      left: ["Marisol Vega", "Andres Palma", "Lucia Renteria", "Tomas Ibarra"],
+      right: ["A singing contest", "A cooking house", "A dance floor", "A survival island"],
+      pairs: [0, 1, 2, 3]
+    }
+  ]
+};
 window.EMOJI_DEMO = [
   [
     { type: "emoji", emoji: "🐝🍃", prompt: { en: "What word do these emojis spell?", es: "¿Qué palabra forman estos emojis?" }, answers: ["belief"], accept: ["belief"] },

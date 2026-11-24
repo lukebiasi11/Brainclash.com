@@ -89,7 +89,7 @@ if (C) {
     if (d.reveal != null || d.slider != null || d.type === "reveal" || d.type === "slider" || (d.mc && (d.mc.type === "reveal" || d.mc.type === "slider" || d.mc.type === "pair"))) E(w, "the third question is multiple choice or a pair. Reveal and slider are not used, and a pair does not replace the pins");
     if (d.type === "pair" && !hasPair) E(w, "put the pair on the pair field so it does not replace the two pins");
     if (hasMc && hasPair) E(w, "the third slot is one question: multiple choice or a pair, not both");
-    else if (!hasMc && !hasPair) E(w, "missing the third question (multiple choice or a pair)");
+    else if (!hasMc && !hasPair) { /* two pins and no third question is a complete day */ }
     else if (hasPair) {
       if (d.pair.type != null && d.pair.type !== "pair") E(w + " pair", 'type must be "pair"');
       pairQ(w + " pair", d.pair);
@@ -99,9 +99,27 @@ if (C) {
       if (d.mc && d.mc.optionImgs && !(list(d.mc.optionImgs, (d.mc.options || []).length))) E(w + " mc", "optionImgs must have one entry per option");
     }
   });
+  const checkTimeline = (ww, x, n) => {
+    if (!textOrI18n(x && x.theme)) E(ww, "missing theme");
+    if (!x || !list(x.events, n)) return E(ww, `needs exactly ${n} events`);
+    x.events.forEach((ev, j) => { if (!((list(ev, 3) || (list(ev, 4) && str(ev[3]))) && str(ev[0]) && textOrI18n(ev[1]) && Number.isFinite(ev[2]))) E(`${ww} event ${j + 1}`, 'must be ["emoji", "text", year] (optional 4th: "icon-key")'); });
+    const ys = x.events.map(ev => ev[2]); if (new Set(ys).size !== ys.length) E(ww, "two events share a year (order would be ambiguous)");
+  };
   checkHistoryDay = (w, d) => capture(() => {
     if (!d || typeof d !== "object") return E(w, "malformed");
     if (d.type === "slider" || d.slider != null) E(w, "slider is not allowed in Time Warp; the timeline style stays");
+    const soloTop = Array.isArray(d.events) && d.r1 == null && d.r2 == null;
+    if (soloTop) {
+      if (d.type != null && d.type !== "timeline") return E(w, "a single round must be a 5-event timeline");
+      return checkTimeline(w, d, 5);
+    }
+    const has1 = d.r1 != null, has2 = d.r2 != null;
+    if (has1 !== has2) {
+      const x = has1 ? d.r1 : d.r2;
+      const key = has1 ? "r1" : "r2";
+      if (!x || typeof x !== "object" || (x.type != null && x.type !== "timeline")) return E(w, "a single round must be a 5-event timeline");
+      return checkTimeline(`${w} ${key}`, x, 5);
+    }
     [["r1", 4], ["r2", 5]].forEach(([r, n]) => {
       const x = d[r]; if (!x) return E(w, `missing ${r}`);
       const t = x.type;
@@ -124,8 +142,10 @@ if (C) {
   bank("worldRush", (w, d) => { checkWorldDay(w, d).forEach(msg => errs.push(msg)); });
   bank("history", (w, d) => { checkHistoryDay(w, d).forEach(msg => errs.push(msg)); });
   const SPORTS_TEXT_KINDS = new Set(["fill", "stat-chart", "moment", "color-swatch", "jersey-number", "common-teammate"]);
+  const CELEB_KINDS = new Set(["actor", "singer", "artist", "reality", "celebrity"]);
   const sportsQ = (ww, q) => {
     const t = q.type || "text";
+    const celeb = CELEB_KINDS.has(q.kind);
     if (t === "mc") {
       mc(ww, q);
       if (q.kind && !["true-false", "which-first", "higher-lower", "bracket"].includes(q.kind)) E(ww, "unknown mc kind " + q.kind);
@@ -133,16 +153,19 @@ if (C) {
         if (!list(q.options, 2)) E(ww, q.kind + " needs exactly 2 options");
       }
     } else if (t === "text") {
-      if (!str(q.q)) E(ww, "missing q");
+      if (celeb ? !textOrI18n(q.q) : !str(q.q)) E(ww, "missing q");
       if (q.kind === "common-teammate") {
         if (!list(q.clues) || q.clues.length !== 5 || !q.clues.every(str)) E(ww, "common-teammate needs exactly 5 clue names");
         if (!str(q.answer) && !(list(q.answers) && q.answers.length && q.answers.every(str))) E(ww, "common-teammate needs answer");
         if (q.aliases && !(list(q.aliases) && q.aliases.every(str))) E(ww, "aliases must be a list of text");
       } else if (!list(q.answers) || !q.answers.length || !q.answers.every(str)) E(ww, "answers must be a list of text");
+      if (celeb && q.clues != null && !(list(q.clues) && q.clues.length && q.clues.every(textOrI18n))) E(ww, "clues must be text");
+      if (celeb && q.team != null && !textOrI18n(q.team)) E(ww, "team must be text when present");
+      if (celeb && q.sport != null && !textOrI18n(q.sport)) E(ww, "sport must be text when present");
       if (q.given && !(list(q.given) && q.given.length && q.given.every(str))) E(ww, "given must be a list of text");
       if (q.exactOnly && !(list(q.exactOnly) && q.exactOnly.length && q.exactOnly.every(str))) E(ww, "exactOnly must be a list of text");
-      if (q.kind && !SPORTS_TEXT_KINDS.has(q.kind)) E(ww, "unknown text kind " + q.kind);
-      if (q.kind && q.kind !== "fill" && q.kind !== "common-teammate" && !str(q.img)) E(ww, q.kind + " needs img");
+      if (q.kind && !SPORTS_TEXT_KINDS.has(q.kind) && !celeb) E(ww, "unknown text kind " + q.kind);
+      if (q.kind && !celeb && q.kind !== "fill" && q.kind !== "common-teammate" && !str(q.img)) E(ww, q.kind + " needs img");
     } else if (t === "guess") {
       if (!str(q.q)) E(ww, "missing q");
       if (typeof q.answer !== "number" || !isFinite(q.answer)) E(ww, "guess needs numeric answer");
@@ -150,9 +173,9 @@ if (C) {
       if (q.exactYear != null && typeof q.exactYear !== "boolean") E(ww, "exactYear must be boolean");
       if (q.yearBand != null && !(typeof q.yearBand === "number" && q.yearBand >= 0)) E(ww, "yearBand must be a non-negative number");
     } else if (t === "order") {
-      if (!str(q.q)) E(ww, "missing q");
+      if (celeb ? !textOrI18n(q.q) : !str(q.q)) E(ww, "missing q");
       if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
-      if (q.kind && q.kind !== "team-path") E(ww, "unknown order kind " + q.kind);
+      if (q.kind && q.kind !== "team-path" && !celeb) E(ww, "unknown order kind " + q.kind);
       if (!list(q.items) || q.items.length < 3 || q.items.length > 5 || !q.items.every(str)) E(ww, "items must be 3–5 nickname strings");
       else if (new Set(q.items.map(x => x.toLowerCase())).size !== q.items.length) E(ww, "duplicate nicknames in items (return stints need an explicit prompt rule)");
     } else if (t === "bracket") {
@@ -165,10 +188,10 @@ if (C) {
     else if (t === "reveal") revealQ(ww, q);
     else if (t === "slider") sliderQ(ww, q);
     else if (t === "match") {
-      if (!str(q.q)) E(ww, "missing q");
+      if (celeb ? !textOrI18n(q.q) : !str(q.q)) E(ww, "missing q");
       if (q.hint != null && !hintOk(q.hint)) E(ww, "hint must be text or {en, es}");
-      if (q.kind && q.kind !== "match-records") E(ww, "unknown match kind " + q.kind);
-      if (!list(q.left, 4) || !q.left.every(str)) E(ww, "left must be 4 athlete strings");
+      if (q.kind && q.kind !== "match-records" && !celeb) E(ww, "unknown match kind " + q.kind);
+      if (!list(q.left, 4) || !q.left.every(str)) E(ww, celeb ? "left must be 4 name strings" : "left must be 4 athlete strings");
       if (!list(q.right, 4) || !q.right.every(str)) E(ww, "right must be 4 record strings");
       if (!list(q.pairs, 4) || !q.pairs.every(p => Number.isInteger(p) && p >= 0 && p < 4)) E(ww, "pairs must be 4 ints 0–3 (right index per left)");
       else if (new Set(q.pairs).size !== 4) E(ww, "pairs must be a permutation of 0–3");

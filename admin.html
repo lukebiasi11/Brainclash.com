@@ -7,7 +7,7 @@
 <title>Brain Clash — Admin preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=nm25">
+<link rel="stylesheet" href="style.css?v=fmt25d">
 <style>
 :root{--o:#E8582A;--y:#F2C230;--c:#FFF6E8;--n:#1F2C7A}
 *{box-sizing:border-box}
@@ -73,11 +73,11 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="content.js?v=nov22w"></script>
 <script src="assets/icons.js?v=nov22w"></script>
 <script src="answers.js?v=nov17a"></script>
-<script src="i18n.js?v=nm25"></script>
+<script src="i18n.js?v=fmt25d"></script>
 <script src="name-filter.js?v=lb13"></script>
 <script src="leaderboard-config.js?v=lb1"></script>
-<script src="app.js?v=lb8g2"></script>
-<script src="feedback.js?v=nov18e"></script>
+<script src="app.js?v=fmt25e"></script>
+<script src="feedback.js?v=fmt25e"></script>
 <script src="admin-board.js?v=lb3"></script>
 <script>
 (() => {
@@ -146,15 +146,17 @@ function worldParts(w) {
       });
     }
   }
-  if (w.mc == null && w.pair == null) items.push(UN_LI);
+  const pinsOk = Array.isArray(w.pins) && w.pins.length === 2 && w.pins.every(p => p && typeof p.name === "string" && p.name.trim() && typeof p.lat === "number" && typeof p.lon === "number");
+  if (w.mc == null && w.pair == null && !pinsOk) items.push(UN_LI);
   Object.keys(w).forEach(k => { if (k !== "pins" && k !== "mc" && k !== "pair") items.push(UN_LI); });
   return { items: items.join("") || UN_LI, answers: answers.join("<br>") || un() };
 }
 function historyParts(set) {
   const items = [], answers = [];
   const hist = set && set.history;
-  ["r1", "r2"].forEach(r => {
-    const rd = hist && hist[r];
+  const rounds = window.DGScore && DGScore.historyPlan ? DGScore.historyPlan(hist) : ["r1", "r2"].map(r => hist && hist[r]).filter(Boolean);
+  if (!rounds.length) { items.push(UN_LI); answers.push(un()); }
+  rounds.forEach(rd => {
     try {
       if (!rd || typeof rd !== "object" || !Array.isArray(rd.events) || !textOf(rd.theme) || !rd.events.length) { items.push(UN_LI); answers.push(un()); return; }
       if (!rd.events.every(e => Array.isArray(e) && e.length >= 3 && (typeof e[1] === "string" || textOf(e[1])) && Number.isFinite(e[2]))) { items.push(UN_LI); answers.push(un()); return; }

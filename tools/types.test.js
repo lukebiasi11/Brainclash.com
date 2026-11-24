@@ -111,7 +111,15 @@ t("world keeps exactly 2 pins", has(V.checkWorldDay("w", { pins: pins.slice(0, 1
 t("world mc third slot", V.checkWorldDay("w", { pins, mc: mcq }).length, 0);
 t("world pair third slot", V.checkWorldDay("w", { pins, pair: area }).length, 0);
 t("world pair is not both", has(V.checkWorldDay("w", { pins, mc: mcq, pair: area }), "not both"), true);
-t("world needs a third question", has(V.checkWorldDay("w", { pins }), "third question"), true);
+t("world 2 pins and no third question", V.checkWorldDay("w", { pins }).length, 0);
+t("world 3 pins still refused", has(V.checkWorldDay("w", { pins: pins.concat([pins[0]]) }), "exactly 2 pins"), true);
+t("single 5-event timeline", V.checkHistoryDay("h", { theme: "Debuts", events: Array.from({ length: 5 }, (_, i) => ["⭐", "Event " + (i + 1), 1900 + i]) }).length, 0);
+t("single 4-event timeline refused", has(V.checkHistoryDay("h", { theme: "Debuts", events: Array.from({ length: 4 }, (_, i) => ["⭐", "Event " + (i + 1), 1900 + i]) }), "exactly 5"), true);
+t("one nested 5-event round", V.checkHistoryDay("h", { r1: tl(5) }).length, 0);
+t("r1 of 4 without r2 refused", V.checkHistoryDay("h", { r1: tl(4) }).length > 0, true);
+t("celebrity actor text", V.checkSportsQuestion("s", { type: "text", kind: "actor", q: { en: "Name the actor.", es: "Nombra al actor." }, clues: [{ en: "A long billing name", es: "Un nombre largo en los créditos" }], answers: ["alejandro marin castillo"] }).length, 0);
+t("celebrity needs no team or sport", V.checkSportsQuestion("s", { type: "text", kind: "singer", q: "Who sang it?", answers: ["ana luz rivera"] }).length, 0);
+t("blank team is refused", has(V.checkSportsQuestion("s", { type: "text", kind: "artist", q: "Who?", answers: ["ana"], team: "" }), "team must be text"), true);
 t("world reveal is refused", has(V.checkWorldDay("w", { pins, reveal: who }), "Reveal and slider"), true);
 t("world slider is refused", has(V.checkWorldDay("w", { pins, slider: { type: "slider" } }), "Reveal and slider"), true);
 t("world pair stays off the pins", has(V.checkWorldDay("w", { pins, type: "pair", prompt: area.prompt, rounds: area.rounds }), "does not replace the two pins"), true);

@@ -34,14 +34,21 @@ function items(set) {
   if (!w || typeof w !== "object" || !Array.isArray(w.pins)) odd("World Rush", 1);
   else w.pins.forEach((p, i) => p && typeof p.name === "string" ? add("World Rush", i + 1, "Pin: " + p.name, p.name) : odd("World Rush", i + 1));
   const base = w && Array.isArray(w.pins) ? w.pins.length : 0;
-  if (w && w.mc && textOf(w.mc.q)) add("World Rush", base + 1, textOf(w.mc.q), ansOf(w.mc));
-  else if (w && w.pair && (textOf(w.pair.prompt) || pairAns(w.pair))) add("World Rush", base + 1, textOf(w.pair.prompt) || "Pair", pairAns(w.pair));
-  else odd("World Rush", base + 1);
-  ["r1", "r2"].forEach((r, i) => {
-    const rd = set && set.history && set.history[r];
+  if (w && w.mc) {
+    if (textOf(w.mc.q)) add("World Rush", base + 1, textOf(w.mc.q), ansOf(w.mc));
+    else odd("World Rush", base + 1);
+  } else if (w && w.pair) {
+    if (textOf(w.pair.prompt) || pairAns(w.pair)) add("World Rush", base + 1, textOf(w.pair.prompt) || "Pair", pairAns(w.pair));
+    else odd("World Rush", base + 1);
+  } else if (!base) odd("World Rush", 1);
+  const histRounds = window.DGScore && DGScore.historyPlan ? DGScore.historyPlan(set && set.history) : ["r1", "r2"].map(r => set && set.history && set.history[r]).filter(Boolean);
+  if (!histRounds.length) odd("Time Warp", 1);
+  histRounds.forEach((rd, i) => {
     try {
-      if (!rd || !Array.isArray(rd.events) || !rd.theme) return odd("Time Warp", i + 1);
-      add("Time Warp", i + 1, "Order: " + rd.theme + " — " + rd.events.map(e => e[1]).join(" · "), rd.events.slice().sort((a, b) => a[2] - b[2]).map(e => e[1] + " (" + e[2] + ")").join(" → "));
+      const theme = textOf(rd && rd.theme);
+      if (!rd || !Array.isArray(rd.events) || !theme) return odd("Time Warp", i + 1);
+      const cap = e => textOf(e && e[1]) || "";
+      add("Time Warp", i + 1, "Order: " + theme + " — " + rd.events.map(cap).join(" · "), rd.events.slice().sort((a, b) => a[2] - b[2]).map(e => cap(e) + " (" + e[2] + ")").join(" → "));
     } catch (e) { odd("Time Warp", i + 1); }
   });
   if (!set || !Array.isArray(set.sports)) odd("MVP", 1);
