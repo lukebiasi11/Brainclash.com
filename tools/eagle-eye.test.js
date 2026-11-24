@@ -1,6 +1,6 @@
 /* Cup logic: the ball's final slot matches an independent replay, for many seeds and all tiers.
    Points are the Think Fast total (400 + 600) split 15/25/35/10/15.
-   On 2026-11-26 those rounds are Think Fast's two questions: Cup Shuffle 150, Track the Dot 250. */
+   On 2026-11-26 those rounds are Think Fast's two questions: Cup Shuffle 375, Track the Dot 250 + 375. */
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -14,10 +14,10 @@ const vals = app.match(/function thinkFast\(\) \{\n  if \(window\.EagleEye && Ea
 t(!!vals, "thinkFast still declares its two point values");
 t(vals && EE.THINK_PARTS[0] === +vals[1] && EE.THINK_PARTS[1] === +vals[2], "the point parts stay the Think Fast pair (" + (vals && vals.slice(1).join("+")) + ")");
 const max = EE.THINK_PARTS[0] + EE.THINK_PARTS[1];
-t(EE.THINK_MAX === max && EE.roundPoints().reduce((a, b) => a + b, 0) === max, "round points sum to the Think Fast total");
-t(EE.WEIGHTS.join(",") === "0.15,0.25,0.35,0.1,0.15" && EE.roundPoints().join(",") === "150,250,350,100,150", "15/25/35/10/15 of 1000");
-t(EE.scoreTrack(0, 1) === 0 && EE.scoreTrack(1, 1) === 0 && EE.scoreTrack(2, 1) === 150, "track round 2 is all or nothing");
-t(EE.scoreTrack(1, 0) === 100 && EE.scoreTrack(0, 0) === 0, "track round 1 is all or nothing");
+t(EE.THINK_MAX === max, "the weight table still starts from the Think Fast total");
+t(EE.WEIGHTS.join(",") === "0.15,0.25,0.35,0.1,0.15" && EE.TIERS[2].pts === 250 && EE.TIERS[3].pts === 350, "banked tiers keep the 1,000-point weights");
+t(EE.scoreTrack(0, 1) === 0 && EE.scoreTrack(1, 1) === 0 && EE.scoreTrack(2, 1) === 375, "track round 2 is all or nothing");
+t(EE.scoreTrack(1, 0) === 250 && EE.scoreTrack(0, 0) === 0, "track round 1 is all or nothing");
 const dbl = { picks: [], lastAt: null };
 t(EE.trackPick(dbl, 6, 1000) && dbl.picks.join(",") === "6", "the first tap counts");
 t(!EE.trackPick(dbl, 2, 1200) && dbl.picks.join(",") === "6", "a second tap inside 300 ms does not pick another dot");
@@ -25,7 +25,8 @@ t(!EE.trackPick(dbl, 6, 1400) && dbl.picks.length === 1, "the same dot is not pi
 t(EE.trackPick(dbl, 2, 1400) && dbl.picks.join(",") === "6,2", "the second dot counts after the lock");
 ["2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-27", "2026-12-01"].forEach(d => t(!EE.on(d), d + " stays Think Fast"));
 t(EE.on("2026-11-26") && EE.DAY === "2026-11-26", "only 2026-11-26 swaps in Cup Shuffle and Track the Dot");
-t(EE.TIERS[1].pts === 150 && EE.TRACK[0].pts + EE.TRACK[1].pts === 250, "the two scheduled questions are 150 and 250");
+t(EE.dayPlan("2026-11-26").cups === 375 && EE.dayPlan("2026-11-26").track.join(",") === "250,375" && EE.dayPlan("2026-11-26").cap === 1000 && EE.dayPlan("2026-11-26").dayTotal == null, "11/26 is 375 + 250 + 375 and the day total stays 5,000");
+t(EE.TIERS[1].pts === 375 && EE.TRACK[0].pts + EE.TRACK[1].pts === 625, "the two scheduled questions are 375 and 625");
 t(EE.TIERS[2].pts === 250 && EE.TIERS[3].pts === 350 && !/cupRound\(env, 2/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")) && !/cupRound\(env, 3/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")), "tiers 2 and 3 stay banked");
 t(EE.onEpoch(Math.floor(Date.parse("2026-11-26T00:00:00Z") / 864e5)) === true && EE.onEpoch(Math.floor(Date.parse("2026-11-25T00:00:00Z") / 864e5)) === false, "epoch matches the admin date key");
 const adminDate = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -35,6 +36,8 @@ const i18n = require("../i18n.js");
 const i18nSrc = fs.readFileSync(path.join(root, "i18n.js"), "utf8");
 t(!/Eagle Eye|Ojo de Águila/.test(i18nSrc), "i18n has no Eagle Eye strings");
 t(i18n.ES["Puzzle 1, {0}, is worth {1} points. {2} {3} Puzzle 2, {4}, is worth {5} points. {6} {7}"] === "Acertijo 1, {0}, vale {1} puntos. {2} {3} Acertijo 2, {4}, vale {5} puntos. {6} {7}", "Spanish Think Fast how-to");
+t(i18n.ES["Round {0} · Locked on! +{1}"] === "Ronda {0} · ¡Lo seguiste! +{1}" && i18n.ES["Cup {0} of {1}"] === "Vaso {0} de {1}" && i18n.ES["Dot {0} of {1}"] === "Punto {0} de {1}", "Spanish round and target labels");
+t(/Solo el jueves 26 de noviembre de 2026/.test(fs.readFileSync(path.join(root, "admin.html"), "utf8")), "Spanish admin copy for November 26");
 EE.CUPS_HOW.forEach((en, i) => t(i18n.ES[en] === EE.CUPS_HOW_ES[i], "Spanish cup line " + (i + 1)));
 EE.DOT_HOW.forEach((en, i) => t(i18n.ES[en] === EE.DOT_HOW_ES[i], "Spanish dot line " + (i + 1)));
 t(!/Five rounds|Cinco rondas|Follow the ball|glowing|Eagle Eye/.test(EE.CUPS_HOW.join(" ") + EE.DOT_HOW.join(" ")), "directions stay short and say orange");
@@ -185,7 +188,7 @@ function renderThinkFast(lang, day) {
   load("i18n.js");
   load("app.js");
   sandbox.DGTest.at(day, 4);
-  return { text: textOf(appEl), cap: sandbox.DGTest.cap(day, 4), other: sandbox.DGTest.cap(day, 0) };
+  return { text: textOf(appEl), cap: sandbox.DGTest.cap(day, 4), other: sandbox.DGTest.cap(day, 0), grade: (score, index) => sandbox.DGTest.grade(score, day, index) };
 }
 ["en", "es"].forEach(lang => {
   let view = null;
@@ -194,11 +197,14 @@ function renderThinkFast(lang, day) {
   const text = view.text;
   t(!/Eagle Eye|Ojo de Águila/.test(text), lang + " 11/26 renders no Eagle Eye");
   t(lang === "es" ? /Rompecocos/.test(text) : /Brain Teaser/.test(text), lang + " 11/26 uses the Think Fast name");
-  t(/150/.test(text) && /250/.test(text), lang + " 11/26 shows 150 and 250 (" + text.slice(0, 180) + ")");
+  t(/375/.test(text) && /625/.test(text), lang + " 11/26 shows 375 and 625 (" + text.slice(0, 220) + ")");
   t(lang === "es" ? /Vasos/.test(text) && /Sigue el punto/.test(text) : /Cup Shuffle/.test(text) && /Track the Dot/.test(text), lang + " 11/26 names both questions");
-  t(view.cap === 400 && view.other === 1000, lang + " 11/26 Think Fast max is 400 and the other categories stay 1,000");
-  t(lang === "es" ? /Vale hasta\s*400 puntos/.test(text) : /Worth up to\s*400 points/.test(text), lang + " start card says up to 400");
-  t(/\/400 pts/.test(text) && !/1,000/.test(text), lang + " header is /400 and the card does not say 1,000");
+  t(view.cap === 1000 && view.other === 1000, lang + " 11/26 Think Fast max is 1,000");
+  t(lang === "es" ? /Vale hasta\s*1,000 puntos/.test(text) : /Worth up to\s*1,000 points/.test(text), lang + " start card says up to 1,000");
+  t(/\/1,000 pts/.test(text), lang + " header is /1,000");
+  const perfect = view.grade(1000, 4), zero = view.grade(0, 4);
+  t(perfect.quip === "top" && perfect.block === "🟩" && perfect.fx === "confetti", lang + " 1,000/1,000 is the top tier and confetti");
+  t(zero.quip === "zero" && zero.block === "🟥" && zero.fx === "rain", lang + " 0/1,000 is the bottom tier");
 });
 {
   const plain = renderThinkFast("en", "2026-11-25");

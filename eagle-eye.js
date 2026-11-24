@@ -1,6 +1,6 @@
 /* Cup Shuffle and Track the Dot, played as Think Fast's two questions on 2026-11-26 only.
    11/23 through 11/25, and every date after 11/26, stay the regular Think Fast puzzles.
-   That Thursday is question 1 = Cup Shuffle tier 1 (150), then question 2 = Track the Dot (250).
+   That Thursday is question 1 = Cup Shuffle (375), then question 2 = Track the Dot (250 + 375).
    Cup tiers 2 and 3 stay in this file and are not scheduled.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. */
@@ -24,6 +24,24 @@
     { dots: 5, targets: 1, speed: 115, secs: 4.5, pts: POINTS[3] },
     { dots: 7, targets: 2, speed: 150, secs: 5.5, pts: POINTS[4] }
   ];
+  // The only place November 26's points live.
+  // cups + track is the Brain Teaser cap (375 + 250 + 375 = 1,000). The day total stays 5,000
+  // while dayTotal is null. Set dayTotal to "sum" to show the sum of the five category caps instead.
+  const DAY_SCORE = {
+    "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null }
+  };
+  function dayPlan(key) {
+    const spec = DAY_SCORE[key];
+    if (!spec) return null;
+    const scale = spec.scale == null ? 1 : spec.scale;
+    const cups = Math.round(spec.cups * scale);
+    const track = spec.track.map(n => Math.round(n * scale));
+    return { cups: cups, track: track, cap: cups + track.reduce((a, b) => a + b, 0), scale: scale, dayTotal: spec.dayTotal || null };
+  }
+  const played = dayPlan(DAY);
+  TIERS[1].pts = played.cups;
+  TRACK[0].pts = played.track[0];
+  TRACK[1].pts = played.track[1];
 
   function xmur3(str) {
     let h = 1779033703 ^ str.length;
@@ -46,7 +64,15 @@
   }
   function on(key) { return key === DAY; }
   function onEpoch(day) { return on(new Date(day * 864e5).toISOString().slice(0, 10)); }
-  function roundPoints() { return POINTS.slice(); }
+  function roundPoints() {
+    const pts = POINTS.slice();
+    const plan = dayPlan(DAY);
+    if (!plan) return pts;
+    pts[0] = plan.cups;
+    pts[3] = plan.track[0];
+    pts[4] = plan.track[1];
+    return pts;
+  }
 
   function applyMove(ball, m) {
     if (m.t === "swap") { if (ball === m.a) return m.b; if (ball === m.b) return m.a; return ball; }
@@ -215,7 +241,7 @@
     const lines = kind === "cups" ? CUPS_HOW : DOT_HOW;
     const slot = kind === "cups" ? 1 : 2;
     const name = kind === "cups" ? "Cup Shuffle" : "Track the Dot";
-    const max = kind === "cups" ? TIERS[1].pts : POINTS[3] + POINTS[4];
+    const max = kind === "cups" ? TIERS[1].pts : TRACK[0].pts + TRACK[1].pts;
     const body = openScreen(env, slot, name, max);
     const p = node("p", "prompt");
     p.textContent = lines.map(line => env.tr(line)).join(" ");
@@ -401,13 +427,27 @@
     setPhase("cups-" + idx + "-pick");
     st.textContent = env.tr("Tap the cup with the ball");
     picked = await new Promise(res => {
+      let done = false;
+      const keys = [];
+      const finish = cup => { if (done) return; done = true; off(); keys.forEach(fn => fn()); res(cup); };
       const off = bindTap(stage, ev => {
         const rc = stage.getBoundingClientRect();
         const x = ev.clientX - rc.left;
         let best = cups[0];
         cups.forEach(c => { if (Math.abs(c.x - x) < Math.abs(best.x - x)) best = c; });
-        off();
-        res(best);
+        finish(best);
+      });
+      cups.forEach(c => {
+        c.el.setAttribute("role", "button");
+        c.el.tabIndex = 0;
+        c.el.setAttribute("aria-label", env.tr("Cup {0} of {1}", String(c.slot + 1), String(R.n)));
+        const onKey = ev => {
+          if (ev.key !== "Enter" && ev.key !== " ") return;
+          ev.preventDefault();
+          finish(c);
+        };
+        c.el.addEventListener("keydown", onKey);
+        keys.push(() => c.el.removeEventListener("keydown", onKey));
       });
     });
     const correct = picked === ballCup;
@@ -450,7 +490,7 @@
     const dbg = { targets: targets.slice(), picks: [], correct: null, final: null };
     root.PERC.debug.track.push(dbg);
     setPhase("track-" + idx + "-show");
-    const body = openScreen(env, 2, "Track the Dot", POINTS[3] + POINTS[4]);
+    const body = openScreen(env, 2, "Track the Dot", TRACK[0].pts + TRACK[1].pts);
     const NS = "http://www.w3.org/2000/svg";
     const arena = document.createElementNS(NS, "svg");
     arena.setAttribute("class", "ee-arena");
@@ -532,7 +572,38 @@
     setPhase("track-" + idx + "-pick");
     st.textContent = R.targets > 1 ? env.tr("Tap both dots") : env.tr("Tap the dot");
     const pickState = { picks: [], lastAt: null };
+    gs.forEach((g, i) => {
+      g.setAttribute("role", "button");
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("aria-label", env.tr("Dot {0} of {1}", String(i + 1), String(R.dots)));
+    });
     await new Promise(res => {
+      let done = false;
+      const finish = () => { if (done) return; done = true; off(); gs.forEach(g => g.removeEventListener("keydown", onKey)); res(); };
+      const choose = (best, now, x, y) => {
+        if (done || best < 0) return;
+        if (!trackPick(pickState, best, now)) return;
+        const tp = document.createElementNS(NS, "circle");
+        tp.setAttribute("class", "ee-tap");
+        tp.setAttribute("cx", String(x));
+        tp.setAttribute("cy", String(y));
+        tp.setAttribute("r", "6");
+        arena.append(tp);
+        setTimeout(() => tp.remove(), 600);
+        gs[best].querySelector(".ee-dot").setAttribute("fill", "#9fb3d9");
+        if (pickState.picks.length >= R.targets) finish();
+        else sub.textContent = env.tr("One more");
+      };
+      const onKey = ev => {
+        if (ev.key !== "Enter" && ev.key !== " ") return;
+        ev.preventDefault();
+        const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+        const i = Number(ev.currentTarget.getAttribute("data-dot"));
+        const d = dots[i];
+        if (!d) return;
+        choose(i, now, d.x, d.y);
+      };
+      gs.forEach(g => g.addEventListener("keydown", onKey));
       const off = bindTap(arena, ev => {
         const now = typeof performance !== "undefined" ? performance.now() : Date.now();
         if (pickState.lastAt != null && now - pickState.lastAt < 300) return;
@@ -547,17 +618,7 @@
           if (dd < bd) { bd = dd; best = i; }
         });
         if (best < 0 || bd > RAD * 2.6) return;
-        if (!trackPick(pickState, best, now)) return;
-        const tp = document.createElementNS(NS, "circle");
-        tp.setAttribute("class", "ee-tap");
-        tp.setAttribute("cx", String(p.x));
-        tp.setAttribute("cy", String(p.y));
-        tp.setAttribute("r", "6");
-        arena.append(tp);
-        setTimeout(() => tp.remove(), 600);
-        gs[best].querySelector(".ee-dot").setAttribute("fill", "#9fb3d9");
-        if (pickState.picks.length >= R.targets) { off(); res(); }
-        else sub.textContent = env.tr("One more");
+        choose(best, now, p.x, p.y);
       });
     });
     const picks = pickState.picks;
@@ -579,7 +640,10 @@
     });
     const pts = scoreTrack(hits, idx);
     setPhase("track-" + idx + "-reveal");
-    st.textContent = hits === R.targets ? env.tr("Locked on! +{0}", String(pts)) : env.tr("Lost it · +0");
+    const roundNo = String(idx + 1);
+    st.textContent = hits === R.targets
+      ? env.tr("Round {0} · Locked on! +{1}", roundNo, String(pts))
+      : env.tr("Round {0} · Lost it · +0", roundNo);
     st.classList.toggle("ok", hits === R.targets);
     st.classList.toggle("no", hits !== R.targets);
     sub.textContent = R.targets > 1 ? env.tr("The orange dots were the ones to follow.") : env.tr("The orange dot was the one to follow.");
@@ -605,10 +669,12 @@
       const res = await trackRound(env, i);
       dots += res.pts;
       total += res.pts;
+      if (env.onRound) env.onRound(total);
       if (i === 0) await waitBtn(env, res.body, env.tr("Next round →"));
       else {
         log.push(dots);
-        if (env.onRound) env.onRound(total);
+        const subLine = res.body.querySelector(".ee-sub");
+        if (subLine) subLine.textContent = env.tr("Track the Dot · +{0}", String(dots));
         if (env.onDone) env.onDone(total, log.join("/"), res.body);
       }
     }
@@ -623,6 +689,7 @@
     on: on, onEpoch: onEpoch, roundPoints: roundPoints,
     rngFor: rngFor, applyMove: applyMove, makeMoves: makeMoves,
     planCup: planCup, replayBall: replayBall, replayCups: replayCups, scoreTrack: scoreTrack, trackPick: trackPick,
+    dayPlan: dayPlan, DAY_SCORE: DAY_SCORE,
     run: run
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
