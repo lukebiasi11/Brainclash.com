@@ -7,7 +7,7 @@
 <title>Brain Clash — Admin preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=lb8n22">
+<link rel="stylesheet" href="style.css?v=tf26b">
 <style>
 :root{--o:#E8582A;--y:#F2C230;--c:#FFF6E8;--n:#1F2C7A}
 *{box-sizing:border-box}
@@ -73,11 +73,12 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="content.js?v=nov22w"></script>
 <script src="assets/icons.js?v=nov22w"></script>
 <script src="answers.js?v=nov17a"></script>
-<script src="i18n.js?v=lb12"></script>
+<script src="i18n.js?v=tf26b"></script>
 <script src="name-filter.js?v=lb13"></script>
 <script src="leaderboard-config.js?v=lb1"></script>
-<script src="app.js?v=lb8g2"></script>
-<script src="feedback.js?v=nov18e"></script>
+<script src="eagle-eye.js?v=tf26b"></script>
+<script src="app.js?v=tf26b"></script>
+<script src="feedback.js?v=tf26b"></script>
 <script src="admin-board.js?v=lb3"></script>
 <script>
 (() => {
@@ -197,6 +198,20 @@ function listParts(list, tagOf) {
 const SPORT_TAG = { mc: "multiple choice", order: "order", match: "match", bracket: "bracket", guess: "estimate", pair: "pair", reveal: "reveal", slider: "slider" };
 function sportParts(list) { return listParts(list, q => SPORT_TAG[q.type] || "type answer"); }
 function thinkParts(list) { return listParts(list, q => q.kind || q.type || "text"); }
+function eagleParts() {
+  const es = /[?&]lang=es\b/.test(location.search);
+  const EE = window.EagleEye;
+  const pts = EE.roundPoints();
+  const cups = (es ? EE.CUPS_HOW_ES : EE.CUPS_HOW).join(" ");
+  const dots = (es ? EE.DOT_HOW_ES : EE.DOT_HOW).join(" ");
+  const cupName = es ? "Vasos" : "Cup Shuffle";
+  const dotName = es ? "Sigue el punto" : "Track the Dot";
+  const items = `<li><span class="tag">cups</span>${esc(cupName)}: ${esc(cups)} · ${pts[0]} pts</li>`
+    + `<li><span class="tag">dots</span>${esc(dotName)}: ${esc(dots)} · ${pts[3] + pts[4]} pts</li>`
+    + `<li><span class="tag">banked</span>Cup tiers 2 and 3 are not scheduled.</li>`;
+  const answers = "Thursday, Nov 26, 2026 only. Think Fast. Cup Shuffle tier 1 (" + pts[0] + " pts) and Track the Dot (" + (pts[3] + pts[4]) + " pts). Track round 2 is all or nothing. Tiers 2 and 3 stay banked.";
+  return { items, answers: esc(answers) };
+}
 // Which raw list index each category uses that day (to flag repeats inside the window).
 function idx(set) {
   const f = (list, v) => Array.isArray(list) ? list.indexOf(v) : -1;
@@ -204,7 +219,8 @@ function idx(set) {
   const wkey = { flip: ["wordFlip", set && set.wordFlip], bridge: ["wordBridge", set && set.wordBridge], conn: ["connections", set && set.connections], odd: ["oddOneOut", set && set.oddOneOut], anag: ["anagram", set && set.anagram] }[wg];
   let word = wg + ":?";
   try { if (wkey) word = wg + ":" + (wkey[0] === "anagram" ? (window.ANAGRAM_SETS || []).indexOf(wkey[1]) : f(C[wkey[0]], wkey[1])); } catch (e) { word = wg + ":?"; }
-  return { world: f(C && C.worldRush, set && set.worldRush), history: f(C && C.history, set && set.history), sports: f(C && C.sports, set && set.sports), think: f(C && C.thinkFast, set && set.thinkFast), word };
+  const ee = window.EagleEye && set && typeof set.day === "number" && EagleEye.onEpoch(set.day);
+  return { world: f(C && C.worldRush, set && set.worldRush), history: f(C && C.history, set && set.history), sports: f(C && C.sports, set && set.sports), think: ee ? ("ee-" + set.day) : f(C && C.thinkFast, set && set.thinkFast), word };
 }
 function wordHtml(set) {
   try {
@@ -280,7 +296,9 @@ function card(k, dup, isToday) {
   const s = B.getDailySet(k), ok = !!appr()[k], w = wordHtml(s), n = B.gameNumber(B.dayOfKey(k));
   const d = document.createElement("section"); d.className = "day" + (ok ? " ok" : "") + (isToday ? " today" : ""); d.dataset.key = k;
   const dupT = c => dup && dup[c] ? ` <span class="dup">repeats ${esc(dup[c])}</span>` : "";
-  const world = worldParts(s && s.worldRush), hist = historyParts(s), sp = sportParts(s && s.sports), tf = thinkParts(s && s.thinkFast);
+  const ee = window.EagleEye && EagleEye.on(k);
+  const world = worldParts(s && s.worldRush), hist = historyParts(s), sp = sportParts(s && s.sports), tf = ee ? eagleParts() : thinkParts(s && s.thinkFast);
+  const tfName = "Brain Teaser";
   d.innerHTML = `<div class="dh"><h2>${esc(nice(k))}<small>${isToday ? "TODAY · " : ""}#${n}</small></h2>
    <div class="acts"><label class="ap"><input type="checkbox" ${ok ? "checked" : ""}> Approved</label>
    <a class="btn" href="index.html?preview=${esc(k)}" target="_blank" rel="noopener">▶ Play this day</a></div></div>
@@ -289,13 +307,13 @@ function card(k, dup, isToday) {
    <div class="cat"><h3>📜 Time Warp${dupT("history")}</h3><ul>${hist.items}</ul></div>
    <div class="cat"><h3>🏆 MVP (sports)${dupT("sports")}</h3><ul>${sp.items}</ul></div>
    <div class="cat"><h3>📝 Word Nerd: ${esc(w.title)}${dupT("word")}</h3><ul>${w.items}</ul></div>
-   <div class="cat"><h3>🧠 Brain Teaser${dupT("think")}</h3><ul>${tf.items}</ul></div>
+   <div class="cat" data-section="think"><h3>🧠 ${esc(tfName)}${dupT("think")}</h3><ul>${tf.items}</ul></div>
    <details><summary>Show answers</summary>
     <p><b>World:</b><br>${world.answers}</p>
     <p><b>History order:</b><br>${hist.answers}</p>
     <p><b>Sports:</b><br>${sp.answers}</p>
     <p><b>${esc(w.title)}:</b><br><span class="ans">${w.ans}</span></p>
-    <p><b>Brain Teaser:</b><br>${tf.answers}</p>
+    <p><b>${esc(tfName)}:</b><br>${tf.answers}</p>
    </details></div>`;
   const boxIn = d.querySelector("input");
   if (boxIn) boxIn.onchange = e => { setAppr(k, e.target.checked); d.classList.toggle("ok", e.target.checked); };

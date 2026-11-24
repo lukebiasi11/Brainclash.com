@@ -69,6 +69,7 @@ load("content.js");
 load("anagrams.js");
 load("assets/icons.js");
 load("answers.js");
+load("eagle-eye.js");
 sandbox.BC_NO_BOOT = true;
 load("app.js");
 load("feedback.js");
