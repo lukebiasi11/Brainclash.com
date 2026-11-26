@@ -23,12 +23,15 @@
     ["history", "Time Warp"],
     ["sports", "MVP"],
     ["word", "Word Nerd"],
-    ["think", "Brain Teaser"]
+    ["think", "Think Fast"]
   ];
-  // Fifth tab label. The slot id stays think. November 26 is Think Fast, same as every other day.
-  // This does not call EagleEye.on.
-  function fifthName() {
-    return "Brain Teaser";
+  // Fifth tab label. The slot id stays think. Regular days are Think Fast;
+  // 2026-11-26 (and any later day scheduled the same way) uses Brain Teaser.
+  function fifthName(key) {
+    const day = key || todayKey();
+    if (root.EagleEye && typeof root.EagleEye.on === "function" && root.EagleEye.on(day)) return "Brain Teaser";
+    if (day === "2026-11-26") return "Brain Teaser";
+    return "Think Fast";
   }
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
   let clientP = null;
@@ -567,7 +570,7 @@
     let current = "overall";
     SECTIONS.forEach(pair => {
       const id = pair[0];
-      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(pair[1]) });
+      const button = el("button", { type: "button", class: "board-tab" + (id === current ? " on" : ""), role: "tab", "aria-pressed": id === current ? "true" : "false", "data-board-section": id, text: tr(id === "think" ? fifthName() : pair[1]) });
       button.addEventListener("click", () => {
         current = id;
         Array.prototype.forEach.call(tabs.querySelectorAll(".board-tab"), tab => {
@@ -582,7 +585,7 @@
     const refresh = () => {
       if (!host.isConnected) return;
       const think = host.querySelector("[data-board-section=think]");
-      if (think) think.textContent = tr("Brain Teaser");
+      if (think) think.textContent = tr(fifthName());
       load(host, host.getAttribute("data-board-current") || "overall");
     };
     if (root.document && root.document.addEventListener) {

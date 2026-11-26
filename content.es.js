@@ -645,7 +645,19 @@ window.CONTENT_ES = {
         "name": "Mont-Saint-Michel, Francia"
       }
     ]
+  },
+  // 2026-11-26 approved.
+  {
+    "pins": [
+      {
+        "name": "Monte Rushmore, Dakota del Sur, EE. UU."
+      },
+      {
+        "name": "Acantilados de Moher, Irlanda"
+      }
+    ]
   }
+
 
   ],
  "history": [
@@ -2032,7 +2044,40 @@ window.CONTENT_ES = {
       ]
     ],
     "explain": "High School Musical se estrenó el 20 de enero de 2006; \"Waka Waka\" salió el 7 de mayo de 2010 para el Mundial de 2010; el Harlem Shake se hizo viral en febrero de 2013; \"Despacito\" salió el 13 de enero de 2017; El juego del calamar se estrenó el 17 de septiembre de 2021."
+  },
+  // 2026-11-26 approved.
+  {
+    "theme": "Juegos, películas y un megaéxito",
+    "events": [
+      [
+        null,
+        "Sale el primer videojuego de Guitar Hero",
+        null
+      ],
+      [
+        null,
+        "Llega a los cines Kung Fu Panda",
+        null
+      ],
+      [
+        null,
+        "Se lanza Candy Crush Saga",
+        null
+      ],
+      [
+        null,
+        "Llega a los cines Mad Max: Furia en el camino",
+        null
+      ],
+      [
+        null,
+        "\"Old Town Road\" rompe el récord de más semanas en el No. 1 en las listas de EE. UU.",
+        null
+      ]
+    ],
+    "explain": "Guitar Hero salió en noviembre de 2005; Kung Fu Panda se estrenó en junio de 2008; Candy Crush Saga se lanzó el 12 de abril de 2012; Mad Max: Furia en el camino se estrenó en Estados Unidos el 15 de mayo de 2015; \"Old Town Road\" pasó un entonces récord de 19 semanas en el No. 1 del Billboard Hot 100 en 2019."
   }
+
 
   ],
  "sports": [
@@ -3171,7 +3216,34 @@ window.CONTENT_ES = {
       ],
       "explain": "Saúl \"Canelo\" Álvarez ha sido campeón mundial en cuatro categorías y en 2021 se convirtió en el primer campeón indiscutido de peso supermediano."
     }
+  ],
+  // 2026-11-26 approved.
+  [
+    {
+      "q": "¿Qué estrella de la NBA es famosa por su enorme barba y el apodo de \"The Beard\" (La Barba)?",
+      "options": [
+        "James Harden",
+        "Kyrie Irving",
+        "Chris Paul",
+        "Russell Westbrook"
+      ],
+      "explain": "James Harden empezó a dejarse su famosa barba en 2009, y se hizo tan conocida que \"The Beard\" se volvió su apodo."
+    },
+    {
+      "q": "¿Qué explosivo chef británico conduce Hell's Kitchen y es famoso por gritarles a los concursantes?",
+      "explain": "Gordon Ramsay ha conducido Hell's Kitchen y MasterChef, y es conocido por su carácter explosivo en la cocina."
+    },
+    {
+      "prompt": "Identifica a esta estrella de la lucha libre y del cine.",
+      "clues": [
+        "Se convirtió en una de las mayores estrellas de la WWE en los años 2000 y 2010.",
+        "Ha cumplido más deseos de Make-A-Wish que cualquier otra celebridad.",
+        "Su frase famosa es \"You can't see me!\" (¡No me puedes ver!) e interpretó a Peacemaker en televisión."
+      ],
+      "explain": "John Cena es una leyenda de la WWE, tiene el récord de deseos cumplidos para Make-A-Wish y protagonizó la serie Peacemaker."
+    }
   ]
+
 
   ],
  "thinkFast": [

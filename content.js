@@ -1220,7 +1220,23 @@ window.CONTENT = {
           "lon": -1.51
         }
       ]
+    },
+    // 2026-11-26 approved: 2 pins only (Mount Rushmore, Cliffs of Moher).
+    {
+      "pins": [
+        {
+          "name": "Mount Rushmore, South Dakota, USA",
+          "lat": 43.88,
+          "lon": -103.46
+        },
+        {
+          "name": "Cliffs of Moher, Ireland",
+          "lat": 52.97,
+          "lon": -9.43
+        }
+      ]
     }
+
 
   ],
   // ---------- 2. HISTORY TIMELINE ----------
@@ -2252,7 +2268,41 @@ window.CONTENT = {
         ]
       ],
       "explain": "High School Musical aired Jan 20, 2006; \"Waka Waka\" was released May 7, 2010 for the 2010 World Cup; the Harlem Shake went viral in Feb 2013; \"Despacito\" came out Jan 13, 2017; Squid Game premiered Sept 17, 2021."
+    },
+    // 2026-11-26 approved: one 5-event timeline.
+    {
+      "type": "timeline",
+      "theme": "Games, movies and a mega hit",
+      "events": [
+        [
+          "🎸",
+          "The first Guitar Hero video game comes out",
+          2005
+        ],
+        [
+          "🐼",
+          "Kung Fu Panda hits movie theaters",
+          2008
+        ],
+        [
+          "🍬",
+          "Candy Crush Saga is released",
+          2012
+        ],
+        [
+          "🚛",
+          "Mad Max: Fury Road hits theaters",
+          2015
+        ],
+        [
+          "🤠",
+          "\"Old Town Road\" breaks the US chart record for most weeks at No. 1",
+          2019
+        ]
+      ],
+      "explain": "Guitar Hero came out Nov 2005; Kung Fu Panda opened June 2008; Candy Crush Saga launched April 12, 2012; Mad Max: Fury Road opened in the United States on May 15, 2015; \"Old Town Road\" spent a then-record 19 weeks at No. 1 on the Billboard Hot 100 in 2019."
     }
+
 
   ],
   // ---------- 3. SPORTS IQ ----------
@@ -3682,7 +3732,68 @@ window.CONTENT = {
         ],
         "explain": "Saúl \"Canelo\" Álvarez has held world titles in four weight classes and in 2021 became the first undisputed super middleweight champion."
       }
+    ],
+    // 2026-11-26 approved: celebrity / sports MVP (Harden, Ramsay, Cena).
+    [
+      {
+        "type": "mc",
+        "q": "Which NBA star is famous for his huge beard and the nickname \"The Beard\"?",
+        "options": [
+          "James Harden",
+          "Kyrie Irving",
+          "Chris Paul",
+          "Russell Westbrook"
+        ],
+        "a": 0,
+        "explain": "James Harden started growing his trademark beard in 2009, and it became so famous that \"The Beard\" became his nickname."
+      },
+      {
+        "type": "text",
+        "q": "Which fiery British chef hosts Hell's Kitchen and is famous for yelling at contestants?",
+        "answers": [
+          "gordon ramsay",
+          "ramsay"
+        ],
+        "aliases": [
+          "gordon ramsey",
+          "ramsey",
+          "gordan ramsay",
+          "gordon ramsy",
+          "gordon ramzay",
+          "chef ramsay",
+          "chef gordon ramsay",
+          "gordon james ramsay"
+        ],
+        "wrong": [
+          "jamie oliver",
+          "wolfgang puck",
+          "bobby flay",
+          "guy fieri"
+        ],
+        "explain": "Gordon Ramsay has hosted Hell's Kitchen and MasterChef and is known for his fiery temper in the kitchen."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this wrestling and movie star.",
+        "clues": [
+          "He became one of WWE's biggest stars in the 2000s and 2010s.",
+          "He has granted more Make-A-Wish wishes than any other celebrity.",
+          "His catchphrase is \"You can't see me!\", and he played Peacemaker on TV."
+        ],
+        "answer": "John Cena",
+        "accept": [
+          "John Cena",
+          "Cena",
+          "John Felix Anthony Cena",
+          "Jon Cena",
+          "John Sena",
+          "John Cenna",
+          "Jhon Cena"
+        ],
+        "explain": "John Cena is a WWE legend, the record holder for Make-A-Wish wishes granted, and the star of the TV series Peacemaker."
+      }
     ]
+
 
   ],
   // ---------- 4. WORD CHALLENGE (one game per day, rotating) ----------
@@ -5136,7 +5247,7 @@ window.CONTENT = {
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
-// 2026-11-18 through 2026-11-25 pin appended sets.
+// 2026-11-18 through 2026-11-26 pin appended World, Time Warp, and MVP sets. 2026-11-26 Think Fast is scheduled separately.
 // 2026-11-20 through 2026-11-24 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
@@ -5156,5 +5267,6 @@ window.DAY_OVERRIDES["banked-1122b"] = {"thinkFast":62};
 window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":60,"history":60,"sports":59,"thinkFast":63,"wordFlip":12};
 window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"thinkFast":64,"wordBridge":13};
 window.DAY_OVERRIDES["2026-11-25"] = {"worldRush":61,"history":62,"sports":60};
+window.DAY_OVERRIDES["2026-11-26"] = {"worldRush":62,"history":63,"sports":61};
 window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
 window.DAY_OVERRIDES["banked-1124"] = {"history":57,"thinkFast":59};

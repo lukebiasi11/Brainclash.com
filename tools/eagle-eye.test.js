@@ -214,6 +214,21 @@ function renderThinkFast(lang, day) {
   t(plain.cap === 1000 && /1,000 points/.test(plain.text) && /\/1,000 pts/.test(plain.text), "11/25 still says up to 1,000");
 }
 
+const lbSrc = fs.readFileSync(path.join(root, "leaderboard.js"), "utf8");
+t(!/Eagle Eye|Ojo de Águila/.test(lbSrc), "leaderboard.js has no Eagle Eye label");
+const lbSandbox = { console, document: { body: {}, documentElement: { lang: "en" }, getElementById() { return null; }, querySelector() { return null; }, createElement() { return { style: {}, classList: { add() {}, remove() {} }, setAttribute() {}, append() {} }; }, addEventListener() {} }, location: { search: "", protocol: "file:", href: "file:///" }, localStorage: { getItem: () => null, setItem() {} }, addEventListener() {}, fetch() { return Promise.resolve({ json: async () => ({}) }); } };
+lbSandbox.window = lbSandbox;
+lbSandbox.BCDaily = { todayKey: () => "2026-11-25" };
+lbSandbox.EagleEye = { on: key => key === "2026-11-26" };
+vm.createContext(lbSandbox);
+vm.runInContext(lbSrc, lbSandbox, { filename: "leaderboard.js" });
+const lb = lbSandbox.DailyBoard;
+t(lb.fifthName("2026-11-25") === "Think Fast", "11/25 board tab is Think Fast");
+t(lb.fifthName("2026-11-22") === "Think Fast", "11/22 board tab is Think Fast");
+t(lb.fifthName("2026-11-26") === "Brain Teaser", "11/26 board tab is Brain Teaser");
+t(lb.fifthName("2026-11-27") === "Think Fast", "11/27 board tab is Think Fast");
+t(["2026-11-22","2026-11-23","2026-11-24","2026-11-25","2026-11-26","2026-11-27"].every(d => lb.fifthName(d) !== "Eagle Eye"), "no day uses an Eagle Eye board tab");
+
 console.log(pass + " passed, " + fail + " failed");
 if (rot2) console.log("tier2 rot/seed", (rot2 / 300).toFixed(2), "far/seed", (far2 / 300).toFixed(2), "tier3 rot/seed", (rot3 / 300).toFixed(2), "far/seed", (far3 / 300).toFixed(2));
 process.exit(fail ? 1 : 0);
