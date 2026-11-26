@@ -300,7 +300,7 @@ function liveTotal() {
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
   b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
-// November 26 Think Fast is Cup Shuffle 150 plus Track the Dot 250. Every other category stays 1,000.
+// November 26 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
 function catCapFor(key, index) {
   if (index === 4 && window.EagleEye && EagleEye.dayPlan) {
     const plan = EagleEye.dayPlan(key);

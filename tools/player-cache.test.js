@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=tf26e, i18n at v=tf26e, style.css at v=tf26e, feedback.js at v=tf26e, eagle-eye.js at v=tf26e, leaderboard.js at v=tf26e, and English and Spanish content at v=nov25a, and icons at v=nov22w.
-// tf26e is the rebased November 26 Brain Teaser build (scaled to 1,000) on top of nov25a. nov25a stays on content.js and content.es.js. icons.js stays on nov22w. name-filter stays lb13. demo-types stays fmt25e.
+// New HTML must request answers at v=nov17a, app.js at v=tf26f, i18n at v=tf26f, style.css at v=tf26f, feedback.js at v=tf26f, eagle-eye.js at v=tf26f, leaderboard.js at v=tf26f, and English and Spanish content at v=nov25a, and icons at v=nov22w.
+// tf26f is the rebased November 26 Brain Teaser build (scaled to 1,000) on top of nov25a. nov25a stays on content.js and content.es.js. icons.js stays on nov22w. name-filter stays lb13. demo-types stays fmt25e.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "tf26e";
+const APP_V = "tf26f";
 const CONTENT_V = "nov25a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -34,15 +34,15 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=tf26e"], ["i18n", "i18n.js?v=tf26e"], ["eagle", "eagle-eye.js?v=tf26e"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=tf26e"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
+[["style", "style.css?v=tf26f"], ["i18n", "i18n.js?v=tf26f"], ["eagle", "eagle-eye.js?v=tf26f"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=tf26f"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {
   if (!has(list, s) || has(list, "assets/icons.js?v=nov3k")) fail(n, s); else pass(n);
 });
-// feedback.js, leaderboard.js, eagle-eye.js, and app.js are tf26e. demo-types stays fmt25e.
-if (!has(indexSrc, "feedback.js?v=tf26e") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c")) fail("index feedback key"); else pass("index feedback key");
-if (!has(adminSrc, "feedback.js?v=tf26e") || !has(adminSrc, "eagle-eye.js?v=tf26e") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
+// feedback.js, leaderboard.js, eagle-eye.js, and app.js are tf26f. demo-types stays fmt25e.
+if (!has(indexSrc, "feedback.js?v=tf26f") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c")) fail("index feedback key"); else pass("index feedback key");
+if (!has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf26f") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
 
 const OLD = {};
 for (const f of ["app.js", "content.js", "content.es.js", "answers.js"]) OLD[f] = execFileSync("git", ["show", "origin/main:" + f]);

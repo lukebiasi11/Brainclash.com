@@ -1,7 +1,7 @@
 /* Cup Shuffle and Track the Dot, played as Think Fast's two questions on 2026-11-26 only.
    11/23 through 11/25, and every date after 11/26, stay the regular Think Fast puzzles.
-   That Thursday is question 1 = Cup Shuffle (375), then question 2 = Track the Dot (250 + 375).
-   Cup tiers 2 and 3 stay in this file and are not scheduled.
+   That Thursday is question 1 = Cup Shuffle tier 2 (4 cups, 375), then question 2 = Track the Dot (250 + 375).
+   Cup tiers 1 and 3 stay in this file and are not scheduled.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. */
 (function (root) {
@@ -21,7 +21,7 @@
     3: { n: 5, moves: 18, ms: 260, gap: 30, rot: 0.22, far: 0.16, feints: 2, pts: POINTS[2] }
   };
   const TRACK = [
-    { dots: 5, targets: 1, speed: 115, secs: 4.5, pts: POINTS[3] },
+    { dots: 6, targets: 1, speed: 140, secs: 5.0, pts: POINTS[3] },
     { dots: 7, targets: 2, speed: 150, secs: 5.5, pts: POINTS[4] }
   ];
   // The only place November 26's points live.
@@ -39,7 +39,7 @@
     return { cups: cups, track: track, cap: cups + track.reduce((a, b) => a + b, 0), scale: scale, dayTotal: spec.dayTotal || null };
   }
   const played = dayPlan(DAY);
-  TIERS[1].pts = played.cups;
+  TIERS[2].pts = played.cups;
   TRACK[0].pts = played.track[0];
   TRACK[1].pts = played.track[1];
 
@@ -241,7 +241,7 @@
     const lines = kind === "cups" ? CUPS_HOW : DOT_HOW;
     const slot = kind === "cups" ? 1 : 2;
     const name = kind === "cups" ? "Cup Shuffle" : "Track the Dot";
-    const max = kind === "cups" ? TIERS[1].pts : TRACK[0].pts + TRACK[1].pts;
+    const max = kind === "cups" ? TIERS[2].pts : TRACK[0].pts + TRACK[1].pts;
     const body = openScreen(env, slot, name, max);
     const p = node("p", "prompt");
     p.textContent = lines.map(line => env.tr(line)).join(" ");
@@ -657,7 +657,7 @@
     const log = [];
     await howto(env, "cups");
     {
-      const res = await cupRound(env, 1, 0);
+      const res = await cupRound(env, 2, 0);
       total += res.pts;
       log.push(res.pts);
       if (env.onRound) env.onRound(total);
