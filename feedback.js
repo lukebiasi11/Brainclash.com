@@ -74,7 +74,11 @@ function items(set) {
       else odd(wn, 1);
     }
   } catch (e) { odd("Word Nerd", 1); }
-  if (!set || !Array.isArray(set.thinkFast)) odd("Brain Teaser", 1);
+  if (window.EagleEye && set && typeof set.day === "number" && EagleEye.onEpoch(set.day)) {
+    const pts = EagleEye.roundPoints();
+    add("Brain Teaser", 1, EagleEye.CUPS_HOW.join(" "), pts[0] + " pts");
+    add("Brain Teaser", 2, EagleEye.DOT_HOW.join(" "), (pts[3] + pts[4]) + " pts");
+  } else if (!set || !Array.isArray(set.thinkFast)) odd("Brain Teaser", 1);
   else set.thinkFast.forEach((q, i) => {
     try {
       if (!q || typeof q !== "object") return odd("Brain Teaser", i + 1);

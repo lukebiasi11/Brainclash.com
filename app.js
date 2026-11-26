@@ -24,6 +24,7 @@ const CATS = [
   { id: "think", img: "cat-brain", name: "Brain Teaser", icon: "🧠", sub: "Logic", desc: "2 brain-benders · one shot each" }
 ];
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
+function catsFor() { return CATS; }
 const WORD_GAMES = [
   { id: "flip", name: "Unscramble", sub: "Unscramble 6 words from hints · 60s" },
   { id: "bridge", name: "Word Bridge", sub: "Finish the first word, start the second · 60s" },
@@ -141,7 +142,7 @@ function loadToday() {
   const s = store.get("dg-" + todayKey());
   if (s && s.inProgress != null) {
     if (s.inProgress === s.scores.length && s.scores.length < 5) { s.scores.push(Math.round(Math.max(0, Math.min(1000, s.partialCat === s.inProgress ? s.partial || 0 : 0)))); s.details.push("left mid-category");
-      const c = CATS[s.scores.length - 1]; toast(tr("{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.", c ? c.name : tr("That category"), fmt(s.scores[s.scores.length - 1]))); }
+      const c = catsFor(s.key)[s.scores.length - 1]; toast(tr("{0} was locked in at {1} pts — you left mid-round, so it can't be replayed.", c ? c.name : tr("That category"), fmt(s.scores[s.scores.length - 1]))); }
     delete s.inProgress; delete s.partial; delete s.partialCat; store.set("dg-" + s.key, s);
   }
   return s;
@@ -286,8 +287,9 @@ function bankedPartial() {
 function scorePop(gain) {
   const b = document.querySelector(".runtotal b"); if (!b) return;
   b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
-  const r = b.getBoundingClientRect(), p = h("span", { class: "pts-pop", "aria-hidden": "true" }, "+" + fmt(gain));
-  p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.bottom) + "px";
+  const chip = b.closest ? (b.closest(".runtotal") || b) : b;
+  const r = chip.getBoundingClientRect(), p = h("span", { class: "pts-pop", "aria-hidden": "true" }, "+" + fmt(gain));
+  p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.bottom + 2) + "px";
   document.body.append(p); setTimeout(() => p.remove(), 900);
 }
 const flashBody = cls => { document.body.classList.remove("flash-good", "flash-bad"); void document.body.offsetWidth; document.body.classList.add(cls); setTimeout(() => document.body.classList.remove(cls), 600); };
@@ -298,9 +300,41 @@ function liveTotal() {
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
   b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
+// November 26 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
+function catCapFor(key, index) {
+  if (index === 4 && window.EagleEye && EagleEye.dayPlan) {
+    const plan = EagleEye.dayPlan(key);
+    if (plan) return plan.cap;
+  }
+  return 1000;
+}
+function dayCap(key) {
+  const plan = window.EagleEye && EagleEye.dayPlan && EagleEye.dayPlan(key);
+  if (plan && plan.dayTotal === "sum") {
+    let n = 0;
+    for (let i = 0; i < 5; i++) n += catCapFor(key, i);
+    return n;
+  }
+  return 5000;
+}
+function dayTotalLabel(key) {
+  const n = dayCap(key);
+  return n === 5000 ? tr("5,000") : fmt(n);
+}
+function scaledThousand(score, cap) {
+  const c = cap > 0 ? cap : 1000;
+  return score / c * 1000;
+}
+function activeCatIndex() {
+  if (!session) return -1;
+  if (session.inProgress != null) return session.inProgress;
+  return session.scores.length < 5 ? session.scores.length : session.scores.length - 1;
+}
 function catScoreChip() {
   const v = session && session.inProgress != null ? Math.round(session.partial || 0) : 0;
-  return h("div", { class: "runtotal", "aria-label": tr("Category score") }, tr("Score "), h("b", {}, fmt(v)), tr("/1,000 pts"));
+  const cap = catCapFor(session && session.key, activeCatIndex());
+  const of = cap === 1000 ? tr("/1,000 pts") : tr("/{0} pts", fmt(cap));
+  return h("div", { class: "runtotal", "aria-label": tr("Category score") }, tr("Score "), h("b", {}, fmt(v)), of);
 }
 function save() { if (session && !session.practice) store.set("dg-" + session.key, session); }
 const wordGameFor = day => getDailySet(keyOf(day)).wordGame;
@@ -328,7 +362,7 @@ function screen(title, sub) {
   onKey = null; clearScreenTimers();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
-  const cat = session && CATS[session.scores.length];
+  const cat = session && catsFor(session.key)[session.scores.length];
   const head = h("header", { class: "game-head" },
     h("div", { class: "crumb" }, session.practice ? tr("Practice") : "Daily Dose", " · ", session.key === "demo" ? ((session.demoAt || 0) + 1) + "/" + ((window.TYPE_DEMO || []).length || 1) : (session.scores.length + 1) + "/5"),
     h("h2", {}, title), sub ? h("p", { class: "muted" }, sub) : null,
@@ -394,10 +428,12 @@ function scoreGraph(scores, day) {
     h("p", { class: "sg-date" }, tr("Today's scores · ") + dt),
     h("div", { class: "sg-card" },
       h("h3", {}, tr("Points by category")),
-      h("ul", { class: "sg-cols" }, CATS.map((c, i) => { const v = Math.max(0, Math.min(1000, scores[i] || 0));
+      h("ul", { class: "sg-cols" }, catsFor(keyOf(day)).map((c, i) => {
+        const cap = catCapFor(keyOf(day), i);
+        const v = Math.max(0, Math.min(cap, scores[i] || 0));
         return h("li", { "aria-label": c.name + ": " + fmt(scores[i] || 0) },
           h("b", { class: "sg-v", "aria-hidden": "true" }, fmt(scores[i] || 0)),
-          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / 10) + "%;--d:" + (i * 90) + "ms" })),
+          h("span", { class: "sg-track", "aria-hidden": "true" }, h("span", { class: "sg-bar", style: "--h:" + (v / cap * 100) + "%;--d:" + (i * 90) + "ms" })),
           h("span", { class: "sg-nm", "aria-hidden": "true" }, c.name)); })),
       h("div", { class: "sg-total" }, h("span", {}, tr("Total")), h("b", {}, fmt(tot)))));
   if (anim) requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("in")));
@@ -413,25 +449,26 @@ function home() {
   const stats = store.get("dg-stats", { played: 0, best: 0, streak: 0, last: null });
   const day = dayIndex();
   const wg = wordGameFor(day);
+  const cats = catsFor(todayKey());
   app.append(
     h("div", { class: "hero" },
       h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")),
-      h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("5,000")), tr(" points on the line.")),
+      h("p", { class: "tag" }, h("b", {}, tr("5")), tr(" categories."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, tr("1")), tr(" shot a day."), h("span", { class: "sep", "aria-hidden": "true" }, "•"), h("b", {}, dayTotalLabel(todayKey())), tr(" points on the line.")),
       h("p", { class: "date" }, new Date(day * 864e5).toLocaleDateString(I18N.locale, { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) + " · Clash #" + gameNumber(day))),
     I18N.toggleVisible() ? h("div", { class: "lang-toggle", role: "group", "aria-label": tr("Language") }, ["en", "es"].map(l =>
       h("button", { type: "button", class: "lang-btn" + (LANG === l ? " on" : ""), "aria-pressed": String(LANG === l), lang: l,
         onclick: () => { if (LANG !== l) { I18N.set(l); location.reload(); } } }, l === "en" ? "English" : "Español"))) : null,
-    h("ol", { class: "path" }, CATS.map((c, i) => {
+    h("ol", { class: "path" }, cats.map((c, i) => {
       const sc = s && s.scores[i];
       const state = sc != null ? "done" : (s ? s.scores.length : 0) === i ? "next" : "locked";
       return h("li", { class: "step " + state },
         h("span", { class: "num" }, sc != null ? "✓" : i + 1),
         h("span", { class: "ic" }, ic(c.icon, c.img)),
         h("span", { class: "nm" }, h("b", {}, c.name), h("small", {}, c.id === "word" ? c.sub + tr(" · Today: ") + wg.name : c.sub)),
-        h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : "1,000"));
+        h("span", { class: "pts" }, sc != null ? fmt(sc) : state === "locked" ? "🔒" : (catCapFor(todayKey(), i) === 1000 ? "1,000" : fmt(catCapFor(todayKey(), i)))));
     })),
     done
-      ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / 5,000")),
+      ? h("div", { class: "cta" }, h("p", {}, tr("You've finished today's Clash: "), h("b", {}, fmt(s.scores.reduce((a, b) => a + b, 0)) + " / " + dayTotalLabel(s.key || todayKey()))),
           h("button", { class: "btn primary big", "data-action": "view-results", onclick: () => { session = newSession(false); results(); } }, tr("View results")),
           h("p", { class: "muted", id: "countdown" }),
           myStats([scoreGraph(s.scores, day)]))
@@ -480,7 +517,7 @@ function commitCat(score, detail) {
 }
 const WG_SECS = { flip: 60, bridge: 60, conn: 90, odd: 60, anag: 60 };
 function catIntro(i, start) {
-  const c = CATS[i];
+  const c = catsFor(session.key)[i];
   if (i === 3) {
     const wg = wordGameFor(session.day);
     const body = screen(c.icon + " " + c.name, tr("Rotates daily · today's format below"));
@@ -495,7 +532,9 @@ function catIntro(i, start) {
   }
   const blurb = c.id === "world" || c.id === "history" || c.id === "sports" ? tr(catBlurb(c.id)) : c.desc;
   const body = screen(c.icon + " " + c.name, blurb);
-  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, tr("1,000 points")), "."), introText(c.id)));
+  const cap = catCapFor(session.key, i);
+  const worth = cap === 1000 ? tr("1,000 points") : tr("{0} points", fmt(cap));
+  body.append(h("div", { class: "intro" }, h("div", { class: "big-ic" }, ic(c.icon, c.img)), h("p", {}, tr("Worth up to "), h("b", {}, worth), "."), introText(c.id)));
   nextBtn(body, tr("Start {0}", i === 3 ? wordGameFor(session.day).name : c.name), () => { session.inProgress = i; session.partial = 0; session.partialCat = i; save(); start(); });
 }
 function introText(id) {
@@ -522,7 +561,13 @@ function introText(id) {
         : window.Answers && Answers.anagramStrict(session.key)
         ? tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 30, 5 = 70, 6 = 150. A full 1,000 takes about 92.5% of the common-word points. No penalty for wrong guesses.")
         : tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.")) },
-    think: tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
+    think: (window.EagleEye && EagleEye.on(session.key))
+      ? tr("Puzzle 1, {0}, is worth {1} points. {2} {3} Puzzle 2, {4}, is worth {5} points. {6} {7}",
+        tr("Cup Shuffle"), EagleEye.roundPoints()[0],
+        tr("Watch the cup with the ball."), tr("Tap it when the cups stop."),
+        tr("Track the Dot"), EagleEye.roundPoints()[3] + EagleEye.roundPoints()[4],
+        tr("Follow the orange dots."), tr("Tap them when they stop."))
+      : tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
   return h("p", { class: "muted" }, typeof t === "string" ? t : t[wordGameFor(session.day).id]);
 }
@@ -536,10 +581,12 @@ function runNext() {
 function catDone(body, score, detail) {
   commitCat(score, detail);
   const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
-  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, "/ 1,000"), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
+  const doneCap = catCapFor(session.key, session.scores.length - 1);
+  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, doneCap === 1000 ? "/ 1,000" : "/ " + fmt(doneCap)), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
   countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
+  categoryFx(score, doneCap, body);
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
-  nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", CATS[session.scores.length].name), runNext);
+  nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
 }
 
 // ---------- maps ----------
@@ -2148,7 +2195,21 @@ function emojiQuestion(body, q, value, seconds, done) {
   const src = Object.assign({}, q, { aliases: [].concat(q.aliases || [], parts.aliases), given: [].concat(q.given || [], parts.given), exactOnly: q.exactOnly });
   textQuestion(body, pairLabel(q.prompt || q.q || "What word do these emojis spell?"), answers, value, seconds, done, null, answers[0] || "", q.explain, src, { timeoutZero: true });
 }
+function thinkFastPerception() {
+  const seed = session.practice ? ("practice|" + Math.floor(Math.random() * 1e9)) : ("eagleeye|" + session.key);
+  EagleEye.run({
+    seed: seed,
+    tr: tr,
+    screen: (_title, sub) => screen("🧠 " + tr("Brain Teaser"), sub),
+    actionBar: actionBar,
+    nextBtn: nextBtn,
+    scheduleFit: scheduleFit,
+    onRound: track,
+    onDone: (total, detail, body) => catDone(body, total, detail)
+  });
+}
 function thinkFast() {
+  if (window.EagleEye && EagleEye.on(session.key)) return thinkFastPerception();
   const qs = session.set.thinkFast.map(normPuzzle), vals = [400, 600];
   let total = 0, i = 0; const log = [];
   const ask = () => {
@@ -2322,7 +2383,7 @@ function g1OnSection() {
   const status = h("p", { class: "g1-quiet" });
   const strip = h("div", { class: "g1-strip" });
   const picker = h("select", { id: "g1-cat", class: "g1-cat-pick", "aria-label": tr("Category") });
-  CATS.forEach((c, i) => picker.append(h("option", { value: String(i) }, c.name)));
+  catsFor(session && session.key).forEach((c, i) => picker.append(h("option", { value: String(i) }, c.name)));
   const plot = h("div", { class: "g1-plot" });
   const legend = h("p", { class: "g1-legend" });
   const foot = h("div", { class: "g1-footrow" });
@@ -2352,10 +2413,18 @@ function g1OnSection() {
     const avg = mode === "total" ? snap.restAverage : snap.restCategoryAverage[cat];
     // The server bins count other finished games only. Add this game to the
     // player's own bin so the orange bar has a height when nobody else is there.
-    const bins = (mode === "total" ? snap.scoreBins : snap.categoryBins[cat]).slice();
+    let bins = (mode === "total" ? snap.scoreBins : snap.categoryBins[cat]).slice();
     const above = mode === "total" ? snap.othersAtOrAbove : snap.categoryAtOrAbove[cat];
-    const ownBin = mode === "total" ? g1Bin(total, 500) : g1Bin(youScores[cat], 100);
-    if (ownBin >= 0 && ownBin < bins.length) bins[ownBin] += 1;
+    const catCap = mode === "category" ? catCapFor(session && session.key, cat) : 1000;
+    let ownBin = mode === "total" ? g1Bin(total, 500) : g1Bin(youScores[cat], 100);
+    if (mode === "category" && catCap !== 1000) {
+      const n = Math.max(1, Math.round(catCap / 100));
+      const folded = bins.slice(0, n);
+      while (folded.length < n) folded.push(0);
+      if (ownBin >= n) { folded[n - 1] += 1; ownBin = n - 1; }
+      else if (ownBin >= 0) folded[ownBin] += 1;
+      bins = folded;
+    } else if (ownBin >= 0 && ownBin < bins.length) bins[ownBin] += 1;
     const pct = g1Percent(above, snap.restFinishes);
     const delta = Math.round(you - avg);
     section.setAttribute("data-you", String(Math.round(you)));
@@ -2368,8 +2437,8 @@ function g1OnSection() {
       h("div", {}, h("span", {}, tr("Player average")), h("b", {}, fmt(avg))),
       h("div", {}, h("span", {}, tr("Percentile")), h("b", {}, pct == null ? "—" : tr("Top {0}%", pct)))
     );
-    const xTicks = mode === "total" ? [0, 1000, 2000, 3000, 4000, 5000] : [0, 200, 400, 600, 800, 1000];
-    const xMax = mode === "total" ? 5000 : 1000;
+    const xTicks = mode === "total" ? [0, 1000, 2000, 3000, 4000, 5000] : (catCap === 1000 ? [0, 200, 400, 600, 800, 1000] : [0, 100, 200, 300, 400]);
+    const xMax = mode === "total" ? 5000 : catCap;
     plot.append(
       h("div", { class: "g1-chart g1-hist" }, h("div", { class: "g1-ylab" }, tr("↑ Number of completed games")), h("div", {}, g1Histogram(bins, ownBin, xMax, xTicks), h("div", { class: "g-xlab" }, tr("Score range"))))
     );
@@ -2430,7 +2499,7 @@ function g1OffSection() {
     const yName = mode === "total" ? tr("Number of completed games") : tr("Score");
     const xName = mode === "total" ? tr("Score range") : tr("Category");
     plot.append(h("div", { class: "g1-chart" }, h("div", { class: "g-ylab" }, yName), h("div", {}, g1Axes(mode), h("div", { class: "g-xlab" }, xName))), h("p", { class: "g1-empty" }, tr("No scores are plotted while collection is off.")));
-    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, CATS.map(c => h("li", {}, c.name))));
+    if (mode === "category") plot.append(h("ul", { class: "g1-cats" }, catsFor(session && session.key).map(c => h("li", {}, c.name))));
   };
   totalBtn.addEventListener("click", () => { mode = "total"; paint(); });
   catBtn.addEventListener("click", () => { mode = "category"; paint(); });
@@ -2490,13 +2559,13 @@ function g2Section() {
   const hist = loadPersonalHistory();
   const select = h("select", { id: "g2-metric" });
   select.append(h("option", { value: "overall" }, tr("Overall")));
-  CATS.forEach((c, i) => select.append(h("option", { value: String(i) }, c.name)));
+  catsFor(session && session.key).forEach((c, i) => select.append(h("option", { value: String(i) }, c.name)));
   const sub = h("p", { class: "g-sub" });
   const body = h("div", { class: "g2-body", "aria-live": "polite" });
   section.append(h("div", { class: "g2-head" }, h("div", {}, h("h2", { id: "g2-title" }, tr("Your history")), sub), h("label", { class: "g2-select" }, h("span", { class: "sr-only" }, tr("History metric")), select)), body);
   const paint = () => {
     const metric = select.value === "overall" ? "overall" : Number(select.value);
-    const name = metric === "overall" ? tr("Overall") : (CATS[metric] ? CATS[metric].name : "");
+    const name = metric === "overall" ? tr("Overall") : (catsFor(session && session.key)[metric] ? catsFor(session && session.key)[metric].name : "");
     while (body.firstChild) body.removeChild(body.firstChild);
     if (!hist || !window.BCHistory) {
       section.setAttribute("data-g2-state", "unreadable");
@@ -2579,9 +2648,9 @@ function bcGraphs() {
 }
 
 // ---------- results ----------
-const blocks = s => s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥";
+const blocks = (score, cap) => { const s = scaledThousand(score, cap == null ? 1000 : cap); return s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥"; };
 const SITE_URL = "https://dailydosetrivia.com/";
-const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / 5,000${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
+const shareText = (rankLine) => `Daily Dose ${session.practice ? "(practice)" : "#" + gameNumber(dayOfKey(session.key)) + " · " + session.key}\n${session.scores.map((s, i) => CATS[i].icon + " " + blocks(s, catCapFor(session.key, i)) + " " + s).join("\n")}\n🏁 ${session.scores.reduce((a, b) => a + b, 0).toLocaleString()} / ${dayCap(session.key) === 5000 ? "5,000" : fmt(dayCap(session.key))}${rankLine ? "\n" + rankLine : ""}\n${SITE_URL}`;
 async function doShare(btn) {
   let rankLine = "";
   try { if (window.DailyBoard && DailyBoard.rankPhrase) rankLine = await DailyBoard.rankPhrase() || ""; } catch (e) { rankLine = ""; }
@@ -2645,7 +2714,20 @@ function softRain(hostCard) {
   setTimeout(() => { layer.remove(); document.body.classList.remove("fx-low-rain"); hostCard?.classList.remove("fx-deflate"); }, 2800);
 }
 function endFx(tot, host, card) {
-  if (tot >= FX_HIGH_MIN) confetti(host); else if (tot <= FX_LOW_MAX) softRain(card);
+  const cap = dayCap(session && session.key);
+  const s = cap === 5000 ? tot : tot / cap * 5000;
+  if (s >= FX_HIGH_MIN) confetti(host); else if (s <= FX_LOW_MAX) softRain(card);
+}
+function categoryFxKind(score, cap) {
+  const day = scaledThousand(score, cap) / 1000 * 5000;
+  if (day >= FX_HIGH_MIN) return "confetti";
+  if (day <= FX_LOW_MAX) return "rain";
+  return "none";
+}
+function categoryFx(score, cap, card) {
+  const kind = categoryFxKind(score, cap);
+  if (kind === "confetti") confetti(card || document.body);
+  else if (kind === "rain") softRain(card);
 }
 function countStats() {
   if (session.practice || session.counted) return;
@@ -2667,7 +2749,9 @@ const SNARK = {
   zero: ["Zero. Impressive in its own way.", tr("A perfect zero. Was the phone upside down?"), "Nothing! Tomorrow can only go up."]
 };
 function snarkLine(tot) {
-  const band = tot >= 5000 ? "perfect" : tot >= 3750 ? "great" : tot >= 2000 ? "mid" : tot > 0 ? "rough" : "zero";
+  const cap = dayCap(session && session.key);
+  const s = cap === 5000 ? tot : tot / cap * 5000;
+  const band = s >= 5000 ? "perfect" : s >= 3750 ? "great" : s >= 2000 ? "mid" : s > 0 ? "rough" : "zero";
   const l = SNARK[band]; return tr(l[((session ? session.day : 0) % l.length + l.length) % l.length]);
 }
 // Category-level quips (per 1,000-point category): roast low, praise high. Stable per day + category.
@@ -2679,7 +2763,8 @@ const CAT_QUIP = {
   zero: ["A goose egg. Bold.", tr("Zero. Next category, quickly."), "Nothing? The next one's yours."]
 };
 function catQuip(score, cat) {
-  const band = score >= 900 ? "top" : score >= 650 ? "good" : score >= 350 ? "mid" : score > 0 ? "low" : "zero";
+  const s = scaledThousand(score, catCapFor(session && session.key, cat));
+  const band = s >= 900 ? "top" : s >= 650 ? "good" : s >= 350 ? "mid" : s > 0 ? "low" : "zero";
   const l = CAT_QUIP[band], k = (session ? session.day : 0) * 7 + (cat || 0);
   return tr(l[((k % l.length) + l.length) % l.length]);
 }
@@ -2694,13 +2779,13 @@ function resultsPopup() {
   const m = h("div", { class: "result-modal", role: "dialog", "aria-modal": "true", "aria-label": "Clash complete" },
     h("div", { class: "result-modal__card" },
       h("small", { class: "result-modal__kicker" }, session.practice ? tr("Practice complete") : tr("Clash complete!")),
-      num, h("small", { class: "result-modal__of" }, "/ 5,000"),
+      num, h("small", { class: "result-modal__of" }, "/ " + dayTotalLabel(session.key)),
       h("p", { class: "result-modal__quip" }, snarkLine(tot)),
-      h("div", { class: "result-modal__blocks" }, session.scores.map(x => h("span", {}, blocks(x)))),
+      h("div", { class: "result-modal__blocks" }, session.scores.map((x, i) => h("span", {}, blocks(x, catCapFor(session.key, i))))),
       shareBtn,
       h("button", { class: "btn result-modal__full", "data-action": "see-results", onclick: () => { close(); results(); } }, tr("See results"))));
   document.addEventListener("keydown", esc);
-  document.body.append(m); endFx(tot, m, m.querySelector(".result-modal__card")); countUp(num, tot, 1200);
+  document.body.append(m); countUp(num, tot, 1200);
 }
 function results() {
   const tot = session.scores.reduce((a, b) => a + b, 0);
@@ -2714,7 +2799,7 @@ function results() {
   const foot = resultsNickFoot();
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
-    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ 5,000"), h("p", { class: "quip" }, snarkLine(tot))),
+    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ " + dayTotalLabel(session.key)), h("p", { class: "quip" }, snarkLine(tot))),
     bcGraphs(),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
@@ -2854,6 +2939,18 @@ if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.fr
     DGTest.at(k, cat);
   },
   thinkFast(day) { if (Array.isArray(day)) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; return runNext(); } DGTest.at(day, 4); },
+  cap(key, index) { return catCapFor(key, index); },
+  grade(score, key, index) {
+    const cap = catCapFor(key, index);
+    const s = scaledThousand(score, cap);
+    const day = s / 1000 * 5000;
+    return {
+      cap: cap,
+      quip: s >= 900 ? "top" : s >= 650 ? "good" : s >= 350 ? "mid" : s > 0 ? "low" : "zero",
+      block: s >= 900 ? "🟩" : s >= 600 ? "🟨" : s >= 300 ? "🟧" : "🟥",
+      fx: day >= 3950 ? "confetti" : day <= 2100 ? "rain" : "none"
+    };
+  },
   sports(i) { session = newSession(true); session.set = { ...session.set, sports: C.sports[i] }; session.scores = [0, 0]; runNext(); },
   sportsSet(day) { if (Array.isArray(day) || (day && typeof day === "object")) { session = newSession(true); session.set = { ...session.set, sports: day }; session.scores = [0, 0]; return runNext(); } DGTest.at(day, 2); },
   state() { return session; },
