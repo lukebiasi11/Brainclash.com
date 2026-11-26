@@ -52,6 +52,8 @@ const eeSrc = fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8");
 const admin = fs.readFileSync(path.join(root, "admin.html"), "utf8");
 t(!/hop/.test(eeSrc) && !/One of two/.test(eeSrc) && !/glowing/.test(eeSrc), "no hop feint, partial credit, or glowing copy");
 t(/Track round 2 is all or nothing/.test(admin) && !/pts per dot/.test(admin), "admin says track round 2 is all or nothing");
+t(/className = "sr-only"/.test(eeSrc) && /aria-label", cupName/.test(eeSrc) && /Cup \{0\} of \{1\}/.test(eeSrc), "cup buttons carry Cup 1 of 4 as text and aria-label");
+t(/pending > 0/.test(eeSrc) && /now - state.lastAt < 300/.test(eeSrc) && /now - pickState.lastAt < 300/.test(eeSrc), "a quick second Track the Dot tap is one gesture");
 
 function realMoves(moves) { return moves.filter(m => m.t !== "feint"); }
 let rot2 = 0, far2 = 0, rot3 = 0, far3 = 0, n = 0;

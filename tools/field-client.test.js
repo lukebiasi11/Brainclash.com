@@ -232,17 +232,17 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   ok("docs header stays a lawyer draft", notice.startsWith("# Daily Dose daily comparison — privacy notice (draft)") && notice.includes("Draft pending the lawyer's review."));
   ok("contact is the mailto address", notice.includes("mailto:thedailydosetrivia@gmail.com") && fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('OPERATOR_CONTACT: "thedailydosetrivia@gmail.com"'));
   ok("notice body has no placeholder token", !notice.split("\n").slice(5).join("\n").includes("OPERATOR_CONTACT"));
-  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Aún no hay otros resultados") && i18n.includes('"Loading…": "Cargando…"'));
+  ok("quiet copy is translated", i18n.includes("No other results yet") && i18n.includes("Aún no hay otros resultados") && i18n.includes('"Loading…": "Cargando…"') && i18n.includes('"Saved": "Guardado"') && i18n.includes('"Retry comparison": "Reintentar la comparación"'));
   ok("histogram copy is translated", ["Today's Competition", "Total Score", "By Category", "Player average", "Percentile", "Top {0}%", "Your score range", "Other completed games", "vs average", "↑ Number of completed games", "Blue bars are other completed games. The orange bar includes your game."].every(s => i18n.includes('"' + s + '"') && i18n.includes(s)));
 
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=lb5") && indexHtml.includes("field-compare.js?v=g1t9"));
-  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=lb5"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=sb2119") && indexHtml.includes("field-compare.js?v=g1t10") && indexHtml.includes("vendor/supabase.js?v=sb2119"));
+  ok("footer reaches the notice", indexHtml.includes("privacy.html?v=sb2119"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  ok("g1 links the same notice", app.includes('href: "privacy.html?v=lb5"'));
+  ok("g1 links the same notice", app.includes('href: "privacy.html?v=sb2119"'));
   ok("empty snapshot names the status", app.includes('tr("Loading…")') && app.includes('tr("No other results yet")'));
   ok("run start is wired", /function runNext\(\) \{[\s\S]{0,220}fieldNotePlay\(/.test(app));
   ok("finish is wired", /session\.scores\.length >= 5\) fieldNoteFinish\(/.test(app));
@@ -314,19 +314,61 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   await eight("getSession stall falls back at 8s", () => {
     global.FIELD_COMPARE.createClient = () => ({ auth: { getSession: () => new Promise(() => {}), signInAnonymously: () => new Promise(() => {}) } });
   }, client => client.dayFor(liveSession({ key: "2026-11-02" })));
-  await eight("field calls share one 8s deadline", () => {
+  {
+    global.FIELD_COMPARE.deadlineMs = 220;
     global.FIELD_COMPARE.createClient = () => ({ auth: readyAuth });
+    const aborts = { finish: 0, day: 0 };
     global.fetch = (url, init) => new Promise((resolve, reject) => {
+      const u = String(url);
+      const op = u.indexOf("/finish") >= 0 ? "finish" : u.indexOf("/day") >= 0 ? "day" : "start";
+      if (op === "start") { resolve({ status: 200, async text() { return JSON.stringify({ ok: true }); } }); return; }
       const signal = init && init.signal;
-      if (signal) signal.addEventListener("abort", () => reject(new Error("abort")));
+      if (signal) signal.addEventListener("abort", () => { aborts[op]++; reject(new Error("abort")); });
     });
-  }, async client => {
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    const split = require(path.join(root, "field-compare.js"));
     const session = liveSession({ key: "2026-11-01" });
-    await client.backfillToday(session, "2026-11-01");
-    return client.dayFor(session);
-  });
+    const t0 = Date.now();
+    const save = await split.backfillToday(session, "2026-11-01");
+    const day = await split.dayFor(session);
+    const ms = Date.now() - t0;
+    t("start, finish, and day each have a deadline", [save.ok, day.reason, aborts.finish, aborts.day, ms > 350, ms < 1200], [false, "network", 1, 1, true, true]);
+    delete global.FIELD_COMPARE.deadlineMs;
+    global.FIELD_COMPARE.createClient = () => ({ auth: readyAuth });
+    let dayFails = true;
+    global.fetch = async (url) => {
+      const u = String(url);
+      if (u.indexOf("/day") >= 0) {
+        if (dayFails) throw new TypeError("Failed to fetch");
+        return { status: 200, async text() { return JSON.stringify(readyBody); } };
+      }
+      return { status: 200, async text() { return JSON.stringify({ ok: true }); } };
+    };
+    delete require.cache[require.resolve(path.join(root, "field-compare.js"))];
+    const retry = require(path.join(root, "field-compare.js"));
+    const played = liveSession({ key: "2026-11-01" });
+    const posted = await retry.backfillToday(played, "2026-11-01");
+    const missed = await retry.dayFor(played);
+    t("a failed day read does not undo a successful finish", [posted.ok, missed.reason, retry.saveView(posted, missed)], [true, "network", { saved: true, state: "saved", reason: "network", retry: true }]);
+    dayFails = false;
+    const again = await retry.dayFor(played);
+    t("the day read retries on its own deadline", [again.state, again.restAverage], ["ready", 1500]);
+    t("a day failure without a finish is not Saved", retry.saveView({ ok: false, reason: "network" }, missed), { saved: false, state: "quiet", reason: "network", retry: false });
+  }
   delete global.FIELD_COMPARE.loadSdk;
   delete global.FIELD_COMPARE.deadlineMs;
+
+  const vm = require("vm");
+  const iso = { n: 0, supabase: { createClient() { iso.n += 1; return { id: iso.n }; } } };
+  iso.window = iso; iso.globalThis = iso;
+  vm.createContext(iso);
+  vm.runInContext(fs.readFileSync(path.join(root, "field-config.js"), "utf8"), iso);
+  vm.runInContext(fs.readFileSync(path.join(root, "leaderboard-config.js"), "utf8"), iso);
+  const fieldClient = iso.FIELD_COMPARE.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "auth" } });
+  const boardClient = iso.LEADERBOARD.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "other" } });
+  ok("field and leaderboard share one supabase client", fieldClient === boardClient && iso.n === 1);
+  ok("configs do not load supabase from jsdelivr", !fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes("jsdelivr") && !fs.readFileSync(path.join(root, "leaderboard-config.js"), "utf8").includes("+esm") && !fs.readFileSync(path.join(root, "leaderboard.js"), "utf8").includes("jsdelivr"));
+  ok("leaderboard prefers createClient", /let create = c\.createClient/.test(fs.readFileSync(path.join(root, "leaderboard.js"), "utf8")));
 
   console.log(bad ? bad + " failures" : "field-client.test.js: all pass");
   process.exit(bad ? 1 : 0);

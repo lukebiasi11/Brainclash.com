@@ -222,9 +222,11 @@
     return new Promise(res => { env.nextBtn(env.actionBar(body), label, res); });
   }
   function bindTap(el, fn) {
-    let fromPointer = false;
-    const onPointer = ev => { fromPointer = true; fn(ev); };
-    const onClick = ev => { if (fromPointer) { fromPointer = false; return; } fn(ev); };
+    // A pointerup and its click are one gesture. A second pointerup inside 300 ms
+    // is the rest of a double tap; its delayed click must not become another pick.
+    let pending = 0;
+    const onPointer = ev => { pending++; fn(ev); };
+    const onClick = ev => { if (pending > 0) { pending--; return; } fn(ev); };
     el.addEventListener("pointerup", onPointer);
     el.addEventListener("click", onClick);
     return () => { el.removeEventListener("pointerup", onPointer); el.removeEventListener("click", onClick); };
@@ -440,7 +442,13 @@
       cups.forEach(c => {
         c.el.setAttribute("role", "button");
         c.el.tabIndex = 0;
-        c.el.setAttribute("aria-label", env.tr("Cup {0} of {1}", String(c.slot + 1), String(R.n)));
+        const cupName = env.tr("Cup {0} of {1}", String(c.slot + 1), String(R.n));
+        c.el.setAttribute("aria-label", cupName);
+        c.el.style.pointerEvents = "auto";
+        const cap = document.createElement("span");
+        cap.className = "sr-only";
+        cap.textContent = cupName;
+        c.el.append(cap);
         const onKey = ev => {
           if (ev.key !== "Enter" && ev.key !== " ") return;
           ev.preventDefault();

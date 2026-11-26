@@ -694,8 +694,11 @@
     clientP = (async () => {
       const c = cfg();
       if (!c.url || !c.publishableKey) throw new Error("config");
-      const mod = await import(c.supabaseJs);
-      const create = mod && mod.createClient;
+      let create = c.createClient;
+      if (typeof create !== "function") {
+        const mod = await import(c.supabaseJs);
+        create = mod && mod.createClient;
+      }
       if (typeof create !== "function") throw new Error("sdk");
       return create(c.url, c.publishableKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "auth", storage: fieldStorage() }

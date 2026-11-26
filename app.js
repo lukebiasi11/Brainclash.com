@@ -131,10 +131,15 @@ document.addEventListener("keydown", e => {
 // Tall portrait map cards (e.g. 390x844): let the globe slightly overfill the width instead of leaving dead space above/below.
 function globeBase(W, H) { return Math.max(20, H > W * 1.3 ? Math.min(W * 0.56, H / 2 - 8) : Math.min(W, H) / 2 - 8); }
 window.globeBase = globeBase;
+// The figure on screen is the committed score. A count-up used to leave 804 on a
+// perfect 1,000 card and 3,591 on a 3,700 total when the frame was read mid-way.
 function countUp(el, to, ms = 900, onDone) {
-  const t0 = performance.now();
-  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); else if (onDone) onDone(); };
-  requestAnimationFrame(step);
+  const n = Math.round(Number(to));
+  const v = Number.isFinite(n) ? n : 0;
+  el.textContent = fmt(v);
+  if (el.setAttribute) el.setAttribute("data-score", String(v));
+  if (onDone) onDone();
+  return ms;
 }
 function burst(x, y, n = 18) {
   const cols = ["#E8582A", "#F2C230", "#FFF6E8", "#1F2C7A"];
@@ -589,12 +594,16 @@ function runNext() {
 }
 function catDone(body, score, detail) {
   commitCat(score, detail);
-  const b = h("b", {}, "0"), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(score, session.scores.length - 1));
+  const committed = session.scores[session.scores.length - 1];
+  const b = h("b", { "data-score": String(committed) }, fmt(committed)), quip = h("p", { class: "quip", style: "visibility:hidden" }, catQuip(committed, session.scores.length - 1));
   const doneCap = catCapFor(session.key, session.scores.length - 1);
-  body.append(h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, doneCap === 1000 ? "/ 1,000" : "/ " + fmt(doneCap)), quip)); // quip hidden until the count-up lands so a Perfect 1000 never shows next to a mid-count number
-  countUp(b, score, 900, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
-  categoryFx(score, doneCap, body);
+  const card = h("div", { class: "cat-score" }, h("small", {}, tr("Category score")), b, h("small", {}, doneCap === 1000 ? "/ 1,000" : "/ " + fmt(doneCap)), quip);
+  body.append(card); // quip waits until the committed number is on the card
+  countUp(b, committed, 0, () => { quip.style.visibility = ""; quip.classList.add("quip-in"); });
+  // The last category's own rain/confetti used to sit on the completion modal. The modal uses the day total.
+  // Deflate stays on the score card. A transform on the whole game body would trap a fixed Next button.
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
+  else categoryFx(committed, doneCap, card);
   nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
 }
 
@@ -659,13 +668,16 @@ function globeMap(el, onPick) {
       xh(4.5, "rgba(255,255,255,.9)"); xh(2, "#E8582A"); }
   }
   const req = () => { if (!raf) raf = requestAnimationFrame(draw); };
-  function rotateBy(dx, dy) { // pixels → degrees, slower when zoomed in
+  function rotateBy(dx, dy, pointer) { // pixels → degrees, slower when zoomed in
     // Nov 1: was 90/scale (~0.6°/px on phones + inertia → 100°+ per short drag / pole flips). Now ~0.25°/px,
     // per-event step capped, latitude tilt clamped to ±70° so the globe never flips over a pole.
     // Nov 3b: 0.45°/px at default zoom on every screen (400px ≈ 180°). No per-event cap: coarse mouse events
     // (100px+ each) were being clipped to 20°, so a 400px drag only turned ~20-40°. Tilt stays clamped to ±70°.
     // nov3e: 0.45°/px horiz, 0.3°/px vert (400px ≈ 180°). clientX deltas are already screen px (the globe is never CSS-zoomed).
-    const r = proj.rotate(), ddx = dx * 0.45 / k, ddy = dy * 0.3 / k; // strictly per event, no inertia
+    // Touch is a third of that, still divided by zoom, so one finger drag is not a 60–90° spin.
+    const touch = pointer === "touch" || pointer === "pen";
+    const hx = touch ? 0.15 : 0.45, hy = touch ? 0.1 : 0.3;
+    const r = proj.rotate(), ddx = dx * hx / k, ddy = dy * hy / k; // strictly per event, no inertia
     proj.rotate([r[0] + ddx, Math.max(-70, Math.min(70, r[1] - ddy)), 0]); req();
   }
   function zoomBy(f, ax, ay) { // optional anchor (canvas px) stays under the finger/cursor
@@ -692,7 +704,7 @@ function globeMap(el, onPick) {
     if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > TAP_PX) moved = true;
     if (!moved) return;
     const dx = e.clientX - last[0], dy = e.clientY - last[1], now = performance.now(), dt = Math.max(8, now - lastT);
-    touched = true; rotateBy(dx, dy); last = [e.clientX, e.clientY]; lastT = now;
+    touched = true; rotateBy(dx, dy, e.pointerType); last = [e.clientX, e.clientY]; lastT = now;
   });
   const end = e => {
     if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId);
@@ -2303,7 +2315,7 @@ function g1Axes(mode) {
   const label = (mode === "total" ? tr("Score range") + ", " + tr("Number of completed games") : tr("Category") + ", " + tr("Score")) + ". " + tr("No scores are plotted while collection is off.");
   return svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, class: "g1-axes", role: "img", "aria-label": label }, nodes);
 }
-function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=lb5" }, tr("Privacy"))); }
+function g1Privacy() { return h("p", { class: "g-foot" }, h("a", { class: "g1-privacy", href: "privacy.html?v=sb2119" }, tr("Privacy"))); }
 function g1Date(key) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(key || "")) return "";
   const [y, m, d] = key.split("-").map(Number);
@@ -2384,12 +2396,17 @@ function g1OnSection() {
   let mode = "total";
   let cat = 0;
   let snap = null;
+  let lastSave = null;
+  let retryN = 0;
+  let retryTimer = null;
   const section = h("section", { class: "g1-card", id: "results-g1", "data-g1-state": skipped ? "practice" : "pending", "data-collection": skipped ? "skipped" : "on", "data-g1-day": pinned, "aria-labelledby": "g1-title" });
   const title = tr("Today's Competition");
   const dateLine = practice || preview ? tr("Practice run · not part of the daily field") : (pinned ? g1Date(pinned) : "");
   const totalBtn = h("button", { type: "button", "data-g1-view": "total", "aria-pressed": "true" }, tr("Total Score"));
   const catBtn = h("button", { type: "button", "data-g1-view": "category", "aria-pressed": "false" }, tr("By Category"));
   const status = h("p", { class: "g1-quiet" });
+  const retryBtn = h("button", { type: "button", class: "btn g1-retry" }, tr("Retry comparison"));
+  retryBtn.hidden = true;
   const strip = h("div", { class: "g1-strip" });
   const picker = h("select", { id: "g1-cat", class: "g1-cat-pick", "aria-label": tr("Category") });
   catsFor(session && session.key).forEach((c, i) => picker.append(h("option", { value: String(i) }, c.name)));
@@ -2404,9 +2421,12 @@ function g1OnSection() {
     section.setAttribute("data-g1-cat", mode === "category" ? String(cat) : "");
     picker.hidden = mode !== "category";
     const youScores = sessionScoresValid() ? session.scores.slice(0, 5) : null;
+    const view = window.FieldCompare && FieldCompare.saveView ? FieldCompare.saveView(lastSave, snap) : { saved: false, retry: false };
+    const saved = !skipped && view.saved;
     const ready = !skipped && snap && snap.state === "ready" && youScores;
-    section.setAttribute("data-g1-state", skipped ? "practice" : snap ? (ready ? "ready" : "quiet") : "pending");
-    section.setAttribute("data-g1-reason", snap && snap.reason ? snap.reason : "");
+    section.setAttribute("data-g1-save", saved ? "saved" : "");
+    section.setAttribute("data-g1-state", skipped ? "practice" : ready ? "ready" : saved ? "saved" : snap ? "quiet" : "pending");
+    section.setAttribute("data-g1-reason", ready ? "ok" : (snap && snap.reason ? snap.reason : ""));
     while (strip.firstChild) strip.removeChild(strip.firstChild);
     while (plot.firstChild) plot.removeChild(plot.firstChild);
     while (legend.firstChild) legend.removeChild(legend.firstChild);
@@ -2414,9 +2434,14 @@ function g1OnSection() {
     status.textContent = "";
     note.textContent = "";
     if (!ready) {
-      if (!skipped) status.textContent = snap ? tr("No other results yet") : (window.FieldCompare && session ? tr("Loading…") : tr("No other results yet"));
+      if (!skipped && saved) { status.textContent = tr("Saved"); retryBtn.hidden = false; }
+      else {
+        retryBtn.hidden = true;
+        if (!skipped) status.textContent = snap ? tr("No other results yet") : (window.FieldCompare && session ? tr("Loading…") : tr("No other results yet"));
+      }
       return;
     }
+    retryBtn.hidden = true;
     const total = youScores.reduce((a, b) => a + b, 0);
     const you = mode === "total" ? total : youScores[cat];
     const avg = mode === "total" ? snap.restAverage : snap.restCategoryAverage[cat];
@@ -2469,20 +2494,40 @@ function g1OnSection() {
   section.append(
     h("div", { class: "g1-head" }, h("div", {}, h("h2", { id: "g1-title" }, title), dateLine ? h("p", { class: "g-sub" }, dateLine) : null)),
     h("div", { class: "g1-toggle", role: "radiogroup", "aria-label": tr("Competition view") }, totalBtn, catBtn),
-    picker, status, strip, plot, legend, foot, note, g1Privacy());
+    picker, status, retryBtn, strip, plot, legend, foot, note, g1Privacy());
   paint();
   if (!skipped && window.FieldCompare && session) {
     let stop = null;
+    const scheduleQuietRetry = () => {
+      if (retryTimer || retryN >= 4 || !section.isConnected) return;
+      const wait = [1500, 4000, 9000, 15000][retryN] || 15000;
+      retryN += 1;
+      retryTimer = setTimeout(() => { retryTimer = null; if (section.isConnected) readDay(); }, wait);
+    };
     const apply = result => {
-      if (!section.isConnected) { if (stop) stop(); return; }
+      if (!section.isConnected) { if (stop) stop(); if (retryTimer) clearTimeout(retryTimer); return; }
       snap = result && result.state === "ready" ? result : { state: "quiet", reason: (result && result.reason) || "network" };
       paint();
+      const view = FieldCompare.saveView ? FieldCompare.saveView(lastSave, snap) : { saved: false, retry: false };
+      if (view.saved && view.retry) scheduleQuietRetry();
+      else if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
     };
+    const readDay = () => window.FieldCompare.dayFor(session).then(result => apply(result)).catch(() => apply(null));
     const load = fromWatch => {
       if (fromWatch && !section.isConnected) { if (stop) stop(); return; }
-      const job = window.FieldCompare.backfillToday ? window.FieldCompare.backfillToday(session, clock) : Promise.resolve();
-      Promise.resolve(job).then(() => { if (!section.isConnected) { if (stop) stop(); return null; } return window.FieldCompare.dayFor(session); }).then(result => apply(result)).catch(() => apply(null));
+      const job = window.FieldCompare.backfillToday ? window.FieldCompare.backfillToday(session, clock) : Promise.resolve(null);
+      Promise.resolve(job).then(saved => {
+        if (!section.isConnected) { if (stop) stop(); return null; }
+        if (saved && saved.ok) { lastSave = saved; retryN = 0; paint(); }
+        else if (!lastSave) lastSave = saved;
+        return readDay();
+      }).catch(() => apply(null));
     };
+    retryBtn.addEventListener("click", () => {
+      retryN = 0;
+      if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+      readDay();
+    });
     if (window.FieldCompare.watch) stop = window.FieldCompare.watch(() => load(true));
     load(false);
   }
@@ -2722,10 +2767,23 @@ function softRain(hostCard) {
   document.body.append(layer);
   setTimeout(() => { layer.remove(); document.body.classList.remove("fx-low-rain"); hostCard?.classList.remove("fx-deflate"); }, 2800);
 }
-function endFx(tot, host, card) {
-  const cap = dayCap(session && session.key);
+function runFxKind(tot, key) {
+  const cap = dayCap(key || (session && session.key));
   const s = cap === 5000 ? tot : tot / cap * 5000;
-  if (s >= FX_HIGH_MIN) confetti(host); else if (s <= FX_LOW_MAX) softRain(card);
+  if (s >= FX_HIGH_MIN) return "confetti";
+  if (s <= FX_LOW_MAX) return "rain";
+  return "none";
+}
+function clearRunFx() {
+  document.querySelectorAll(".rain-layer, .confetti-canvas").forEach(n => n.remove());
+  document.body.classList.remove("fx-low-rain");
+  document.querySelectorAll(".fx-deflate").forEach(n => n.classList.remove("fx-deflate"));
+}
+function endFx(tot, host, card) {
+  const kind = runFxKind(tot);
+  const node = card || host;
+  if (node && node.setAttribute) node.setAttribute("data-fx", kind);
+  if (kind === "confetti") confetti(host); else if (kind === "rain") softRain(card);
 }
 function categoryFxKind(score, cap) {
   const day = scaledThousand(score, cap) / 1000 * 5000;
@@ -2781,7 +2839,7 @@ function resultsPopup() {
   if ($(".result-modal")) return;
   countStats();
   const tot = session.scores.reduce((a, b) => a + b, 0);
-  const num = h("b", { class: "result-modal__score" }, "0");
+  const num = h("b", { class: "result-modal__score", "data-score": String(tot) }, fmt(tot));
   const close = () => { m.remove(); document.removeEventListener("keydown", esc); };
   const esc = e => { if (e.key === "Escape") close(); };
   const shareBtn = h("button", { class: "btn primary big result-modal__share", "data-action": "share-results", onclick: () => doShare(shareBtn) }, tr("📤 Share result"));
@@ -2794,7 +2852,11 @@ function resultsPopup() {
       shareBtn,
       h("button", { class: "btn result-modal__full", "data-action": "see-results", onclick: () => { close(); results(); } }, tr("See results"))));
   document.addEventListener("keydown", esc);
-  document.body.append(m); countUp(num, tot, 1200);
+  document.body.append(m);
+  clearRunFx();
+  countUp(num, tot, 0);
+  m.setAttribute("data-fx", runFxKind(tot));
+  endFx(tot, m, m.querySelector(".result-modal__card"));
 }
 function results() {
   const tot = session.scores.reduce((a, b) => a + b, 0);
@@ -2808,7 +2870,7 @@ function results() {
   const foot = resultsNickFoot();
   app.append(
     h("div", { class: "hero small" }, h("div", { class: "logo" }, "DAILY", h("span", {}, "DOSE")), h("p", { class: "tag" }, session.practice ? tr("Practice run complete") : tr("Today's Clash complete"))),
-    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum" }, "0"), h("small", {}, "/ " + dayTotalLabel(session.key)), h("p", { class: "quip" }, snarkLine(tot))),
+    h("div", { class: "final" }, h("small", {}, tr("Final score")), h("b", { id: "finalnum", "data-score": String(tot) }, fmt(tot)), h("small", {}, "/ " + dayTotalLabel(session.key)), h("p", { class: "quip" }, snarkLine(tot))),
     bcGraphs(),
     h("pre", { class: "share" }, share),
     h("div", { class: "row center" },
@@ -2821,8 +2883,9 @@ function results() {
       if (node && line) node.textContent = shareText(line);
     }).catch(() => {});
   }
-  countUp($("#finalnum"), tot, 1600);
-  setTimeout(() => { if ($("#finalnum")) endFx(tot, null, $(".final")); }, 1600); // full-viewport FX (was burst() around #finalnum)
+  countUp($("#finalnum"), tot, 0);
+  clearRunFx();
+  if ($("#finalnum")) endFx(tot, null, $(".final"));
 }
 
 document.addEventListener("click", e => { if (e.target.closest(".brand")) { if (!session || session.inProgress == null || confirm(tr("Leave this game? Progress in the current category is lost."))) home(); } });
@@ -2949,6 +3012,16 @@ if (/[?&]dgtest\b/.test(location.search)) var DGTest = window.DGTest = Object.fr
   },
   thinkFast(day) { if (Array.isArray(day)) { session = newSession(true); session.set = { ...session.set, thinkFast: day }; session.scores = [0, 0, 0, 0]; return runNext(); } DGTest.at(day, 4); },
   cap(key, index) { return catCapFor(key, index); },
+  runFx(total, key) { return runFxKind(total, key); },
+  categoryCard(score, detail) {
+    session = { key: "2026-11-26", practice: true, counted: true, scores: [700, 1000], details: ["304/396", "1000"], day: dayOfKey("2026-11-26") };
+    session.set = getDailySet(session.key);
+    session.inProgress = 2;
+    session.partial = 0;
+    const body = screen("🏆 " + tr("MVP"), tr("Question 3 of 3"));
+    catDone(body, score, detail || "250/350/400");
+    return session.scores[session.scores.length - 1];
+  },
   grade(score, key, index) {
     const cap = catCapFor(key, index);
     const s = scaledThousand(score, cap);

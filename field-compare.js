@@ -192,16 +192,12 @@
     return tokenP;
   }
 
-  let windowStart = 0;
   function deadlineMs() {
     const n = Number(cfg().deadlineMs);
     return Number.isFinite(n) && n > 0 ? n : 8000;
   }
-  function sharedStart() {
-    const now = Date.now();
-    if (!windowStart || now - windowStart > deadlineMs() + 250) windowStart = now;
-    return windowStart;
-  }
+  // start, finish, and day each get this full budget. One shared window used to
+  // expire during the save, so the day read returned "network" without a GET.
   function within(started, work) {
     const left = Math.max(0, deadlineMs() - (Date.now() - started));
     if (left === 0) return Promise.resolve(null);
@@ -210,7 +206,7 @@
     return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
   }
   async function call(op, session, scores) {
-    const started = sharedStart();
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
@@ -265,7 +261,9 @@
     if (sent.has(mark)) return;
     sent.add(mark);
     const prev = starts.get(session.key) || Promise.resolve();
-    prev.then(() => call("finish", session, scores)).catch(() => {});
+    prev.then(() => rawCall("finish", session, scores)).then(result => {
+      if (result && (result.ok || result.error === "player_day_exists")) markPosted(session.key);
+    }).catch(() => {});
   }
 
   function dayFor(session) {
@@ -285,8 +283,22 @@
   function metaWrite(o) {
     try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
   }
+  function markPosted(day) {
+    if (!validDay(day)) return;
+    const meta = metaAll();
+    const prev = meta[day] && typeof meta[day] === "object" ? meta[day] : {};
+    meta[day] = { runId: runIds.get(day) || prev.runId || null, posted: true };
+    metaWrite(meta);
+  }
+  function saveView(saveResult, dayResult) {
+    const saved = !!(saveResult && saveResult.ok === true);
+    const ready = !!(dayResult && dayResult.state === "ready");
+    if (ready) return { saved: saved, state: "ready", reason: "ok", retry: false };
+    if (saved) return { saved: true, state: "saved", reason: (dayResult && dayResult.reason) || "network", retry: true };
+    return { saved: false, state: "quiet", reason: (dayResult && dayResult.reason) || (saveResult && saveResult.reason) || "network", retry: false };
+  }
   async function rawCall(op, session, scores) {
-    const started = sharedStart();
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
@@ -363,6 +375,7 @@
     onFinish: onFinish,
     dayFor: dayFor,
     backfillToday: backfillToday,
+    saveView: saveView,
     watch: watch,
     interpret: interpret,
     percentile: percentile,
