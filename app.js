@@ -430,32 +430,24 @@ function paintTyped(input, ok) {
   clearTyped(input);
   input.classList.add(ok ? "right" : "wrong");
   input.setAttribute("aria-invalid", ok ? "false" : "true");
-  // A plain mark, not a control: role=img so it is not announced as a button.
-  input.insertAdjacentElement("afterend", h("span", {
-    class: "ans-mark " + (ok ? "good" : "bad"),
-    role: "img",
-    "aria-label": ok ? tr("Correct") : tr("Wrong answer")
-  }, ok ? "✓" : "✗"));
+  // The mark lives inside the input's own box, never over a unit label beside it.
+  // aria-hidden: the banner is what screen readers announce.
+  let box = input.parentElement;
+  if (!box || !box.classList.contains("ans-field")) {
+    box = h("span", { class: "ans-field" });
+    input.replaceWith(box);
+    box.append(input);
+  }
+  box.append(h("span", { class: "ans-mark " + (ok ? "good" : "bad"), "aria-hidden": "true" }, ok ? "✓" : "✗"));
 }
-// A calendar year is the number itself ("2016", not "2016 year"). Other units pluralize with the count.
-function answerAmount(formatted, n, unit) {
+// Show the item's own unit text. Do not invent a plural ("feet" stays "feet").
+// A calendar year is just the number in every language ("2016", not "2016 year" or "2016 años").
+function answerAmount(formatted, unit) {
   const num = String(formatted);
   if (unit == null || !String(unit).trim()) return num;
   const raw = String(unit).trim();
-  if (/^years?$/i.test(raw)) return num;
-  const abs = Math.abs(Number(n));
-  const one = abs === 1;
-  let word = raw;
-  if (one) {
-    if (/ies$/i.test(word) && word.length > 3) word = word.slice(0, -3) + "y";
-    else if (/beans$/i.test(word)) word = word.replace(/beans$/i, "bean");
-    else if (/s$/i.test(word) && !/ss$/i.test(word)) word = word.slice(0, -1);
-  } else if (!/s$/i.test((word.split(/\s+/).pop() || ""))) {
-    const parts = word.split(/\s+/);
-    parts[parts.length - 1] = parts[parts.length - 1] + "s";
-    word = parts.join(" ");
-  }
-  return num + " " + tr(word);
+  if (/^(years?|años?)$/i.test(raw)) return num;
+  return num + " " + tr(raw);
 }
 // One banner for every locked multiple-choice or typed answer.
 // Scoring, timers, and the 300 ms guard stay with the caller. The banner sits in the
@@ -1855,7 +1847,7 @@ function sliderQuestion(body, q, value, seconds, done) {
     const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, scoreOpts);
     if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + pts); }
     const off = guess == null ? null : Math.abs(guess - q.answer);
-    const shown = answerAmount(String(q.answer), q.answer, q.unit);
+    const shown = answerAmount(String(q.answer), q.unit);
     const pct = guess == null || !q.answer ? null : off / Math.abs(q.answer) * 100;
     const numText = n => Math.abs(n - Math.round(n)) < 1e-6 ? String(Math.round(n)) : String(Math.round(n * 10) / 10);
     let msg;
@@ -2323,10 +2315,10 @@ function guessQuestion(body, q, value, seconds, done, gq) {
   let over = false;
   const yearMode = q.exactYear === true || typeof q.yearBand === "number";
   const yearBand = typeof q.yearBand === "number" && isFinite(q.yearBand) ? Math.max(0, q.yearBand) : 0;
-  const yearUnit = q.unit && /^years?$/i.test(String(q.unit));
-  const input = h("input", { class: "txt", placeholder: yearMode ? tr("Year") : tr("Your best estimate"), inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Your estimate") + (!yearMode && q.unit && !yearUnit ? tr(" in ") + tr(q.unit) : "") });
+  const calendarYear = yearMode || (q.unit && /^(years?|años?)$/i.test(String(q.unit).trim()));
+  const input = h("input", { class: "txt", placeholder: yearMode ? tr("Year") : tr("Your best estimate"), inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Your estimate") + (!calendarYear && q.unit ? tr(" in ") + tr(q.unit) : "") });
   const form = h("form", { class: "answer guess", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } },
-    h("div", { class: "guess-field" }, input, q.unit && !yearUnit ? h("span", { class: "guess-unit" }, tr(q.unit)) : null),
+    h("div", { class: "guess-field" }, input, q.unit && !calendarYear ? h("span", { class: "guess-unit" }, tr(q.unit)) : null),
     h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
   const noteTxt = yearMode
     ? (yearBand > 0 ? tr("Exact year ±{0} = full points · otherwise 0", yearBand) : tr("Exact year only = full points · otherwise 0"))
@@ -2353,13 +2345,13 @@ function guessQuestion(body, q, value, seconds, done, gq) {
         off = !q.answer ? "" : tr(" You were {0}% off.", Math.round(Math.abs(n - q.answer) / Math.abs(q.answer) * 100));
       }
     }
-    const shown = answerAmount(fmtN(q.answer), q.answer, q.unit);
+    const shown = answerAmount(fmtN(q.answer), q.unit);
     const explainNode = () => { if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, q.explain)); };
     if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true, pts: 0 }); explainNode(); done(0); return; }
     if (n === null || (timedOut && pts === 0)) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true, pts: 0 }); explainNode(); done(0); return; }
     if (pts === value) {
       paintTyped(input, true);
-      answerBanner(body, { ok: true, pts, extra: off.trim() ? tr("The answer was: {0}", shown) + off : "" });
+      answerBanner(body, { ok: true, pts, extra: off.trim() ? tr("The answer was: {0}", shown) + "." + off : "" });
       explainNode(); done(pts); return;
     }
     if (pts === 0) {
