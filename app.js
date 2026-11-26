@@ -2905,9 +2905,11 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
-  // 375x667 results only. The order list was clipping its last cities, and Time Warp's Next
-  // button lived inside the results scroller. Let the page scroll instead. 360, 390, and desktop keep the fit pass.
-  if (innerWidth === 375 && innerHeight === 667 && (body.classList.contains("tw-done") || body.querySelector(":scope > .order-reveal"))) {
+  // Short phones: Time Warp scrolls so Lock in and Next stay pinned, and the order list is not clipped.
+  // 375x667 still lets an order-question result scroll. 390 and desktop keep the fit pass.
+  const shortPhone = (innerWidth === 360 && innerHeight === 640) || (innerWidth === 375 && (innerHeight === 548 || innerHeight === 667));
+  const timeWarp = body.classList.contains("tw-done") || body.querySelector(".timeline");
+  if ((shortPhone && timeWarp) || (innerWidth === 375 && innerHeight === 667 && body.querySelector(":scope > .order-reveal"))) {
     body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
     body.classList.remove("fit-scroll");
     body.classList.add("page-scroll");

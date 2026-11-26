@@ -163,7 +163,7 @@
         create = mod && mod.createClient;
       }
       if (typeof create !== "function") throw new Error("sdk");
-      return create(c.url, c.publishableKey, {
+      const made = create(c.url, c.publishableKey, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
@@ -172,6 +172,7 @@
           storage: fieldStorage()
         }
       });
+      return made && typeof made.then === "function" ? await made : made;
     })().catch(err => { clientP = null; throw err; });
     return clientP;
   }
@@ -293,9 +294,12 @@
   function saveView(saveResult, dayResult) {
     const saved = !!(saveResult && saveResult.ok === true);
     const ready = !!(dayResult && dayResult.state === "ready");
+    const reason = (dayResult && dayResult.reason) || (saved ? "" : (saveResult && saveResult.reason)) || "";
     if (ready) return { saved: saved, state: "ready", reason: "ok", retry: false };
-    if (saved) return { saved: true, state: "saved", reason: (dayResult && dayResult.reason) || "network", retry: true };
-    return { saved: false, state: "quiet", reason: (dayResult && dayResult.reason) || (saveResult && saveResult.reason) || "network", retry: false };
+    // Saved + retry is only a failed comparison read. Too few players (below_threshold)
+    // and the other quiet server answers stay "No other results yet", with no re-read.
+    if (saved && reason === "network") return { saved: true, state: "saved", reason: "network", retry: true };
+    return { saved: false, state: "quiet", reason: reason || "network", retry: false };
   }
   async function rawCall(op, session, scores) {
     const started = Date.now();

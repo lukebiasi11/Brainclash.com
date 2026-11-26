@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov26b, i18n at v=nov26b, style.css at v=tf26g, feedback.js at v=tf26f, eagle-eye.js at v=tf26h, leaderboard.js at v=nov26b, drafts.js at v=nov26a, and English and Spanish content at v=nov26a, and icons at v=nov22w.
-// nov26a stays on content.js, content.es.js, and drafts.js. nov26b is the score display, save status, and phone fixes in app.js, i18n.js, and leaderboard.js. eagle-eye.js is tf26h. style.css is tf26g. feedback.js stays tf26f. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e.
+// New HTML must request answers at v=nov17a, app.js at v=nov26c, i18n at v=nov26b, style.css at v=tf26h, feedback.js at v=tf26f, eagle-eye.js at v=tf26i, leaderboard.js at v=nov26c, drafts.js at v=nov26a, and English and Spanish content at v=nov26a, and icons at v=nov22w.
+// nov26a stays on content.js, content.es.js, and drafts.js. i18n.js stays nov26b. nov26c is the follow-up on app.js and leaderboard.js. eagle-eye.js is tf26i. style.css is tf26h. feedback.js stays tf26f. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov26b";
+const APP_V = "nov26c";
 const CONTENT_V = "nov26a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -34,16 +34,16 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=tf26g"], ["i18n", "i18n.js?v=nov26b"], ["eagle", "eagle-eye.js?v=tf26h"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t10"], ["field-config", "field-config.js?v=sb2119"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=nov26b"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
+[["style", "style.css?v=tf26h"], ["i18n", "i18n.js?v=nov26b"], ["eagle", "eagle-eye.js?v=tf26i"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t11"], ["field-config", "field-config.js?v=sb2119b"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=nov26c"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {
   if (!has(list, s) || has(list, "assets/icons.js?v=nov3k")) fail(n, s); else pass(n);
 });
-// feedback.js stays tf26f. eagle-eye.js is tf26h. demo-types stays fmt25e. app.js, i18n.js, and leaderboard.js are nov26b.
+// feedback.js stays tf26f. eagle-eye.js is tf26i. demo-types stays fmt25e. app.js and leaderboard.js are nov26c. i18n.js stays nov26b.
 if (!has(indexSrc, "feedback.js?v=tf26f") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c")) fail("index feedback key"); else pass("index feedback key");
-if (!has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf26h") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
-if (!has(indexSrc, "vendor/supabase.js?v=sb2119")) fail("index supabase bundle"); else pass("index supabase bundle");
+if (!has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf26i") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
+if (indexSrc.some(s => s.indexOf("vendor/supabase.js") === 0 || s.indexOf("vendor/supabase.js?") === 0)) fail("index loads supabase up front"); else pass("index does not load supabase up front");
 
 const OLD = {};
 for (const f of ["app.js", "content.js", "content.es.js", "answers.js"]) OLD[f] = execFileSync("git", ["show", "origin/main:" + f]);

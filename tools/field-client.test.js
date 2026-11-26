@@ -238,7 +238,7 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
   const adminHtml = fs.readFileSync(path.join(root, "admin.html"), "utf8");
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
   ok("admin does not load the field client", !/field-compare|field-config/.test(adminHtml));
-  ok("index loads the field client", indexHtml.includes("field-config.js?v=sb2119") && indexHtml.includes("field-compare.js?v=g1t10") && indexHtml.includes("vendor/supabase.js?v=sb2119"));
+  ok("index loads the field client", indexHtml.includes("field-config.js?v=sb2119b") && indexHtml.includes("field-compare.js?v=g1t11") && !indexHtml.includes("<script src=\"vendor/supabase.js"));
   ok("footer reaches the notice", indexHtml.includes("privacy.html?v=sb2119"));
   ok("rankings line stays off the notice", !notice.includes("Rankings are for fun") && !fs.readFileSync(path.join(root, "privacy.html"), "utf8").includes("Rankings are for fun"));
   const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
@@ -354,20 +354,47 @@ global.fetch = async (url, init) => { hits.push({ url: String(url), method: init
     const again = await retry.dayFor(played);
     t("the day read retries on its own deadline", [again.state, again.restAverage], ["ready", 1500]);
     t("a day failure without a finish is not Saved", retry.saveView({ ok: false, reason: "network" }, missed), { saved: false, state: "quiet", reason: "network", retry: false });
+    t("too few players stays quiet with no retry", retry.saveView({ ok: true }, { state: "quiet", reason: "below_threshold" }), { saved: false, state: "quiet", reason: "below_threshold", retry: false });
+    t("an unresolved threshold does not re-read", retry.saveView({ ok: true }, { state: "quiet", reason: "threshold_unresolved" }), { saved: false, state: "quiet", reason: "threshold_unresolved", retry: false });
   }
   delete global.FIELD_COMPARE.loadSdk;
   delete global.FIELD_COMPARE.deadlineMs;
 
   const vm = require("vm");
-  const iso = { n: 0, supabase: { createClient() { iso.n += 1; return { id: iso.n }; } } };
-  iso.window = iso; iso.globalThis = iso;
-  vm.createContext(iso);
-  vm.runInContext(fs.readFileSync(path.join(root, "field-config.js"), "utf8"), iso);
-  vm.runInContext(fs.readFileSync(path.join(root, "leaderboard-config.js"), "utf8"), iso);
-  const fieldClient = iso.FIELD_COMPARE.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "auth" } });
-  const boardClient = iso.LEADERBOARD.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "other" } });
-  ok("field and leaderboard share one supabase client", fieldClient === boardClient && iso.n === 1);
+  function clientVm(bag) {
+    const iso = {
+      n: 0,
+      bag: bag,
+      calls: [],
+      localStorage: {
+        getItem(k) { return Object.prototype.hasOwnProperty.call(bag, k) ? bag[k] : null; },
+        setItem(k, v) { bag[k] = String(v); },
+        removeItem(k) { delete bag[k]; }
+      },
+      supabase: { createClient(url, key, opts) { iso.n += 1; iso.calls.push(opts); return { id: iso.n, opts: opts }; } }
+    };
+    iso.window = iso; iso.globalThis = iso;
+    vm.createContext(iso);
+    vm.runInContext(fs.readFileSync(path.join(root, "field-config.js"), "utf8"), iso);
+    vm.runInContext(fs.readFileSync(path.join(root, "leaderboard-config.js"), "utf8"), iso);
+    return iso;
+  }
+  const boardSession = JSON.stringify({ access_token: "board-token", refresh_token: "board-refresh", user: { id: "board-uid" } });
+  const fieldSession = JSON.stringify({ access_token: "field-token", refresh_token: "field-refresh", user: { id: "field-uid" } });
+  const both = clientVm({ "sb-board-auth": boardSession, "sb-field-auth": fieldSession });
+  const callerStorage = { getItem() { return "caller"; }, setItem() {}, removeItem() {} };
+  const fieldClient = both.FIELD_COMPARE.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "auth", storage: callerStorage } });
+  const boardClient = both.LEADERBOARD.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "other", storage: callerStorage } });
+  ok("field and leaderboard share one supabase client", fieldClient === boardClient && both.n === 1);
+  ok("an existing leaderboard session keeps its storage key", fieldClient.opts.auth.storageKey === "auth" && fieldClient.opts.auth.storage.getItem("auth") === boardSession && both.bag["sb-board-auth"] === boardSession && both.bag["sb-field-auth"] === fieldSession);
+  const fieldOnly = clientVm({ "sb-field-auth": fieldSession });
+  const fieldKept = fieldOnly.FIELD_COMPARE.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "auth", storage: callerStorage } });
+  ok("a field-only session is reused", fieldKept.opts.auth.storage.getItem("auth") === fieldSession && fieldOnly.bag["sb-field-auth"] === fieldSession);
+  const fresh = clientVm({});
+  const created = fresh.LEADERBOARD.createClient("https://xhgrcbsshhpvmfwzjtmp.supabase.co", "sb_publishable_x", { auth: { storageKey: "auth", storage: callerStorage } });
+  ok("a new player keeps the caller's storage", created.opts.auth.storage === callerStorage);
   ok("configs do not load supabase from jsdelivr", !fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes("jsdelivr") && !fs.readFileSync(path.join(root, "leaderboard-config.js"), "utf8").includes("+esm") && !fs.readFileSync(path.join(root, "leaderboard.js"), "utf8").includes("jsdelivr"));
+  ok("supabase is loaded lazily", fs.readFileSync(path.join(root, "field-config.js"), "utf8").includes('s.src = "vendor/supabase.js?v=sb2119b"') && fs.readFileSync(path.join(root, "credits.html"), "utf8").includes("vendor/supabase.LICENSE"));
   ok("leaderboard prefers createClient", /let create = c\.createClient/.test(fs.readFileSync(path.join(root, "leaderboard.js"), "utf8")));
 
   console.log(bad ? bad + " failures" : "field-client.test.js: all pass");

@@ -700,9 +700,10 @@
         create = mod && mod.createClient;
       }
       if (typeof create !== "function") throw new Error("sdk");
-      return create(c.url, c.publishableKey, {
+      const made = create(c.url, c.publishableKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "auth", storage: fieldStorage() }
       });
+      return made && typeof made.then === "function" ? await made : made;
     })().catch(err => { clientP = null; throw err; });
     return clientP;
   }
