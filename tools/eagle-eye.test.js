@@ -27,7 +27,8 @@ t(EE.trackPick(dbl, 2, 1400) && dbl.picks.join(",") === "6,2", "the second dot c
 t(EE.on("2026-11-26") && EE.DAY === "2026-11-26", "only 2026-11-26 swaps in Cup Shuffle and Track the Dot");
 t(EE.dayPlan("2026-11-26").cups === 375 && EE.dayPlan("2026-11-26").track.join(",") === "250,375" && EE.dayPlan("2026-11-26").cap === 1000 && EE.dayPlan("2026-11-26").dayTotal == null, "11/26 is 375 + 250 + 375 and the day total stays 5,000");
 t(EE.TIERS[2].pts === 375 && EE.TIERS[2].n === 4 && EE.TIERS[2].moves === 14 && EE.TIERS[2].ms === 330 && EE.TRACK[0].pts + EE.TRACK[1].pts === 625, "the two scheduled questions are 4-cup tier 2 (375) and Track the Dot (625)");
-t(EE.TRACK[0].dots === 6 && EE.TRACK[0].targets === 1 && EE.TRACK[0].speed === 140 && EE.TRACK[0].secs === 5, "track round 1 is 6 dots, 1 target, speed 140, 5s");
+t(EE.TRACK[0].dots === 6 && EE.TRACK[0].targets === 1 && EE.TRACK[0].speed === 175 && EE.TRACK[0].secs === 5, "track round 1 is 6 dots, 1 target, speed 175, 5s");
+t(EE.TRACK[1].dots === 7 && EE.TRACK[1].targets === 2 && EE.TRACK[1].speed === 190 && EE.TRACK[1].secs === 5.5, "track round 2 is 7 dots, 2 targets, speed 190, 5.5s");
 t(EE.TIERS[1].pts === 150 && EE.TIERS[3].pts === 350 && !/cupRound\(env, 1/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")) && !/cupRound\(env, 3/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")) && /cupRound\(env, 2/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")), "tiers 1 and 3 stay banked; tier 2 is scheduled");
 t(EE.onEpoch(Math.floor(Date.parse("2026-11-26T00:00:00Z") / 864e5)) === true && EE.onEpoch(Math.floor(Date.parse("2026-11-25T00:00:00Z") / 864e5)) === false, "epoch matches the admin date key");
 const adminDate = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });

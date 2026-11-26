@@ -21,8 +21,8 @@
     3: { n: 5, moves: 18, ms: 260, gap: 30, rot: 0.22, far: 0.16, feints: 2, pts: POINTS[2] }
   };
   const TRACK = [
-    { dots: 6, targets: 1, speed: 140, secs: 5.0, pts: POINTS[3] },
-    { dots: 7, targets: 2, speed: 150, secs: 5.5, pts: POINTS[4] }
+    { dots: 6, targets: 1, speed: 175, secs: 5.0, pts: POINTS[3] },
+    { dots: 7, targets: 2, speed: 190, secs: 5.5, pts: POINTS[4] }
   ];
   // The only place November 26's points live.
   // cups + track is the Brain Teaser cap (375 + 250 + 375 = 1,000). The day total stays 5,000
