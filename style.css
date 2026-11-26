@@ -1328,3 +1328,32 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
 @keyframes ee-pulse{from{stroke-opacity:1;stroke-width:4}to{stroke-opacity:.35;stroke-width:8}}
 .ee-tap{fill:none;stroke:#fff;stroke-width:3;animation:ee-tap .5s ease-out forwards;pointer-events:none}
 @keyframes ee-tap{from{r:6;stroke-opacity:1}to{r:30;stroke-opacity:0}}
+
+
+/* Answer verdict: green/red boxes plus a banner. In the column, above Next, never over the score.
+   Icons and words carry the result; color is extra. Readable down to 360px. */
+.opt.right,.bracket-chip.right,.pair-card.right{background:#D7F5E1;color:#0B4D27;border:3px solid #0E7A3E;box-shadow:none}
+.opt.wrong,.bracket-chip.wrong,.pair-card.wrong{background:#FFD9DE;color:#8A0E22;border:3px solid #B3122E;box-shadow:none}
+.opt .ans-ico,.bracket-chip .ans-ico,.pair-card .ans-ico{font-weight:900;font-size:1.2em;line-height:1;margin-right:6px}
+.txt.right,.txt.right:focus{background:#D7F5E1;color:#0B4D27;border:3px solid #0E7A3E;box-shadow:none}
+.txt.wrong,.txt.wrong:focus{background:#FFD9DE;color:#8A0E22;border:3px solid #B3122E;box-shadow:none}
+.ans-mark{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-width:40px;min-height:40px;padding:0 10px;font-weight:900;font-size:22px;line-height:1;border-radius:10px;border:3px solid #120B2E}
+.ans-mark.good{background:#0E7A3E;color:#fff;border-color:#0B4D27}
+.ans-mark.bad{background:#B3122E;color:#fff;border-color:#6E0B1A}
+.slots.right .slot{background:#D7F5E1;color:#0B4D27;border:3px solid #0E7A3E}
+.slots.wrong .slot{background:#FFD9DE;color:#8A0E22;border:3px solid #B3122E}
+.fb.ans-pop{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:100%;margin:10px 0;padding:12px 14px;border-radius:12px;border:3px solid #120B2E;box-shadow:4px 4px 0 #120B2E;font-weight:800;font-size:18px;line-height:1.3;text-align:center;overflow-wrap:anywhere}
+.fb.ans-pop.good{background:#D7F5E1;color:#0B4D27;border-color:#0E7A3E}
+.fb.ans-pop.bad{background:#FFD9DE;color:#8A0E22;border-color:#B3122E}
+.fb.ans-pop.neutral{background:#FFF6E8;color:#120B2E;border-color:#120B2E}
+.ans-pop .ans-line{display:flex;align-items:center;justify-content:center;gap:8px;max-width:100%}
+.ans-pop .ans-ico{flex:none;font-size:1.25em;line-height:1}
+.ans-pop .ans-was,.ans-pop .ans-extra{display:block;max-width:100%;font-size:16px;font-weight:700;line-height:1.35}
+body.in-game .fb.ans-pop{margin:8px 0;padding:12px 14px;font-size:18px}
+@media (max-width:390px){
+  .fb.ans-pop{font-size:17px;padding:10px 12px}
+  .ans-pop .ans-was,.ans-pop .ans-extra{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .fb.ans-pop,.opt.right,.opt.wrong,.txt.right,.txt.wrong{animation:none!important}
+}

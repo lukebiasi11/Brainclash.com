@@ -394,6 +394,80 @@ function feedback(parent, ok, text) {
   else if (ok === false) flashBody("flash-bad");
   return f;
 }
+// Plain label for a verdict. Strings, {en,es} objects, and flag images (alt) all collapse to text.
+function plainAnswer(value) {
+  if (value == null || value === false) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value).replace(/\s+/g, " ").trim();
+  if (typeof Node !== "undefined" && value instanceof Node) {
+    if (value.nodeType === 3) return (value.textContent || "").replace(/\s+/g, " ").trim();
+    if (value.tagName === "IMG") return plainAnswer(value.getAttribute("alt") || value.getAttribute("aria-label") || "");
+    return [...value.childNodes].map(plainAnswer).join("").replace(/\s+/g, " ").trim();
+  }
+  if (Array.isArray(value)) return value.map(plainAnswer).join("").replace(/\s+/g, " ").trim();
+  if (value && typeof value === "object") return plainAnswer(localizedText(value));
+  return "";
+}
+// Green/red on the chosen multiple-choice control, plus a ✓/✗ that is not color alone.
+function paintChoice(el, ok) {
+  if (!el) return;
+  el.classList.toggle("right", !!ok);
+  el.classList.toggle("wrong", !ok);
+  el.disabled = true;
+  let mark = el.querySelector(":scope > .ans-ico");
+  if (!mark) { mark = h("span", { class: "ans-ico", "aria-hidden": "true" }); el.prepend(mark); }
+  mark.textContent = ok ? "✓" : "✗";
+}
+// Green/red on a typed field, with a ✓/✗ beside it (inputs cannot contain the icon).
+function clearTyped(input) {
+  if (!input) return;
+  input.classList.remove("right", "wrong");
+  input.removeAttribute("aria-invalid");
+  const host = input.parentElement;
+  if (host) host.querySelectorAll(":scope > .ans-mark").forEach(n => n.remove());
+}
+function paintTyped(input, ok) {
+  if (!input) return;
+  clearTyped(input);
+  input.classList.add(ok ? "right" : "wrong");
+  input.setAttribute("aria-invalid", ok ? "false" : "true");
+  input.insertAdjacentElement("afterend", h("span", { class: "ans-mark " + (ok ? "good" : "bad"), "aria-hidden": "true" }, ok ? "✓" : "✗"));
+}
+// One banner for every locked multiple-choice or typed answer.
+// Scoring, timers, and the 300 ms guard stay with the caller. The banner sits in the
+// column above the Next button (never fixed over the score or the action bar).
+// spec: { ok, answer, skipped, timedOut, reveal, extra, quiet }
+function answerBanner(parent, spec) {
+  if (!parent) return null;
+  spec = spec || {};
+  parent.querySelectorAll(":scope > .ans-pop").forEach(n => n.remove());
+  const ok = spec.ok === true;
+  const skipped = !!spec.skipped;
+  const timedOut = !!spec.timedOut && !ok;
+  const answer = spec.answer == null ? "" : String(spec.answer).trim();
+  const showAnswer = spec.reveal !== false && !ok && !!answer;
+  const kind = ok ? "good" : (skipped || timedOut ? "neutral" : "bad");
+  const pop = h("div", { class: "fb ans-pop " + kind, role: "status", "aria-live": "assertive" });
+  const line = h("div", { class: "ans-line" });
+  if (ok) line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✓"), h("strong", {}, tr("Correct!")));
+  else if (skipped) line.append(h("strong", {}, tr("Skipped.")));
+  else if (timedOut) line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✗"), h("strong", {}, tr("Time's up.")));
+  else line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✗"), h("strong", {}, tr("Wrong answer")));
+  pop.append(line);
+  if (showAnswer) pop.append(h("span", { class: "ans-was" }, tr("The answer was: {0}", answer)));
+  if (spec.extra) pop.append(h("span", { class: "ans-extra" }, spec.extra));
+  const bar = parent.querySelector(":scope > .action-bar");
+  if (bar) parent.insertBefore(pop, bar); else parent.append(pop);
+  if (!spec.quiet) {
+    if (ok) { const r = pop.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2); flashBody("flash-good"); }
+    else flashBody("flash-bad");
+  }
+  return pop;
+}
+function afterBanner(parent, node) {
+  const pop = parent.querySelector(":scope > .ans-pop");
+  if (pop) pop.after(node); else parent.append(node);
+  return node;
+}
 // One-shot button: ignores double-clicks and key-repeat.
 // Once an answer is locked, the Next/Continue button appears: freeze every running timer on the
 // screen and remove Skip (applies to every mode, since they all advance through nextBtn/catDone).
@@ -951,9 +1025,13 @@ function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinL
   function choose(i) {
     if (over) return; over = true; timer && timer.stop();
     skipBar.querySelector(".skip-btn")?.remove();
-    [...opts.children].forEach((b, pos) => { const j = order[pos]; b.disabled = true; if (j === answer) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
-    const ok = i === answer;
-    feedback(body, ok, ok ? tr("Correct! +{0}", value) : i === -2 ? "Skipped. +0" : i < 0 ? tr("Time's up. +0") : tr("Not quite. +0"));
+    const skipped = i === -2, timedOut = i < 0 && !skipped, ok = i === answer;
+    [...opts.children].forEach((b, pos) => {
+      const j = order[pos]; b.disabled = true;
+      if (j === answer) paintChoice(b, true);
+      else if (j === i) paintChoice(b, false);
+    });
+    answerBanner(body, { ok, answer: plainAnswer(showText(options[answer])), skipped, timedOut, reveal: !ok });
     done(ok ? value : 0);
   }
 }
@@ -1342,12 +1420,12 @@ function bracketQuestion(body, q, value, seconds, done) {
     const ok = choice === answer;
     [...opts.children].forEach((b, pos) => {
       const i = order[pos]; b.disabled = true;
-      if (i === answer) b.classList.add("right");
-      else if (i === choice) b.classList.add("wrong");
+      if (i === answer) paintChoice(b, true);
+      else if (i === choice) paintChoice(b, false);
     });
-    if (q.explain) body.append(h("p", { class: "muted tf-explain" }, q.explain));
     const pts = ok ? value : 0;
-    feedback(body, ok, skipped ? "Skipped. +0" : timedOut ? "Time's up. +0" : ok ? tr("Correct! +{0}", value) : tr("Not quite. +0"));
+    answerBanner(body, { ok, answer: plainAnswer(showText(teams[answer])), skipped, timedOut, reveal: !ok });
+    if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, q.explain));
     done(pts);
   }
   scheduleFit();
@@ -1548,6 +1626,7 @@ function pairQuestion(body, q, value, seconds, done) {
   function render() {
     const r = rounds[i];
     awaiting = false;
+    body.querySelectorAll(":scope > .ans-pop").forEach(el => el.remove());
     meta.textContent = tr("Round {0} of {1}", i + 1, n);
     note.textContent = "";
     note.className = "pair-note";
@@ -1569,12 +1648,13 @@ function pairQuestion(body, q, value, seconds, done) {
     if (ok) correct++;
     [...cards.children].forEach(b => {
       b.disabled = true;
-      if (b.dataset.side === r.correct) b.classList.add("right");
-      else if (!timedOut && b.dataset.side === side) b.classList.add("wrong");
+      if (b.dataset.side === r.correct) paintChoice(b, true);
+      else if (!timedOut && b.dataset.side === side) paintChoice(b, false);
     });
-    const revealed = pairLabel(r.note) || tr("Answer: {0}", pairLabel(r[r.correct]));
-    note.textContent = timedOut ? tr("Time's up. ") + revealed : (pairLabel(r.note) || (ok ? tr("Correct") : tr("Answer: {0}", pairLabel(r[r.correct]))));
-    note.classList.add(ok ? "good" : "bad");
+    const answerText = pairLabel(r[r.correct]);
+    note.textContent = pairLabel(r.note) || "";
+    note.className = "pair-note" + (note.textContent ? (ok ? " good" : " bad") : "");
+    answerBanner(body, { ok, answer: answerText, timedOut, reveal: !ok });
     scoreNow();
     const last = i >= n - 1;
     const b = h("button", { type: "button", class: "btn primary big" }, last ? tr("See score") : tr("Next round →"));
@@ -1585,6 +1665,7 @@ function pairQuestion(body, q, value, seconds, done) {
     if (over) return;
     over = true;
     stopRoundTimer();
+    body.querySelectorAll(":scope > .ans-pop").forEach(el => el.remove());
     [...cards.querySelectorAll("button")].forEach(b => { b.disabled = true; });
     bar.replaceChildren();
     const pts = window.Answers.pairScore(correct, n, value);
@@ -1648,10 +1729,11 @@ function revealQuestion(body, q, value, seconds, done) {
     next.remove();
     const pts = window.Answers.revealScore(stage, value);
     if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + pts); }
-    const ans = q.answer || "";
-    const msg = timedOut ? tr("Time's up. Answer: {0}. +0", ans) : stage ? tr("Correct on clue {0}. +{1}", stage, pts) : tr("Answer: {0}. +0", ans);
-    feedback(body, pts === value ? true : pts > 0 ? null : false, msg);
-    typeExplain(body, q);
+    const ans = titleCase(q.answer || "");
+    const ok = !timedOut && stage > 0;
+    if (!timedOut) paintTyped(input, ok);
+    answerBanner(body, { ok, answer: ans, timedOut, reveal: !ok });
+    if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, showText(q.explain)));
     done(pts);
   }
   draw();
@@ -1883,11 +1965,16 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
   function submit(v, timedOut, skipped) {
     if (over) return; over = true; timer && timer.stop(); input.disabled = true; form.querySelector("button").remove();
     skipBar.querySelector(".skip-btn")?.remove();
-    if (skipped) { feedback(body, false, tr("Skipped. Answer: {0}. +0", titleCase(display))); done(0); return; }
-    if (timedOut) { feedback(body, false, tr("Time's up. Answer: {0}. +0", titleCase(display))); done(0); return; }
+    const shown = titleCase(display);
+    const note = () => { if (explain) afterBanner(body, h("p", { class: "muted tf-explain" }, explain)); };
+    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true }); note(); done(0); return; }
+    if (timedOut) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true }); note(); done(0); return; }
+    // Aliases and typo tolerance come back as a plain correct from checkAnswer. Same green verdict.
     const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
-    feedback(body, ok, (ok ? tr("Correct! +{0}", value) : tr("Answer: {0}. +0", titleCase(display))) + (explain ? " — " + explain : ""));
+    paintTyped(input, ok);
+    answerBanner(body, { ok, answer: shown, reveal: !ok });
+    note();
     done(ok ? value : 0);
   }
 }
@@ -1909,14 +1996,16 @@ function wordFlip() {
   // Any dictionary word using exactly the same letters also counts (e.g. LISTEN for SILENT).
   const dict = new Set(Object.values(window.ANAGRAM_SETS || {}).flatMap(s => s.valid || []).map(w => w.toUpperCase()));
   const hintEl = h("div", { class: "hint" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), prog = h("div", { class: "prog" });
-  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; built = []; draw(); } }, tr("Clear")), skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
+  const ctrls = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { if (busy) return; clearFlipVerdict(); built.pop(); draw(); } }, tr("↩ Undo")), h("button", { class: "btn", onclick: () => { if (busy) return; clearFlipVerdict(); built = []; draw(); } }, tr("Clear")), skipBtn(() => { if (busy) return; skip(); }, tr("Skip →")));
   const results = [];
   // Skipped words go to the back of the queue and come back while time remains.
   let queue = list.slice(0, 6).map((_, k) => k), cur = 0;
   body.append(prog, hintEl, slots, tiles, ctrls, h("p", { class: "skip-note" }, tr("Skipped words come back at the end if time remains.")));
   let letters = [];
   const val = k => k < 4 ? 150 : 200;
+  const clearFlipVerdict = () => { body.querySelectorAll(":scope > .ans-pop").forEach(n => n.remove()); slots.classList.remove("right", "wrong"); };
   const load = () => {
+    clearFlipVerdict();
     i = queue[0]; const [w] = list[i];
     do letters = shuffle(w.split("").map((c, k) => ({ c, k })), R); while (letters.map(l => l.c).join("") === w);
     built = []; draw();
@@ -1926,28 +2015,29 @@ function wordFlip() {
     prog.textContent = tr("Word {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : "");
     hintEl.innerHTML = ""; hintEl.append(h("span", { class: "badge" }, tr(style)), " ", hint);
     slots.innerHTML = ""; w.split("").forEach((_, k) => slots.append(h("span", { class: "slot" + (built[k] != null ? " on" : "") }, built[k] != null ? letters[built[k]].c : "")));
-    tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { if (busy) return; built.push(k); draw(); check(); } }, l.c)));
+    tiles.innerHTML = ""; letters.forEach((l, k) => tiles.append(h("button", { class: "tile", disabled: built.includes(k), onclick: () => { if (busy) return; clearFlipVerdict(); built.push(k); draw(); check(); } }, l.c)));
   };
   const check = () => {
     const w = list[i][0];
     if (built.length < w.length) return;
     const guess = built.map(k => letters[k].c).join("");
     busy = true; // block input during the win/shake animation
-    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win"); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win"); busy = false; advance(); }, 350); }
-    else { slots.classList.add("shake"); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
+    // A miss can be retried, so the banner does not give the word away. The clock and the 350/400 ms holds stay as they were.
+    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win", "right"); answerBanner(body, { ok: true, quiet: true }); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win", "right"); busy = false; advance(); }, 350); }
+    else { slots.classList.add("shake", "wrong"); answerBanner(body, { ok: false, reveal: false, quiet: true }); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
   };
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
   const skip = () => { if (over) return; results[i] = false; queue.push(queue.shift()); load(); };
   const end = () => {
-    if (over) return; over = true; timer.stop(); ctrls.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
+    if (over) return; over = true; timer.stop(); clearFlipVerdict(); ctrls.remove(); tiles.remove(); slots.remove(); hintEl.remove(); prog.remove();
     body.append(h("ul", { class: "review" }, list.map(([w], k) => h("li", { class: results[k] ? "ok" : "no" }, (results[k] ? "✓ " : "✗ ") + w))));
     catDone(body, total, "flip");
   };
   onKey = e => {
     if (over) return false;
     if (busy) return /^[a-z]$/i.test(e.key) || e.key === "Backspace" ? undefined : false;
-    if (e.key === "Backspace") { built.pop(); draw(); return; }
-    const keyFold = flipFold(e.key); if (keyFold.length === 1 && keyFold >= "A" && keyFold <= "Z") { const k = letters.findIndex((l, idx) => flipFold(l.c) === keyFold && !built.includes(idx)); if (k >= 0) { built.push(k); draw(); check(); } return; }
+    if (e.key === "Backspace") { clearFlipVerdict(); built.pop(); draw(); return; }
+    const keyFold = flipFold(e.key); if (keyFold.length === 1 && keyFold >= "A" && keyFold <= "Z") { const k = letters.findIndex((l, idx) => flipFold(l.c) === keyFold && !built.includes(idx)); if (k >= 0) { clearFlipVerdict(); built.push(k); draw(); check(); } return; }
     return false;
   };
   body.append(h("p", { class: "kbd-tip" }, "⌨️ Type letters on your keyboard · Backspace to undo"));
@@ -1978,17 +2068,20 @@ function wordBridge() {
   let queue = list.slice(0, 6).map((_, k) => k);
   body.append(prog, puzzle, form, h("p", { class: "skip-note" }, tr("Skipped puzzles come back at the end if time remains.")));
   // Skip sits beside Submit (one row, mid-screen) so it is never under the phone's bottom browser bar.
-  const draw = () => { i = queue[0]; const [a, b] = list[i]; prog.textContent = tr("Puzzle {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, tr("?")), h("span", {}, b)); input.value = ""; input.focus(); };
+  const clearBridgeVerdict = () => { body.querySelectorAll(":scope > .ans-pop").forEach(n => n.remove()); clearTyped(input); };
+  input.addEventListener("input", () => { if (input.classList.contains("wrong")) clearBridgeVerdict(); });
+  const draw = () => { clearBridgeVerdict(); i = queue[0]; const [a, b] = list[i]; prog.textContent = tr("Puzzle {0}/6 · {1} pts · Score {2}/1,000 pts", i + 1, val(i), fmt(total)) + (queue.length < 6 ? tr(" · {0} left", queue.length) : ""); puzzle.innerHTML = ""; puzzle.append(h("span", {}, a), h("span", { class: "gap" }, tr("?")), h("span", {}, b)); input.value = ""; input.focus(); };
   const guess = () => {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
     if (!norm(input.value).replace(/ /g, "")) return;
-    if (bridgeHit(list[i], input.value)) { busy = true; total += val(i); track(total); res[i] = true; puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
-    else { form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
+    // A miss can be retried for points, so the banner does not reveal the missing word.
+    if (bridgeHit(list[i], input.value)) { busy = true; total += val(i); track(total); res[i] = true; paintTyped(input, true); answerBanner(body, { ok: true, quiet: true }); puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
+    else { paintTyped(input, false); answerBanner(body, { ok: false, reveal: false, quiet: true }); form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
   };
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
   const skipB = () => { if (over || busy) return; res[i] = false; queue.push(queue.shift()); draw(); };
   const end = () => {
-    if (over) return; over = true; timer.stop(); form.remove(); puzzle.remove(); prog.remove();
+    if (over) return; over = true; timer.stop(); clearBridgeVerdict(); form.remove(); puzzle.remove(); prog.remove();
     body.append(h("ul", { class: "review" }, list.map((p, k) => { const [a, b] = p, w = p.slice(2).filter(s => typeof s === "string" && s.trim()).join("/"); return h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : "✗"} ${a} ${w} · ${w} ${b}`); })));
     catDone(body, total, "bridge");
   };
@@ -2071,17 +2164,34 @@ function oddOneOut() {
   const promptEl = h("p", { class: "prompt" }, tr("Which one doesn't belong?"));
   body.append(prog, promptEl, opts);
   const oddBar = actionBar(body); oddBar.append(skipBtn(() => pickIt(-1)));
-  let drawnAt = 0;
+  let drawnAt = 0, revealing = false;
   const draw = () => {
     drawnAt = performance.now();
+    revealing = false;
+    body.querySelectorAll(":scope > .ans-pop").forEach(n => n.remove());
+    oddBar.querySelectorAll("button").forEach(b => { b.disabled = false; });
     prog.textContent = tr("Puzzle {0}/8 · {1} · {2} pts · Score {3}/1,000 pts", i + 1, tr(i < 4 ? tr("Medium") : tr("Hard")), val(i), fmt(total));
     promptEl.textContent = showText(list[i].prompt) || tr("Which one doesn't belong?");
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // no carried-over highlight
-    opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", onclick: () => pickIt(k) }, w)); });
+    opts.innerHTML = ""; seededOrder(list[i].words.length, session.key + "|odd|" + list[i].words.join(",")).forEach(k => { const w = list[i].words[k]; opts.append(h("button", { class: "opt", "data-i": String(k), onclick: () => pickIt(k) }, w)); });
   };
-  const pickIt = k => { if (over || performance.now() - drawnAt < 300) return; if (k < 0) { res.push(false); i++; if (i >= 8) end(); else draw(); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } i++; if (i >= 8) end(); else draw(); };
+  // The 60s clock is not paused. The short hold only keeps the green/red boxes and the banner on screen.
+  const showOdd = (picked, ok, skipped) => {
+    revealing = true;
+    const puzzle = list[i];
+    oddBar.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    [...opts.children].forEach(b => {
+      const idx = +b.dataset.i;
+      if (idx === puzzle.odd) paintChoice(b, true);
+      else if (!skipped && idx === picked) paintChoice(b, false);
+      else b.disabled = true;
+    });
+    answerBanner(body, { ok: !!ok && !skipped, answer: puzzle.words[puzzle.odd], skipped, reveal: true, quiet: true });
+    setTimeout(() => { if (!body.isConnected || over) return; i++; if (i >= 8) end(); else draw(); }, 450);
+  };
+  const pickIt = k => { if (over || revealing || performance.now() - drawnAt < 300) return; if (k < 0) { res.push(false); showOdd(null, false, true); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } showOdd(k, ok, false); };
   const end = () => {
-    if (over) return; over = true; timer.stop(); opts.remove(); oddBar.remove(); prog.remove(); body.querySelector(".prompt").remove();
+    if (over) return; over = true; timer.stop(); body.querySelectorAll(":scope > .ans-pop").forEach(n => n.remove()); opts.remove(); oddBar.remove(); prog.remove(); body.querySelector(".prompt").remove();
     body.append(h("ul", { class: "review" }, list.map((p, k) => h("li", { class: res[k] ? "ok" : "no" }, `${res[k] ? "✓" : res[k] === false ? "✗" : "–"} ${p.words.join(" · ")} — ${p.why}`))));
     catDone(body, total, "odd");
   };
@@ -2209,8 +2319,21 @@ function guessQuestion(body, q, value, seconds, done, gq) {
         off = !q.answer ? "" : tr(" You were {0}% off.", Math.round(Math.abs(n - q.answer) / Math.abs(q.answer) * 100));
       }
     }
-    feedback(body, pts === value ? true : pts > 0 ? null : false, tr(skipped ? "Skipped." : n === null ? "Time's up." : pts === value ? "Spot on!" : pts > 0 ? tr("Close!") : tr("Not close.")) +
-      tr(" Answer: {0}.", fmtN(q.answer) + (q.unit ? " " + q.unit : "")) + `${off} +${pts}` + (q.explain ? " — " + q.explain : ""));
+    const shown = fmtN(q.answer) + (q.unit ? " " + q.unit : "");
+    const explainNode = () => { if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, q.explain)); };
+    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true }); explainNode(); done(0); return; }
+    if (n === null) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true }); explainNode(); done(0); return; }
+    if (pts === value) {
+      paintTyped(input, true);
+      answerBanner(body, { ok: true, extra: off.trim() ? tr("The answer was: {0}", shown) + off : "" });
+      explainNode(); done(pts); return;
+    }
+    if (pts === 0) {
+      paintTyped(input, false);
+      answerBanner(body, { ok: false, answer: shown, reveal: true, extra: off.trim() });
+      explainNode(); done(pts); return;
+    }
+    feedback(body, null, tr("Close!") + tr(" Answer: {0}.", shown) + off + " +" + pts + (q.explain ? " — " + q.explain : ""));
     done(pts);
   }
 }
