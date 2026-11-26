@@ -222,9 +222,18 @@
     return new Promise(res => { env.nextBtn(env.actionBar(body), label, res); });
   }
   function bindTap(el, fn) {
-    let fromPointer = false;
-    const onPointer = ev => { fromPointer = true; fn(ev); };
-    const onClick = ev => { if (fromPointer) { fromPointer = false; return; } fn(ev); };
+    // Drop only the click that repeats the same touch inside 300 ms.
+    // A later click, including one from assistive tech, still counts.
+    const pending = [];
+    const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+    const onPointer = ev => { pending.push(now()); fn(ev); };
+    const onClick = ev => {
+      const t = now();
+      const i = pending.findIndex(at => t - at < 300);
+      if (i >= 0) { pending.splice(i, 1); return; }
+      for (let j = pending.length - 1; j >= 0; j--) if (t - pending[j] >= 300) pending.splice(j, 1);
+      fn(ev);
+    };
     el.addEventListener("pointerup", onPointer);
     el.addEventListener("click", onClick);
     return () => { el.removeEventListener("pointerup", onPointer); el.removeEventListener("click", onClick); };
@@ -429,7 +438,14 @@
     picked = await new Promise(res => {
       let done = false;
       const keys = [];
-      const finish = cup => { if (done) return; done = true; off(); keys.forEach(fn => fn()); res(cup); };
+      const finish = cup => {
+        if (done) return;
+        done = true;
+        cups.forEach(c => { c.el.tabIndex = -1; c.el.removeAttribute("role"); if (c.el.blur) c.el.blur(); });
+        off();
+        keys.forEach(fn => fn());
+        res(cup);
+      };
       const off = bindTap(stage, ev => {
         const rc = stage.getBoundingClientRect();
         const x = ev.clientX - rc.left;
@@ -440,7 +456,13 @@
       cups.forEach(c => {
         c.el.setAttribute("role", "button");
         c.el.tabIndex = 0;
-        c.el.setAttribute("aria-label", env.tr("Cup {0} of {1}", String(c.slot + 1), String(R.n)));
+        const cupName = env.tr("Cup {0} of {1}", String(c.slot + 1), String(R.n));
+        c.el.setAttribute("aria-label", cupName);
+        c.el.style.pointerEvents = "auto";
+        const cap = document.createElement("span");
+        cap.className = "sr-only";
+        cap.textContent = cupName;
+        c.el.append(cap);
         const onKey = ev => {
           if (ev.key !== "Enter" && ev.key !== " ") return;
           ev.preventDefault();

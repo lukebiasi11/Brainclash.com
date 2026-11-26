@@ -1283,6 +1283,20 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
+/* Short phones only. A plain max-height also matches a short desktop window (1280x700, 1366x768). */
+@media (max-height: 720px) and (max-width: 600px) and (pointer: coarse) {
+  body.in-game .game-body.tw-done > .btn.primary.big {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    z-index: 40;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  body.in-game .game-body.tw-done { padding-bottom: 112px; }
+}
 
 /* Cup Shuffle and Track the Dot, played inside Think Fast on 2026-11-26. Stage art stays on the navy felt. */
 .ee-status{font-family:var(--display);font-weight:400;font-size:clamp(20px,6vw,28px);text-transform:uppercase;text-align:center;letter-spacing:.03em;min-height:28px;margin:8px 0 0}

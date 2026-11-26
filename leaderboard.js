@@ -295,8 +295,17 @@
 
   let homeRefresh = null;
 
+  let askOpen = null;
   function openAsk(purpose) {
-    return new Promise(resolve => {
+    if (askOpen) return Promise.resolve(false);
+    let resolveAsk;
+    const pending = new Promise(resolve => { resolveAsk = resolve; });
+    askOpen = pending;
+    const resolve = (value) => { if (askOpen === pending) askOpen = null; resolveAsk(value); };
+    openAskBody(purpose, resolve);
+    return pending;
+  }
+  function openAskBody(purpose, resolve) {
       const doc = root.document;
       const opener = doc.activeElement;
       let step = readFlag() === "yes" ? "name" : "age";
@@ -391,7 +400,6 @@
       }
       doc.body.append(host);
       render();
-    });
   }
 
   async function beforeStart(opts) {
@@ -689,17 +697,28 @@
       removeItem(k) { try { if (storage()) storage().removeItem(p + k); } catch (e) {} }
     };
   }
+  function rawStorage() {
+    return {
+      getItem(k) { try { return storage() ? storage().getItem(k) : null; } catch (e) { return null; } },
+      setItem(k, v) { try { if (storage()) storage().setItem(k, String(v)); } catch (e) {} },
+      removeItem(k) { try { if (storage()) storage().removeItem(k); } catch (e) {} }
+    };
+  }
   function clientFor() {
     if (clientP) return clientP;
     clientP = (async () => {
       const c = cfg();
       if (!c.url || !c.publishableKey) throw new Error("config");
-      const mod = await import(c.supabaseJs);
-      const create = mod && mod.createClient;
+      let create = c.createClient;
+      if (typeof create !== "function") {
+        const mod = await import(c.supabaseJs);
+        create = mod && mod.createClient;
+      }
       if (typeof create !== "function") throw new Error("sdk");
-      return create(c.url, c.publishableKey, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "auth", storage: fieldStorage() }
+      const made = create(c.url, c.publishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "sb-board-auth", storage: rawStorage() }
       });
+      return made && typeof made.then === "function" ? await made : made;
     })().catch(err => { clientP = null; throw err; });
     return clientP;
   }

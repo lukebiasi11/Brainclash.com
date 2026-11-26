@@ -137,6 +137,13 @@
       removeItem(k) { try { if (root.localStorage) root.localStorage.removeItem(p + k); } catch (e) {} }
     };
   }
+  function rawStorage() {
+    return {
+      getItem(k) { try { return root.localStorage ? root.localStorage.getItem(k) : null; } catch (e) { return null; } },
+      setItem(k, v) { try { if (root.localStorage) root.localStorage.setItem(k, String(v)); } catch (e) {} },
+      removeItem(k) { try { if (root.localStorage) root.localStorage.removeItem(k); } catch (e) {} }
+    };
+  }
 
   function uuid() {
     try { if (root.crypto && root.crypto.randomUUID) return root.crypto.randomUUID(); } catch (e) {}
@@ -163,15 +170,16 @@
         create = mod && mod.createClient;
       }
       if (typeof create !== "function") throw new Error("sdk");
-      return create(c.url, c.publishableKey, {
+      const made = create(c.url, c.publishableKey, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: "auth",
-          storage: fieldStorage()
+          storageKey: "sb-field-auth",
+          storage: rawStorage()
         }
       });
+      return made && typeof made.then === "function" ? await made : made;
     })().catch(err => { clientP = null; throw err; });
     return clientP;
   }
@@ -192,16 +200,12 @@
     return tokenP;
   }
 
-  let windowStart = 0;
   function deadlineMs() {
     const n = Number(cfg().deadlineMs);
     return Number.isFinite(n) && n > 0 ? n : 8000;
   }
-  function sharedStart() {
-    const now = Date.now();
-    if (!windowStart || now - windowStart > deadlineMs() + 250) windowStart = now;
-    return windowStart;
-  }
+  // start, finish, and day each get this full budget. One shared window used to
+  // expire during the save, so the day read returned "network" without a GET.
   function within(started, work) {
     const left = Math.max(0, deadlineMs() - (Date.now() - started));
     if (left === 0) return Promise.resolve(null);
@@ -210,7 +214,7 @@
     return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
   }
   async function call(op, session, scores) {
-    const started = sharedStart();
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
@@ -265,7 +269,9 @@
     if (sent.has(mark)) return;
     sent.add(mark);
     const prev = starts.get(session.key) || Promise.resolve();
-    prev.then(() => call("finish", session, scores)).catch(() => {});
+    prev.then(() => rawCall("finish", session, scores)).then(result => {
+      if (result && (result.ok || result.error === "player_day_exists")) markPosted(session.key);
+    }).catch(() => {});
   }
 
   function dayFor(session) {
@@ -285,8 +291,25 @@
   function metaWrite(o) {
     try { if (root.localStorage) root.localStorage.setItem("dg-field-meta", JSON.stringify(o)); } catch (e) {}
   }
+  function markPosted(day) {
+    if (!validDay(day)) return;
+    const meta = metaAll();
+    const prev = meta[day] && typeof meta[day] === "object" ? meta[day] : {};
+    meta[day] = { runId: runIds.get(day) || prev.runId || null, posted: true };
+    metaWrite(meta);
+  }
+  function saveView(saveResult, dayResult) {
+    const saved = !!(saveResult && saveResult.ok === true);
+    const ready = !!(dayResult && dayResult.state === "ready");
+    const reason = (dayResult && dayResult.reason) || (saved ? "" : (saveResult && saveResult.reason)) || "";
+    if (ready) return { saved: saved, state: "ready", reason: "ok", retry: false };
+    // Saved + retry is only a failed comparison read. Too few players (below_threshold)
+    // and the other quiet server answers stay "No other results yet", with no re-read.
+    if (saved && reason === "network") return { saved: true, state: "saved", reason: "network", retry: true };
+    return { saved: false, state: "quiet", reason: reason || "network", retry: false };
+  }
   async function rawCall(op, session, scores) {
-    const started = sharedStart();
+    const started = Date.now();
     const timerBox = { id: null };
     try {
       const c = cfg();
@@ -363,6 +386,7 @@
     onFinish: onFinish,
     dayFor: dayFor,
     backfillToday: backfillToday,
+    saveView: saveView,
     watch: watch,
     interpret: interpret,
     percentile: percentile,

@@ -264,6 +264,15 @@ function helpIds() {
   reset();
   day = "2026-11-25";
   bag["bc-board-eligible"] = "yes";
+  const once = Board.beforeStart({});
+  const twice = Board.beforeStart({});
+  t("a double press of Start opens one name dialog", once !== twice && twice instanceof Promise && body.querySelectorAll("[data-board-modal]").length === 1 && (await twice) === false && !!dialog());
+  await click("[data-board-skip]");
+  await once;
+
+  reset();
+  day = "2026-11-25";
+  bag["bc-board-eligible"] = "yes";
   bag["bc-board-name"] = "Luna";
   const escAsk = Board.beforeStart({});
   t("escape starts from the saved name", input() && input().value === "Luna");
