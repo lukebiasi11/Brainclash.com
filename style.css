@@ -1283,8 +1283,8 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
-/* Short phones: pin only the Time Warp results Next button. Ordering stays in normal flow so the fit pass can show every card. */
-@media (max-height: 720px) {
+/* Short phones only. A plain max-height also matches a short desktop window (1280x700, 1366x768). */
+@media (max-height: 720px) and (max-width: 600px) and (pointer: coarse) {
   body.in-game .game-body.tw-done > .btn.primary.big {
     position: fixed;
     left: max(12px, env(safe-area-inset-left));
