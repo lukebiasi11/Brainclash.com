@@ -8,23 +8,8 @@
    LEADERBOARD_PUBLIC is set to on. A real date is shown in English and Spanish. */
 (function (root) {
   "use strict";
-  // One GoTrue client for field-compare and the leaderboard. The UMD build
-  // loads on demand from vendor/supabase.js. Do not import the jsDelivr +esm build.
-  function sessionPresent(storageKey) {
-    try {
-      const raw = root.localStorage && root.localStorage.getItem(storageKey);
-      if (!raw) return false;
-      const o = JSON.parse(raw);
-      return !!(o && typeof o === "object" && (o.access_token || o.refresh_token || (o.user && o.user.id)));
-    } catch (e) { return false; }
-  }
-  function prefixedStorage(prefix) {
-    return {
-      getItem(k) { try { return root.localStorage ? root.localStorage.getItem(prefix + k) : null; } catch (e) { return null; } },
-      setItem(k, v) { try { if (root.localStorage) root.localStorage.setItem(prefix + k, String(v)); } catch (e) {} },
-      removeItem(k) { try { if (root.localStorage) root.localStorage.removeItem(prefix + k); } catch (e) {} }
-    };
-  }
+  // The UMD build loads on demand from vendor/supabase.js. Do not import the jsDelivr +esm build.
+  // Field and the leaderboard each create their own client. Their storage keys stay distinct.
   function loadSupabaseScript() {
     if (root.supabase && typeof root.supabase.createClient === "function") return Promise.resolve(root.supabase);
     if (root.__bcSupabaseLoad) return root.__bcSupabaseLoad;
@@ -42,17 +27,8 @@
   }
   if (!root.BCLoadSupabase) root.BCLoadSupabase = loadSupabaseScript;
   function createClient(url, key, opts) {
-    const id = String(url) + "\n" + String(key);
-    if (root.__bcSupabaseClient && root.__bcSupabaseSig === id) return root.__bcSupabaseClient;
     if (!(root.supabase && typeof root.supabase.createClient === "function")) return loadSupabaseScript().then(() => createClient(url, key, opts));
-    const auth = Object.assign({}, opts && opts.auth);
-    // Keep today's board row on the anon id already stored. A new client on the
-    // field key would sign in again and post a second row for the same day.
-    if (sessionPresent("sb-board-auth")) { auth.storageKey = "auth"; auth.storage = prefixedStorage("sb-board-"); }
-    else if (sessionPresent("sb-field-auth")) { auth.storageKey = "auth"; auth.storage = prefixedStorage("sb-field-"); }
-    root.__bcSupabaseSig = id;
-    root.__bcSupabaseClient = root.supabase.createClient(url, key, Object.assign({}, opts, { auth: auth }));
-    return root.__bcSupabaseClient;
+    return root.supabase.createClient(url, key, opts);
   }
   root.FIELD_COMPARE_ENABLED = true;
   root.FIELD_COMPARE = {

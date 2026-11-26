@@ -1283,31 +1283,19 @@ body.in-game .game-body>[data-kbfit]>*{height:100%;max-height:100%;width:auto}
   body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
   body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
 }
-/* Short phones: pin Time Warp's Lock in and Next, and leave room under the score card. */
-@media (width: 360px) and (height: 640px),
-       (width: 375px) and (height: 548px),
-       (width: 375px) and (height: 667px) {
-  body.in-game:has(.page-scroll) {
-    height: auto;
-    min-height: var(--app-h);
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  body.in-game:has(.page-scroll) main { overflow: visible; flex: none; height: auto; }
-  body.in-game .game-body.page-scroll { overflow: visible !important; flex: none; height: auto; }
-  body.in-game .game-body:has(.timeline) > .action-bar,
+/* Short phones: pin only the Time Warp results Next button. Ordering stays in normal flow so the fit pass can show every card. */
+@media (max-height: 720px) {
   body.in-game .game-body.tw-done > .btn.primary.big {
     position: fixed;
-    left: 12px;
-    right: 12px;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
     bottom: max(8px, env(safe-area-inset-bottom));
     z-index: 40;
     width: auto;
     margin: 0;
     box-sizing: border-box;
   }
-  body.in-game .game-body:has(.timeline),
-  body.in-game .game-body.tw-done { padding-bottom: 128px; }
+  body.in-game .game-body.tw-done { padding-bottom: 112px; }
 }
 
 /* Cup Shuffle and Track the Dot, played inside Think Fast on 2026-11-26. Stage art stays on the navy felt. */

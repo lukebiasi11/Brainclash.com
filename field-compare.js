@@ -137,6 +137,13 @@
       removeItem(k) { try { if (root.localStorage) root.localStorage.removeItem(p + k); } catch (e) {} }
     };
   }
+  function rawStorage() {
+    return {
+      getItem(k) { try { return root.localStorage ? root.localStorage.getItem(k) : null; } catch (e) { return null; } },
+      setItem(k, v) { try { if (root.localStorage) root.localStorage.setItem(k, String(v)); } catch (e) {} },
+      removeItem(k) { try { if (root.localStorage) root.localStorage.removeItem(k); } catch (e) {} }
+    };
+  }
 
   function uuid() {
     try { if (root.crypto && root.crypto.randomUUID) return root.crypto.randomUUID(); } catch (e) {}
@@ -168,8 +175,8 @@
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: "auth",
-          storage: fieldStorage()
+          storageKey: "sb-field-auth",
+          storage: rawStorage()
         }
       });
       return made && typeof made.then === "function" ? await made : made;

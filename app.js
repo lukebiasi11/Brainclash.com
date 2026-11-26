@@ -487,11 +487,15 @@ function home() {
           h("p", { class: "muted", id: "countdown" }),
           myStats([scoreGraph(s.scores, day)]))
       : h("div", { class: "cta" }, h("button", { class: "btn primary big" + (s && s.scores.length ? " long" : ""), onclick: () => {
+          const btn = document.querySelector(".cta .btn.primary");
+          if (btn && btn.dataset.starting === "1") return;
+          if (btn) btn.dataset.starting = "1";
+          const release = () => { if (btn) delete btn.dataset.starting; };
           const go = () => { session = newSession(false); runNext(); };
           if (!window.DailyBoard) return go();
           const gate = window.DailyBoard.beforeStart({ started: !!(s && s.scores.length) });
-          if (gate && typeof gate.then === "function") { gate.then(ok => { if (ok !== false) go(); }); return; }
-          if (gate === false) return;
+          if (gate && typeof gate.then === "function") { gate.then(ok => { if (ok !== false) go(); else release(); }); return; }
+          if (gate === false) { release(); return; }
           go();
         } }, s && s.scores.length ? tr("Continue the Clash") : tr("Start the Clash")),
           h("p", { class: "muted", id: "countdown" })),
@@ -605,6 +609,7 @@ function catDone(body, score, detail) {
   if (session.scores.length >= 5) { setTimeout(() => { if (body.isConnected && session && session.scores.length >= 5) resultsPopup(); }, 500); }
   else categoryFx(committed, doneCap, card);
   nextBtn(body, session.scores.length >= 5 ? tr("See final results") : tr("Next: {0} →", catsFor(session.key)[session.scores.length].name), runNext);
+  setTimeout(scheduleFit, 500);
 }
 
 // ---------- maps ----------
@@ -2905,11 +2910,8 @@ function scheduleFit() { if (!fitQueued) { fitQueued = true; requestAnimationFra
 function fitScreen() {
   const body = $(".game-body");
   if (!body || !document.body.classList.contains("in-game") || document.body.classList.contains("is-dragging")) return;
-  // Short phones: Time Warp scrolls so Lock in and Next stay pinned, and the order list is not clipped.
-  // 375x667 still lets an order-question result scroll. 390 and desktop keep the fit pass.
-  const shortPhone = (innerWidth === 360 && innerHeight === 640) || (innerWidth === 375 && (innerHeight === 548 || innerHeight === 667));
-  const timeWarp = body.classList.contains("tw-done") || body.querySelector(".timeline");
-  if ((shortPhone && timeWarp) || (innerWidth === 375 && innerHeight === 667 && body.querySelector(":scope > .order-reveal"))) {
+  // 375x667 order results only. Time Warp ordering keeps the fit pass, same as main, so all five cards stay tappable.
+  if (innerWidth === 375 && innerHeight === 667 && body.querySelector(":scope > .order-reveal")) {
     body.querySelectorAll("[data-fitz]").forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
     body.classList.remove("fit-scroll");
     body.classList.add("page-scroll");
@@ -2930,18 +2932,26 @@ function fitScreen() {
     return;
   }
   body.querySelectorAll("[data-kbfit]").forEach(a => { a.style.maxHeight = a.style.height = ""; delete a.dataset.kbfit; });
-  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap"));
+  const twDone = body.classList.contains("tw-done");
+  const kids = [...body.children].filter(k => !k.classList.contains("lmap") && !k.classList.contains("tf-svg") && !k.classList.contains("action-bar") && !k.classList.contains("order-wrap") && !k.classList.contains("match-board") && !k.classList.contains("bracket-opts") && !k.classList.contains("review") && !k.classList.contains("pair-cards") && !k.classList.contains("nudge-row") && !k.classList.contains("slider-range") && !k.classList.contains("slider-type-row") && !k.classList.contains("reveal-clues") && !k.matches(".btn.big") && !k.matches("form.answer") && !k.querySelector(".lmap") && !(twDone && k.classList.contains("cat-score")));
   kids.forEach(k => { k.style.zoom = ""; delete k.dataset.fitz; });
   body.classList.toggle("fit-scroll", innerWidth >= 1000); // wide desktop: scroll the card rather than zoom text to unreadable
   // nov2a: prompt text must stay >= 16px after zoom; if that still overflows, the card scrolls (fit-scroll) instead.
+  // Time Warp results may shrink the timeline so the score card clears the pinned Next button.
   const pr = body.querySelector(".prompt"), pfs = pr ? parseFloat(getComputedStyle(pr).fontSize) || 16 : 16;
-  const zFloor = Math.max(innerWidth >= 1000 ? 0.85 : 0.45, Math.min(1, 16.2 / pfs));
-  for (let i = 0; i < 4; i++) {
+  const zFloor = twDone ? 0.55 : Math.max(innerWidth >= 1000 ? 0.85 : 0.45, Math.min(1, 16.2 / pfs));
+  for (let i = 0; i < 6; i++) {
     const over = document.scrollingElement.scrollHeight - innerHeight, bodyOver = body.scrollHeight - body.clientHeight;
     // body is overflow:hidden, so also check that the last action button really ends inside the viewport (sub-pixel rounding)
     const act = [...document.querySelectorAll("#app .action-bar .btn, #app .game-body > .btn.big")].pop();
     const btnOver = act ? Math.ceil(act.getBoundingClientRect().bottom - (vv ? vv.height : innerHeight)) : 0;
-    const excess = Math.max(over, bodyOver, btnOver);
+    let cover = 0;
+    if (twDone) {
+      const card = body.querySelector(".cat-score");
+      const next = body.querySelector(":scope > .btn.primary.big");
+      if (card && next) cover = Math.ceil(card.getBoundingClientRect().bottom - (next.getBoundingClientRect().top - 12));
+    }
+    const excess = Math.max(over, bodyOver, btnOver, cover);
     if (excess <= 0) break;
     const cur = parseFloat(kids[0]?.style.zoom || 1);
     const h = kids.reduce((a, k) => a + k.getBoundingClientRect().height, 0);
