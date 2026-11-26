@@ -430,12 +430,37 @@ function paintTyped(input, ok) {
   clearTyped(input);
   input.classList.add(ok ? "right" : "wrong");
   input.setAttribute("aria-invalid", ok ? "false" : "true");
-  input.insertAdjacentElement("afterend", h("span", { class: "ans-mark " + (ok ? "good" : "bad"), "aria-hidden": "true" }, ok ? "✓" : "✗"));
+  // A plain mark, not a control: role=img so it is not announced as a button.
+  input.insertAdjacentElement("afterend", h("span", {
+    class: "ans-mark " + (ok ? "good" : "bad"),
+    role: "img",
+    "aria-label": ok ? tr("Correct") : tr("Wrong answer")
+  }, ok ? "✓" : "✗"));
+}
+// A calendar year is the number itself ("2016", not "2016 year"). Other units pluralize with the count.
+function answerAmount(formatted, n, unit) {
+  const num = String(formatted);
+  if (unit == null || !String(unit).trim()) return num;
+  const raw = String(unit).trim();
+  if (/^years?$/i.test(raw)) return num;
+  const abs = Math.abs(Number(n));
+  const one = abs === 1;
+  let word = raw;
+  if (one) {
+    if (/ies$/i.test(word) && word.length > 3) word = word.slice(0, -3) + "y";
+    else if (/beans$/i.test(word)) word = word.replace(/beans$/i, "bean");
+    else if (/s$/i.test(word) && !/ss$/i.test(word)) word = word.slice(0, -1);
+  } else if (!/s$/i.test((word.split(/\s+/).pop() || ""))) {
+    const parts = word.split(/\s+/);
+    parts[parts.length - 1] = parts[parts.length - 1] + "s";
+    word = parts.join(" ");
+  }
+  return num + " " + tr(word);
 }
 // One banner for every locked multiple-choice or typed answer.
 // Scoring, timers, and the 300 ms guard stay with the caller. The banner sits in the
 // column above the Next button (never fixed over the score or the action bar).
-// spec: { ok, answer, skipped, timedOut, reveal, extra, quiet }
+// spec: { ok, answer, skipped, timedOut, reveal, extra, quiet, pts, clue }
 function answerBanner(parent, spec) {
   if (!parent) return null;
   spec = spec || {};
@@ -445,21 +470,25 @@ function answerBanner(parent, spec) {
   const timedOut = !!spec.timedOut && !ok;
   const answer = spec.answer == null ? "" : String(spec.answer).trim();
   const showAnswer = spec.reveal !== false && !ok && !!answer;
+  const pts = spec.pts == null || spec.pts === "" ? null : Math.round(Number(spec.pts));
+  const hasPts = pts != null && Number.isFinite(pts);
   const kind = ok ? "good" : (skipped || timedOut ? "neutral" : "bad");
   const pop = h("div", { class: "fb ans-pop " + kind, role: "status", "aria-live": "assertive" });
   const line = h("div", { class: "ans-line" });
-  if (ok) line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✓"), h("strong", {}, tr("Correct!")));
+  const mark = glyph => h("span", { class: "ans-ico", "aria-hidden": "true" }, glyph);
+  if (ok && spec.clue) line.append(mark("✓"), h("strong", {}, tr("Correct on clue {0}! +{1}", spec.clue, hasPts ? pts : 0)));
+  else if (ok) line.append(mark("✓"), h("strong", {}, hasPts ? tr("Correct! +{0}", pts) : tr("Correct!")));
   else if (skipped) line.append(h("strong", {}, tr("Skipped.")));
-  else if (timedOut) line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✗"), h("strong", {}, tr("Time's up.")));
-  else line.append(h("span", { class: "ans-ico", "aria-hidden": "true" }, "✗"), h("strong", {}, tr("Wrong answer")));
+  else if (timedOut) line.append(h("strong", {}, tr("Time's up!")));
+  else line.append(mark("✗"), h("strong", {}, tr("Wrong answer")));
   pop.append(line);
-  if (showAnswer) pop.append(h("span", { class: "ans-was" }, tr("The answer was: {0}", answer)));
+  if (showAnswer) pop.append(h("span", { class: "ans-was" }, hasPts ? tr("The answer was: {0}. +{1}", answer, pts) : tr("The answer was: {0}", answer)));
   if (spec.extra) pop.append(h("span", { class: "ans-extra" }, spec.extra));
   const bar = parent.querySelector(":scope > .action-bar");
   if (bar) parent.insertBefore(pop, bar); else parent.append(pop);
   if (!spec.quiet) {
     if (ok) { const r = pop.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2); flashBody("flash-good"); }
-    else flashBody("flash-bad");
+    else if (!timedOut && !skipped) flashBody("flash-bad");
   }
   return pop;
 }
@@ -1031,7 +1060,7 @@ function mcQuestion(body, q, options, answer, value, seconds, done, visual, pinL
       if (j === answer) paintChoice(b, true);
       else if (j === i) paintChoice(b, false);
     });
-    answerBanner(body, { ok, answer: plainAnswer(showText(options[answer])), skipped, timedOut, reveal: !ok });
+    answerBanner(body, { ok, answer: plainAnswer(showText(options[answer])), skipped, timedOut, reveal: !ok, pts: ok ? value : 0 });
     done(ok ? value : 0);
   }
 }
@@ -1424,7 +1453,7 @@ function bracketQuestion(body, q, value, seconds, done) {
       else if (i === choice) paintChoice(b, false);
     });
     const pts = ok ? value : 0;
-    answerBanner(body, { ok, answer: plainAnswer(showText(teams[answer])), skipped, timedOut, reveal: !ok });
+    answerBanner(body, { ok, answer: plainAnswer(showText(teams[answer])), skipped, timedOut, reveal: !ok, pts: pts });
     if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, q.explain));
     done(pts);
   }
@@ -1654,7 +1683,8 @@ function pairQuestion(body, q, value, seconds, done) {
     const answerText = pairLabel(r[r.correct]);
     note.textContent = pairLabel(r.note) || "";
     note.className = "pair-note" + (note.textContent ? (ok ? " good" : " bad") : "");
-    answerBanner(body, { ok, answer: answerText, timedOut, reveal: !ok });
+    const gained = window.Answers.pairScore(correct, n, value) - window.Answers.pairScore(Math.max(0, correct - (ok ? 1 : 0)), n, value);
+    answerBanner(body, { ok, answer: answerText, timedOut, reveal: !ok, pts: gained });
     scoreNow();
     const last = i >= n - 1;
     const b = h("button", { type: "button", class: "btn primary big" }, last ? tr("See score") : tr("Next round →"));
@@ -1732,7 +1762,7 @@ function revealQuestion(body, q, value, seconds, done) {
     const ans = titleCase(q.answer || "");
     const ok = !timedOut && stage > 0;
     if (!timedOut) paintTyped(input, ok);
-    answerBanner(body, { ok, answer: ans, timedOut, reveal: !ok });
+    answerBanner(body, { ok, answer: ans, timedOut, reveal: !ok, pts, clue: ok ? stage : 0 });
     if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, showText(q.explain)));
     done(pts);
   }
@@ -1825,7 +1855,7 @@ function sliderQuestion(body, q, value, seconds, done) {
     const pts = guess == null ? 0 : window.Answers.sliderScore(guess, q.answer, value, scoreOpts);
     if (session) { session.inProgress = session.inProgress == null ? 0 : session.inProgress; track(banked + pts); }
     const off = guess == null ? null : Math.abs(guess - q.answer);
-    const shown = String(q.answer) + (q.unit ? " " + tr(q.unit) : "");
+    const shown = answerAmount(String(q.answer), q.answer, q.unit);
     const pct = guess == null || !q.answer ? null : off / Math.abs(q.answer) * 100;
     const numText = n => Math.abs(n - Math.round(n)) < 1e-6 ? String(Math.round(n)) : String(Math.round(n * 10) / 10);
     let msg;
@@ -1959,21 +1989,24 @@ function textQuestion(body, q, answers, value, seconds, done, visual, display, e
   const form = h("form", { class: "answer", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } }, input, h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
   body.append(form); setTimeout(() => input.focus(), 50);
   const skipBar = ensureSkipBar(body, () => submit(null, false, true));
-  // tq.timeoutZero (Sports IQ): running out of time scores 0 with "Time's up", like mcQuestion's choose(-1).
-  const timeUp = () => tq && tq.timeoutZero ? submit(null, true) : submit(input.value);
+  // tq.timeoutZero (Sports): running out of time scores 0 with "Time's up", like mcQuestion's choose(-1).
+  // Brain Teaser still grades a correct answer left in the box. A miss on the clock is Time's up, not Wrong answer.
+  const timeUp = () => tq && tq.timeoutZero ? submit(null, true) : submit(input.value, "clock");
   const timer = seconds ? Timer(seconds, timeUp, body.parentNode.querySelector(".game-head")) : null;
   function submit(v, timedOut, skipped) {
     if (over) return; over = true; timer && timer.stop(); input.disabled = true; form.querySelector("button").remove();
     skipBar.querySelector(".skip-btn")?.remove();
     const shown = titleCase(display);
+    const clock = timedOut === "clock";
     const note = () => { if (explain) afterBanner(body, h("p", { class: "muted tf-explain" }, explain)); };
-    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true }); note(); done(0); return; }
-    if (timedOut) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true }); note(); done(0); return; }
+    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true, pts: 0 }); note(); done(0); return; }
+    if (timedOut === true) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true, pts: 0 }); note(); done(0); return; }
     // Aliases and typo tolerance come back as a plain correct from checkAnswer. Same green verdict.
     const ok = window.Answers ? window.Answers.checkAnswer(v || "", answers, { aliases: src && src.aliases, wrong: src && (src.wrong || src.options), noSurname: src && src.noSurname, textOnly: src && src.textOnly, person: src && src.person, given: src && src.given, exactOnly: src && src.exactOnly, q: src && typeof src.q === "string" ? src.q : "" })
       : answers.some(a => norm(a) === norm(v || ""));
+    if (clock && !ok) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true, pts: 0 }); note(); done(0); return; }
     paintTyped(input, ok);
-    answerBanner(body, { ok, answer: shown, reveal: !ok });
+    answerBanner(body, { ok, answer: shown, reveal: !ok, pts: ok ? value : 0 });
     note();
     done(ok ? value : 0);
   }
@@ -2023,7 +2056,7 @@ function wordFlip() {
     const guess = built.map(k => letters[k].c).join("");
     busy = true; // block input during the win/shake animation
     // A miss can be retried, so the banner does not give the word away. The clock and the 350/400 ms holds stay as they were.
-    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win", "right"); answerBanner(body, { ok: true, quiet: true }); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win", "right"); busy = false; advance(); }, 350); }
+    if (flipAccept(w, guess, dict)) { total += val(i); track(total); results[i] = true; slots.classList.add("win", "right"); answerBanner(body, { ok: true, quiet: true, pts: val(i) }); setTimeout(() => { if (!body.isConnected) return; slots.classList.remove("win", "right"); busy = false; advance(); }, 350); }
     else { slots.classList.add("shake", "wrong"); answerBanner(body, { ok: false, reveal: false, quiet: true }); setTimeout(() => { slots.classList.remove("shake"); busy = false; if (over) return; built = []; draw(); }, 400); }
   };
   const advance = () => { if (over) return; queue.shift(); if (!queue.length) end(); else load(); };
@@ -2075,7 +2108,7 @@ function wordBridge() {
     if (over || busy) return; // lock during the win animation: a double Enter must not score twice / skip a puzzle
     if (!norm(input.value).replace(/ /g, "")) return;
     // A miss can be retried for points, so the banner does not reveal the missing word.
-    if (bridgeHit(list[i], input.value)) { busy = true; total += val(i); track(total); res[i] = true; paintTyped(input, true); answerBanner(body, { ok: true, quiet: true }); puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
+    if (bridgeHit(list[i], input.value)) { busy = true; total += val(i); track(total); res[i] = true; paintTyped(input, true); answerBanner(body, { ok: true, quiet: true, pts: val(i) }); puzzle.classList.add("win"); setTimeout(() => { busy = false; if (!body.isConnected) return; puzzle.classList.remove("win"); adv(); }, 300); }
     else { paintTyped(input, false); answerBanner(body, { ok: false, reveal: false, quiet: true }); form.classList.add("shake"); setTimeout(() => form.classList.remove("shake"), 400); input.select(); }
   };
   const adv = () => { if (over) return; queue.shift(); if (!queue.length) end(); else draw(); };
@@ -2186,7 +2219,7 @@ function oddOneOut() {
       else if (!skipped && idx === picked) paintChoice(b, false);
       else b.disabled = true;
     });
-    answerBanner(body, { ok: !!ok && !skipped, answer: puzzle.words[puzzle.odd], skipped, reveal: true, quiet: true });
+    answerBanner(body, { ok: !!ok && !skipped, answer: puzzle.words[puzzle.odd], skipped, reveal: true, quiet: true, pts: ok && !skipped ? val(i) : 0 });
     setTimeout(() => { if (!body.isConnected || over) return; i++; if (i >= 8) end(); else draw(); }, 450);
   };
   const pickIt = k => { if (over || revealing || performance.now() - drawnAt < 300) return; if (k < 0) { res.push(false); showOdd(null, false, true); return; } const ok = k === list[i].odd; res.push(ok); if (ok) { total += val(i); track(total); } showOdd(k, ok, false); };
@@ -2290,9 +2323,10 @@ function guessQuestion(body, q, value, seconds, done, gq) {
   let over = false;
   const yearMode = q.exactYear === true || typeof q.yearBand === "number";
   const yearBand = typeof q.yearBand === "number" && isFinite(q.yearBand) ? Math.max(0, q.yearBand) : 0;
-  const input = h("input", { class: "txt", placeholder: yearMode ? tr("Year") : tr("Your best estimate"), inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Your estimate") + (q.unit ? tr(" in ") + q.unit : "") });
+  const yearUnit = q.unit && /^years?$/i.test(String(q.unit));
+  const input = h("input", { class: "txt", placeholder: yearMode ? tr("Year") : tr("Your best estimate"), inputmode: "decimal", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": tr("Your estimate") + (!yearMode && q.unit && !yearUnit ? tr(" in ") + tr(q.unit) : "") });
   const form = h("form", { class: "answer guess", onsubmit: e => { e.preventDefault(); if (input.value.trim()) submit(input.value); } },
-    h("div", { class: "guess-field" }, input, q.unit ? h("span", { class: "guess-unit" }, tr(q.unit)) : null),
+    h("div", { class: "guess-field" }, input, q.unit && !yearUnit ? h("span", { class: "guess-unit" }, tr(q.unit)) : null),
     h("button", { class: "btn primary", type: "submit" }, tr("Lock in")));
   const noteTxt = yearMode
     ? (yearBand > 0 ? tr("Exact year ±{0} = full points · otherwise 0", yearBand) : tr("Exact year only = full points · otherwise 0"))
@@ -2319,18 +2353,18 @@ function guessQuestion(body, q, value, seconds, done, gq) {
         off = !q.answer ? "" : tr(" You were {0}% off.", Math.round(Math.abs(n - q.answer) / Math.abs(q.answer) * 100));
       }
     }
-    const shown = fmtN(q.answer) + (q.unit ? " " + q.unit : "");
+    const shown = answerAmount(fmtN(q.answer), q.answer, q.unit);
     const explainNode = () => { if (q.explain) afterBanner(body, h("p", { class: "muted tf-explain" }, q.explain)); };
-    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true }); explainNode(); done(0); return; }
-    if (n === null) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true }); explainNode(); done(0); return; }
+    if (skipped) { answerBanner(body, { ok: false, answer: shown, skipped: true, reveal: true, pts: 0 }); explainNode(); done(0); return; }
+    if (n === null || (timedOut && pts === 0)) { answerBanner(body, { ok: false, answer: shown, timedOut: true, reveal: true, pts: 0 }); explainNode(); done(0); return; }
     if (pts === value) {
       paintTyped(input, true);
-      answerBanner(body, { ok: true, extra: off.trim() ? tr("The answer was: {0}", shown) + off : "" });
+      answerBanner(body, { ok: true, pts, extra: off.trim() ? tr("The answer was: {0}", shown) + off : "" });
       explainNode(); done(pts); return;
     }
     if (pts === 0) {
       paintTyped(input, false);
-      answerBanner(body, { ok: false, answer: shown, reveal: true, extra: off.trim() });
+      answerBanner(body, { ok: false, answer: shown, reveal: true, pts: 0, extra: off.trim() });
       explainNode(); done(pts); return;
     }
     feedback(body, null, tr("Close!") + tr(" Answer: {0}.", shown) + off + " +" + pts + (q.explain ? " — " + q.explain : ""));
