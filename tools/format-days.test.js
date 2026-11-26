@@ -1,5 +1,5 @@
 /* World 2-pin days, a single 5-event timeline, and celebrity MVP rounds.
-   2026-11-25 World, Time Warp, and MVP are pinned to the approved set. Think Fast stays on rotation index 26. */
+   2026-11-25 and 2026-11-26 World, Time Warp, and MVP are pinned to the approved sets. 11/25 Think Fast stays on rotation index 26. 11/26 Think Fast is the already-merged Brain Teaser. */
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const root = path.join(__dirname, "..");
 let bad = 0;
@@ -115,6 +115,26 @@ const packed = { worldRush: day.worldRush, history: day.history, sports: day.spo
 t("11/25 world subhead", S.catBlurb("world", packed), "2 map pins");
 t("11/25 history subhead", S.catBlurb("history", packed), "One 5-event timeline");
 t("11/25 mvp subhead", S.catBlurb("sports", packed), "3 questions · easy → hard");
+
+const day26 = sandbox.BCDaily.getDailySet("2026-11-26");
+t("11/26 world pin", sandbox.DAY_OVERRIDES["2026-11-26"].worldRush, 62);
+t("11/26 history pin", sandbox.DAY_OVERRIDES["2026-11-26"].history, 63);
+t("11/26 sports pin", sandbox.DAY_OVERRIDES["2026-11-26"].sports, 61);
+t("11/26 thinkFast unpinned in overrides", sandbox.DAY_OVERRIDES["2026-11-26"].thinkFast, undefined);
+t("11/26 world index", sandbox.CONTENT.worldRush.indexOf(day26.worldRush), 62);
+t("11/26 world has no third question", day26.worldRush.mc ? "mc" : day26.worldRush.pair ? "pair" : "none", "none");
+t("11/26 pin 1", day26.worldRush.pins[0].name, "Mount Rushmore, South Dakota, USA");
+t("11/26 pin 2", day26.worldRush.pins[1].name, "Cliffs of Moher, Ireland");
+t("11/26 pin 1 coords", day26.worldRush.pins[0].lat + "," + day26.worldRush.pins[0].lon, "43.88,-103.46");
+t("11/26 history index", sandbox.CONTENT.history.indexOf(day26.history), 63);
+t("11/26 history theme", day26.history.theme, "Games, movies and a mega hit");
+t("11/26 history events", day26.history.events.length, 5);
+t("11/26 sports index", sandbox.CONTENT.sports.indexOf(day26.sports), 61);
+t("11/26 sports types", day26.sports.map(q => q.type).join("/"), "mc/text/reveal");
+t("11/25 world stays pinned", sandbox.DAY_OVERRIDES["2026-11-25"].worldRush, 61);
+t("11/26 world subhead", S.catBlurb("world", day26), "2 map pins");
+t("11/26 history subhead", S.catBlurb("history", day26), "One 5-event timeline");
+t("11/26 mvp subhead", S.catBlurb("sports", day26), "3 questions · easy → hard");
 t("2-pin subhead", S.catBlurb("world", { worldRush: demo.world }), "2 map pins");
 t("5-event subhead", S.catBlurb("history", { history: demo.history }), "One 5-event timeline");
 t("celebrity subhead", S.catBlurb("sports", { sports: demo.mvp }), "Athletes and celebrities · actors, singers, artists, reality TV");

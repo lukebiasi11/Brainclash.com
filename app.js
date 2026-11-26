@@ -24,7 +24,16 @@ const CATS = [
   { id: "think", img: "cat-brain", name: "Brain Teaser", icon: "🧠", sub: "Logic", desc: "2 brain-benders · one shot each" }
 ];
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
-function catsFor() { return CATS; }
+function isBrainTeaserDay(key) {
+  if (key && window.EagleEye && typeof EagleEye.on === "function") return !!EagleEye.on(key);
+  return key === "2026-11-26";
+}
+function thinkCatName(key) { return isBrainTeaserDay(key) ? "Brain Teaser" : "Think Fast"; }
+function catsFor(key) {
+  const list = CATS.map(c => Object.assign({}, c));
+  if (list[4]) list[4].name = tr(thinkCatName(key));
+  return list;
+}
 const WORD_GAMES = [
   { id: "flip", name: "Unscramble", sub: "Unscramble 6 words from hints · 60s" },
   { id: "bridge", name: "Word Bridge", sub: "Finish the first word, start the second · 60s" },
@@ -484,7 +493,7 @@ function home() {
     h("details", { class: "rules" }, h("summary", {}, tr("How it works")),
       h("ul", {},
         h("li", {}, tr("Same challenge for everyone, new every day at midnight US Eastern (New York) time.")),
-        h("li", {}, tr("Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.")),
+        h("li", {}, tr("Fixed order: World Rush → Time Warp → MVP → Word Nerd → {0}.", tr(thinkCatName(todayKey())))),
         h("li", {}, tr("Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.")),
         h("li", {}, tr("Finish a category to unlock the next. No skipping or replays.")),
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
@@ -2200,7 +2209,7 @@ function thinkFastPerception() {
   EagleEye.run({
     seed: seed,
     tr: tr,
-    screen: (_title, sub) => screen("🧠 " + tr("Brain Teaser"), sub),
+    screen: (_title, sub) => screen("🧠 " + tr(thinkCatName(session && session.key)), sub),
     actionBar: actionBar,
     nextBtn: nextBtn,
     scheduleFit: scheduleFit,
@@ -2214,7 +2223,7 @@ function thinkFast() {
   let total = 0, i = 0; const log = [];
   const ask = () => {
     const q = qs[i], kind = TF_KIND[q.kind] ? " · " + TF_KIND[q.kind] : "";
-    const body = screen("🧠 " + tr("Brain Teaser"), tr("Puzzle {0} of 2{1} · {2} pts · one submission", i + 1, kind, vals[i]));
+    const body = screen("🧠 " + tr(thinkCatName(session && session.key)), tr("Puzzle {0} of 2{1} · {2} pts · one submission", i + 1, kind, vals[i]));
     const next = pts => { total += pts; track(total); log.push(pts); i++; if (i < 2) nextBtn(actionBar(body), tr("Final puzzle →"), ask); else { // Nov 1: hold on the right/wrong feedback before the score + results popup take over (phone one-tap MC)
         const fb = body.querySelector(".fb"); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTimeout(() => { if (body.isConnected) catDone(body, total, log.join("/")); }, 1500); } };

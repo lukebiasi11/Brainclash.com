@@ -10,7 +10,7 @@
   const LANG = store.get("bc-lang") === "es" ? "es" : "en";
   const ES = {
     // categories / word games
-    "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Brain Teaser": "Rompecocos",
+    "World Rush": "Vuelta al Mundo", "Time Warp": "Máquina del Tiempo", "MVP": "MVP", "Word Nerd": "Palabrólogo", "Think Fast": "Pensar Rápido", "Brain Teaser": "Rompecocos",
     "Geography": "Geografía", "History": "Historia", "Sports": "Deportes", "Word games": "Palabras", "Logic": "Lógica",
     "2 map pins + 1 geography question": "2 pines en el mapa + 1 pregunta de geografía", "2 map pins": "2 pines en el mapa",
     "2 timelines · drag cards into order": "2 líneas de tiempo · arrastra las tarjetas en orden", "One 5-event timeline": "Una línea de tiempo de 5 eventos",
@@ -47,6 +47,7 @@
     "You've finished today's Clash: ": "Ya terminaste el Clash de hoy: ", "View results": "Ver resultados", "Continue the Clash": "Continuar el Clash", "Start the Clash": "Empezar el Clash",
     "How it works": "Cómo funciona", "Same challenge for everyone, new every day at midnight US Eastern (New York) time.": "El mismo reto para todos, nuevo cada día a la medianoche, hora del este de EE. UU. (Nueva York).",
     "Fixed order: World Rush → Time Warp → MVP → Word Nerd → Brain Teaser.": "Orden fijo: Vuelta al Mundo → Máquina del Tiempo → MVP → Palabrólogo → Rompecocos.",
+    "Fixed order: World Rush → Time Warp → MVP → Word Nerd → {0}.": "Orden fijo: Vuelta al Mundo → Máquina del Tiempo → MVP → Palabrólogo → {0}.",
     "Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.": "Cada categoría vale hasta 1,000 puntos. Sin bonos por velocidad: gana la precisión.",
     "Finish a category to unlock the next. No skipping or replays.": "Termina una categoría para desbloquear la siguiente. No se puede saltar ni repetir.",
     "Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.": "Palabrólogo rota cada día entre Descifra, Puente de Palabras, Grupos, Impostor y Anagramas Exprés.",

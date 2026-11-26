@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=tf26f, i18n at v=tf26f, style.css at v=tf26f, feedback.js at v=tf26f, eagle-eye.js at v=tf26g, leaderboard.js at v=tf26f, and English and Spanish content at v=nov25a, and icons at v=nov22w.
-// tf26g is the faster Track the Dot speeds on the November 26 Brain Teaser build. eagle-eye.js is tf26g; app.js, i18n.js, style.css, feedback.js, and leaderboard.js stay tf26f. nov25a stays on content.js and content.es.js. icons.js stays on nov22w. name-filter stays lb13. demo-types stays fmt25e.
+// New HTML must request answers at v=nov17a, app.js at v=nov26a, i18n at v=nov26a, style.css at v=tf26f, feedback.js at v=tf26f, eagle-eye.js at v=tf26g, leaderboard.js at v=nov26a, drafts.js at v=nov26a, and English and Spanish content at v=nov26a, and icons at v=nov22w.
+// nov26a is the 2026-11-26 content publish plus the board's fifth-tab label (Think Fast, or Brain Teaser on Brain Teaser days). It covers content.js, content.es.js, drafts.js, app.js, i18n.js, and leaderboard.js. eagle-eye.js stays tf26g; style.css and feedback.js stay tf26f. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,8 +8,8 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "tf26f";
-const CONTENT_V = "nov25a";
+const APP_V = "nov26a";
+const CONTENT_V = "nov26a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
@@ -34,13 +34,13 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=tf26f"], ["i18n", "i18n.js?v=tf26f"], ["eagle", "eagle-eye.js?v=tf26g"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=tf26f"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
+[["style", "style.css?v=tf26f"], ["i18n", "i18n.js?v=nov26a"], ["eagle", "eagle-eye.js?v=tf26g"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t9"], ["field-config", "field-config.js?v=lb5"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=nov26a"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {
   if (!has(list, s) || has(list, "assets/icons.js?v=nov3k")) fail(n, s); else pass(n);
 });
-// feedback.js, leaderboard.js, and app.js stay tf26f. eagle-eye.js is tf26g. demo-types stays fmt25e.
+// feedback.js stays tf26f. eagle-eye.js stays tf26g. demo-types stays fmt25e. app.js, i18n.js, and leaderboard.js are nov26a.
 if (!has(indexSrc, "feedback.js?v=tf26f") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c")) fail("index feedback key"); else pass("index feedback key");
 if (!has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf26g") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
 
