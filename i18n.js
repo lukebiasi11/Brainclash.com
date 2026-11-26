@@ -170,6 +170,7 @@
     "📍 Lock in pin": "📍 Confirmar pin", "Lock in": "Confirmar", "Lock in order": "Confirmar orden", "Lock in pairs": "Confirmar parejas",
     // feedback
     "Correct! +{0}": "¡Correcto! +{0}", "Skipped. +0": "Saltada. +0", "Time's up. +0": "Se acabó el tiempo. +0", "Not quite. +0": "Casi. +0",
+    "Correct!": "¡Correcto!", "Wrong answer": "Respuesta incorrecta", "The answer was: {0}": "La respuesta era: {0}",
     "Skipped. Answer: {0}. +0": "Saltada. Respuesta: {0}. +0", "Time's up. Answer: {0}. +0": "Se acabó el tiempo. Respuesta: {0}. +0", "Answer: {0}. +0": "Respuesta: {0}. +0",
     // time warp
     "Round {0} of 2 · {1} · up to {2} pts": "Ronda {0} de 2 · {1} · hasta {2} pts",
