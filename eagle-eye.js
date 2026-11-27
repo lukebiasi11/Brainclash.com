@@ -1,6 +1,6 @@
 /* Cup Shuffle and Track the Dot, played as Think Fast's two questions on scheduled days.
    2026-11-26: Cup Shuffle tier 2 (4 cups, 375), then Track the Dot (250 + 375).
-   2026-11-27: Cup Shuffle tier 2, a bit harder than the 26th (4 cups, 16 moves, 260 ms, 375), then Track the Dot (250 + 375): 1 dot faster than the 26th, then 2 dots faster than the 26th.
+   2026-11-27: Cup Shuffle tier 2 with 3 cups (16 moves, 260 ms, 0 feints, 375), then Track the Dot (250 + 375): 1 dot at 240 px/s, then 2 dots at 230 px/s.
    Every other date stays the regular Think Fast puzzles. Tier 1 stays banked.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. The day total stays 5,000. */
@@ -33,9 +33,9 @@
     "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2 },
     "2026-11-27": {
       cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2,
-      moves: 16, ms: 260,
+      n: 3, moves: 16, ms: 260,
       trackPlay: [
-        { dots: 7, targets: 1, speed: 215, secs: 5.5 },
+        { dots: 7, targets: 1, speed: 240, secs: 5.5 },
         { dots: 8, targets: 2, speed: 230, secs: 6.0 }
       ]
     }
@@ -49,6 +49,7 @@
     return {
       cups: cups, track: track, cap: cups + track.reduce((a, b) => a + b, 0), scale: scale,
       dayTotal: spec.dayTotal || null, tier: spec.tier == null ? 2 : spec.tier,
+      n: spec.n == null ? null : spec.n,
       moves: spec.moves == null ? null : spec.moves, ms: spec.ms == null ? null : spec.ms,
       trackPlay: spec.trackPlay || null
     };
@@ -59,7 +60,7 @@
     const tier = plan.tier;
     const base = TIERS[tier];
     const cups = {
-      tier: tier, n: base.n,
+      tier: tier, n: plan.n != null ? plan.n : base.n,
       moves: plan.moves != null ? plan.moves : base.moves,
       ms: plan.ms != null ? plan.ms : base.ms,
       gap: base.gap, rot: base.rot, far: base.far, feints: base.feints, pts: plan.cups

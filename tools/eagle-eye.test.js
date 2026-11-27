@@ -39,9 +39,9 @@ const p27 = EE.playFor("2026-11-27");
 t(p26 && p26.tier === 2 && p26.cups.n === 4 && p26.cups.moves === 14 && p26.cups.ms === 330 && p26.cups.gap === 40 && p26.cups.rot === 0.2 && p26.cups.far === 0.14 && p26.cups.feints === 0 && p26.cups.pts === 375, "11/26 cups stay tier 2");
 t(p26.track[0].dots === 6 && p26.track[0].targets === 1 && p26.track[0].speed === 175 && p26.track[0].secs === 5 && p26.track[0].pts === 250, "11/26 track round 1 stays 6/1/175/5s");
 t(p26.track[1].dots === 7 && p26.track[1].targets === 2 && p26.track[1].speed === 190 && p26.track[1].secs === 5.5 && p26.track[1].pts === 375, "11/26 track round 2 stays 7/2/190/5.5s");
-t(p27 && p27.tier === 2 && p27.cups.n === 4 && p27.cups.moves === 16 && p27.cups.ms === 260 && p27.cups.gap === 40 && p27.cups.rot === 0.2 && p27.cups.far === 0.14 && p27.cups.feints === 0 && p27.cups.pts === 375, "11/27 cups are 4 cups, 16 moves, 260 ms");
-t(p27.cups.moves > p26.cups.moves && p27.cups.ms < p26.cups.ms && p27.cups.n === p26.cups.n, "11/27 cups stay harder than 11/26");
-t(p27.track[0].dots === 7 && p27.track[0].targets === 1 && p27.track[0].speed === 215 && p27.track[0].secs === 5.5 && p27.track[0].pts === 250, "11/27 track round 1 is 7 dots, 1 target, 215 px/s, 5.5s");
+t(p27 && p27.tier === 2 && p27.cups.n === 3 && p27.cups.moves === 16 && p27.cups.ms === 260 && p27.cups.gap === 40 && p27.cups.rot === 0.2 && p27.cups.far === 0.14 && p27.cups.feints === 0 && p27.cups.pts === 375, "11/27 cups are 3 cups, 16 moves, 260 ms, 0 feints");
+t(p27.cups.moves > p26.cups.moves && p27.cups.ms < p26.cups.ms && p27.cups.n === 3, "11/27 cups are 3 and still faster than 11/26");
+t(p27.track[0].dots === 7 && p27.track[0].targets === 1 && p27.track[0].speed === 240 && p27.track[0].secs === 5.5 && p27.track[0].pts === 250, "11/27 track round 1 is 7 dots, 1 target, 240 px/s, 5.5s");
 t(p27.track[0].speed > p26.track[0].speed && p27.track[0].targets === 1, "11/27 round 1 is one dot and faster than 11/26");
 t(p27.track[1].dots === 8 && p27.track[1].targets === 2 && p27.track[1].speed === 230 && p27.track[1].secs === 6 && p27.track[1].pts === 375, "11/27 track round 2 is 8 dots, 2 targets, 230 px/s, 6s");
 t(p27.track[1].speed > p26.track[1].speed && p27.track[1].targets === 2, "11/27 round 2 is two dots and faster than 11/26");
@@ -55,19 +55,20 @@ t(JSON.stringify(EE.planCup("eagleeye|2026-11-26", 2)) === JSON.stringify(EE.pla
     const cup = EE.replayCups(plan.n, plan.startSlot, plan.moves);
     const real = plan.moves.filter(m => m.t !== "feint").length;
     const feints = plan.moves.filter(m => m.t === "feint").length;
-    if (ball === plan.finalSlot && cup === plan.finalSlot && real === 16 && feints === 0 && plan.n === 4) hardOk++;
+    if (ball === plan.finalSlot && cup === plan.finalSlot && real === 16 && feints === 0 && plan.n === 3) hardOk++;
   }
   t(hardOk === 40, "11/27 cup plans stay solvable across seeds (" + hardOk + ")");
 }
 t(JSON.stringify(EE.planCup("eagleeye|2026-11-26", 2).moves) !== JSON.stringify(EE.planCup("eagleeye|2026-11-27", 2, p27.cups).moves), "11/27 shuffle differs from 11/26");
 {
-  const w = 375 - 24, n = 4, pad = 8, spc = (w - 2 * pad) / n, W = Math.min(96, spc * 0.86);
+  const w = 375 - 24, n = 3, pad = 8, spc = (w - 2 * pad) / n, W = Math.min(96, spc * 0.86);
   const X = [];
   for (let i = 0; i < n; i++) X.push(pad + spc * (i + 0.5));
   const left = X[0] - W / 2, right = X[n - 1] + W / 2;
+  const mid = (left + right) / 2, center = w / 2;
   const D = Math.max(12, W * 0.3), L = W * 0.62;
   const hh = Math.round(Math.max(L, D * 1.2) + 16 + W * 1.2 + D * 1.3 + 20);
-  t(W >= 44 && left >= 0 && right <= w + 0.01 && hh < 220, "11/27 four cups stay tappable and on a 375 screen (" + W.toFixed(1) + "px, stage " + hh + "px)");
+  t(W >= 44 && left >= 0 && right <= w + 0.01 && Math.abs(mid - center) < 1 && Math.abs(X[1] - center) < 1 && hh < 320, "11/27 three cups are centered and on a 375 screen (" + W.toFixed(1) + "px, stage " + hh + "px)");
 }
 {
   const AW = 340, AH = 300, RAD = 15;
