@@ -555,7 +555,6 @@ function home() {
   app.innerHTML = ""; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
   const s = loadToday();
   const done = s && s.scores.length === 5;
-  const stats = store.get("dg-stats", { played: 0, best: 0, streak: 0, last: null });
   const day = dayIndex();
   const wg = wordGameFor(day);
   const cats = catsFor(todayKey());
@@ -603,10 +602,7 @@ function home() {
         h("li", {}, tr("Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.")))),
     h("button", { class: "btn ghost", onclick: () => { session = newSession(true); runNext(); } }, "🎯 " + tr("Practice mode (doesn't count)")),
     window.DailyBoard ? window.DailyBoard.section() : null,
-    h("div", { class: "stats" },
-      h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
-      h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
-      h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak")))),
+    statBoxes(),
     h("p", { class: "fine" }, tr("Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. "), h("a", { href: "credits.html" }, tr("Credits & licenses"))));
   if (!done && window.DailyBoard) window.DailyBoard.decorate($(".cta"), { started: !!(s && s.scores.length), refresh: home });
   const cd = () => {
@@ -2951,6 +2947,83 @@ function categoryFx(score, cap, card) {
   if (kind === "confetti") confetti(card || document.body);
   else if (kind === "rain") softRain(card);
 }
+// Top 5 finishes: days the player placed 1–5 on the overall daily leaderboard.
+// Stored on this device like streak and games played, but one flag per New York day
+// (dg-top5) so the same day never counts twice. Only days on or after 2026-11-26 count.
+//
+// Rank comes from DailyBoard.rankNow(), the same overall board read as "Rank #N of M today"
+// (server me.rank when the saved entry is found, otherwise the matching row). Ties keep
+// that rank number, so more than one player can be rank 5 and each counts.
+//
+// The flag for the current New York day is set or cleared whenever results load, and again
+// when the board refreshes, until that day ends. A later finisher can move someone from
+// 5th to 6th; the next results load clears the flag. If the rank is unknown (no nickname
+// and no skip, tester, board down, or not on the board yet), the stored flag is left as it is.
+// After midnight New York the flag freezes: results only load today's board, so a past day
+// is not rewritten. Opening results on 2026-11-26 records that day when the rank is available.
+// This never writes dg-stats or a saved dg-YYYY-MM-DD result.
+const TOP5_FROM = "2026-11-26";
+const TOP5_KEY = "dg-top5";
+let top5Seq = 0;
+let top5Watch = false;
+function top5Map() {
+  const raw = store.get(TOP5_KEY, {});
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out = {};
+  Object.keys(raw).forEach(k => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(k) && k >= TOP5_FROM) out[k] = raw[k] === true;
+  });
+  return out;
+}
+function top5Count() {
+  const days = top5Map();
+  let n = 0;
+  Object.keys(days).forEach(k => { if (days[k] === true) n++; });
+  return n;
+}
+function noteTop5(day, rank) {
+  if (!session || session.practice) return;
+  if (typeof day !== "string" || day !== todayKey() || day < TOP5_FROM) return;
+  if (!Number.isFinite(rank)) return;
+  const on = rank >= 1 && rank <= 5;
+  const prev = top5Map();
+  if (prev[day] === on) return;
+  const next = {};
+  Object.keys(prev).forEach(k => { next[k] = prev[k] === true; });
+  next[day] = on;
+  store.set(TOP5_KEY, next);
+}
+function paintTop5() {
+  document.querySelectorAll("#app [data-top5-count]").forEach(el => { el.textContent = String(top5Count()); });
+}
+async function syncTop5() {
+  const seq = ++top5Seq;
+  if (!session || session.practice || session.key !== todayKey() || todayKey() < TOP5_FROM) { paintTop5(); return; }
+  let got = null;
+  try { if (window.DailyBoard && DailyBoard.rankNow) got = await DailyBoard.rankNow(); } catch (e) { got = null; }
+  if (seq !== top5Seq) return;
+  if (!document.querySelector("#app [data-top5]")) return;
+  if (!session || session.practice || session.key !== todayKey()) { paintTop5(); return; }
+  if (got && got.day === todayKey() && Number.isFinite(got.rank)) noteTop5(got.day, got.rank);
+  paintTop5();
+}
+function watchTop5() {
+  if (top5Watch) return;
+  top5Watch = true;
+  const run = () => { if (document.querySelector("#app [data-top5]")) syncTop5(); };
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") run(); });
+  document.addEventListener("bc-board-refresh", run);
+  window.addEventListener("focus", run);
+  window.addEventListener("pageshow", run);
+}
+function statBoxes() {
+  const stats = store.get("dg-stats", { played: 0, best: 0, streak: 0, last: null });
+  return h("div", { class: "stats stats-top5", "data-stat-row": "1" },
+    h("div", {}, h("b", {}, stats.played), h("small", {}, tr("Played"))),
+    h("div", {}, h("b", {}, fmt(stats.best)), h("small", {}, tr("Best"))),
+    h("div", {}, h("b", {}, stats.streak), h("small", {}, tr("Streak"))),
+    h("div", { "data-top5": "1" }, h("b", { "data-top5-count": "1" }, top5Count()), h("small", {}, tr("Top 5 finishes"))));
+}
 function countStats() {
   if (session.practice || session.counted) return;
   session.counted = true; save();
@@ -3031,7 +3104,10 @@ function results() {
     h("div", { class: "row center" },
       h("button", { class: "btn primary", "data-action": "share-results", onclick: e => doShare(e.currentTarget) }, tr("Share result")),
       h("button", { class: "btn", onclick: home }, tr("Home"))));
+  app.append(statBoxes());
   if (foot) app.append(foot);
+  watchTop5();
+  syncTop5();
   if (window.DailyBoard && DailyBoard.rankPhrase) {
     DailyBoard.rankPhrase().then(line => {
       const node = document.querySelector("pre.share");

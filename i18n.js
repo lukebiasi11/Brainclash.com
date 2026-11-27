@@ -51,7 +51,7 @@
     "Each category is worth up to 1,000 points. No speed bonuses — accuracy wins.": "Cada categoría vale hasta 1,000 puntos. Sin bonos por velocidad: gana la precisión.",
     "Finish a category to unlock the next. No skipping or replays.": "Termina una categoría para desbloquear la siguiente. No se puede saltar ni repetir.",
     "Word Nerd rotates daily between Unscramble, Word Bridge, Clusters, Imposter and Anagram Rush.": "Palabrólogo rota cada día entre Descifra, Puente de Palabras, Grupos, Impostor y Anagramas Exprés.",
-    "Played": "Jugadas", "Best": "Mejor", "Streak": "Racha",
+    "Played": "Jugadas", "Best": "Mejor", "Streak": "Racha", "Top 5 finishes": "Top 5",
     "Beta prototype · scores saved on this device only. An optional nickname can appear on today's leaderboard. ": "Prototipo beta · los puntajes se guardan solo en este dispositivo. Un apodo opcional puede aparecer en la clasificación de hoy. ",
     "Credits & licenses": "Créditos y licencias", "Next Clash in ": "Próximo Clash en ", "Resets in ": "Se reinicia en ", " · Clash #": " · Clash #",
     "Practice mode (doesn't count)": "Modo práctica (no cuenta)", "Language": "Idioma",
