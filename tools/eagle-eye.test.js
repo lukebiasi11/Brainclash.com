@@ -1,6 +1,7 @@
 /* Cup logic: the ball's final slot matches an independent replay, for many seeds and all tiers.
    Points are the Think Fast total (400 + 600) split 15/25/35/10/15.
-   On 2026-11-26 those rounds are Think Fast's two questions: Cup Shuffle 375, Track the Dot 250 + 375. */
+   On 2026-11-26 those rounds are Think Fast's two questions: Cup Shuffle 375, Track the Dot 250 + 375.
+   On 2026-11-27 the same points use a harder tier-3 cup plan and faster dot rounds. */
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -23,14 +24,65 @@ t(EE.trackPick(dbl, 6, 1000) && dbl.picks.join(",") === "6", "the first tap coun
 t(!EE.trackPick(dbl, 2, 1200) && dbl.picks.join(",") === "6", "a second tap inside 300 ms does not pick another dot");
 t(!EE.trackPick(dbl, 6, 1400) && dbl.picks.length === 1, "the same dot is not picked twice");
 t(EE.trackPick(dbl, 2, 1400) && dbl.picks.join(",") === "6,2", "the second dot counts after the lock");
-["2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-27", "2026-12-01"].forEach(d => t(!EE.on(d), d + " stays Think Fast"));
-t(EE.on("2026-11-26") && EE.DAY === "2026-11-26", "only 2026-11-26 swaps in Cup Shuffle and Track the Dot");
+["2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25", "2026-12-01"].forEach(d => t(!EE.on(d), d + " stays Think Fast"));
+t(EE.on("2026-11-26") && EE.DAY === "2026-11-26", "2026-11-26 still swaps in Cup Shuffle and Track the Dot");
+t(EE.on("2026-11-27"), "2026-11-27 also swaps in Cup Shuffle and Track the Dot");
 t(EE.dayPlan("2026-11-26").cups === 375 && EE.dayPlan("2026-11-26").track.join(",") === "250,375" && EE.dayPlan("2026-11-26").cap === 1000 && EE.dayPlan("2026-11-26").dayTotal == null, "11/26 is 375 + 250 + 375 and the day total stays 5,000");
-t(EE.TIERS[2].pts === 375 && EE.TIERS[2].n === 4 && EE.TIERS[2].moves === 14 && EE.TIERS[2].ms === 330 && EE.TRACK[0].pts + EE.TRACK[1].pts === 625, "the two scheduled questions are 4-cup tier 2 (375) and Track the Dot (625)");
+t(EE.dayPlan("2026-11-27").cups === 375 && EE.dayPlan("2026-11-27").track.join(",") === "250,375" && EE.dayPlan("2026-11-27").cap === 1000 && EE.dayPlan("2026-11-27").dayTotal == null, "11/27 is 375 + 250 + 375 and the day total stays 5,000");
+t(EE.TIERS[2].pts === 375 && EE.TIERS[2].n === 4 && EE.TIERS[2].moves === 14 && EE.TIERS[2].ms === 330 && EE.TRACK[0].pts + EE.TRACK[1].pts === 625, "11/26 questions stay 4-cup tier 2 (375) and Track the Dot (625)");
 t(EE.TRACK[0].dots === 6 && EE.TRACK[0].targets === 1 && EE.TRACK[0].speed === 175 && EE.TRACK[0].secs === 5, "track round 1 is 6 dots, 1 target, speed 175, 5s");
 t(EE.TRACK[1].dots === 7 && EE.TRACK[1].targets === 2 && EE.TRACK[1].speed === 190 && EE.TRACK[1].secs === 5.5, "track round 2 is 7 dots, 2 targets, speed 190, 5.5s");
-t(EE.TIERS[1].pts === 150 && EE.TIERS[3].pts === 350 && !/cupRound\(env, 1/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")) && !/cupRound\(env, 3/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")) && /cupRound\(env, 2/.test(fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8")), "tiers 1 and 3 stay banked; tier 2 is scheduled");
-t(EE.onEpoch(Math.floor(Date.parse("2026-11-26T00:00:00Z") / 864e5)) === true && EE.onEpoch(Math.floor(Date.parse("2026-11-25T00:00:00Z") / 864e5)) === false, "epoch matches the admin date key");
+const eeSchedule = fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8");
+t(EE.TIERS[1].pts === 150 && EE.TIERS[3].pts === 350 && !/cupRound\(env, 1/.test(eeSchedule) && !/cupRound\(env, 3/.test(eeSchedule) && /cupRound\(env, play\.tier/.test(eeSchedule), "tier 1 stays banked; the day's tier is scheduled");
+const p26 = EE.playFor("2026-11-26");
+const p27 = EE.playFor("2026-11-27");
+t(p26 && p26.tier === 2 && p26.cups.n === 4 && p26.cups.moves === 14 && p26.cups.ms === 330 && p26.cups.gap === 40 && p26.cups.rot === 0.2 && p26.cups.far === 0.14 && p26.cups.feints === 0 && p26.cups.pts === 375, "11/26 cups stay tier 2");
+t(p26.track[0].dots === 6 && p26.track[0].targets === 1 && p26.track[0].speed === 175 && p26.track[0].secs === 5 && p26.track[0].pts === 250, "11/26 track round 1 stays 6/1/175/5s");
+t(p26.track[1].dots === 7 && p26.track[1].targets === 2 && p26.track[1].speed === 190 && p26.track[1].secs === 5.5 && p26.track[1].pts === 375, "11/26 track round 2 stays 7/2/190/5.5s");
+t(p27 && p27.tier === 2 && p27.cups.n === 3 && p27.cups.moves === 16 && p27.cups.ms === 260 && p27.cups.gap === 40 && p27.cups.rot === 0.2 && p27.cups.far === 0.14 && p27.cups.feints === 0 && p27.cups.pts === 375, "11/27 cups are 3 cups, 16 moves, 260 ms, 0 feints");
+t(p27.cups.moves > p26.cups.moves && p27.cups.ms < p26.cups.ms && p27.cups.n === 3, "11/27 cups are 3 and still faster than 11/26");
+t(p27.track[0].dots === 7 && p27.track[0].targets === 1 && p27.track[0].speed === 240 && p27.track[0].secs === 5.5 && p27.track[0].pts === 250, "11/27 track round 1 is 7 dots, 1 target, 240 px/s, 5.5s");
+t(p27.track[0].speed > p26.track[0].speed && p27.track[0].targets === 1, "11/27 round 1 is one dot and faster than 11/26");
+t(p27.track[1].dots === 8 && p27.track[1].targets === 2 && p27.track[1].speed === 230 && p27.track[1].secs === 6 && p27.track[1].pts === 375, "11/27 track round 2 is 8 dots, 2 targets, 230 px/s, 6s");
+t(p27.track[1].speed > p26.track[1].speed && p27.track[1].targets === 2, "11/27 round 2 is two dots and faster than 11/26");
+t(p27.cap === 1000 && p27.dayTotal == null, "11/27 cap stays 1,000 and the day total stays 5,000");
+t(JSON.stringify(EE.planCup("eagleeye|2026-11-26", 2)) === JSON.stringify(EE.planCup("eagleeye|2026-11-26", 2, p26.cups)), "11/26 play spec does not change the tier 2 shuffle");
+{
+  let hardOk = 0;
+  for (let s = 0; s < 40; s++) {
+    const plan = EE.planCup("eagleeye|2026-11-27|" + s, 2, p27.cups);
+    const ball = EE.replayBall(plan.startSlot, plan.moves);
+    const cup = EE.replayCups(plan.n, plan.startSlot, plan.moves);
+    const real = plan.moves.filter(m => m.t !== "feint").length;
+    const feints = plan.moves.filter(m => m.t === "feint").length;
+    if (ball === plan.finalSlot && cup === plan.finalSlot && real === 16 && feints === 0 && plan.n === 3) hardOk++;
+  }
+  t(hardOk === 40, "11/27 cup plans stay solvable across seeds (" + hardOk + ")");
+}
+t(JSON.stringify(EE.planCup("eagleeye|2026-11-26", 2).moves) !== JSON.stringify(EE.planCup("eagleeye|2026-11-27", 2, p27.cups).moves), "11/27 shuffle differs from 11/26");
+{
+  const w = 375 - 24, n = 3, pad = 8, spc = (w - 2 * pad) / n, W = Math.min(96, spc * 0.86);
+  const X = [];
+  for (let i = 0; i < n; i++) X.push(pad + spc * (i + 0.5));
+  const left = X[0] - W / 2, right = X[n - 1] + W / 2;
+  const mid = (left + right) / 2, center = w / 2;
+  const D = Math.max(12, W * 0.3), L = W * 0.62;
+  const hh = Math.round(Math.max(L, D * 1.2) + 16 + W * 1.2 + D * 1.3 + 20);
+  t(W >= 44 && left >= 0 && right <= w + 0.01 && Math.abs(mid - center) < 1 && Math.abs(X[1] - center) < 1 && hh < 320, "11/27 three cups are centered and on a 375 screen (" + W.toFixed(1) + "px, stage " + hh + "px)");
+}
+{
+  const AW = 340, AH = 300, RAD = 15;
+  const rng = EE.rngFor("eagleeye|2026-11-27", "track");
+  const dots = [];
+  let guard = 0;
+  while (dots.length < 8 && guard++ < 5000) {
+    const x = RAD + 6 + rng() * (AW - 2 * RAD - 12), y = RAD + 6 + rng() * (AH - 2 * RAD - 12);
+    if (dots.every(d => Math.hypot(d.x - x, d.y - y) > RAD * 2 + 14)) dots.push({ x: x, y: y });
+  }
+  const inside = dots.every(d => d.x >= RAD && d.x <= AW - RAD && d.y >= RAD && d.y <= AH - RAD);
+  t(dots.length === 8 && inside, "11/27 eight dots fit inside the arena (" + dots.length + ")");
+}
+t(EE.onEpoch(Math.floor(Date.parse("2026-11-26T00:00:00Z") / 864e5)) === true && EE.onEpoch(Math.floor(Date.parse("2026-11-27T00:00:00Z") / 864e5)) === true && EE.onEpoch(Math.floor(Date.parse("2026-11-25T00:00:00Z") / 864e5)) === false, "epoch matches the admin date key");
 const adminDate = k => new Date(k + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 t(adminDate("2026-11-26") === "Thu, Nov 26, 2026" && adminDate("2026-11-25") === "Wed, Nov 25, 2026", "admin labels Thu, Nov 26, 2026 and Wed, Nov 25, 2026");
 
@@ -47,6 +99,7 @@ t(i18n.ES["Round {0} · {1} cups · {2} pts"] === "Ronda {0} · {1} vasos · {2}
 t(i18n.ES["Round {0} · 1 dot · {1} pts"] === "Ronda {0} · 1 punto · {1} pts", "Spanish one-dot header");
 t(i18n.ES["Round {0} · {1} dots · {2} pts"] === "Ronda {0} · {1} puntos · {2} pts", "Spanish two-dot header");
 t(i18n.ES["Follow them…"] === "Síguelos…" && i18n.ES["Lost it · +0"] === "Se te escapó · +0", "Spanish follow and miss lines");
+t(i18n.ES["Remember the three orange dots"] === "Recuerda los tres puntos naranjas" && i18n.ES["Tap all three dots"] === "Toca los tres puntos" && i18n.ES["Two more"] === "Dos más", "Spanish three-dot lines");
 t(!i18n.ES["One of two · +{0}"] && !i18n.ES["Follow the glowing dots."], "partial and glowing copy are gone");
 const eeSrc = fs.readFileSync(path.join(root, "eagle-eye.js"), "utf8");
 const admin = fs.readFileSync(path.join(root, "admin.html"), "utf8");
@@ -211,6 +264,15 @@ function renderThinkFast(lang, day) {
   t(perfect.quip === "top" && perfect.block === "🟩" && perfect.fx === "confetti", lang + " 1,000/1,000 is the top tier and confetti");
   t(zero.quip === "zero" && zero.block === "🟥" && zero.fx === "rain", lang + " 0/1,000 is the bottom tier");
 });
+["en", "es"].forEach(lang => {
+  let view = null;
+  try { view = renderThinkFast(lang, "2026-11-27"); }
+  catch (e) { t(false, lang + " 11/27 render threw " + e.message); return; }
+  t(!/Eagle Eye|Ojo de Águila/.test(view.text), lang + " 11/27 renders no Eagle Eye");
+  t(lang === "es" ? /Rompecocos/.test(view.text) : /Brain Teaser/.test(view.text), lang + " 11/27 uses the Brain Teaser name");
+  t(/375/.test(view.text) && /625/.test(view.text), lang + " 11/27 shows 375 and 625");
+  t(view.cap === 1000 && view.other === 1000, lang + " 11/27 Think Fast max is 1,000");
+});
 {
   const plain = renderThinkFast("en", "2026-11-25");
   t(/400 and 600/.test(plain.text) && !/Cup Shuffle/.test(plain.text) && !/Eagle Eye/.test(plain.text), "11/25 stays the regular Think Fast intro");
@@ -229,7 +291,7 @@ const lb = lbSandbox.DailyBoard;
 t(lb.fifthName("2026-11-25") === "Think Fast", "11/25 board tab is Think Fast");
 t(lb.fifthName("2026-11-22") === "Think Fast", "11/22 board tab is Think Fast");
 t(lb.fifthName("2026-11-26") === "Brain Teaser", "11/26 board tab is Brain Teaser");
-t(lb.fifthName("2026-11-27") === "Think Fast", "11/27 board tab is Think Fast");
+t(lb.fifthName("2026-11-27") === "Brain Teaser", "11/27 board tab is Brain Teaser");
 t(["2026-11-22","2026-11-23","2026-11-24","2026-11-25","2026-11-26","2026-11-27"].every(d => lb.fifthName(d) !== "Eagle Eye"), "no day uses an Eagle Eye board tab");
 
 console.log(pass + " passed, " + fail + " failed");
