@@ -1,6 +1,6 @@
 /* Cup Shuffle and Track the Dot, played as Think Fast's two questions on scheduled days.
    2026-11-26: Cup Shuffle tier 2 (4 cups, 375), then Track the Dot (250 + 375).
-   2026-11-27: Cup Shuffle tier 3 made harder (5 cups, 20 moves, 230 ms, 375), then a faster Track the Dot (250 + 375).
+   2026-11-27: Cup Shuffle tier 2, a bit harder than the 26th (4 cups, 16 moves, 260 ms, 375), then Track the Dot (250 + 375): 1 dot faster than the 26th, then 2 dots faster than the 26th.
    Every other date stays the regular Think Fast puzzles. Tier 1 stays banked.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. The day total stays 5,000. */
@@ -27,15 +27,16 @@
   // Per-day plan. Points and the day total live here.
   // cups + track is the Brain Teaser cap (375 + 250 + 375 = 1,000). The day total stays 5,000
   // while dayTotal is null. Set dayTotal to "sum" to show the sum of the five category caps instead.
-  // 11/26 uses TIERS[2] and TRACK as written. 11/27 uses tier 3, then overrides moves/ms and both dot rounds.
+  // 11/26 uses TIERS[2] and TRACK as written.
+  // 11/27 stays on tier 2 (4 cups) but shuffles longer and faster, and both dot rounds are quicker.
   const DAY_SCORE = {
     "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2 },
     "2026-11-27": {
-      cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 3,
-      moves: 20, ms: 230,
+      cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2,
+      moves: 16, ms: 260,
       trackPlay: [
-        { dots: 8, targets: 2, speed: 230, secs: 6.0 },
-        { dots: 9, targets: 3, speed: 250, secs: 6.5 }
+        { dots: 7, targets: 1, speed: 215, secs: 5.5 },
+        { dots: 8, targets: 2, speed: 230, secs: 6.0 }
       ]
     }
   };
