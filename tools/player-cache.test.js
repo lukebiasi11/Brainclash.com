@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov26h, i18n at v=nov26e, style.css at v=tf26m, feedback.js at v=tf26g, eagle-eye.js at v=tf27c, leaderboard.js at v=nov26e, drafts.js at v=nov27a, and English and Spanish content at v=nov27a, and icons at v=nov22w.
-// nov27a is on content.js, content.es.js, and drafts.js. i18n.js is nov26e. eagle-eye.js is tf27c. app.js is nov26h and leaderboard.js is nov26e. style.css is tf26m. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
+// New HTML must request answers at v=nov17a, app.js at v=nov26i, i18n at v=nov26f, style.css at v=tf26n, feedback.js at v=tf26g, eagle-eye.js at v=tf27c, leaderboard.js at v=nov26f, drafts.js at v=nov27a, and English and Spanish content at v=nov27a, and icons at v=nov22w.
+// nov27a is on content.js, content.es.js, and drafts.js. i18n.js is nov26f. eagle-eye.js is tf27c. app.js is nov26i and leaderboard.js is nov26f. style.css is tf26n. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -8,7 +8,7 @@ const path = require("path");
 const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const APP_V = "nov26h";
+const APP_V = "nov26i";
 const CONTENT_V = "nov27a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
@@ -34,15 +34,15 @@ const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 });
 if (adminSrc.some(s => s.includes("content.es.js"))) fail("admin loads Spanish content"); else pass("admin has no Spanish content loader");
 if (/content\.es\.js|import\(/.test(appSrc)) fail("app.js loads Spanish content dynamically"); else pass("Spanish content is only the index.html script");
-[["style", "style.css?v=tf26m"], ["i18n", "i18n.js?v=nov26e"], ["eagle", "eagle-eye.js?v=tf27c"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t12"], ["field-config", "field-config.js?v=sb2119c"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=nov26e"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
+[["style", "style.css?v=tf26n"], ["i18n", "i18n.js?v=nov26f"], ["eagle", "eagle-eye.js?v=tf27c"], ["graph", "graph-history.js?v=g2local1"], ["map", "map.js?v=nov3k"], ["field", "field-compare.js?v=g1t12"], ["field-config", "field-config.js?v=sb2119c"], ["names", "name-filter.js?v=lb13"], ["board", "leaderboard.js?v=nov26f"], ["demo", "demo-types.js?v=fmt25e"]].forEach(([n, s]) => {
   if (!has(indexSrc, s)) fail("kept " + n, s); else pass("kept " + n);
 });
 [["index icons", indexSrc, "assets/icons.js?v=nov22w"], ["admin icons", adminSrc, "assets/icons.js?v=nov22w"]].forEach(([n, list, s]) => {
   if (!has(list, s) || has(list, "assets/icons.js?v=nov3k")) fail(n, s); else pass(n);
 });
-// feedback.js is tf26g. eagle-eye.js is tf27c. demo-types stays fmt25e. app.js is nov26h. leaderboard.js is nov26e. i18n.js is nov26e.
-if (!has(indexSrc, "feedback.js?v=tf26g") || has(indexSrc, "feedback.js?v=tf26f") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=nov26g") || has(indexSrc, "app.js?v=nov26f") || has(indexSrc, "app.js?v=nov26e") || has(indexSrc, "app.js?v=nov26d") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c") || has(indexSrc, "i18n.js?v=nov26d") || has(indexSrc, "i18n.js?v=nov26c") || has(indexSrc, "i18n.js?v=nov26b") || has(indexSrc, "eagle-eye.js?v=tf27b") || has(indexSrc, "eagle-eye.js?v=tf27a") || has(indexSrc, "eagle-eye.js?v=tf26i") || has(indexSrc, "leaderboard.js?v=nov26d") || has(indexSrc, "style.css?v=tf26l") || has(indexSrc, "style.css?v=tf26k") || has(indexSrc, "style.css?v=tf26j")) fail("index feedback key"); else pass("index feedback key");
-if (!has(adminSrc, "feedback.js?v=tf26g") || has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf27c") || has(adminSrc, "eagle-eye.js?v=tf27b") || has(adminSrc, "eagle-eye.js?v=tf27a") || has(adminSrc, "eagle-eye.js?v=tf26i") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(adminSrc, "app.js?v=nov26g") || has(adminSrc, "app.js?v=nov26f") || has(adminSrc, "app.js?v=nov26e") || has(adminSrc, "app.js?v=nov26d") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
+// feedback.js is tf26g. eagle-eye.js is tf27c. demo-types stays fmt25e. app.js is nov26i. leaderboard.js is nov26f. i18n.js is nov26f.
+if (!has(indexSrc, "feedback.js?v=tf26g") || has(indexSrc, "feedback.js?v=tf26f") || has(indexSrc, "feedback.js?v=nov18e") || has(indexSrc, "feedback.js?v=fmt25e") || has(indexSrc, "feedback.js?v=tf26c") || has(indexSrc, "app.js?v=nov26h") || has(indexSrc, "app.js?v=nov26g") || has(indexSrc, "app.js?v=nov26f") || has(indexSrc, "app.js?v=nov26e") || has(indexSrc, "app.js?v=nov26d") || has(indexSrc, "app.js?v=tf26d") || has(indexSrc, "app.js?v=tf26c") || has(indexSrc, "i18n.js?v=nov26e") || has(indexSrc, "i18n.js?v=nov26d") || has(indexSrc, "i18n.js?v=nov26c") || has(indexSrc, "i18n.js?v=nov26b") || has(indexSrc, "eagle-eye.js?v=tf27b") || has(indexSrc, "eagle-eye.js?v=tf27a") || has(indexSrc, "eagle-eye.js?v=tf26i") || has(indexSrc, "leaderboard.js?v=nov26e") || has(indexSrc, "leaderboard.js?v=nov26d") || has(indexSrc, "style.css?v=tf26m") || has(indexSrc, "style.css?v=tf26l") || has(indexSrc, "style.css?v=tf26k") || has(indexSrc, "style.css?v=tf26j")) fail("index feedback key"); else pass("index feedback key");
+if (!has(adminSrc, "feedback.js?v=tf26g") || has(adminSrc, "feedback.js?v=tf26f") || !has(adminSrc, "eagle-eye.js?v=tf27c") || has(adminSrc, "eagle-eye.js?v=tf27b") || has(adminSrc, "eagle-eye.js?v=tf27a") || has(adminSrc, "eagle-eye.js?v=tf26i") || !has(adminSrc, "name-filter.js?v=lb13") || !has(adminSrc, "map.js?v=nov3k") || has(adminSrc, "feedback.js?v=nov18e") || has(adminSrc, "app.js?v=fmt25e") || has(adminSrc, "app.js?v=nov26h") || has(adminSrc, "app.js?v=nov26g") || has(adminSrc, "app.js?v=nov26f") || has(adminSrc, "app.js?v=nov26e") || has(adminSrc, "app.js?v=nov26d") || has(adminSrc, "i18n.js?v=nov26e") || has(adminSrc, "style.css?v=tf26m") || has(indexSrc, "leaderboard.js?v=nm25b")) fail("admin kept unrelated keys"); else pass("admin kept unrelated keys");
 if (indexSrc.some(s => s.indexOf("vendor/supabase.js") === 0 || s.indexOf("vendor/supabase.js?") === 0)) fail("index loads supabase up front"); else pass("index does not load supabase up front");
 
 const OLD = {};

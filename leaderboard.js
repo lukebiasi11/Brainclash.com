@@ -820,8 +820,24 @@
       return rankFromRows(Array.isArray(body.rows) ? body.rows : [], entry.token, body.total);
     } catch (e) { return null; }
   }
+  // Same overall rank the results rank line already shows. In-flight calls share one read.
+  // day is the New York day the board was asked for. A null result means the rank is unknown
+  // (tester, no nickname and no skip, no saved entry for today, or the board did not answer).
+  let rankP = null;
+  function rankNow() {
+    if (rankP) return rankP;
+    const day = todayKey();
+    rankP = fetchRank().then(got => {
+      const nowDay = todayKey();
+      if (!got || nowDay !== day || !/^\d{4}-\d{2}-\d{2}$/.test(nowDay)) return null;
+      const rank = Number(got.rank);
+      if (!Number.isFinite(rank)) return null;
+      return { day: nowDay, rank: rank, total: Number(got.total) };
+    }).finally(() => { rankP = null; });
+    return rankP;
+  }
   async function rankPhrase() {
-    const got = await fetchRank();
+    const got = await rankNow();
     return got ? tr("Rank #{0} of {1} today", got.rank, got.total) : "";
   }
   function rankLine() {
@@ -869,6 +885,7 @@
     isOwnRow: isOwnRow,
     ownPlacement: ownPlacement,
     rankFromRows: rankFromRows,
+    rankNow: rankNow,
     rankPhrase: rankPhrase,
     rankLine: rankLine,
     entryKey: ENTRY

@@ -546,6 +546,11 @@ body.in-game .bg-wrap::after{opacity:.0}
 .stats div{background:var(--ink-bc);border:0;border-radius:0;color:var(--cream)}
 .stats b{color:var(--bolt);text-shadow:none}.stats small{color:var(--cream)}
 .stats div:nth-child(3) b::before{content:"🔥 "}
+/* Four lifetime stats. Same ink cards as the old three, a little tighter so the row stays one line. */
+.stats.stats-top5{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stats.stats-top5 > div{min-width:0;padding:8px 2px}
+.stats.stats-top5 b{font-size:clamp(14px,4.2vw,26px);line-height:1.05;white-space:nowrap}
+.stats.stats-top5 small{display:block;margin-top:1px;font-size:clamp(10px,2.55vw,13px);line-height:1.15;font-weight:700}
 .rules{background:var(--cream);border:2px solid var(--ink-bc);border-radius:0}.rules li{color:var(--ink-bc)}
 .fine{color:var(--ink-bc)}.fine a{color:var(--ink-bc);font-weight:800}
 .site-footer{color:var(--ink-bc)}
