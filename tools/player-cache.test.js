@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov26g, i18n at v=nov26d, style.css at v=tf26m, feedback.js at v=tf26g, eagle-eye.js at v=tf26i, leaderboard.js at v=nov26d, drafts.js at v=nov26a, and English and Spanish content at v=nov26a, and icons at v=nov22w.
-// nov26a stays on content.js, content.es.js, and drafts.js. i18n.js is nov26d. eagle-eye.js stays tf26i. app.js is nov26g and leaderboard.js stays nov26d. style.css is tf26m. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
+// New HTML must request answers at v=nov17a, app.js at v=nov26g, i18n at v=nov26d, style.css at v=tf26m, feedback.js at v=tf26g, eagle-eye.js at v=tf26i, leaderboard.js at v=nov26d, drafts.js at v=nov27a, and English and Spanish content at v=nov27a, and icons at v=nov22w.
+// nov27a is on content.js, content.es.js, and drafts.js. i18n.js is nov26d. eagle-eye.js stays tf26i. app.js is nov26g and leaderboard.js stays nov26d. style.css is tf26m. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -9,7 +9,7 @@ const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const APP_V = "nov26g";
-const CONTENT_V = "nov26a";
+const CONTENT_V = "nov27a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
