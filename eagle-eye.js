@@ -1,9 +1,9 @@
-/* Cup Shuffle and Track the Dot, played as Think Fast's two questions on 2026-11-26 only.
-   11/23 through 11/25, and every date after 11/26, stay the regular Think Fast puzzles.
-   That Thursday is question 1 = Cup Shuffle tier 2 (4 cups, 375), then question 2 = Track the Dot (250 + 375).
-   Cup tiers 1 and 3 stay in this file and are not scheduled.
+/* Cup Shuffle and Track the Dot, played as Think Fast's two questions on scheduled days.
+   2026-11-26: Cup Shuffle tier 2 (4 cups, 375), then Track the Dot (250 + 375).
+   2026-11-27: Cup Shuffle tier 3 made harder (5 cups, 20 moves, 230 ms, 375), then a faster Track the Dot (250 + 375).
+   Every other date stays the regular Think Fast puzzles. Tier 1 stays banked.
    Flash Count is not part of this set. Points are a proportional split of the
-   Think Fast total (400 + 600), not a separate scale. */
+   Think Fast total (400 + 600), not a separate scale. The day total stays 5,000. */
 (function (root) {
   "use strict";
   const DAY = "2026-11-26";
@@ -24,11 +24,20 @@
     { dots: 6, targets: 1, speed: 175, secs: 5.0, pts: POINTS[3] },
     { dots: 7, targets: 2, speed: 190, secs: 5.5, pts: POINTS[4] }
   ];
-  // The only place November 26's points live.
+  // Per-day plan. Points and the day total live here.
   // cups + track is the Brain Teaser cap (375 + 250 + 375 = 1,000). The day total stays 5,000
   // while dayTotal is null. Set dayTotal to "sum" to show the sum of the five category caps instead.
+  // 11/26 uses TIERS[2] and TRACK as written. 11/27 uses tier 3, then overrides moves/ms and both dot rounds.
   const DAY_SCORE = {
-    "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null }
+    "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2 },
+    "2026-11-27": {
+      cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 3,
+      moves: 20, ms: 230,
+      trackPlay: [
+        { dots: 8, targets: 2, speed: 230, secs: 6.0 },
+        { dots: 9, targets: 3, speed: 250, secs: 6.5 }
+      ]
+    }
   };
   function dayPlan(key) {
     const spec = DAY_SCORE[key];
@@ -36,7 +45,36 @@
     const scale = spec.scale == null ? 1 : spec.scale;
     const cups = Math.round(spec.cups * scale);
     const track = spec.track.map(n => Math.round(n * scale));
-    return { cups: cups, track: track, cap: cups + track.reduce((a, b) => a + b, 0), scale: scale, dayTotal: spec.dayTotal || null };
+    return {
+      cups: cups, track: track, cap: cups + track.reduce((a, b) => a + b, 0), scale: scale,
+      dayTotal: spec.dayTotal || null, tier: spec.tier == null ? 2 : spec.tier,
+      moves: spec.moves == null ? null : spec.moves, ms: spec.ms == null ? null : spec.ms,
+      trackPlay: spec.trackPlay || null
+    };
+  }
+  function playFor(key) {
+    const plan = dayPlan(key);
+    if (!plan) return null;
+    const tier = plan.tier;
+    const base = TIERS[tier];
+    const cups = {
+      tier: tier, n: base.n,
+      moves: plan.moves != null ? plan.moves : base.moves,
+      ms: plan.ms != null ? plan.ms : base.ms,
+      gap: base.gap, rot: base.rot, far: base.far, feints: base.feints, pts: plan.cups
+    };
+    const track = [0, 1].map(i => {
+      const b = TRACK[i];
+      const over = (plan.trackPlay && plan.trackPlay[i]) || {};
+      return {
+        dots: over.dots != null ? over.dots : b.dots,
+        targets: over.targets != null ? over.targets : b.targets,
+        speed: over.speed != null ? over.speed : b.speed,
+        secs: over.secs != null ? over.secs : b.secs,
+        pts: plan.track[i]
+      };
+    });
+    return { key: key, tier: tier, cups: cups, track: track, cap: plan.cap, dayTotal: plan.dayTotal };
   }
   const played = dayPlan(DAY);
   TIERS[2].pts = played.cups;
@@ -62,17 +100,27 @@
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
     return a;
   }
-  function on(key) { return key === DAY; }
+  function on(key) { return !!DAY_SCORE[key]; }
   function onEpoch(day) { return on(new Date(day * 864e5).toISOString().slice(0, 10)); }
-  function roundPoints() {
+  function roundPoints(key) {
     const pts = POINTS.slice();
-    const plan = dayPlan(DAY);
+    const plan = dayPlan(key || DAY);
     if (!plan) return pts;
     pts[0] = plan.cups;
     pts[3] = plan.track[0];
     pts[4] = plan.track[1];
     return pts;
   }
+  // Live seeds already include the date ("eagleeye|YYYY-MM-DD"). Leave 11/26's seed alone.
+  // A later day whose seed string does not already name that day gets the day appended.
+  function playSeed(env) {
+    const key = (env && env.day) || DAY;
+    const base = String((env && env.seed) || "");
+    if (!base) return "eagleeye|" + key;
+    if (key === DAY || base.indexOf(key) >= 0) return base;
+    return base + "|" + key;
+  }
+  function activePlay(env) { return playFor(env && env.day) || playFor(DAY); }
 
   function applyMove(ball, m) {
     if (m.t === "swap") { if (ball === m.a) return m.b; if (ball === m.b) return m.a; return ball; }
@@ -119,8 +167,8 @@
     }
     return { moves: moves, finalSlot: ball };
   }
-  function planCup(seed, tier) {
-    const T = TIERS[tier];
+  function planCup(seed, tier, spec) {
+    const T = spec || TIERS[tier];
     const tr = rngFor(seed, "cups-tier" + tier);
     const startSlot = ri(tr, 0, T.n - 1);
     const plan = makeMoves(tr, T, startSlot);
@@ -245,12 +293,24 @@
   function openScreen(env, n, name, pts) {
     return env.screen(env.tr("Brain Teaser"), puzzleLine(env, n, name, pts));
   }
+  function trackCue(env, n, phase) {
+    if (phase === "remember") {
+      if (n <= 1) return env.tr("Remember the orange dot");
+      if (n === 2) return env.tr("Remember both orange dots");
+      return env.tr("Remember the three orange dots");
+    }
+    if (phase === "follow") return n <= 1 ? env.tr("Follow it…") : env.tr("Follow them…");
+    if (n <= 1) return env.tr("Tap the dot");
+    if (n === 2) return env.tr("Tap both dots");
+    return env.tr("Tap all three dots");
+  }
   async function howto(env, kind) {
     setPhase(kind === "cups" ? "howto-cups" : "howto-dot");
     const lines = kind === "cups" ? CUPS_HOW : DOT_HOW;
     const slot = kind === "cups" ? 1 : 2;
     const name = kind === "cups" ? "Cup Shuffle" : "Track the Dot";
-    const max = kind === "cups" ? TIERS[2].pts : TRACK[0].pts + TRACK[1].pts;
+    const play = activePlay(env);
+    const max = kind === "cups" ? play.cups.pts : play.track[0].pts + play.track[1].pts;
     const body = openScreen(env, slot, name, max);
     const p = node("p", "prompt");
     p.textContent = lines.map(line => env.tr(line)).join(" ");
@@ -260,8 +320,10 @@
   }
 
   async function cupRound(env, tier, idx) {
-    const R = TIERS[tier];
-    const plan = planCup(env.seed, tier);
+    const play = activePlay(env);
+    const useDay = !!(play && play.tier === tier);
+    const R = useDay ? play.cups : TIERS[tier];
+    const plan = planCup(playSeed(env), tier, useDay ? R : null);
     const dbg = { tier: tier, n: R.n, startSlot: plan.startSlot, moves: plan.moves, finalSlot: plan.finalSlot, picked: null, correct: null, domFinalSlot: null, rank: null };
     root.PERC.debug.cups.push(dbg);
     setPhase("cups-" + idx + "-show");
@@ -495,9 +557,10 @@
   }
 
   async function trackRound(env, idx) {
-    const R = TRACK[idx];
+    const play = activePlay(env);
+    const R = (play && play.track && play.track[idx]) || TRACK[idx];
     // One stream for both rounds, drawn in order. Round 2 continues where round 1 stopped.
-    if (!env._trackRng) env._trackRng = rngFor(env.seed, "track");
+    if (!env._trackRng) env._trackRng = rngFor(playSeed(env), "track");
     const rng = env._trackRng;
     const AW = 340, AH = 300, RAD = 15;
     const dots = [];
@@ -512,7 +575,8 @@
     const dbg = { targets: targets.slice(), picks: [], correct: null, final: null };
     root.PERC.debug.track.push(dbg);
     setPhase("track-" + idx + "-show");
-    const body = openScreen(env, 2, "Track the Dot", TRACK[0].pts + TRACK[1].pts);
+    const dotMax = play ? play.track[0].pts + play.track[1].pts : TRACK[0].pts + TRACK[1].pts;
+    const body = openScreen(env, 2, "Track the Dot", dotMax);
     const NS = "http://www.w3.org/2000/svg";
     const arena = document.createElementNS(NS, "svg");
     arena.setAttribute("class", "ee-arena");
@@ -534,7 +598,7 @@
       arena.append(g);
     });
     const st = node("div", "ee-status");
-    st.textContent = R.targets > 1 ? env.tr("Remember both orange dots") : env.tr("Remember the orange dot");
+    st.textContent = trackCue(env, R.targets, "remember");
     const sub = node("div", "ee-sub");
     body.append(arena, st, sub);
     if (env.scheduleFit) env.scheduleFit();
@@ -553,7 +617,7 @@
     });
     await sleep(350);
     setPhase("track-" + idx + "-move");
-    st.textContent = R.targets > 1 ? env.tr("Follow them…") : env.tr("Follow it…");
+    st.textContent = trackCue(env, R.targets, "follow");
     const DT = 1 / 120, steps = Math.round(R.secs / DT);
     let done = 0;
     function step() {
@@ -592,7 +656,7 @@
     }
     dbg.final = dots.map(d => [+d.x.toFixed(2), +d.y.toFixed(2)]);
     setPhase("track-" + idx + "-pick");
-    st.textContent = R.targets > 1 ? env.tr("Tap both dots") : env.tr("Tap the dot");
+    st.textContent = trackCue(env, R.targets, "tap");
     const pickState = { picks: [], lastAt: null };
     gs.forEach((g, i) => {
       g.setAttribute("role", "button");
@@ -613,8 +677,11 @@
         arena.append(tp);
         setTimeout(() => tp.remove(), 600);
         gs[best].querySelector(".ee-dot").setAttribute("fill", "#9fb3d9");
-        if (pickState.picks.length >= R.targets) finish();
-        else sub.textContent = env.tr("One more");
+        const left = R.targets - pickState.picks.length;
+        if (left <= 0) finish();
+        else if (left === 1) sub.textContent = env.tr("One more");
+        else if (left === 2) sub.textContent = env.tr("Two more");
+        else sub.textContent = env.tr("{0} more", String(left));
       };
       const onKey = ev => {
         if (ev.key !== "Enter" && ev.key !== " ") return;
@@ -660,7 +727,7 @@
       rg.classList.remove("ee-pulse");
       rg.style.stroke = "#D7263D";
     });
-    const pts = scoreTrack(hits, idx);
+    const pts = hits === R.targets ? R.pts : 0;
     setPhase("track-" + idx + "-reveal");
     const roundNo = String(idx + 1);
     st.textContent = hits === R.targets
@@ -677,9 +744,10 @@
     env._trackRng = null;
     let total = 0;
     const log = [];
+    const play = activePlay(env);
     await howto(env, "cups");
     {
-      const res = await cupRound(env, 2, 0);
+      const res = await cupRound(env, play.tier, 0);
       total += res.pts;
       log.push(res.pts);
       if (env.onRound) env.onRound(total);
@@ -711,7 +779,7 @@
     on: on, onEpoch: onEpoch, roundPoints: roundPoints,
     rngFor: rngFor, applyMove: applyMove, makeMoves: makeMoves,
     planCup: planCup, replayBall: replayBall, replayCups: replayCups, scoreTrack: scoreTrack, trackPick: trackPick,
-    dayPlan: dayPlan, DAY_SCORE: DAY_SCORE,
+    dayPlan: dayPlan, playFor: playFor, DAY_SCORE: DAY_SCORE,
     run: run
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

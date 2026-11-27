@@ -26,7 +26,7 @@ const CATS = [
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
 function isBrainTeaserDay(key) {
   if (key && window.EagleEye && typeof EagleEye.on === "function") return !!EagleEye.on(key);
-  return key === "2026-11-26";
+  return key === "2026-11-26" || key === "2026-11-27";
 }
 function thinkCatName(key) { return isBrainTeaserDay(key) ? "Brain Teaser" : "Think Fast"; }
 function catsFor(key) {
@@ -314,7 +314,7 @@ function liveTotal() {
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
   b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
-// November 26 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
+// November 26 and 27 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
 function catCapFor(key, index) {
   if (index === 4 && window.EagleEye && EagleEye.dayPlan) {
     const plan = EagleEye.dayPlan(key);
@@ -676,9 +676,9 @@ function introText(id) {
         : tr("Make as many 3–6 letter words as you can from 6 letters in 60 seconds. 3 letters = 10, 4 = 25, 5 = 50, 6 = 100. No penalty for wrong guesses.")) },
     think: (window.EagleEye && EagleEye.on(session.key))
       ? tr("Puzzle 1, {0}, is worth {1} points. {2} {3} Puzzle 2, {4}, is worth {5} points. {6} {7}",
-        tr("Cup Shuffle"), EagleEye.roundPoints()[0],
+        tr("Cup Shuffle"), EagleEye.roundPoints(session.key)[0],
         tr("Watch the cup with the ball."), tr("Tap it when the cups stop."),
-        tr("Track the Dot"), EagleEye.roundPoints()[3] + EagleEye.roundPoints()[4],
+        tr("Track the Dot"), EagleEye.roundPoints(session.key)[3] + EagleEye.roundPoints(session.key)[4],
         tr("Follow the orange dots."), tr("Tap them when they stop."))
       : tr("Two puzzles worth 400 and 600 points, {0} seconds each. You get ONE submission each — think before you lock it in.", THINK_SECS)
   }[id];
@@ -2374,6 +2374,7 @@ function thinkFastPerception() {
   const seed = session.practice ? ("practice|" + Math.floor(Math.random() * 1e9)) : ("eagleeye|" + session.key);
   EagleEye.run({
     seed: seed,
+    day: session.key,
     tr: tr,
     screen: (_title, sub) => screen("🧠 " + tr(thinkCatName(session && session.key)), sub),
     actionBar: actionBar,
