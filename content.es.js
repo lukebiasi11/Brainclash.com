@@ -656,6 +656,17 @@ window.CONTENT_ES = {
         "name": "Acantilados de Moher, Irlanda"
       }
     ]
+  },
+  // 2026-11-27 approved.
+  {
+    "pins": [
+      {
+        "name": "Cataratas del Niágara, EE. UU./Canadá"
+      },
+      {
+        "name": "Phuket, Tailandia"
+      }
+    ]
   }
 
 
@@ -2076,6 +2087,38 @@ window.CONTENT_ES = {
       ]
     ],
     "explain": "Guitar Hero salió en noviembre de 2005; Kung Fu Panda se estrenó en junio de 2008; Candy Crush Saga se lanzó el 12 de abril de 2012; Mad Max: Furia en el camino se estrenó en Estados Unidos el 15 de mayo de 2015; \"Old Town Road\" pasó un entonces récord de 19 semanas en el No. 1 del Billboard Hot 100 en 2019."
+  },
+  // 2026-11-27 approved.
+  {
+    "theme": "De videos virales a éxitos musicales",
+    "events": [
+      [
+        null,
+        "Se publica en internet el video \"Charlie Bit My Finger\" (Charlie me mordió el dedo)",
+        null
+      ],
+      [
+        null,
+        "Justin Bieber lanza \"Baby\"",
+        null
+      ],
+      [
+        null,
+        "Flappy Bird es retirado de las tiendas de apps en su mejor momento",
+        null
+      ],
+      [
+        null,
+        "Los fidget spinners se vuelven el juguete de moda que todos quieren",
+        null
+      ],
+      [
+        null,
+        "Olivia Rodrigo lanza \"drivers license\"",
+        null
+      ]
+    ],
+    "explain": "\"Charlie Bit My Finger\" se publicó en 2007; \"Baby\" salió el 18 de enero de 2010; Flappy Bird fue retirado el 10 de febrero de 2014; los fidget spinners se pusieron de moda en la primavera de 2017; \"drivers license\" salió el 8 de enero de 2021."
   }
 
 
@@ -3241,6 +3284,32 @@ window.CONTENT_ES = {
         "Su frase famosa es \"You can't see me!\" (¡No me puedes ver!) e interpretó a Peacemaker en televisión."
       ],
       "explain": "John Cena es una leyenda de la WWE, tiene el récord de deseos cumplidos para Make-A-Wish y protagonizó la serie Peacemaker."
+    }
+  ],
+  // 2026-11-27 approved.
+  [
+    {
+      "q": "¿Qué estrella del pop llama a sus fans sus \"Little Monsters\" (Pequeños Monstruos)?",
+      "options": [
+        "Billie Eilish",
+        "Lady Gaga",
+        "Selena Gomez",
+        "Harry Styles"
+      ],
+      "explain": "Lady Gaga llama a sus fans \"Little Monsters\" y ellos la llaman \"Mother Monster\"."
+    },
+    {
+      "q": "¿Qué estrella de Iowa se convirtió en 2024 en la máxima anotadora de todos los tiempos del baloncesto de la División I de la NCAA?",
+      "explain": "Caitlin Clark superó a Pete Maravich en marzo de 2024 y se convirtió en la máxima anotadora de todos los tiempos de la División I de la NCAA."
+    },
+    {
+      "prompt": "Identifica a esta superestrella de los deportes de combate.",
+      "clues": [
+        "Es una estrella irlandesa de las artes marciales mixtas que se convirtió en una de las mayores celebridades del combate en el mundo.",
+        "Tuvo títulos en dos categorías de peso al mismo tiempo y se convirtió en la mayor estrella de pago por evento en la historia de las MMA.",
+        "Su apodo es \"The Notorious\"."
+      ],
+      "explain": "Conor McGregor, apodado \"The Notorious\", tuvo títulos en dos categorías de peso al mismo tiempo y se convirtió en la mayor estrella de pago por evento en la historia de las MMA."
     }
   ]
 

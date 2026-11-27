@@ -1235,6 +1235,21 @@ window.CONTENT = {
           "lon": -9.43
         }
       ]
+    },
+    // 2026-11-27 approved: 2 pins only (Niagara Falls, Phuket).
+    {
+      "pins": [
+        {
+          "name": "Niagara Falls, USA/Canada",
+          "lat": 43.08,
+          "lon": -79.07
+        },
+        {
+          "name": "Phuket, Thailand",
+          "lat": 7.88,
+          "lon": 98.39
+        }
+      ]
     }
 
 
@@ -2301,6 +2316,39 @@ window.CONTENT = {
         ]
       ],
       "explain": "Guitar Hero came out Nov 2005; Kung Fu Panda opened June 2008; Candy Crush Saga launched April 12, 2012; Mad Max: Fury Road opened in the United States on May 15, 2015; \"Old Town Road\" spent a then-record 19 weeks at No. 1 on the Billboard Hot 100 in 2019."
+    },
+    // 2026-11-27 approved: one 5-event timeline.
+    {
+      "type": "timeline",
+      "theme": "Viral videos to chart-toppers",
+      "events": [
+        [
+          "👶",
+          "The \"Charlie Bit My Finger\" video is posted online",
+          2007
+        ],
+        [
+          "💜",
+          "Justin Bieber releases \"Baby\"",
+          2010
+        ],
+        [
+          "🐤",
+          "Flappy Bird is pulled from app stores at the height of its popularity",
+          2014
+        ],
+        [
+          "🌀",
+          "Fidget spinners become the must-have toy craze",
+          2017
+        ],
+        [
+          "🚗",
+          "Olivia Rodrigo releases \"drivers license\"",
+          2021
+        ]
+      ],
+      "explain": "\"Charlie Bit My Finger\" was posted in 2007; \"Baby\" came out Jan 18, 2010; Flappy Bird was removed Feb 10, 2014; fidget spinners took off in spring 2017; \"drivers license\" was released Jan 8, 2021."
     }
 
 
@@ -3792,6 +3840,76 @@ window.CONTENT = {
         ],
         "explain": "John Cena is a WWE legend, the record holder for Make-A-Wish wishes granted, and the star of the TV series Peacemaker."
       }
+    ],
+    // 2026-11-27 approved: celebrity / sports MVP (Lady Gaga, Caitlin Clark, McGregor).
+    [
+      {
+        "type": "mc",
+        "q": "Which pop star calls her fans her \"Little Monsters\"?",
+        "options": [
+          "Billie Eilish",
+          "Lady Gaga",
+          "Selena Gomez",
+          "Harry Styles"
+        ],
+        "a": 1,
+        "explain": "Lady Gaga calls her fans \"Little Monsters\", and they call her \"Mother Monster\"."
+      },
+      {
+        "type": "text",
+        "q": "Which Iowa star became NCAA Division I basketball's all-time leading scorer in 2024?",
+        "answers": [
+          "caitlin clark",
+          "clark"
+        ],
+        "aliases": [
+          "caitlyn clark",
+          "katelyn clark",
+          "kaitlin clark",
+          "kaitlyn clark",
+          "caitlin clarke",
+          "caitlyn clarke",
+          "catlin clark",
+          "caitlin clerk",
+          "katie clark",
+          "kaitlin clarke",
+          "caitlin elizabeth clark",
+          "clarke"
+        ],
+        "wrong": [
+          "angel reese",
+          "paige bueckers",
+          "aja wilson",
+          "sabrina ionescu"
+        ],
+        "noFirstName": true,
+        "explain": "Caitlin Clark passed Pete Maravich in March 2024 to become NCAA Division I's all-time leading scorer."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this combat-sports superstar.",
+        "clues": [
+          "He is an Irish mixed-martial-arts star who became one of the world's biggest combat-sports celebrities.",
+          "He held titles in two weight classes at the same time and became the biggest pay-per-view star in MMA history.",
+          "His nickname is \"The Notorious.\""
+        ],
+        "answer": "Conor McGregor",
+        "accept": [
+          "Conor McGregor",
+          "Connor McGregor",
+          "Conor MacGregor",
+          "Connor MacGregor",
+          "McGregor",
+          "MacGregor",
+          "Conor McGreggor",
+          "Connor McGreggor",
+          "Conor McGregar",
+          "Conner McGregor",
+          "Conor McGregory"
+        ],
+        "noFirstName": true,
+        "explain": "Conor McGregor, nicknamed \"The Notorious,\" held titles in two weight classes at the same time and became the biggest pay-per-view star in MMA history."
+      }
     ]
 
 
@@ -5247,7 +5365,7 @@ window.CONTENT = {
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
-// 2026-11-18 through 2026-11-26 pin appended World, Time Warp, and MVP sets. 2026-11-26 Think Fast is scheduled separately.
+// 2026-11-18 through 2026-11-27 pin appended World, Time Warp, and MVP sets. 2026-11-26 Think Fast is scheduled separately.
 // 2026-11-20 through 2026-11-24 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
@@ -5268,5 +5386,6 @@ window.DAY_OVERRIDES["2026-11-23"] = {"worldRush":60,"history":60,"sports":59,"t
 window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"thinkFast":64,"wordBridge":13};
 window.DAY_OVERRIDES["2026-11-25"] = {"worldRush":61,"history":62,"sports":60};
 window.DAY_OVERRIDES["2026-11-26"] = {"worldRush":62,"history":63,"sports":61};
+window.DAY_OVERRIDES["2026-11-27"] = {"worldRush":63,"history":64,"sports":62};
 window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
 window.DAY_OVERRIDES["banked-1124"] = {"history":57,"thinkFast":59};
