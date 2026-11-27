@@ -122,6 +122,44 @@ let session = null;
 let onKey = null; // per-screen physical keyboard handler
 let timers = new Set(), cdInterval = null;
 function clearScreenTimers() { timers.forEach(t => t.stop()); timers.clear(); clearInterval(cdInterval); cdInterval = null; }
+// New York day these scripts were loaded for. A tab left open past midnight still
+// has that day's content.js and eagle-eye.js in memory until location.reload().
+// Admin (BC_NO_BOOT) does not stamp a day or reload.
+const PAGE_DAY_KEY = window.BC_NO_BOOT ? null : todayKey();
+const DAY_RELOAD_PREFIX = "dg-day-reload:";
+function playingNow() {
+  if (document.body && document.body.classList.contains("in-game")) return true;
+  return !!(session && session.inProgress != null);
+}
+function idleDayScreen() {
+  if (playingNow()) return false;
+  if ($("#countdown")) return true; // home
+  if ($(".final")) return true; // results
+  return false;
+}
+// sessionStorage only. Saved dg- scores, stats, and streaks are not read or written.
+function claimDayReload() {
+  const key = todayKey();
+  if (!key || PAGE_DAY_KEY == null || key === PAGE_DAY_KEY) return false;
+  if (!location || typeof location.reload !== "function") return false;
+  const marker = DAY_RELOAD_PREFIX + key;
+  try {
+    if (sessionStorage.getItem(marker)) return false;
+    sessionStorage.setItem(marker, "1");
+  } catch (e) {
+    return false;
+  }
+  clearScreenTimers();
+  location.reload();
+  return true;
+}
+// Home and results only. A category still on screen keeps the scripts it started with.
+function reloadIfNewDayIdle() {
+  if (!idleDayScreen()) return false;
+  return claimDayReload();
+}
+window.addEventListener("pageshow", e => { if (e && e.persisted) reloadIfNewDayIdle(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reloadIfNewDayIdle(); });
 window.addEventListener("beforeunload", e => { if (session && session.inProgress != null) { e.preventDefault(); e.returnValue = ""; } });
 document.addEventListener("keydown", e => {
   if (!onKey || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -549,6 +587,8 @@ function scoreGraph(scores, day) {
   return card;
 }
 function home() {
+  // Opening home after midnight must not paint the new day with yesterday's scripts.
+  if (claimDayReload()) return;
   document.body.classList.remove("in-game");
   $(".result-modal")?.remove();
   session = null; onKey = null; clearScreenTimers();
@@ -607,7 +647,7 @@ function home() {
   if (!done && window.DailyBoard) window.DailyBoard.decorate($(".cta"), { started: !!(s && s.scores.length), refresh: home });
   const cd = () => {
     const el = $("#countdown"); if (!el) return;
-    if (dayIndex() !== day) return home(); // new day: re-render
+    if (dayIndex() !== day) return reloadIfNewDayIdle();
     const t = Math.floor(msToReset() / 1000);
     el.textContent = tr(done ? tr("Next Clash in ") : tr("Resets in ")) + [t / 3600, t % 3600 / 60, t % 60].map(x => String(Math.floor(x)).padStart(2, "0")).join(":");
   };
