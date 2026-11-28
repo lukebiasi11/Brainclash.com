@@ -667,6 +667,17 @@ window.CONTENT_ES = {
         "name": "Phuket, Tailandia"
       }
     ]
+  },
+  // 2026-11-28 approved.
+  {
+    "pins": [
+      {
+        "name": "Península de Baja California, México"
+      },
+      {
+        "name": "Big Sur, California, EE. UU."
+      }
+    ]
   }
 
 
@@ -2119,6 +2130,38 @@ window.CONTENT_ES = {
       ]
     ],
     "explain": "\"Charlie Bit My Finger\" se publicó en 2007; \"Baby\" salió el 18 de enero de 2010; Flappy Bird fue retirado el 10 de febrero de 2014; los fidget spinners se pusieron de moda en la primavera de 2017; \"drivers license\" salió el 8 de enero de 2021."
+  },
+  // 2026-11-28 approved.
+  {
+    "theme": "Apps, memes y una fiebre de videojuegos",
+    "events": [
+      [
+        null,
+        "Se estrena en televisión Hannah Montana",
+        null
+      ],
+      [
+        null,
+        "Se lanza WhatsApp",
+        null
+      ],
+      [
+        null,
+        "Grumpy Cat se convierte en estrella de internet",
+        null
+      ],
+      [
+        null,
+        "\"El vestido\" divide a internet: ¿azul y negro, o blanco y dorado?",
+        null
+      ],
+      [
+        null,
+        "Sale Animal Crossing: New Horizons",
+        null
+      ]
+    ],
+    "explain": "Hannah Montana se estrenó en marzo de 2006; WhatsApp se lanzó en mayo de 2009; Grumpy Cat se hizo viral en 2012; \"El vestido\" se hizo viral en febrero de 2015; Animal Crossing: New Horizons salió en marzo de 2020."
   }
 
 
@@ -3311,6 +3354,32 @@ window.CONTENT_ES = {
       ],
       "explain": "Conor McGregor, apodado \"The Notorious\", tuvo títulos en dos categorías de peso al mismo tiempo y se convirtió en la mayor estrella de pago por evento en la historia de las MMA."
     }
+  ],
+  // 2026-11-28 approved.
+  [
+    {
+      "q": "¿Qué estrella del tenis, nacida en Japón, ha ganado cuatro títulos individuales de Grand Slam y encendió el pebetero olímpico en los Juegos de Tokio?",
+      "options": [
+        "Naomi Osaka",
+        "Emma Raducanu",
+        "Iga Świątek",
+        "Bianca Andreescu"
+      ],
+      "explain": "Naomi Osaka ganó el US Open en 2018 y 2020 y el Abierto de Australia en 2019 y 2021, y encendió el pebetero olímpico en los Juegos de Tokio 2020, celebrados en 2021."
+    },
+    {
+      "q": "¿Qué estrella de reality, famosa por Keeping Up with the Kardashians, cofundó la marca de ropa SKIMS?",
+      "explain": "Kim Kardashian se hizo famosa con Keeping Up with the Kardashians (2007-2021) y cofundó SKIMS."
+    },
+    {
+      "prompt": "Identifica a esta estrella del fútbol americano.",
+      "clues": [
+        "Es un receptor abierto estadounidense de fútbol americano profesional, conocido por su inusual velocidad en línea recta.",
+        "Ha sido elegido All-Pro del primer equipo en más de una ocasión.",
+        "Su apodo es \"The Cheetah\" (El guepardo)."
+      ],
+      "explain": "Tyreek Hill es un receptor abierto estadounidense de fútbol americano profesional, apodado \"The Cheetah\" (El guepardo) por su velocidad. Ha sido elegido All-Pro del primer equipo en más de una ocasión."
+    }
   ]
 
 
@@ -3376,7 +3445,39 @@ window.CONTENT_ES = {
   null,
   null,
   null,
-  null,
+  // Think Fast index 29, the regular rotation pair for 2026-11-28.
+  [
+   {
+    "q": "Contando del 1 al 1000, ¿cuántos de los números contienen al menos un dígito 0?",
+    "answers": [
+     "181",
+     "ciento ochenta y uno"
+    ],
+    "aliases": [
+     "ciento ochenta y un"
+    ],
+    "explain": "9 de dos cifras + 171 de tres cifras + 1000"
+   },
+   {
+    "q": "¿Qué puede dar la vuelta al mundo quedándose en una esquina?",
+    "answers": [
+     "stamp",
+     "a stamp",
+     "postage stamp",
+     "sello",
+     "un sello",
+     "sello postal"
+    ],
+    "aliases": [
+     "el sello",
+     "estampilla",
+     "una estampilla",
+     "la estampilla",
+     "sello de correos"
+    ],
+    "explain": "Un sello en un sobre"
+   }
+  ],
   null,
   null,
   null,

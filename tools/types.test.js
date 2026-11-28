@@ -71,7 +71,7 @@ t("given still blocks brent", A.checkAnswer("brent", ["Favre"], { aliases: ["Bre
 
 const content = fs.readFileSync(path.join(root, "content.js"), "utf8") + fs.readFileSync(path.join(root, "content.es.js"), "utf8");
 t("live pairs include Nov 12, Nov 14-16, the scheduled Nov 18-21 and Nov 23-24 pairs, the appended 11/20 sports and 11/21 world pairs, and the 11/23 elevation pair", (content.match(/"type"\s*:\s*"pair"/g) || []).length, 23);
-t("live reveals include Nov 14-16, the scheduled Nov 18-24 reveals, and the 11/23 Tebow reveal kept on the appended sports day", (content.match(/"type"\s*:\s*"reveal"/g) || []).length, 13);
+t("live reveals include Nov 14-16, the scheduled Nov 18-24 reveals, the 11/23 Tebow reveal kept on the appended sports day, three Spanish type copies, and the Nov 28 Tyreek Hill reveal", (content.match(/"type"\s*:\s*"reveal"/g) || []).length, 17);
 t("live sliders are the Nov 14 jelly beans, the Nov 17 marbles, and the Nov 19, 21, and 23 jars", (content.match(/"type"\s*:\s*"slider"/g) || []).length, 6);
 
 const win = {};
