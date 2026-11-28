@@ -238,12 +238,13 @@ t("own line is separated by an ellipsis", lb.includes('class: "board-more"') && 
 const ranked = [{ token: "a", name: "Luna", rank: 2, score: 100 }, { token: "b", name: "Luna", rank: 3, score: 100 }];
 t("rank follows the entry token through a tie", JSON.stringify(Board.rankFromRows(ranked, "b")) === JSON.stringify({ rank: 3, total: 2 }) && Board.rankFromRows(ranked, "missing") == null);
 t("rank below 100 uses the server total", JSON.stringify(Board.rankFromRows([{ token: "z", rank: 140 }], "z", 180)) === JSON.stringify({ rank: 140, total: 180 }));
-t("Nov 21 fifth tab is Brain Teaser", Board.fifthName("2026-11-21") === "Brain Teaser");
-t("Nov 22 fifth tab is still Brain Teaser", Board.fifthName("2026-11-22") === "Brain Teaser");
-t("Nov 23 fifth tab stays Brain Teaser", Board.fifthName("2026-11-23") === "Brain Teaser");
-t("Nov 25 fifth tab stays Brain Teaser", Board.fifthName("2026-11-25") === "Brain Teaser");
+t("Nov 21 fifth tab is Think Fast", Board.fifthName("2026-11-21") === "Think Fast");
+t("Nov 22 fifth tab is still Think Fast", Board.fifthName("2026-11-22") === "Think Fast");
+t("Nov 23 fifth tab stays Think Fast", Board.fifthName("2026-11-23") === "Think Fast");
+t("Nov 25 fifth tab stays Think Fast", Board.fifthName("2026-11-25") === "Think Fast");
 t("Nov 26 fifth tab stays Brain Teaser", Board.fifthName("2026-11-26") === "Brain Teaser");
 t("Nov 27 fifth tab stays Brain Teaser", Board.fifthName("2026-11-27") === "Brain Teaser");
+t("Nov 28 fifth tab is Think Fast", Board.fifthName("2026-11-28") === "Think Fast");
 const esMap = require(path.join(root, "i18n.js")).ES;
 t("es Nov 22 label", esMap["Brain Teaser"] === "Rompecocos");
 t("es has no Eagle Eye label", esMap["Eagle Eye"] == null && esMap["Brain Teaser"] === "Rompecocos");
@@ -286,8 +287,8 @@ function boardTabs(lang) {
   return tabs.join("|");
 }
 const enTabs = boardTabs("en"), esTabs = boardTabs("es");
-t("en board tabs", enTabs === "Overall|World Rush|Time Warp|MVP|Word Nerd|Brain Teaser", enTabs);
-t("es board tabs", esTabs === "General|Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Rompecocos", esTabs);
+t("en board tabs", enTabs === "Overall|World Rush|Time Warp|MVP|Word Nerd|Think Fast", enTabs);
+t("es board tabs", esTabs === "General|Vuelta al Mundo|Máquina del Tiempo|MVP|Palabrólogo|Pensar Rápido", esTabs);
 t("rendered tabs have no Eagle Eye", !/Eagle Eye|Ojo de Águila/.test(enTabs + esTabs));
 
 (async () => {

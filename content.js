@@ -1250,6 +1250,21 @@ window.CONTENT = {
           "lon": 98.39
         }
       ]
+    },
+    // 2026-11-28 approved: 2 pins only (Baja California Peninsula, Big Sur).
+    {
+      "pins": [
+        {
+          "name": "Baja California Peninsula, Mexico",
+          "lat": 28.0,
+          "lon": -113.5
+        },
+        {
+          "name": "Big Sur, California, USA",
+          "lat": 36.27,
+          "lon": -121.81
+        }
+      ]
     }
 
 
@@ -2349,6 +2364,39 @@ window.CONTENT = {
         ]
       ],
       "explain": "\"Charlie Bit My Finger\" was posted in 2007; \"Baby\" came out Jan 18, 2010; Flappy Bird was removed Feb 10, 2014; fidget spinners took off in spring 2017; \"drivers license\" was released Jan 8, 2021."
+    },
+    // 2026-11-28 approved: one 5-event timeline.
+    {
+      "type": "timeline",
+      "theme": "Apps, memes and a gaming craze",
+      "events": [
+        [
+          "🎤",
+          "Hannah Montana premieres on TV",
+          2006
+        ],
+        [
+          "💬",
+          "WhatsApp launches",
+          2009
+        ],
+        [
+          "😾",
+          "Grumpy Cat becomes an internet star",
+          2012
+        ],
+        [
+          "👗",
+          "\"The Dress\" splits the internet: blue and black, or white and gold?",
+          2015
+        ],
+        [
+          "🏝️",
+          "Animal Crossing: New Horizons comes out",
+          2020
+        ]
+      ],
+      "explain": "Hannah Montana premiered March 2006; WhatsApp launched May 2009; Grumpy Cat went viral in 2012; \"The Dress\" went viral Feb 2015; Animal Crossing: New Horizons came out March 2020."
     }
 
 
@@ -3910,6 +3958,91 @@ window.CONTENT = {
         "noFirstName": true,
         "explain": "Conor McGregor, nicknamed \"The Notorious,\" held titles in two weight classes at the same time and became the biggest pay-per-view star in MMA history."
       }
+    ],
+    // 2026-11-28 approved: celebrity / sports MVP (Naomi Osaka, Kim Kardashian, Tyreek Hill).
+    [
+      {
+        "type": "mc",
+        "q": "Which tennis star, born in Japan, has won four Grand Slam singles titles and lit the Olympic cauldron at the Tokyo Games?",
+        "options": [
+          "Naomi Osaka",
+          "Emma Raducanu",
+          "Iga Świątek",
+          "Bianca Andreescu"
+        ],
+        "a": 0,
+        "explain": "Naomi Osaka won the US Open in 2018 and 2020 and the Australian Open in 2019 and 2021, and lit the Olympic cauldron at the Tokyo 2020 Games, held in 2021."
+      },
+      {
+        "type": "text",
+        "kind": "reality",
+        "q": "Which reality TV star, famous from Keeping Up with the Kardashians, co-founded the clothing brand SKIMS?",
+        "answers": [
+          "kim kardashian",
+          "kim kardashian west"
+        ],
+        "aliases": [
+          "kim kardashain",
+          "kim kardasian",
+          "kim kardashan",
+          "kim kardashien",
+          "kim kardashion",
+          "kimberly kardashian",
+          "kim k"
+        ],
+        "exactOnly": [
+          "kim k"
+        ],
+        "wrong": [
+          "khloe kardashian",
+          "kourtney kardashian",
+          "kylie jenner",
+          "kendall jenner",
+          "paris hilton",
+          "kardashian"
+        ],
+        "explain": "Kim Kardashian rose to fame on Keeping Up with the Kardashians (2007-2021) and co-founded SKIMS."
+      },
+      {
+        "type": "reveal",
+        "prompt": "Name this football star.",
+        "clues": [
+          "He is an American professional football wide receiver, known for rare straight-line speed.",
+          "He has been named a first-team All-Pro more than once.",
+          "His nickname is \"The Cheetah.\""
+        ],
+        "answer": "Tyreek Hill",
+        "accept": [
+          "Tyreek Hill",
+          "Tyreek",
+          "Tyreek Hil",
+          "Tyreek Hills",
+          "Tyree Hill",
+          "Tyreik Hill",
+          "Tyrreek Hill",
+          "Tyeek Hill",
+          "Tyrek Hill",
+          "Tireek Hill",
+          "Tyreeck Hill",
+          "Tyreek Hll",
+          "Hill Tyreek",
+          "Tyreek Hilll"
+        ],
+        "exactOnly": [
+          "Tyreek"
+        ],
+        "wrong": [
+          "grant hill",
+          "faith hill",
+          "jonah hill",
+          "tyreke evans",
+          "tyreke",
+          "taysom hill",
+          "justice hill",
+          "hill"
+        ],
+        "explain": "Tyreek Hill is an American professional football wide receiver, nicknamed \"The Cheetah\" for his speed. He has been named a first-team All-Pro more than once."
+      }
     ]
 
 
@@ -5365,7 +5498,7 @@ window.CONTENT = {
 // 2026-11-12 only. Nazca Lines and the Bruce Smith sack slider are approved alternates and are not scheduled.
 // 2026-11-14, 2026-11-15 and 2026-11-16 pin appended sets. Banked alternates are not scheduled.
 // 2026-11-17 pins the appended tennis day. Banked alternates are not scheduled.
-// 2026-11-18 through 2026-11-27 pin appended World, Time Warp, and MVP sets. 2026-11-26 Think Fast is scheduled separately.
+// 2026-11-18 through 2026-11-28 pin appended World, Time Warp, and MVP sets. 2026-11-26 Think Fast is scheduled separately.
 // 2026-11-20 through 2026-11-24 pin appended replacements. banked-* keeps the replaced indexes out of the fresh queue.
 window.DAY_OVERRIDES = window.DAY_OVERRIDES || {};
 window.DAY_OVERRIDES["2026-11-12"] = {"worldRush":46,"history":46,"sports":46,"thinkFast":48,"anagram":12};
@@ -5387,5 +5520,6 @@ window.DAY_OVERRIDES["2026-11-24"] = {"worldRush":57,"history":61,"sports":57,"t
 window.DAY_OVERRIDES["2026-11-25"] = {"worldRush":61,"history":62,"sports":60};
 window.DAY_OVERRIDES["2026-11-26"] = {"worldRush":62,"history":63,"sports":61};
 window.DAY_OVERRIDES["2026-11-27"] = {"worldRush":63,"history":64,"sports":62};
+window.DAY_OVERRIDES["2026-11-28"] = {"worldRush":64,"history":65,"sports":63};
 window.DAY_OVERRIDES["banked-1123"] = {"worldRush":56,"history":56,"sports":56,"thinkFast":58};
 window.DAY_OVERRIDES["banked-1124"] = {"history":57,"thinkFast":59};
