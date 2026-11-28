@@ -1,6 +1,6 @@
 // Returning client: old app.js?v=g2local1 and content*.js?v=nov3k stay cached.
-// New HTML must request answers at v=nov17a, app.js at v=nov27a, i18n at v=nov26f, style.css at v=tf26n, feedback.js at v=tf26g, eagle-eye.js at v=tf28a, leaderboard.js at v=nov26f, drafts.js at v=nov28a, and English and Spanish content at v=nov28a, and icons at v=nov22w.
-// nov28a is on content.js, content.es.js, and drafts.js. app.js stays nov27a. i18n.js is nov26f. eagle-eye.js is tf28a. leaderboard.js is nov26f. style.css is tf26n. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
+// New HTML must request answers at v=nov17a, app.js at v=nov27a, i18n at v=nov26f, style.css at v=tf26n, feedback.js at v=tf26g, eagle-eye.js at v=tf28a, leaderboard.js at v=nov26f, drafts.js at v=nov28a, English content at v=nov28b, Spanish content at v=nov28a, and icons at v=nov22w.
+// nov28b is on content.js. nov28a is on content.es.js and drafts.js. app.js stays nov27a. i18n.js is nov26f. eagle-eye.js is tf28a. leaderboard.js is nov26f. style.css is tf26n. feedback.js is tf26g. icons.js stays nov22w. name-filter stays lb13. demo-types stays fmt25e. supabase.js is loaded on demand, not from index.html.
 // Spanish content is a static index.html script, not a dynamic loader. Admin has no Spanish file.
 const http = require("http");
 const fs = require("fs");
@@ -9,7 +9,8 @@ const { spawn, execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const APP_V = "nov27a";
-const CONTENT_V = "nov28a";
+const CONTENT_V = "nov28b";
+const ES_CONTENT_V = "nov28a";
 const ANSWERS_V = "nov17a";
 const V = CONTENT_V;
 let bad = 0;
@@ -24,7 +25,7 @@ function has(list, s) { return list.includes(s); }
 const indexSrc = srcs("index.html");
 const adminSrc = srcs("admin.html");
 const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
-[["index app", indexSrc, "app.js?v=" + APP_V], ["index content", indexSrc, "content.js?v=" + CONTENT_V], ["index es", indexSrc, "content.es.js?v=" + CONTENT_V], ["index answers", indexSrc, "answers.js?v=" + ANSWERS_V],
+[["index app", indexSrc, "app.js?v=" + APP_V], ["index content", indexSrc, "content.js?v=" + CONTENT_V], ["index es", indexSrc, "content.es.js?v=" + ES_CONTENT_V], ["index answers", indexSrc, "answers.js?v=" + ANSWERS_V],
  ["admin app", adminSrc, "app.js?v=" + APP_V], ["admin content", adminSrc, "content.js?v=" + CONTENT_V], ["admin answers", adminSrc, "answers.js?v=" + ANSWERS_V]].forEach(([n, list, s]) => {
   if (!has(list, s)) fail(n, s); else pass(n);
 });
@@ -158,7 +159,7 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
 
     const enReqs = await go("/index.html", `new Promise(r => { const t = Date.now(); const tick = () => document.querySelector("#app") && document.querySelector("#app").children.length && window.BCDaily ? r(true) : Date.now() - t > 8000 ? r(false) : setTimeout(tick, 40); tick(); })`);
     const enFiles = enReqs.map(u => u.replace(origin, "")).filter(u => /\/(app|content|content\.es|answers)\.js/.test(u));
-    const want = ["/app.js?v=" + APP_V, "/content.js?v=" + CONTENT_V, "/content.es.js?v=" + CONTENT_V, "/answers.js?v=" + ANSWERS_V];
+    const want = ["/app.js?v=" + APP_V, "/content.js?v=" + CONTENT_V, "/content.es.js?v=" + ES_CONTENT_V, "/answers.js?v=" + ANSWERS_V];
     if (want.every(s => enFiles.includes(s)) && !enFiles.some(s => s.includes("v=g2local1") || s.includes("content.js?v=nov3k") || s.includes("content.es.js?v=nov3k") || s.includes("answers.js?v=nov3k"))) pass("new HTML reloads app, content, Spanish content, answers");
     else fail("new HTML requests", enFiles);
     const enJudge = await evalJson(cdp, judge);
@@ -181,7 +182,7 @@ const storeDump = `(() => { const o = {}; for (let i = 0; i < localStorage.lengt
     const tags = served.filter(s => /\/(app|content|content\.es|answers)\.js/.test(s.url));
     const oldHits = tags.filter(s => s.tag === "old").map(s => s.url);
     const newHits = tags.filter(s => s.tag === "new").map(s => s.url);
-    if (oldHits.some(u => u.includes("v=g2local1") || u.includes("v=nov3k")) && newHits.some(u => u.includes("app.js?v=" + APP_V)) && newHits.some(u => u.includes("content.es.js?v=" + CONTENT_V))) pass("server served old bytes only for the old cache keys");
+    if (oldHits.some(u => u.includes("v=g2local1") || u.includes("v=nov3k")) && newHits.some(u => u.includes("app.js?v=" + APP_V)) && newHits.some(u => u.includes("content.es.js?v=" + ES_CONTENT_V))) pass("server served old bytes only for the old cache keys");
     else fail("serve tags", { oldHits, newHits });
   } finally {
     chrome.kill("SIGKILL");

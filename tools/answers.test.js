@@ -57,4 +57,27 @@ A.setLang("es");
 ["Brett", "Bret", "Farve", "Fávre", "Brett Favre"].forEach(s => t("es favre accept " + s, A.checkAnswer(s, favreA, favreO), true));
 ["brent", "rodgers", "packers", "", "asdf"].forEach(s => t("es favre reject " + s, A.checkAnswer(s, favreA, favreO), false));
 A.setLang("en");
+
+// Nov 28 MVP: exact "Kim" and "Hill" are accepted; fuzzy forms and listed wrong answers are not.
+const fs = require("fs"), path = require("path"), vm = require("vm");
+const win28 = {};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "content.js"), "utf8"), { window: win28 });
+const nov28sports = win28.CONTENT.sports[63];
+const kimQ = nov28sports[1], hillQ = nov28sports[2];
+t("nov28 sports 63 is SKIMS / Tyreek", /SKIMS/.test(kimQ.q) && hillQ.answer === "Tyreek Hill", true);
+t("nov28 kim listed exactOnly", kimQ.aliases.map(A.norm).includes("kim") && kimQ.exactOnly.map(A.norm).includes("kim"), true);
+t("nov28 hill listed exactOnly and not wrong", hillQ.accept.map(A.norm).includes("hill") && hillQ.exactOnly.map(A.norm).includes("hill") && !(hillQ.wrong || []).map(A.norm).includes("hill"), true);
+const kimOpts = { aliases: kimQ.aliases, wrong: kimQ.wrong, exactOnly: kimQ.exactOnly, q: kimQ.q };
+t("nov28 kim", A.checkAnswer("kim", kimQ.answers, kimOpts), true);
+t("nov28 Kim", A.checkAnswer("Kim", kimQ.answers, kimOpts), true);
+t("nov28 kardashian alone", A.checkAnswer("kardashian", kimQ.answers, kimOpts), false);
+t("nov28 kim typo is not enough", A.checkAnswer("kimm", kimQ.answers, kimOpts), false);
+const hillParts = A.splitAccept(hillQ.accept);
+const hillOpts = { aliases: hillParts.aliases, given: [].concat(hillParts.given, hillQ.given || [], hillQ.exactOnly || []), exactOnly: hillQ.exactOnly, q: hillQ.prompt, wrong: hillQ.wrong };
+t("nov28 hill", A.checkAnswer("hill", [hillQ.answer], hillOpts), true);
+t("nov28 Hill", A.checkAnswer("Hill", [hillQ.answer], hillOpts), true);
+t("nov28 grant hill", A.checkAnswer("grant hill", [hillQ.answer], hillOpts), false);
+t("nov28 tyreek", A.checkAnswer("tyreek", [hillQ.answer], hillOpts), true);
+t("nov28 hill typo is not enough", A.checkAnswer("hil", [hillQ.answer], hillOpts), false);
+
 console.log(bad ? bad + " failures" : "answers.test.js: all pass"); process.exit(bad ? 1 : 0);
