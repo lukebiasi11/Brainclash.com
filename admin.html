@@ -77,7 +77,7 @@ button.ok{background:#1d8a4a;box-shadow:0 3px 0 #105c30}button.no{background:#c0
 <script src="i18n.js?v=nov26f"></script>
 <script src="name-filter.js?v=lb13"></script>
 <script src="leaderboard-config.js?v=sb2119c"></script>
-<script src="eagle-eye.js?v=tf27c"></script>
+<script src="eagle-eye.js?v=tf28a"></script>
 <script src="app.js?v=nov27a"></script>
 <script src="feedback.js?v=tf26g"></script>
 <script src="admin-board.js?v=lb3"></script>
@@ -220,13 +220,20 @@ function eagleParts(k) {
   const cupName = es ? "Vasos" : "Cup Shuffle";
   const dotName = es ? "Sigue el punto" : "Track the Dot";
   const nov27 = k === "2026-11-27";
-  const banked = nov27
+  const nov28 = k === "2026-11-28";
+  const banked = nov28
+    ? (es ? "Sábado 28: 3 vasos, 18 movimientos, 240 ms." : "Saturday, Nov 28: 3 cups, 18 moves, 240 ms.")
+    : nov27
     ? (es ? "Viernes 27: 3 vasos, 16 movimientos, 260 ms." : "Friday, Nov 27: 3 cups, 16 moves, 260 ms.")
     : (es ? "Los niveles 1 y 3 no están en el calendario." : "Cup tiers 1 and 3 are not scheduled.");
   const items = `<li><span class="tag">cups</span>${esc(cupName)}: ${esc(cups)} · ${pts[0]} pts</li>`
     + `<li><span class="tag">dots</span>${esc(dotName)}: ${esc(dots)} · ${pts[3] + pts[4]} pts</li>`
     + `<li><span class="tag">banked</span>${esc(banked)}</li>`;
-  const answers = nov27
+  const answers = nov28
+    ? (es
+      ? "Sábado 28 de noviembre de 2026. Rompecocos. Vasos (" + pts[0] + " pts, 3 vasos, 18 movimientos, 240 ms) y Sigue el punto (" + (pts[3] + pts[4]) + " pts). La ronda 1 sigue 1 punto a 255 px/s y la ronda 2 sigue 2 a 245 px/s. La ronda 2 de los puntos es todo o nada."
+      : "Saturday, Nov 28, 2026. Brain Teaser. Cup Shuffle (" + pts[0] + " pts, 3 cups, 18 moves, 240 ms) and Track the Dot (" + (pts[3] + pts[4]) + " pts). Round 1 tracks 1 dot at 255 px/s and round 2 tracks 2 at 245 px/s. Track round 2 is all or nothing.")
+    : nov27
     ? (es
       ? "Viernes 27 de noviembre de 2026. Rompecocos. Vasos (" + pts[0] + " pts, 3 vasos, 16 movimientos, 260 ms) y Sigue el punto (" + (pts[3] + pts[4]) + " pts). La ronda 1 sigue 1 punto y la ronda 2 sigue 2. La ronda 2 de los puntos es todo o nada."
       : "Friday, Nov 27, 2026. Brain Teaser. Cup Shuffle (" + pts[0] + " pts, 3 cups, 16 moves, 260 ms) and Track the Dot (" + (pts[3] + pts[4]) + " pts). Round 1 tracks 1 dot and round 2 tracks 2. Track round 2 is all or nothing.")

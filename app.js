@@ -26,7 +26,7 @@ const CATS = [
 if (LANG === "es") CATS.forEach(c => { c.name = tr(c.name); c.sub = tr(c.sub); c.desc = tr(c.desc); });
 function isBrainTeaserDay(key) {
   if (key && window.EagleEye && typeof EagleEye.on === "function") return !!EagleEye.on(key);
-  return key === "2026-11-26" || key === "2026-11-27";
+  return key === "2026-11-26" || key === "2026-11-27" || key === "2026-11-28";
 }
 function thinkCatName(key) { return isBrainTeaserDay(key) ? "Brain Teaser" : "Think Fast"; }
 function catsFor(key) {
@@ -352,7 +352,7 @@ function liveTotal() {
   // Category score (out of 1,000), never the grand total — keeps the timer from being read as "1000 seconds".
   b.textContent = fmt(session.inProgress != null ? Math.round(session.partial || 0) : (session.lastCat != null ? session.lastCat : 0));
 }
-// November 26 and 27 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
+// November 26, 27, and 28 Brain Teaser is Cup Shuffle 375 plus Track the Dot 250 + 375. Every other category stays 1,000.
 function catCapFor(key, index) {
   if (index === 4 && window.EagleEye && EagleEye.dayPlan) {
     const plan = EagleEye.dayPlan(key);

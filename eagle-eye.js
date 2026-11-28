@@ -1,6 +1,7 @@
 /* Cup Shuffle and Track the Dot, played as Think Fast's two questions on scheduled days.
    2026-11-26: Cup Shuffle tier 2 (4 cups, 375), then Track the Dot (250 + 375).
    2026-11-27: Cup Shuffle tier 2 with 3 cups (16 moves, 260 ms, 0 feints, 375), then Track the Dot (250 + 375): 1 dot at 240 px/s, then 2 dots at 230 px/s.
+   2026-11-28: Cup Shuffle tier 2 with 3 cups (18 moves, 240 ms, 0 feints, 375), then Track the Dot (250 + 375): 1 dot at 255 px/s for 5.5 s, then 2 dots at 245 px/s for 6.0 s.
    Every other date stays the regular Think Fast puzzles. Tier 1 stays banked.
    Flash Count is not part of this set. Points are a proportional split of the
    Think Fast total (400 + 600), not a separate scale. The day total stays 5,000. */
@@ -28,7 +29,9 @@
   // cups + track is the Brain Teaser cap (375 + 250 + 375 = 1,000). The day total stays 5,000
   // while dayTotal is null. Set dayTotal to "sum" to show the sum of the five category caps instead.
   // 11/26 uses TIERS[2] and TRACK as written.
-  // 11/27 stays on tier 2 (4 cups) but shuffles longer and faster, and both dot rounds are quicker.
+  // 11/27 stays on tier 2 but uses 3 cups, a longer faster shuffle, and quicker dot rounds.
+  // 11/28 stays on tier 2 and 3 cups, slightly harder than 11/27: 18 moves at 240 ms, 0 feints.
+  // Dot counts match 11/27. Round 1 is 255 px/s and round 2 is 245 px/s.
   const DAY_SCORE = {
     "2026-11-26": { cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2 },
     "2026-11-27": {
@@ -37,6 +40,14 @@
       trackPlay: [
         { dots: 7, targets: 1, speed: 240, secs: 5.5 },
         { dots: 8, targets: 2, speed: 230, secs: 6.0 }
+      ]
+    },
+    "2026-11-28": {
+      cups: 375, track: [250, 375], scale: 1, dayTotal: null, tier: 2,
+      n: 3, moves: 18, ms: 240, feints: 0,
+      trackPlay: [
+        { dots: 7, targets: 1, speed: 255, secs: 5.5 },
+        { dots: 8, targets: 2, speed: 245, secs: 6.0 }
       ]
     }
   };
@@ -51,6 +62,7 @@
       dayTotal: spec.dayTotal || null, tier: spec.tier == null ? 2 : spec.tier,
       n: spec.n == null ? null : spec.n,
       moves: spec.moves == null ? null : spec.moves, ms: spec.ms == null ? null : spec.ms,
+      feints: spec.feints == null ? null : spec.feints,
       trackPlay: spec.trackPlay || null
     };
   }
@@ -63,7 +75,8 @@
       tier: tier, n: plan.n != null ? plan.n : base.n,
       moves: plan.moves != null ? plan.moves : base.moves,
       ms: plan.ms != null ? plan.ms : base.ms,
-      gap: base.gap, rot: base.rot, far: base.far, feints: base.feints, pts: plan.cups
+      gap: base.gap, rot: base.rot, far: base.far,
+      feints: plan.feints != null ? plan.feints : base.feints, pts: plan.cups
     };
     const track = [0, 1].map(i => {
       const b = TRACK[i];
