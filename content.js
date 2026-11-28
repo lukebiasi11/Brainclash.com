@@ -3988,10 +3988,12 @@ window.CONTENT = {
           "kim kardashien",
           "kim kardashion",
           "kimberly kardashian",
-          "kim k"
+          "kim k",
+          "kim"
         ],
         "exactOnly": [
-          "kim k"
+          "kim k",
+          "kim"
         ],
         "wrong": [
           "khloe kardashian",
@@ -4015,6 +4017,7 @@ window.CONTENT = {
         "accept": [
           "Tyreek Hill",
           "Tyreek",
+          "Hill",
           "Tyreek Hil",
           "Tyreek Hills",
           "Tyree Hill",
@@ -4029,7 +4032,8 @@ window.CONTENT = {
           "Tyreek Hilll"
         ],
         "exactOnly": [
-          "Tyreek"
+          "Tyreek",
+          "Hill"
         ],
         "wrong": [
           "grant hill",
@@ -4038,8 +4042,7 @@ window.CONTENT = {
           "tyreke evans",
           "tyreke",
           "taysom hill",
-          "justice hill",
-          "hill"
+          "justice hill"
         ],
         "explain": "Tyreek Hill is an American professional football wide receiver, nicknamed \"The Cheetah\" for his speed. He has been named a first-team All-Pro more than once."
       }
