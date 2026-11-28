@@ -244,7 +244,7 @@ t("Nov 23 fifth tab stays Think Fast", Board.fifthName("2026-11-23") === "Think 
 t("Nov 25 fifth tab stays Think Fast", Board.fifthName("2026-11-25") === "Think Fast");
 t("Nov 26 fifth tab stays Brain Teaser", Board.fifthName("2026-11-26") === "Brain Teaser");
 t("Nov 27 fifth tab stays Brain Teaser", Board.fifthName("2026-11-27") === "Brain Teaser");
-t("Nov 28 fifth tab is Think Fast", Board.fifthName("2026-11-28") === "Think Fast");
+t("Nov 28 fifth tab stays Brain Teaser", Board.fifthName("2026-11-28") === "Brain Teaser");
 const esMap = require(path.join(root, "i18n.js")).ES;
 t("es Nov 22 label", esMap["Brain Teaser"] === "Rompecocos");
 t("es has no Eagle Eye label", esMap["Eagle Eye"] == null && esMap["Brain Teaser"] === "Rompecocos");

@@ -26,11 +26,11 @@
     ["think", "Think Fast"]
   ];
   // Fifth tab label. The slot id stays think. Regular days are Think Fast.
-  // 2026-11-26 and 2026-11-27 (and any later day scheduled the same way) use Brain Teaser.
+  // 2026-11-26, 2026-11-27, and 2026-11-28 (and any later day scheduled the same way) use Brain Teaser.
   function fifthName(key) {
     const day = key || todayKey();
     if (root.EagleEye && typeof root.EagleEye.on === "function" && root.EagleEye.on(day)) return "Brain Teaser";
-    if (day === "2026-11-26" || day === "2026-11-27") return "Brain Teaser";
+    if (day === "2026-11-26" || day === "2026-11-27" || day === "2026-11-28") return "Brain Teaser";
     return "Think Fast";
   }
   const MAIL = "mailto:thedailydosetrivia@gmail.com";
